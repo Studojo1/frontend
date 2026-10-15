@@ -291,12 +291,50 @@ function UserBubble({ text }: { text: string }) {
         </div>
       )}
       {body && (
-        <div className={`whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${long && !open ? "line-clamp-6" : ""}`}>{body}</div>
+        <div className={`sx-rich-inline whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${long && !open ? "line-clamp-6" : ""}`}>{inlineRich(body)}</div>
       )}
       {long && (
         <button onClick={() => setOpen((o) => !o)} className="sx-more mt-1.5">{open ? "Show less" : "Show the full message"}</button>
       )}
     </div>
+  );
+}
+
+// A phone number as people read it (new look): +91 98508 53999, +1 214-354-9833. Other countries stay as
+// written. Links keep the raw number.
+function formatPhone(p: string): string {
+  const raw = String(p || "").trim();
+  const d = raw.replace(/[^\d+]/g, "");
+  if (/^\+91\d{10}$/.test(d)) return `+91 ${d.slice(3, 8)} ${d.slice(8)}`;
+  if (/^\+1\d{10}$/.test(d)) return `+1 ${d.slice(2, 5)}-${d.slice(5, 8)}-${d.slice(8)}`;
+  return raw;
+}
+
+// A person's name in their own capitals, unless the source wrote it all lower or all upper case ("pranav hegde").
+function personName(s: string): string {
+  const t = String(s || "").trim();
+  if (!t || (/[a-z]/.test(t) && /[A-Z]/.test(t))) return t;
+  return t.toLowerCase().replace(/(^|[\s'.-])(\p{L})/gu, (_m, a: string, b: string) => a + b.toUpperCase());
+}
+
+// A fit score on either scale (8.6 of 10, 86 of 100) in one style: one decimal or a whole number.
+function fitText(n: number): string {
+  return n > 10 ? String(Math.round(n)) : n.toFixed(1);
+}
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button type="button" aria-label={`Copy ${label}`} title={`Copy ${label}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        navigator.clipboard?.writeText(value);
+        setDone(true);
+        setTimeout(() => setDone(false), 1200);
+      }}
+      className="sx-copy w-6 h-6 shrink-0 rounded-md inline-flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100">
+      {done ? <FiCheck size={12} className="text-green-600" /> : <FiCopy size={12} />}
+    </button>
   );
 }
 
@@ -810,7 +848,7 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 
 /* the table: 13px cells, readable contact lines and row numbers, no column squeezed to one word a line */
 .sx table[class~="text-[12.5px]"] { font-size: 13px; }
-.sx tbody td.sticky { white-space: normal; min-width: 200px; max-width: 260px; }
+.sx tbody td.sticky { white-space: normal; min-width: 240px; max-width: 300px; }
 .sx tbody td.sticky > span { align-items: flex-start; }
 .sx tbody td.sticky .w-4.text-right { color: var(--t3); font-size: 11px; font-variant-numeric: tabular-nums; min-width: 18px; padding-top: 2px; }
 .sx tbody td [class~="text-[10.5px]"] { font-size: 12px; color: var(--t2); }
@@ -835,6 +873,37 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
   .sx .bob-canvas [class~="pl-10"] { padding-left: 0; }
   .sx .sx-answer { max-width: 100%; }
 }
+
+/* ── second pass: results, cards, lookups ── */
+/* the line under a name: the role under a company, the company and role under a student */
+.sx .sx-sub { font-size: 12px; font-weight: 400; color: var(--t2); line-height: 1.35; margin-top: 2px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sx .sx-drawer-sub { font-size: 13px; color: var(--t2); margin-top: 3px; line-height: 1.4; }
+/* a card's "why" line is a quiet panel, not a violet bar on a rounded box */
+.sx [class~="border-l-[3px]"] { border-left-width: 0; border-radius: 10px; background-color: var(--bg2); padding: 8px 10px; }
+/* figures and contact details in the text face with even digits; the mono face read as debug output */
+.sx header .relative > button.rounded-full { font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.sx span.rounded-md.font-black, .sx span.rounded-md.tabular-nums, .sx [class~="min-w-9"].h-9 { font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.sx .sx-copy { color: var(--t3); }
+/* links the person pasted read as short links, not 200 characters of address */
+.sx .sx-rich-inline a { color: var(--acc-deep); text-decoration: underline; text-decoration-color: var(--acc-line); text-underline-offset: 3px; }
+/* dark: "New chat" in the accent, not a white slab that outshines the page */
+.sx .sx-dark aside .p-2 > button.bg-neutral-900 { background-color: var(--acc-fill); color: #fff; }
+.sx .sx-dark aside .p-2 > button.bg-neutral-900:hover { background-color: var(--acc-fill-h); color: #fff; }
+/* dark: logos sit on a white tile, as they do in light; black marks vanished on the dark surface */
+.sx .sx-dark img.rounded-md.object-contain { background-color: #fff; }
+/* the "..." on each chat appears on hover, focus or the open chat, not as a column of 13 identical icons */
+@media (hover: hover) {
+  .sx aside [aria-label="Chat options"] { opacity: 0; transition: opacity .12s; }
+  .sx aside div:hover > [aria-label="Chat options"], .sx aside [aria-label="Chat options"]:focus-visible,
+  .sx aside [aria-label="Chat options"][aria-expanded="true"], .sx aside .bg-violet-100 > [aria-label="Chat options"] { opacity: 1; }
+}
+/* what Sensei can do, under the empty composer */
+.sx .sx-starter { display: flex; align-items: flex-start; gap: 10px; text-align: left; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background-color: var(--surface); color: var(--t1); transition: border-color .15s, box-shadow .15s, translate .15s; }
+.sx .sx-starter:hover { border-color: var(--acc-line); box-shadow: var(--sh-md); translate: 0 -1px; }
+.sx .sx-starter > svg { flex: none; margin-top: 2px; color: var(--acc); }
+.sx .sx-starter-title { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
+.sx .sx-starter-text { display: block; font-size: 13px; color: var(--t2); margin-top: 2px; line-height: 1.4; }
 `;
 /* sx:end */
 
@@ -1438,6 +1507,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [pendingFiles, setPendingFiles] = useState<{ id: number; name: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean; tiers?: EnrichTier[] | null } | null>(null);
   const [notice, setNotice] = useState<string>("");
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean; projects?: boolean } } | null>(null);
@@ -2658,6 +2728,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     }}
                   >
                     <textarea
+                      ref={composerRef}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onPaste={onComposerPaste}
@@ -2701,6 +2772,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       )}
                     </div>
                   </div>
+                  {atRest && ui === "new" && (
+                    <Starters
+                      onFill={(t) => { setInput(t); requestAnimationFrame(() => { const el = composerRef.current; if (el) { el.focus(); el.setSelectionRange(t.length, t.length); } }); }}
+                      onAttach={() => fileInputRef.current?.click()} />
+                  )}
                 </div>
               </div>
             </section>
@@ -3308,6 +3384,34 @@ function EmptyChat() {
       <h2 className="font-['Clash_Display'] text-[30px] sm:text-[34px] leading-[1.15] font-semibold tracking-tight">
         Who are we getting hired today?
       </h2>
+    </div>
+  );
+}
+
+// New look: what Sensei can do, under the empty composer. A tile only fills in the composer (or opens the
+// file picker); nothing is sent until the person sends it.
+const STARTERS: { title: string; text: string; fill?: string; icon: typeof FiSearch }[] = [
+  { title: "Find companies hiring", text: "Search live postings by role, city and company type", icon: FiSearch,
+    fill: "Find startups in Bengaluru hiring React developers, posted in the last 7 days" },
+  { title: "A job link", text: "Paste a Naukri or LinkedIn job: get the recruiter and their number", icon: FiExternalLink,
+    fill: "Find the hiring contact and their number for this job: " },
+  { title: "A LinkedIn profile", text: "Paste a profile: get their phone and email", icon: FiLinkedin,
+    fill: "Find the phone number and email for this LinkedIn profile: " },
+  { title: "A cohort sheet", text: "Attach a sheet or resumes: match each student to openings", icon: FiPaperclip },
+];
+
+function Starters({ onFill, onAttach }: { onFill: (t: string) => void; onAttach: () => void }) {
+  return (
+    <div className="sx-starters grid sm:grid-cols-2 gap-2 mt-3">
+      {STARTERS.map((s) => (
+        <button key={s.title} type="button" onClick={() => (s.fill ? onFill(s.fill) : onAttach())} className="sx-starter">
+          <s.icon size={15} />
+          <span className="min-w-0">
+            <span className="sx-starter-title">{s.title}</span>
+            <span className="sx-starter-text">{s.text}</span>
+          </span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -4190,8 +4294,9 @@ function QuickResults({ tables, onEnrichRow, onOpenTable }: {
 }
 
 function QuickCard({ job, cells: c, onEnrich }: { job: boolean; cells: Record<string, unknown>; onEnrich: () => void }) {
+  const ui = useContext(UiContext);
   const status = contactStatus(c);
-  const who = job ? str(c.contact_name) : str(c.name);
+  const who = ui === "new" ? personName(job ? str(c.contact_name) : str(c.name)) : job ? str(c.contact_name) : str(c.name);
   const title = job ? str(c.contact_title) : str(c.title);
   const company = str(c.company);
   const phone = str(c.contact_phone);
@@ -4237,14 +4342,20 @@ function QuickCard({ job, cells: c, onEnrich }: { job: boolean; cells: Record<st
       ) : phone || email ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] min-w-0">
           {phone && (
-            <a href={`tel:${phone}`} className="inline-flex items-center gap-1 font-bold hover:text-violet-700">
-              <FiPhone size={12} className="text-green-600" /> {phone}
-            </a>
+            <span className="inline-flex items-center gap-0.5 min-w-0">
+              <a href={`tel:${phone}`} className="inline-flex items-center gap-1 font-bold hover:text-violet-700">
+                <FiPhone size={12} className="text-green-600" /> {ui === "new" ? formatPhone(phone) : phone}
+              </a>
+              {ui === "new" && <CopyButton value={phone} label="phone number" />}
+            </span>
           )}
           {email && (
-            <a href={`mailto:${email}`} className="inline-flex items-center gap-1 text-neutral-700 hover:text-violet-700 truncate max-w-full">
-              <FiMail size={12} className="text-violet-600" /> {email}
-            </a>
+            <span className="inline-flex items-center gap-0.5 min-w-0 max-w-full">
+              <a href={`mailto:${email}`} className="inline-flex items-center gap-1 text-neutral-700 hover:text-violet-700 truncate max-w-full">
+                <FiMail size={12} className="text-violet-600" /> {email}
+              </a>
+              {ui === "new" && <CopyButton value={email} label="email" />}
+            </span>
           )}
           {!phone && <span className="text-[11.5px] text-neutral-500">No phone number found</span>}
         </div>
@@ -4344,6 +4455,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   onEnrich: () => void;
   onDelete: () => void;
 }) {
+  const ui = useContext(UiContext);
   const c = row.cells;
   const prov = c._provisional === true;
   const company = str(c.company) || `Company ${index + 1}`;
@@ -4352,7 +4464,8 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   // LinkedIn/job-board URLs in the website field are not a real company site:
   // never use them for the favicon or a "website" chip.
   const websiteIsReal = !!domain && !NON_SITE_DOMAINS.test(domain);
-  const meta = [str(c.city), str(c.size_band) !== "unknown" ? str(c.size_band) : ""].filter(Boolean).join(" · ");
+  // new look: the job leads the line under the company (two openings at one employer read as two jobs)
+  const meta = [ui === "new" ? str(c.role) : "", str(c.city), str(c.size_band) !== "unknown" ? str(c.size_band) : ""].filter(Boolean).join(" · ");
   const what = str(c.what_they_do);
   const whyNow = str(c.why_now);
   const evidence = str(c.hiring_evidence);
@@ -4367,7 +4480,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   // Reading only contact_* meant an enriched contact rendered as an empty card
   // with a company name and nothing else, which is exactly the data the user
   // just paid for.
-  const contactName = str(c.contact_name) || str(c.name);
+  const contactName = ui === "new" ? personName(str(c.contact_name) || str(c.name)) : str(c.contact_name) || str(c.name);
   const contactTitle = str(c.contact_title) || str(c.title);
   const contactPhone = str(c.contact_phone) || str(c.phone);
   const contactEmail = str(c.contact_email) || str(c.email);
@@ -4403,7 +4516,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
               (fit > 10 ? fit >= 80 : fit >= 8) ? "bg-green-300" : (fit > 10 ? fit >= 60 : fit >= 6) ? "bg-amber-200" : "bg-neutral-100"
             }`}
           >
-            {fit}
+            {ui === "new" ? fitText(fit) : fit}
           </div>
         )}
       </div>
@@ -4415,7 +4528,9 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
             className="text-[12.5px] text-neutral-800 leading-snug overflow-hidden"
             style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
           >
-            {whyNow || evidence}
+            {ui === "new" && str(c.student) && (whyNow || evidence).startsWith(`${str(c.student)}:`)
+              ? <><strong className="font-semibold text-neutral-900">{str(c.student)}</strong>{(whyNow || evidence).slice(str(c.student).length)}</>
+              : whyNow || evidence}
           </p>
         </div>
       )}
@@ -4469,7 +4584,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
                   {contactPhone && (
                     <a href={`tel:${contactPhone}`} title="Call"
                        className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 hover:border-neutral-900">
-                      <FiPhone size={11} className="text-green-600" /> {contactPhone}
+                      <FiPhone size={11} className="text-green-600" /> {ui === "new" ? formatPhone(contactPhone) : contactPhone}
                     </a>
                   )}
                   {contactEmail && (
@@ -4514,7 +4629,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
             {contactPhone && (
               <a href={`tel:${contactPhone}`} title="Call"
                 className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 hover:border-neutral-900">
-                <FiPhone size={11} className="text-green-600" /> {contactPhone}
+                <FiPhone size={11} className="text-green-600" /> {ui === "new" ? formatPhone(contactPhone) : contactPhone}
               </a>
             )}
             {contactEmail && (
@@ -4554,14 +4669,36 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
     "contact_email", "contact_linkedin_url", "tier"]);
   const cols = orderColumns(table.columns);
   const ui = useContext(UiContext);
+  // New look: a match table leads with the student it is about; the role reads under the company, so two
+  // openings at one employer no longer look like the same row twice; the fit score sits beside the name.
+  const has = (k: string) => table.columns.some((c) => c.key === k);
+  const studentFirst = ui === "new" && has("student");
+  const roleUnder = ui === "new" && has("role");
+  const fitCol = ui === "new" ? table.columns.find((c) => c.key === "fit_score") : undefined;
+  const hide = new Set(HIDE);
+  if (studentFirst) hide.add("student");
+  if (roleUnder) hide.add("role");
+  if (fitCol) hide.add("fit_score");
+  const TH = "px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap";
+  const companyCell = (r: BobRow) => (
+    <span className="inline-flex items-start gap-2 min-w-0">
+      <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={20} />
+      <span className="min-w-0">
+        <span className="block">{str(r.cells.name) || str(r.cells.company)}</span>
+        {roleUnder && str(r.cells.role) && <span className="sx-sub block">{str(r.cells.role)}</span>}
+      </span>
+    </span>
+  );
   return (
     <div className="flex-1 overflow-auto bg-white">
       <table className="text-[12.5px] border-collapse w-full">
         <thead className="sticky top-0 z-20">
           <tr className="bg-[#faf7f2]">
-            <th className="sticky left-0 z-30 bg-[#faf7f2] px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Company</th>
+            <th className={`sticky left-0 z-30 bg-[#faf7f2] ${TH}`}>{studentFirst ? "Student" : "Company"}</th>
+            {studentFirst && <th data-col="company" className={TH}>Company</th>}
+            {fitCol && <th data-col="fit_score" className={TH}>{columnLabel(fitCol, ui)}</th>}
             <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Contact</th>
-            {cols.filter((c) => !HIDE.has(c.key)).map((c) => (
+            {cols.filter((c) => !hide.has(c.key)).map((c) => (
               <th key={c.key} data-col={c.key} className={`px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap ${WIDE_KEYS.has(c.key) ? "min-w-[240px]" : ""}`}>
                 {columnLabel(c, ui)}
               </th>
@@ -4580,22 +4717,31 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
               className={`border-b border-neutral-200 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
             >
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
-                <span className="inline-flex items-center gap-2">
-                  <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
-                  <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={20} />
-                  {str(r.cells.name) || str(r.cells.company)}
-                </span>
+                {ui === "new" ? (
+                  <span className="inline-flex items-start gap-2">
+                    <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                    {studentFirst ? <span>{str(r.cells.student) || "-"}</span> : companyCell(r)}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                    <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={20} />
+                    {str(r.cells.name) || str(r.cells.company)}
+                  </span>
+                )}
               </td>
+              {studentFirst && <td data-col="company" className="px-3 py-2.5 font-semibold">{companyCell(r)}</td>}
+              {fitCol && <td data-col="fit_score" className="px-3 py-2.5"><Cell colKey="fit_score" value={r.cells.fit_score} /></td>}
               <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                 {prov ? (
                   <span className="text-neutral-300">-</span>
                 ) : str(r.cells.contact_name) ? (
                   <div className="min-w-0">
-                    <div className="text-[12px] font-bold truncate max-w-[180px]">{str(r.cells.contact_name)}</div>
+                    <div className="text-[12px] font-bold truncate max-w-[180px]">{ui === "new" ? personName(str(r.cells.contact_name)) : str(r.cells.contact_name)}</div>
                     <div className="flex items-center gap-2 text-[10.5px] text-neutral-500">
                       {str(r.cells.contact_phone) && (
                         <a href={`tel:${str(r.cells.contact_phone)}`} className="inline-flex items-center gap-0.5 hover:text-neutral-900">
-                          <FiPhone size={9} className="text-green-600" /> {str(r.cells.contact_phone)}
+                          <FiPhone size={9} className="text-green-600" /> {ui === "new" ? formatPhone(str(r.cells.contact_phone)) : str(r.cells.contact_phone)}
                         </a>
                       )}
                       {str(r.cells.contact_email) && (
@@ -4609,7 +4755,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                   <EnrichButton cells={r.cells} onEnrich={() => onEnrich(r.id)} size="xs" />
                 )}
               </td>
-              {cols.filter((c) => !HIDE.has(c.key)).map((c) => (
+              {cols.filter((c) => !hide.has(c.key)).map((c) => (
                 <td key={c.key} data-col={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
                   <Cell colKey={c.key} value={r.cells[c.key]} />
                 </td>
@@ -4662,6 +4808,7 @@ function LinkChip({ href, label, icon }: { href: string; label: string; icon?: R
 }
 
 function Cell({ colKey, value }: { colKey: string; value: unknown }) {
+  const ui = useContext(UiContext);
   const s = str(value);
   if (!s) return <span className="text-neutral-300">-</span>;
 
@@ -4673,8 +4820,10 @@ function Cell({ colKey, value }: { colKey: string; value: unknown }) {
   if (colKey === "fit_score") {
     const n = parseFloat(s);
     if (!isNaN(n)) {
-      const style = n >= 8 ? "bg-green-100 text-green-800" : n >= 6 ? "bg-amber-100 text-amber-800" : "bg-neutral-100 text-neutral-500";
-      return <span className={`inline-block text-[11px] font-black rounded-md px-1.5 py-0.5 ${style}`}>{n}</span>;
+      // new look: the same bands on either scale (a 69 of 100 is amber in the card, so it is amber here too)
+      const k = ui === "new" && n > 10 ? n / 10 : n;
+      const style = k >= 8 ? "bg-green-100 text-green-800" : k >= 6 ? "bg-amber-100 text-amber-800" : "bg-neutral-100 text-neutral-500";
+      return <span className={`inline-block text-[11px] font-black rounded-md px-1.5 py-0.5 ${style}`}>{ui === "new" ? fitText(n) : n}</span>;
     }
   }
 
@@ -4763,6 +4912,25 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
     ["Company", columns.filter((c) => COMPANY_KEYS.includes(c.key))],
     ["More", columns.filter((c) => c.key !== "company" && !CONTACT_KEYS.includes(c.key) && !EVIDENCE_KEYS.includes(c.key) && !COMPANY_KEYS.includes(c.key))],
   ];
+  // New look: the headline is who the row is about (the student, on a match row) with the company and the
+  // role under it; fit and city come first, where a match row had them filed under "Company" and the
+  // student and role under "More".
+  const student = str(row.cells.student);
+  const role = str(row.cells.role);
+  const headline = ui === "new" && student ? student : company;
+  const subline = ui === "new" ? (student ? [company, role] : [role]).filter(Boolean).join(" · ") : "";
+  const inHeader = new Set(ui === "new" ? ["student", "role"] : []);
+  const OVERVIEW = ["fit_score", "city", "size_band"];
+  const shown = ui === "new"
+    ? ([
+        ["Overview", columns.filter((c) => OVERVIEW.includes(c.key))],
+        ["Contact", columns.filter((c) => CONTACT_KEYS.includes(c.key))],
+        ["Evidence", columns.filter((c) => EVIDENCE_KEYS.includes(c.key))],
+        ["Company", columns.filter((c) => COMPANY_KEYS.includes(c.key) && !OVERVIEW.includes(c.key))],
+        ["More", columns.filter((c) => c.key !== "company" && !inHeader.has(c.key) && !OVERVIEW.includes(c.key)
+          && !CONTACT_KEYS.includes(c.key) && !EVIDENCE_KEYS.includes(c.key) && !COMPANY_KEYS.includes(c.key))],
+      ] as [string, BobColumn[]][])
+    : sections;
 
   return (
     <>
@@ -4770,7 +4938,8 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
       <div className="absolute top-0 right-0 bottom-0 w-full max-w-[440px] bg-white border-l-2 border-neutral-900 z-40 flex flex-col bob-pop">
         <div className="p-4 border-b-2 border-neutral-900 flex items-start gap-3">
           <div className="min-w-0">
-            <h3 className="font-['Clash_Display'] text-xl font-semibold truncate">{company}</h3>
+            <h3 className="font-['Clash_Display'] text-xl font-semibold truncate">{headline}</h3>
+            {subline && <p className="sx-drawer-sub">{subline}</p>}
             <div className="flex items-center gap-2 mt-1.5">
               <select
                 aria-label="Status"
@@ -4798,7 +4967,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-5">
-          {sections.map(([title, cols]) => {
+          {shown.map(([title, cols]) => {
             const visible = cols.filter((c) => str(row.cells[c.key]) !== "");
             if (visible.length === 0) return null;
             return (
@@ -4833,8 +5002,12 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
                               />
                             ))}
                           </div>
+                        ) : ui === "new" && c.key === "fit_score" ? (
+                          <Cell colKey="fit_score" value={s} />
                         ) : (
-                          <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{s}</p>
+                          <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                            {ui === "new" && c.key === "contact_phone" ? formatPhone(s) : ui === "new" && c.key === "contact_name" ? personName(s) : s}
+                          </p>
                         )}
                       </div>
                     );
