@@ -266,7 +266,7 @@ export function CopyLinkButton({ url, onStatus }: { url: string; onStatus: (s: s
     timer.current = setTimeout(() => setLabel("Copy link"), 1800);
   }
   return (
-    <button type="button" data-copy="" onClick={copy} className="group -my-1 inline-flex min-h-[44px] items-center focus-visible:outline-none sm:my-0 sm:min-h-0">
+    <button type="button" data-copy="" data-flash={label !== "Copy link"} onClick={copy} className="group -my-1 inline-flex min-h-[44px] items-center focus-visible:outline-none sm:my-0 sm:min-h-0">
       <span className={`sp-copy-chip ${CHIP} border border-neutral-300 bg-white px-3 text-studojo-ink group-hover:border-neutral-400 group-hover:bg-neutral-50 group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-studojo-purple-strong`}>
         <LinkIcon />
         <span className="sp-copy-text">{label}</span>

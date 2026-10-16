@@ -1,7 +1,7 @@
 // The student page's sections, top to bottom: identity, Looking for,
 // Highlights, About, Experience / Projects / Education, Awards and Skills.
 // Every component takes a slice of the view model; nothing here decides data.
-import { forwardRef, Fragment, useId, useState } from "react";
+import { forwardRef, Fragment, useId, useState, type CSSProperties } from "react";
 import {
   Chevron,
   Controls,
@@ -16,7 +16,7 @@ import {
   TextToggle,
   useDisclosure,
 } from "./atoms";
-import type { AboutView, AwardsView, EntryView, HighlightView, LookingView, ProfileView, SkillGroupView, StintSectionView } from "./profile-view";
+import type { AboutView, AwardsView, EntryView, FigColView, HighlightView, LookingView, ProfileView, SkillGroupView, StintSectionView } from "./profile-view";
 
 const NAME_SIZE = {
   m: "text-[34px] leading-[1.08] md:text-[54px] md:leading-[1.02]",
@@ -49,7 +49,7 @@ export const Identity = forwardRef<HTMLElement, { v: ProfileView }>(function Ide
           <h1 id="name" className={`sp-name min-w-0 flex-1 font-newsreader font-[440] tracking-[-0.015em] text-studojo-ink ${NAME_SIZE[v.nameSize]}`}>
             {v.name}
           </h1>
-          {v.photo && <img src={v.photo} alt="" className="mt-1 h-14 w-14 flex-none rounded-full object-cover ring-1 ring-black/5 md:hidden" />}
+          {v.photo && <img src={v.photo} alt={`Photo of ${v.name}`} className="mt-1 h-14 w-14 flex-none rounded-full object-cover ring-1 ring-black/5 md:hidden" />}
         </div>
         {v.headline && (
           <p className="mt-3 max-w-[34em] text-[16px] leading-[1.5] text-neutral-700 md:text-[18px]">
@@ -159,12 +159,21 @@ export function LookingFor({ looking }: { looking: LookingView }) {
 const ROW_HINT =
   "sp-hint mt-1 flex items-center gap-1.5 text-[13px] font-medium leading-5 text-neutral-500 transition-colors group-hover:text-studojo-purple-strong group-aria-expanded:text-studojo-purple-strong";
 
-function HighlightRow({ h }: { h: HighlightView }) {
+// The figure column comes from the view (figCol) as CSS variables on the list; Tailwind only sees whole class strings, so the three layouts are a static map.
+const FIG_ROW = {
+  none: "grid-cols-[var(--fw)_minmax(0,1fr)] items-baseline gap-x-3 md:grid-cols-[var(--fwd)_minmax(0,1fr)] md:gap-x-5",
+  phone: "grid-cols-[minmax(0,1fr)] sm:grid-cols-[var(--fw)_minmax(0,1fr)] sm:items-baseline sm:gap-x-3 md:grid-cols-[var(--fwd)_minmax(0,1fr)] md:gap-x-5",
+  all: "grid-cols-[minmax(0,1fr)]",
+} as const;
+const FIG_INDENT = { none: "ml-[var(--fi)] md:ml-[var(--fid)]", phone: "sm:ml-[var(--fi)] md:ml-[var(--fid)]", all: "" } as const;
+const FIG_WRAP = { none: "whitespace-nowrap", phone: "[overflow-wrap:anywhere] sm:whitespace-nowrap", all: "[overflow-wrap:anywhere]" } as const;
+
+function HighlightRow({ h, stack }: { h: HighlightView; stack: FigColView["stack"] }) {
   const d = useDisclosure();
-  const grid = "grid w-full grid-cols-[92px_minmax(0,1fr)] items-baseline gap-x-3 py-3 text-left md:grid-cols-[112px_minmax(0,1fr)] md:gap-x-5";
+  const grid = `grid w-full py-3 text-left ${FIG_ROW[stack]}`;
   const cells = (
     <>
-      <span className="sp-fig font-newsreader text-[26px] font-[450] leading-8 tracking-[-0.01em] text-studojo-ink md:text-[30px]">{h.value}</span>
+      <span className={`sp-fig ${FIG_WRAP[stack]} font-newsreader text-[26px] font-[450] leading-8 tracking-[-0.01em] text-studojo-ink md:text-[30px]`}>{h.value}</span>
       <span className="min-w-0">
         <span className="block text-[15px] leading-6 text-neutral-700">
           <Rich text={h.label} />
@@ -190,18 +199,19 @@ function HighlightRow({ h }: { h: HighlightView }) {
       <button type="button" data-row="" aria-expanded={d.open} aria-controls={d.id} onClick={d.toggle} className={`group ${grid}`}>
         {cells}
       </button>
-      <SourcePanel id={d.id} open={d.open} lines={h.ref.lines} className="mb-3 ml-[104px] md:ml-[132px]" />
+      <SourcePanel id={d.id} open={d.open} lines={h.ref.lines} className={`mb-3 ${FIG_INDENT[stack]}`} />
     </li>
   );
 }
 
 /** The numbers, each a row that opens to the resume line it came from. */
-export function Highlights({ items }: { items: HighlightView[] }) {
+export function Highlights({ items, col }: { items: HighlightView[]; col: FigColView }) {
+  const vars = { "--fw": `${col.phone}px`, "--fwd": `${col.desktop}px`, "--fi": `${col.phone + 12}px`, "--fid": `${col.desktop + 20}px` } as CSSProperties;
   return (
     <Section id="highlights" label="Highlights" labelTop={13}>
-      <ul role="list" className="-my-3">
+      <ul role="list" className="-my-3" style={vars}>
         {items.map((h) => (
-          <HighlightRow key={`${h.value}|${h.label}`} h={h} />
+          <HighlightRow key={`${h.value}|${h.label}`} h={h} stack={col.stack} />
         ))}
       </ul>
     </Section>
@@ -386,14 +396,18 @@ function SkillRow({ g, solo }: { g: SkillGroupView; solo: boolean }) {
         </span>
       )}
       <span className="min-w-0">
-        {/* Each skill and its comma is one unit, so a line breaks between skills, never inside one. */}
+        {/* Each skill and its comma is one inline-block: lines break between skills, and only a skill wider than the whole line wraps inside its box. */}
         <span className="block text-[15px] leading-7 text-studojo-ink">
           {g.names.map((n, i) => (
             <Fragment key={n}>
-              <span className="whitespace-nowrap">{`${n}${i < g.names.length - 1 || g.more ? "," : ""}`}</span>{" "}
+              <span data-skill="" className="inline-block max-w-full">{`${n}${i < g.names.length - 1 || g.more ? "," : ""}`}</span>{" "}
             </Fragment>
           ))}
-          {g.more > 0 && <span className="whitespace-nowrap text-neutral-600">and {g.more} more</span>}
+          {g.more > 0 && (
+            <span data-skill="" className="inline-block max-w-full text-neutral-600">
+              and {g.more} more
+            </span>
+          )}
         </span>
         {g.ref && (
           <span className={ROW_HINT}>

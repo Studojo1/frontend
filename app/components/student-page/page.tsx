@@ -44,7 +44,7 @@ export default function StudentPage({ p }: { p: Profile }) {
       <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[720px] px-5 focus:outline-none sm:px-8 md:px-0">
         <Identity v={v} ref={introRef} />
         {v.looking && <LookingFor looking={v.looking} />}
-        {v.highlights.length > 0 && <Highlights items={v.highlights} />}
+        {v.highlights.length > 0 && <Highlights items={v.highlights} col={v.figCol} />}
         {v.about && <About about={v.about} />}
         {v.stints.map((s) => (
           <StintSection key={s.kind} section={s} />

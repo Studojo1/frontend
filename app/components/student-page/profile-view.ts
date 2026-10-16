@@ -55,6 +55,8 @@ export type ClaimView = { n: number; text: string; matched: boolean; ref: Ref | 
 export type ProofView = { matched: number; total: number; all: boolean; text: string };
 export type LookingView = { main: string; sub: string; rows: { k: "Company" | "Location" | "Remote"; v: string }[] };
 export type HighlightView = { value: string; label: string; ref: Ref | null };
+/** The highlight figure column in px below and from 768px; "phone": figures above their labels below 640px, "all": always above. */
+export type FigColView = { phone: number; desktop: number; stack: "none" | "phone" | "all" };
 export type AboutView = { text: string; prompts: { q: string; a: string }[] };
 export type AwardsView = { label: "Awards" | "Activities"; groups: { caption: string; items: Item[] }[]; count: number; shown: number; ref: Ref | null };
 export type SkillGroupView = { where: string; names: string[]; more: number; ref: Ref | null };
@@ -78,6 +80,7 @@ export type ProfileView = {
   proof: ProofView | null;
   looking: LookingView | null;
   highlights: HighlightView[];
+  figCol: FigColView;
   about: AboutView | null;
   stints: StintSectionView[];
   awards: AwardsView | null;
@@ -91,8 +94,8 @@ type Merged = { text: string; n: number; last: number; strong: boolean };
 const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const CONNECTOR = /(?:,|\b(?:to|and|or|of|the|for|with|in|on|a|an|by|from|at|as|&))$/i;
 const endsSentence = (t: string) => /[.!?:;)\]]$/.test(t);
-/** A resume header line with contact details: never shown, cited or used as context. */
-const contactHeader = (l: RLine) => l.section === "header" && /@|\d{5}/.test(l.raw);
+/** A resume header line with contact details (raw, or already redacted on the server): never shown, cited or used as context. */
+const contactHeader = (l: RLine) => l.section === "header" && /@|\d{5}|\[(?:email|phone) hidden\]/.test(l.raw);
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const FILLER =
   /\b(class|of|to|and|the|in|at|present|now|current|ongoing|cgpa|gpa|grade|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\b/g;
@@ -102,6 +105,10 @@ const STOP = /^(current|present|now|ongoing|till date|to date|resume|skills?|oth
 const SEC_WHERE: Record<string, string> = { experience: "From experience", projects: "From projects", education: "From education", extra: "From activities" };
 const WIN = /\b(winner|won|win|runner[- ]?up|finalist|award|awarded|prize|medal|rank(ed)?|best|first place|scholar(ship)?|honou?r|top \d+)\b/i;
 const SMALL = new Set(["and", "of", "the", "for", "in", "at", "to", "on", "with", "a", "an", "&"]);
+
+// Upper-bound glyph widths in em of Newsreader (lining, tabular figures), measured at 26px and 30px.
+const GLYPH_EM: Record<string, number> = { ",": 0.23, ".": 0.23, " ": 0.22, "/": 0.27, "-": 0.34, "+": 0.52, "\u2212": 0.52, "%": 0.78, $: 0.57, "\u20ac": 0.57, "\u00a3": 0.57, "\u20b9": 0.7, M: 0.98, W: 0.98, m: 0.84, w: 0.74 };
+const figEm = (s: string) => [...s].reduce((w, c) => w + (GLYPH_EM[c] ?? (/\d/.test(c) ? 0.57 : /[a-z]/.test(c) ? 0.56 : 0.75)), 0);
 
 const present = (d: string) => (/^(now|present|current|ongoing|till date|today)$/i.test(d) ? "Present" : d);
 const restates = (text: string, parts: string[]) => {
@@ -265,6 +272,13 @@ export function profileView(input: Profile | null | undefined): ProfileView {
     })
     .filter((n) => n.value && n.label && !/\b(by|of|to|for|with|and|the|a|an|in|on|at|from)$/i.test(n.label))
     .slice(0, 4);
+  // The figure column fits the widest figure, so a long one never runs into its label. 92px and 112px stay
+  // the minimum (short figures keep the usual grid); a figure too wide to sit beside its label on a 320px
+  // phone ("1,00,000+", lakh and crore figures) goes above it below 640px, and a very long one always does.
+  const widest = Math.max(0, ...highlights.map((h) => figEm(h.value)));
+  const figPhone = Math.max(92, Math.ceil(widest * 26) + 6);
+  const figDesk = Math.max(112, Math.ceil(widest * 30) + 8);
+  const figCol: FigColView = { phone: figPhone, desktop: figDesk, stack: figDesk > 200 ? "all" : figPhone > 118 ? "phone" : "none" };
 
   // ---------------------------------------------------------------- about
   const aboutText = txt(P.about);
@@ -518,6 +532,7 @@ export function profileView(input: Profile | null | undefined): ProfileView {
     proof,
     looking,
     highlights,
+    figCol,
     about,
     stints,
     awards,

@@ -543,6 +543,10 @@ body {
  * utilities cannot say (optical sizing, the bullet dots, the sticky bar's
  * states and print).
  * ------------------------------------------------------------------------- */
+/* overflow-wrap is inherited: a long URL or token in any resume text wraps instead of widening the page. */
+.student-page { overflow-wrap: break-word; }
+/* Tailwind v4's preflight no longer gives buttons a pointer; every disclosure on this page is a button. */
+.student-page button:not(:disabled) { cursor: pointer; }
 .student-page .sp-label { font-size: 11px; line-height: 16px; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; color: #737373; }
 .student-page .sp-name { font-optical-sizing: auto; text-wrap: balance; overflow-wrap: break-word; hyphens: manual; }
 .student-page .sp-fig { font-optical-sizing: auto; font-variant-numeric: lining-nums tabular-nums; }
@@ -565,6 +569,9 @@ body {
   .sp-bar .sp-bar-email { opacity: 1; visibility: visible; }
   .sp-bar[data-compact="true"] :is(.sp-email-text, .sp-copy-text) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .sp-bar[data-compact="true"] :is(.sp-copy-chip, .sp-email-chip) { padding-left: 0; padding-right: 0; width: 36px; justify-content: center; }
+  /* After a tap, the icon-only Copy button shows "Copied" (or "Copy failed") for 1.8s, so the result is on screen. */
+  .sp-bar[data-compact="true"] [data-flash="true"] .sp-copy-text { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .sp-bar[data-compact="true"] [data-flash="true"] .sp-copy-chip { width: auto; padding-left: 12px; padding-right: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .student-page .sp-chev, .sp-bar, .sp-bar * { transition: none !important; }
@@ -575,7 +582,10 @@ body {
 .sp-print-only { display: none; }
 @media print {
   @page { margin: 14mm 14mm 16mm; }
-  .student-page { font-size: 12px; }
+  /* rem spacing prints at 75%; scoped so no other page's print changes. */
+  html:has(.student-page) { font-size: 12px; }
+  /* The site's cookie and policy notices sit beside the page in <body>; a printed CV leaves them out. */
+  html:has(.student-page) body > :not(.student-page) { display: none !important; }
   .sp-bar, .sp-no-print, .student-page [data-toggle], .student-page [data-copy], .student-page a[href^="mailto:"], .student-page .sp-hint, .student-page .sp-chev { display: none !important; }
   .student-page [data-more-list][hidden] { display: block !important; }
   .student-page .sp-print-only { display: block !important; }

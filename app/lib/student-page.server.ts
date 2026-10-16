@@ -22,7 +22,7 @@ import type { Line, Org, Profile, Stint } from "~/components/student-page/types"
 import { cityCode } from "~/components/student-page/types";
 import db from "~/lib/db";
 import { namesMatch, sanitizeLinkedIn, schoolLine, type LinkedInRole, type LinkedInSchool } from "~/lib/student-page-linkedin";
-import { clean as cleanText, entryMode, isBullet, ROLE_TAIL, VERB } from "~/lib/student-page-text";
+import { clean as cleanText, entryMode, isBullet, redact, ROLE_TAIL, VERB } from "~/lib/student-page-text";
 
 /**
  * What this page reads from user_profile.talent. /flow writes it (outreach-flow
@@ -479,6 +479,21 @@ function outcomeValue(value: string, label: string): string {
   return v;
 }
 
+/**
+ * Contact details never leave the server inside resume text. The page source carries the whole profile (the
+ * loader's data), not only what is drawn, so an email or phone number in a resume line (usually the header)
+ * would be readable there even when the student did not allow contact. Lines keep their place, so "Resume
+ * line 20" still counts from the top of the student's resume. Left alone: the email the student allowed, the
+ * page address and the photo (a data URL).
+ */
+const KEEP_AS_IS = new Set(["email", "photo", "url", "slug"]);
+function scrubContacts<T>(v: T, key = ""): T {
+  if (typeof v === "string") return (KEEP_AS_IS.has(key) ? v : redact(v)) as T;
+  if (Array.isArray(v)) return v.map((x) => scrubContacts(x, key)) as T;
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, scrubContacts(x, k)])) as T;
+  return v;
+}
+
 function repair(p: Profile, lines: Line[], approvedAt: string, now: Date): Profile {
   for (const st of [...p.experience, ...p.projects, ...p.education]) st.parse = entryMode(st);
   // Role lines filed under another section become real experience entries.
@@ -628,7 +643,7 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
       classOf: classOf ? eduLines.filter((l) => l.text.includes(classOf)).map((l) => l.id).slice(0, 1) : [],
     },
   };
-  return repair(profile, lines, typeof page.approvedAt === "string" ? page.approvedAt : "", now);
+  return scrubContacts(repair(profile, lines, typeof page.approvedAt === "string" ? page.approvedAt : "", now));
 }
 
 // ── Reading it ────────────────────────────────────────────────────────────────
