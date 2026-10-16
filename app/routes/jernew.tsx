@@ -1,25 +1,12 @@
-// /jernew: concept preview of the remade B2C Outreach onboarding. Public, no
-// login, no loader, no network calls: everything runs on sample data in the
-// browser. The flow lives in app/components/jernew/.
-import { FlowProvider } from "~/components/jernew/flow";
-import { Shell } from "~/components/jernew/shell";
+// /jernew was the concept preview of the remade onboarding, run on a sample
+// resume. The real flow is at /flow (Studojo1/outreach-flow), so this address
+// now sends people there instead of showing the old six-question concept.
+import { redirect } from "react-router";
 
-export function meta() {
-  return [
-    { title: "Studojo | Your page, your people, your inbox" },
-    {
-      name: "description",
-      content:
-        "Concept preview: turn your resume into a page you approve, matched hiring managers, and personal emails from your own Gmail.",
-    },
-    { name: "robots", content: "noindex, nofollow" },
-  ];
+export function loader() {
+  throw redirect("/flow/");
 }
 
 export default function JerNewRoute() {
-  return (
-    <FlowProvider>
-      <Shell />
-    </FlowProvider>
-  );
+  return null;
 }
