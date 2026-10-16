@@ -1,59 +1,43 @@
-// The student page at /profile/:slug, as a typeset CV: one 720px column, a
-// small label column on desktop, hairlines between sections, Satoshi for text
-// and Newsreader for the name, the figures and the student's own words. No
-// cards, badges, seals or travel motifs. The data rules live in profileView().
-import { forwardRef, useMemo, useRef, useState } from "react";
-import { CopyLinkButton, EmailButton } from "./atoms";
+// The student page at /profile/:slug: a soft lilac hero (who they are, what they
+// are looking for, and a resume-check strip), then lilac highlight tiles and
+// white section cards, ending with the proof report. Clash Display for the name,
+// headings and figures, Satoshi for text. The data rules live in profileView().
+import { useMemo, useRef, useState } from "react";
 import { StickyBar } from "./bar";
-import { profileView, type ProfileView } from "./profile-view";
-import { About, Awards, Highlights, Identity, LookingFor, Skills, StintSection } from "./sections";
-import { Sources } from "./sources";
+import { profileView } from "./profile-view";
+import { About, Awards, Hero, Highlights, Skills, StintSection } from "./sections";
+import { Proof } from "./sources";
 import type { Profile } from "./types";
-
-const Closing = forwardRef<HTMLDivElement, { v: ProfileView; onStatus: (s: string) => void }>(function Closing({ v, onStatus }, ref) {
-  return (
-    <footer className="mx-auto w-full max-w-[720px] px-5 sm:px-8 md:px-0">
-      <div id="closing" ref={ref} className="flex flex-col gap-3 border-t border-neutral-200 pb-6 pt-8 sm:flex-row sm:items-center sm:justify-between">
-        <p className="min-w-0 break-all text-[14px] text-neutral-600">{v.url}</p>
-        <div className="sp-no-print flex flex-wrap gap-2">
-          <EmailButton email={v.email} first={v.first} place="closing" />
-          <CopyLinkButton url={v.shareUrl} onStatus={onStatus} />
-        </div>
-      </div>
-      <div className="flex flex-col pb-10 pt-2 text-[13px] text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
-        <p className="flex items-center">
-          Made with
-          <a href="https://studojo.com" className="ml-1.5 inline-flex min-h-[44px] items-center text-[15px] font-black tracking-[-0.02em] text-studojo-ink transition-colors hover:text-studojo-purple-strong sm:min-h-[28px]">
-            studojo
-          </a>
-        </p>
-        <p>Work on things that matter.</p>
-      </div>
-    </footer>
-  );
-});
 
 export default function StudentPage({ p }: { p: Profile }) {
   const v = useMemo(() => profileView(p), [p]);
-  const introRef = useRef<HTMLElement>(null);
-  const closingRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
   const [status, setStatus] = useState("");
   return (
-    <div className="student-page min-h-screen bg-white font-satoshi text-studojo-ink antialiased">
-      <StickyBar v={v} introRef={introRef} closingRef={closingRef} onStatus={setStatus} />
-      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[720px] px-5 focus:outline-none sm:px-8 md:px-0">
-        <Identity v={v} ref={introRef} />
-        {v.looking && <LookingFor looking={v.looking} />}
-        {v.highlights.length > 0 && <Highlights items={v.highlights} col={v.figCol} />}
-        {v.about && <About about={v.about} />}
+    <div className="student-page min-h-screen bg-[#fcfbff] font-satoshi text-studojo-ink antialiased">
+      <StickyBar v={v} heroRef={heroRef} onStatus={setStatus} />
+      <main id="main" tabIndex={-1} className="mx-auto max-w-[1040px] px-4 pt-4 focus:outline-none sm:px-6 sm:pt-8">
+        <Hero v={v} ref={heroRef} />
+        {v.highlights.length > 0 && <Highlights items={v.highlights} stacked={v.figCol.stack !== "none"} poss={v.poss} />}
+        {v.about && <About about={v.about} poss={v.poss} />}
         {v.stints.map((s) => (
-          <StintSection key={s.kind} section={s} />
+          <StintSection key={s.kind} section={s} poss={v.poss} />
         ))}
-        {v.awards && <Awards awards={v.awards} />}
-        {v.skills.length > 0 && <Skills groups={v.skills} />}
-        {v.sources && v.proof && <Sources sources={v.sources} proof={v.proof} first={v.first} poss={v.poss} updated={v.updated} />}
+        {v.awards && <Awards awards={v.awards} poss={v.poss} />}
+        {v.skills.length > 0 && <Skills groups={v.skills} first={v.first} poss={v.poss} />}
+        {v.sources && v.proof && <Proof sources={v.sources} proof={v.proof} first={v.first} poss={v.poss} updated={v.updated} />}
       </main>
-      <Closing v={v} ref={closingRef} onStatus={setStatus} />
+      <footer className="mt-20 border-t border-lilac-line">
+        <div className="mx-auto flex max-w-[1040px] flex-col gap-1.5 px-4 py-8 text-[14px] text-neutral-600 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="flex items-center gap-1.5">
+            Made with
+            <a href="https://studojo.com" className="inline-flex min-h-[44px] items-center rounded-md text-[15px] font-black tracking-[-0.02em] text-studojo-ink transition-colors hover:text-studojo-purple-strong sm:min-h-[28px]">
+              studojo
+            </a>
+          </p>
+          <p>Work on things that matter.</p>
+        </div>
+      </footer>
       <p aria-live="polite" className="sr-only">
         {status}
       </p>
