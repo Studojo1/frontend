@@ -89,6 +89,7 @@ export function Sources({ sources, proof, first, poss, updated }: { sources: Sou
             )}
           </span>
         </p>
+        <p className="row-start-2 mt-3 max-w-[36em] text-[14px] leading-[1.6] text-neutral-600 sm:col-span-2 sm:row-start-2">{note(proof, first, poss)}</p>
         {matched.length > 0 && (
           <div className="row-start-3 mt-3 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
             <TextToggle all open={allOpen} controls={matched.map((c) => panelId(c.n)).join(" ")} onClick={toggleAll} className="sm:text-[12.5px]">
@@ -97,7 +98,6 @@ export function Sources({ sources, proof, first, poss, updated }: { sources: Sou
             </TextToggle>
           </div>
         )}
-        <p className="row-start-2 mt-3 max-w-[36em] text-[14px] leading-[1.6] text-neutral-600 sm:col-span-2 sm:row-start-2">{note(proof, first, poss)}</p>
       </div>
       <div className="mt-6 sm:mt-7">
         {sources.groups.map((g, gi) => {

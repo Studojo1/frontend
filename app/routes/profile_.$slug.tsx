@@ -41,7 +41,12 @@ export function meta({ data: d }: Route.MetaArgs) {
   const url = `${d.origin}/profile/${p.slug}`;
   const role = clean(p.target.role);
   const start = clean(p.target.start);
-  const title = role ? (start ? `${v.name}, ${role} from ${start}` : `${v.name}, ${role}`) : `${v.name} | Studojo`;
+  // A preview has no "Looking for" label around it, so the title says it is the ask: "Riya Menon, Business
+  // Analyst Intern" reads as a job she already holds; "Riya Menon, looking for Business Analyst Intern roles" does not.
+  const roles = /\b(roles?|positions?|jobs?|internships?|opportunities)$/i.test(role) ? role : `${role} roles`;
+  const dated = /\b(19|20)\d{2}\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b/i.test(start);
+  const when = start ? (dated ? ` from ${start}` : `, ${start.charAt(0).toLowerCase()}${start.slice(1)}`) : "";
+  const title = role ? `${v.name}, looking for ${roles}${when}` : `${v.name} | Studojo`;
   const who = [[v.degree, v.college].filter(Boolean).join(", "), v.classOf && `Class of ${v.classOf}`].filter(Boolean).join(", ");
   const description = ([who && `${who}.`, v.proof && `${v.proof.matched} of ${v.proof.total} claims matched to ${v.poss} resume.`].filter(Boolean).join(" ") || v.headline || `${v.name}\u2019s page on Studojo.`).slice(0, 300);
   // The student's photo when they chose to show it, else the site's card.

@@ -102,6 +102,24 @@ test("Jeremy: claim 1 opens with its wrapped context line", () => {
   assert.deepEqual(J.sources.groups.map((g) => g.label), ["Summary", "Experience"]);
 });
 
+test("highlights: the figure column fits the widest figure and stacks on phones when it must", () => {
+  // Short figures keep the usual 92px / 112px grid.
+  assert.deepEqual(J.figCol, { phone: 92, desktop: 112, stack: "none" });
+  const base = P("v2-sample.json");
+  assert.deepEqual(profileView(base).figCol, { phone: 92, desktop: 112, stack: "none" });
+  const withFigures = (...values) => profileView({ ...base, numbers: values.map((value) => ({ value, label: "things counted", evidence: [] })) }).figCol;
+  // "2,50,000" widens the column but still sits beside its label.
+  const wide = withFigures("2,50,000", "87%");
+  assert.equal(wide.stack, "none");
+  assert.ok(wide.phone > 92 && wide.phone <= 118 && wide.desktop > 112, JSON.stringify(wide));
+  // Lakh and crore figures go above their labels below 640px, beside them from 640px.
+  const lakh = withFigures("1,00,000+", "\u20b912,00,000");
+  assert.equal(lakh.stack, "phone");
+  assert.ok(lakh.desktop >= 158 && lakh.desktop <= 200, JSON.stringify(lakh));
+  assert.equal(withFigures("$1,250,000,000,000").stack, "all");
+  assert.deepEqual(profileView({ name: "No Figures" }).figCol, { phone: 92, desktop: 112, stack: "none" });
+});
+
 // ---------------------------------------------------------------- Jeremy, as the mapper sent it before the repairs
 const J1 = profileView(P("v1-jeremy.json"));
 test("Jeremy before the repairs: the page heuristics still give an honest page", () => {
@@ -145,6 +163,14 @@ test("toProfile: role lines become employers, numbers headline outcomes, skills 
   assert.equal(p.feature, undefined);
   assert.equal(p.url, "studojo.pro/profile/jeremy-zechariah-abraham");
   for (const s of [...p.experience, ...p.projects, ...p.education]) assert.ok(["clean", "anchored", "loose"].includes(s.parse), s.title);
+  // Contact details never leave the server: the page source carries this whole object, not only what is drawn.
+  const all = JSON.stringify(p);
+  assert.ok(!/student@example\.com|90000 00000/.test(all), "contact details in the profile");
+  assert.equal(p.lines.length, raw.lines.length, "lines keep their place, so line numbers still match the resume");
+  assert.match(p.lines.find((l) => l.section === "header" && /hidden/.test(l.text)).text, /\[email hidden\].*\[phone hidden\]/);
+  // ...and the page still never shows or quotes that line.
+  const v = profileView(p);
+  assert.ok(!/\[email hidden\]|\[phone hidden\]/.test(JSON.stringify(v)), "redacted header line reached the view");
 });
 
 // ---------------------------------------------------------------- hostile and edge cases
@@ -187,7 +213,7 @@ test("Riya Menon: city folded into the college, sparse page complete", () => {
   assert.equal(R.email, null);
 });
 test("no dash, no private-use glyph, no undefined anywhere in any view", () => {
-  const files = ["v2-jeremy.json", "v2-riya-menon.json", "v2-sample.json", "v1-jeremy.json", "v1-riya-menon-6dt.json", "v1-riya-menon-951.json", "v1-riya-menon-mss.json", "edge-stress.json", "edge-name-only.json", "edge-missing-keys.json", "edge-unmatched-claim.json", "edge-worst-first-screen.json"];
+  const files = ["v2-jeremy.json", "v2-riya-menon.json", "v2-sample.json", "v1-jeremy.json", "v1-riya-menon-6dt.json", "v1-riya-menon-951.json", "v1-riya-menon-mss.json", "edge-stress.json", "edge-name-only.json", "edge-missing-keys.json", "edge-unmatched-claim.json", "edge-worst-first-screen.json", "edge-long-values.json"];
   for (const f of files) {
     const s = strings(profileView(P(f)));
     assert.ok(!/[\u2013\u2014]/.test(s), `${f} has a dash`);
