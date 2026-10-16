@@ -1,0 +1,286 @@
+{
+ "profile": {
+  "name": "Riya Menon",
+  "first": "Riya",
+  "initials": "RM",
+  "photo": null,
+  "headline": "I analyze data to drive decisions and build dashboards.",
+  "about": "I am a Business Analytics student at Christ University, Bengaluru, graduating in 2027. I have experience as a Data Intern at Zepto, where I created a churn dashboard in Tableau. Currently, I lead analytics at the Christ Consulting Club.",
+  "city": "Bengaluru",
+  "college": "Christ University, Bengaluru",
+  "degree": "BBA Business Analytics",
+  "degreeShort": "BBA",
+  "classOf": "2027",
+  "email": null,
+  "url": "studojo.com/profile/riya-menon-mss",
+  "slug": "riya-menon-mss",
+  "feature": {
+   "org": {
+    "name": "Zepto",
+    "short": "Ze",
+    "tint": "#191a23",
+    "ink": "#ffffff"
+   }
+  },
+  "target": {
+   "role": "Data Analyst Intern",
+   "start": "Jan 2027",
+   "type": "Internship",
+   "stage": "Series A to B startups",
+   "cities": [
+    {
+     "code": "PNQ",
+     "label": "Pune"
+    },
+    {
+     "code": "HYD",
+     "label": "Hyderabad"
+    }
+   ],
+   "remote": true
+  },
+  "numbers": [],
+  "experience": [
+   {
+    "id": "x-0",
+    "title": "Data Intern",
+    "org": {
+     "name": "Zepto",
+     "short": "Ze",
+     "tint": "#191a23",
+     "ink": "#ffffff"
+    },
+    "hideOrg": false,
+    "from": "Jun 2025",
+    "to": "Aug 2025",
+    "span": "3 mos",
+    "note": "Built a weekly churn dashboard in Tableau used by three teams.",
+    "evidence": [
+     "r6",
+     "r7"
+    ]
+   },
+   {
+    "id": "x-1",
+    "title": "Analytics Lead",
+    "org": {
+     "name": "Christ Consulting Club",
+     "short": "CCC",
+     "tint": "#fbcfe8",
+     "ink": "#191a23"
+    },
+    "hideOrg": false,
+    "from": "2024",
+    "to": "Now",
+    "span": "2 yrs",
+    "evidence": [
+     "r8"
+    ]
+   }
+  ],
+  "projects": [
+   {
+    "id": "p-0",
+    "title": "Price elasticity model for a D2C skincare brand",
+    "org": {
+     "name": "Price elasticity model for a D2C skincare brand",
+     "short": "PEM",
+     "tint": "#7c3aed",
+     "ink": "#ffffff"
+    },
+    "hideOrg": true,
+    "evidence": [
+     "r11"
+    ]
+   }
+  ],
+  "education": [
+   {
+    "id": "e-0",
+    "title": "BBA Business Analytics",
+    "org": {
+     "name": "Christ University, Bengaluru",
+     "short": "CU",
+     "tint": "#191a23",
+     "ink": "#ffffff"
+    },
+    "hideOrg": false,
+    "from": "2023",
+    "to": "2027",
+    "span": "4 yrs",
+    "place": "CGPA 8.4",
+    "evidence": [
+     "r4",
+     "r5"
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "name": "Python",
+    "where": "Resume",
+    "evidence": [
+     "r9"
+    ]
+   },
+   {
+    "name": "SQL",
+    "where": "Resume",
+    "evidence": [
+     "r9"
+    ]
+   },
+   {
+    "name": "Excel",
+    "where": "Resume",
+    "evidence": [
+     "r10"
+    ]
+   },
+   {
+    "name": "Tableau",
+    "where": "Zepto",
+    "org": {
+     "name": "Zepto",
+     "short": "Ze",
+     "tint": "#191a23",
+     "ink": "#ffffff"
+    },
+    "evidence": [
+     "r7"
+    ]
+   },
+   {
+    "name": "Power BI",
+    "where": "Resume",
+    "evidence": [
+     "r10"
+    ]
+   },
+   {
+    "name": "Figma",
+    "where": "Resume",
+    "evidence": [
+     "r10"
+    ]
+   }
+  ],
+  "prompts": [
+   {
+    "q": "What I'm proudest of",
+    "a": "Built a campus food-ordering app in React and Node.js used by 1,200 students; cut queue time by 40%."
+   }
+  ],
+  "claims": [
+   {
+    "id": "c-0",
+    "section": "intro",
+    "text": "Graduating in 2027 with a BBA in Business Analytics.",
+    "evidence": [
+     "r5"
+    ]
+   },
+   {
+    "id": "c-1",
+    "section": "projects",
+    "text": "Created a price elasticity model for a D2C skincare brand.",
+    "evidence": [
+     "r11"
+    ]
+   },
+   {
+    "id": "c-2",
+    "section": "experience",
+    "text": "Built a weekly churn dashboard in Tableau used by three teams.",
+    "evidence": [
+     "r7"
+    ]
+   },
+   {
+    "id": "c-3",
+    "section": "experience",
+    "text": "Analytics Lead at Christ Consulting Club since 2024.",
+    "evidence": [
+     "r8"
+    ]
+   },
+   {
+    "id": "c-4",
+    "section": "skills",
+    "text": "Proficient in Python, SQL, Excel, Tableau, and Power BI.",
+    "evidence": [
+     "r9",
+     "r10"
+    ]
+   }
+  ],
+  "lines": [
+   {
+    "id": "r1",
+    "section": "header",
+    "text": "RIYA MENON"
+   },
+   {
+    "id": "r2",
+    "section": "header",
+    "text": "Bengaluru, India | +91 98860 44321 | riya.canvas@studojo.local"
+   },
+   {
+    "id": "r3",
+    "section": "header",
+    "text": "linkedin.com/in/riya-menon-demo | github.com/riyamenon"
+   },
+   {
+    "id": "r4",
+    "section": "education",
+    "text": "Christ University, Bengaluru"
+   },
+   {
+    "id": "r5",
+    "section": "education",
+    "text": "BBA Business Analytics, 2023 - 2027 | CGPA 8.4"
+   },
+   {
+    "id": "r6",
+    "section": "experience",
+    "text": "Data Intern | Zepto Jun 2025 - Aug 2025"
+   },
+   {
+    "id": "r7",
+    "section": "experience",
+    "text": "Built a weekly churn dashboard in Tableau used by three teams"
+   },
+   {
+    "id": "r8",
+    "section": "experience",
+    "text": "Analytics Lead at Christ Consulting Club 2024 - Present"
+   },
+   {
+    "id": "r9",
+    "section": "skills",
+    "text": "Languages: Python, SQL"
+   },
+   {
+    "id": "r10",
+    "section": "skills",
+    "text": "Excel, Tableau, Power BI | Figma"
+   },
+   {
+    "id": "r11",
+    "section": "projects",
+    "text": "Price elasticity model for a D2C skincare brand"
+   }
+  ],
+  "src": {
+   "name": [
+    "r1"
+   ],
+   "college": [
+    "r4"
+   ],
+   "classOf": [
+    "r5"
+   ]
+  }
+ }
+}

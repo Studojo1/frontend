@@ -24,6 +24,8 @@ export type Stint = {
   note?: string;
   /** Resume lines this entry was read from. */
   evidence: string[];
+  /** The mapper's verdict on this parsed entry (see entryMode in app/lib/student-page-text.ts). Absent: the page decides. */
+  parse?: "clean" | "anchored" | "loose";
 };
 
 export type Profile = {
@@ -45,8 +47,10 @@ export type Profile = {
   /** Without the protocol: "studojo.com/profile/riya-menon". */
   url: string;
   slug: string;
-  /** The org tile shown on the profile card, if any. */
+  /** @deprecated No longer emitted or drawn (the page draws no org tiles). */
   feature?: { org: Org };
+  /** ISO time the student last approved the page (talent.page.approvedAt), or "". */
+  updated?: string;
   /** What they want, from the six questions. Empty strings when not answered. */
   target: {
     role: string;
@@ -65,24 +69,8 @@ export type Profile = {
   prompts: { q: string; a: string }[];
   claims: { id: string; section: string; text: string; evidence: string[] }[];
   lines: Line[];
-  /** Resume lines behind the hero's name, college and class fields. */
+  /** Resume lines behind the name, college and class fields (outreach-flow's design uses them; this page does not). */
   src: { name: string[]; college: string[]; classOf: string[] };
-};
-
-/** Every hero gets the same props and owns the top of the page (desktop and phone). */
-export type HeroProps<P extends Profile = Profile> = { p: P; reduced: boolean };
-
-/** The page's own resume lines behind a piece of the profile, in resume order. */
-export const linesFor = (lines: Line[], ids: string[]) => lines.filter((l) => ids.includes(l.id));
-
-/** "Education", "Experience"...; "" for the header. */
-export const SECTION_LABEL: Record<string, string> = {
-  header: "",
-  education: "Education",
-  experience: "Experience",
-  projects: "Projects",
-  skills: "Skills",
-  extra: "Leadership",
 };
 
 const IATA: Record<string, string> = {
@@ -91,21 +79,5 @@ const IATA: Record<string, string> = {
   Coimbatore: "CJB", Lucknow: "LKO", Bhubaneswar: "BBI", Goa: "GOI", Dubai: "DXB", Singapore: "SIN", London: "LHR", Berlin: "BER", "New York": "NYC", Toronto: "YYZ",
 };
 
-/** Three-letter code for a place: the airport when we know it, else its first letters. */
+/** Three-letter code for a place (filled for outreach-flow, which shares this type; this page never shows codes). */
 export const cityCode = (city: string) => IATA[city] ?? city.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase();
-
-/** Three letters and digits for the pass ("SJ K4T"), from the page address: the same every time. */
-export function slugCode(slug: string): string {
-  let h = 2166136261;
-  for (let i = 0; i < slug.length; i++) h = Math.imul(h ^ slug.charCodeAt(i), 16777619);
-  return (h >>> 0).toString(36).toUpperCase().padStart(3, "0").slice(-3);
-}
-
-/** The proof list's section labels (outreach-flow app/components/jernew/data.ts). */
-export const CLAIM_SECTION_LABEL = {
-  intro: "About",
-  projects: "Projects",
-  experience: "Experience",
-  skills: "Skills",
-  more: "Also",
-} as const;

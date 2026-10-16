@@ -1,0 +1,326 @@
+{
+ "profile": {
+  "name": "Venkatasubramanian Ramakrishnan Chandrasekharan-Iyengar",
+  "first": "Venkatasubramanian",
+  "initials": "VC",
+  "photo": null,
+  "headline": "",
+  "about": "",
+  "city": "Chennai",
+  "college": "Indian Institute of Technology Madras",
+  "degree": "B.Tech. Computer Science",
+  "degreeShort": "BBA",
+  "classOf": "2026",
+  "email": null,
+  "url": "studojo.com/profile/venkat-stress",
+  "slug": "venkat-stress",
+  "feature": {
+   "org": {
+    "name": "Zepto",
+    "short": "Ze",
+    "tint": "#191a23",
+    "ink": "#ffffff"
+   }
+  },
+  "target": {
+   "role": "Product Marketing Intern",
+   "start": "",
+   "type": "Internship",
+   "stage": "",
+   "cities": [
+    {
+     "code": "X",
+     "label": "Chennai"
+    },
+    {
+     "code": "X",
+     "label": "Bengaluru"
+    },
+    {
+     "code": "X",
+     "label": "Mumbai"
+    },
+    {
+     "code": "X",
+     "label": "Pune"
+    },
+    {
+     "code": "X",
+     "label": "Hyderabad"
+    },
+    {
+     "code": "X",
+     "label": "Delhi NCR"
+    },
+    {
+     "code": "X",
+     "label": "Dubai"
+    },
+    {
+     "code": "X",
+     "label": "Singapore"
+    },
+    {
+     "code": "X",
+     "label": "London"
+    },
+    {
+     "code": "X",
+     "label": "New York"
+    },
+    {
+     "code": "X",
+     "label": "Berlin"
+    },
+    {
+     "code": "X",
+     "label": "Toronto"
+    }
+   ],
+   "remote": false
+  },
+  "numbers": [
+   {
+    "value": "3",
+    "label": "Built a weekly churn dashboard in Tableau used by ",
+    "evidence": [
+     "e2"
+    ]
+   },
+   {
+    "value": "9500",
+    "label": "Instagram followers after a 6-week campaign",
+    "evidence": [
+     "e4"
+    ]
+   }
+  ],
+  "experience": [
+   {
+    "id": "x1",
+    "title": "Managed Services Intern",
+    "org": {
+     "name": "Accenture",
+     "short": "",
+     "tint": "",
+     "ink": ""
+    },
+    "hideOrg": false,
+    "from": "Jun 2024",
+    "to": "Aug 2024",
+    "span": "3 mos",
+    "evidence": [
+     "e1",
+     "e2"
+    ]
+   },
+   {
+    "id": "x2",
+    "title": "Marketing Intern",
+    "org": {
+     "name": "Women at Work Foundation",
+     "short": "",
+     "tint": "",
+     "ink": ""
+    },
+    "hideOrg": false,
+    "from": "Jan 2024",
+    "to": "Mar 2024",
+    "span": "3 mos",
+    "note": "Ran a 6-week Instagram campaign that grew followers from 2,000 to 9,500.",
+    "evidence": [
+     "e3",
+     "e4",
+     "e5"
+    ]
+   }
+  ],
+  "projects": [
+   {
+    "id": "p1",
+    "title": "\uf0b7 Built a Chrome extension that tracks price drops on Amazon. 4,000 installs.",
+    "org": {
+     "name": "\uf0b7 Built a Chrome extension that tracks price drops on Amazon. 4,000 installs.",
+     "short": "",
+     "tint": "",
+     "ink": ""
+    },
+    "hideOrg": true,
+    "evidence": [
+     "p1"
+    ]
+   }
+  ],
+  "education": [
+   {
+    "id": "d1",
+    "title": "B.Tech. Computer Science",
+    "org": {
+     "name": "Indian Institute of Technology Madras",
+     "short": "",
+     "tint": "",
+     "ink": ""
+    },
+    "hideOrg": false,
+    "from": "2022",
+    "to": "2026",
+    "span": "4 yrs",
+    "place": "CGPA 8.9/10",
+    "evidence": [
+     "d1",
+     "d2"
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "name": "Marketing",
+    "where": "Resume",
+    "evidence": [
+     "s1"
+    ]
+   },
+   {
+    "name": "Sales",
+    "where": "Resume",
+    "evidence": [
+     "s1"
+    ]
+   },
+   {
+    "name": "Strategy",
+    "where": "Resume",
+    "evidence": [
+     "s1"
+    ]
+   },
+   {
+    "name": "Excel",
+    "where": "Resume",
+    "evidence": [
+     "s1"
+    ]
+   },
+   {
+    "name": "Python",
+    "where": "Resume",
+    "evidence": [
+     "s1"
+    ]
+   },
+   {
+    "name": "Leadership",
+    "where": "Resume",
+    "evidence": [
+     "s1"
+    ]
+   }
+  ],
+  "prompts": [
+   {
+    "q": "What I'm proudest of",
+    "a": "Growing a non-profit's Instagram from 2,000 to 9,500 followers with no ad budget."
+   }
+  ],
+  "claims": [
+   {
+    "id": "c1",
+    "section": "experience",
+    "text": "Managed Services Intern at Accenture in 2024.",
+    "evidence": [
+     "e1"
+    ]
+   },
+   {
+    "id": "c2",
+    "section": "experience",
+    "text": "Grew a non-profit's Instagram from 2,000 to 9,500 followers.",
+    "evidence": [
+     "e4"
+    ]
+   },
+   {
+    "id": "c3",
+    "section": "skills",
+    "text": "Skilled in Marketing, Sales, Excel and Python.",
+    "evidence": [
+     "s1"
+    ]
+   },
+   {
+    "id": "c4",
+    "section": "more",
+    "text": "Won a national hackathon.",
+    "evidence": [
+     "zz-missing"
+    ]
+   }
+  ],
+  "lines": [
+   {
+    "id": "h1",
+    "section": "header",
+    "text": "VENKATASUBRAMANIAN R C IYENGAR"
+   },
+   {
+    "id": "h2",
+    "section": "header",
+    "text": "venkat.iyengar@gmail.com | +91 98450 12345"
+   },
+   {
+    "id": "e1",
+    "section": "experience",
+    "text": "Managed Services Intern | Accenture Jun 2024 \u2013 Aug 2024"
+   },
+   {
+    "id": "e2",
+    "section": "experience",
+    "text": "\uf0b7 Automated ticket triage with Python, cutting response time by 30%"
+   },
+   {
+    "id": "e3",
+    "section": "experience",
+    "text": "Marketing Intern | Women at Work Foundation Jan 2024 \u2013 Mar 2024"
+   },
+   {
+    "id": "e4",
+    "section": "experience",
+    "text": "\uf0b7 Ran a 6-week Instagram campaign that grew followers from 2,000 to 9,500"
+   },
+   {
+    "id": "e5",
+    "section": "experience",
+    "text": "\uf0b7 Coordinated with vendors; call me on 9845012345 or mail venkat.iyengar@gmail.com"
+   },
+   {
+    "id": "d1",
+    "section": "education",
+    "text": "Indian Institute of Technology Madras | B.Tech. Computer Science 2022 \u2013 2026"
+   },
+   {
+    "id": "d2",
+    "section": "education",
+    "text": "CGPA 8.9/10"
+   },
+   {
+    "id": "s1",
+    "section": "skills",
+    "text": "Marketing, Sales, Strategy, Excel, Python, Leadership"
+   },
+   {
+    "id": "p1",
+    "section": "projects",
+    "text": "\uf0b7 Built a Chrome extension that tracks price drops on Amazon. 4,000 installs."
+   }
+  ],
+  "src": {
+   "name": [
+    "h1"
+   ],
+   "college": [
+    "d1"
+   ],
+   "classOf": []
+  }
+ }
+}

@@ -1,0 +1,421 @@
+{
+ "profile": {
+  "name": "Riya Sharma",
+  "first": "Riya",
+  "initials": "RS",
+  "photo": null,
+  "headline": "Final-year CSE student who builds things people actually use",
+  "about": "I like small products with real users. My campus expense tracker grew to 1,200 students, and a summer in growth taught me to measure what I ship. Looking for a team where I can build and see the numbers move.",
+  "city": "Pune",
+  "college": "Deccan Institute of Technology",
+  "degree": "B.Tech, Computer Science and Engineering",
+  "degreeShort": "CSE",
+  "classOf": "2027",
+  "cgpa": "8.6",
+  "email": "riya.sharma@example.com",
+  "url": "studojo.com/profile/riya-sharma",
+  "slug": "riya-sharma",
+  "target": {
+   "role": "Software engineering intern",
+   "start": "June 2027",
+   "type": "6-month internship",
+   "stage": "Early-stage startups",
+   "cities": [
+    {
+     "code": "BLR",
+     "label": "Bengaluru"
+    },
+    {
+     "code": "BOM",
+     "label": "Mumbai"
+    },
+    {
+     "code": "DXB",
+     "label": "Dubai"
+    },
+    {
+     "code": "NYC",
+     "label": "New York"
+    }
+   ],
+   "remote": true
+  },
+  "numbers": [
+   {
+    "value": "1,200",
+    "label": "students on Splitkart",
+    "evidence": [
+     "r-proj-1-a"
+    ]
+   },
+   {
+    "value": "+11%",
+    "label": "repeat orders at Crunchwell",
+    "evidence": [
+     "r-exp-1"
+    ]
+   },
+   {
+    "value": "\u221218%",
+    "label": "canteen food waste",
+    "evidence": [
+     "r-proj-2-a"
+    ]
+   },
+   {
+    "value": "220",
+    "label": "coding club members",
+    "evidence": [
+     "r-extra"
+    ]
+   }
+  ],
+  "experience": [
+   {
+    "id": "x-crunch",
+    "title": "Growth Intern",
+    "org": {
+     "name": "Crunchwell Foods",
+     "short": "Cw",
+     "tint": "#f2b233",
+     "ink": "#3a2400"
+    },
+    "from": "May 2026",
+    "to": "Jul 2026",
+    "span": "3 mos",
+    "place": "Pune \u00b7 On-site",
+    "note": "Ran 14 social and chat campaigns; repeat orders up 11% over the quarter. Built the SQL cohort dashboard used in weekly growth reviews.",
+    "evidence": [
+     "r-exp-title",
+     "r-exp-1",
+     "r-exp-2"
+    ],
+    "parse": "clean"
+   },
+   {
+    "id": "x-club",
+    "title": "Lead",
+    "org": {
+     "name": "DIT Coding Club",
+     "short": "</>",
+     "tint": "#191a23",
+     "ink": "#ffffff"
+    },
+    "from": "Aug 2025",
+    "to": "Now",
+    "span": "1 yr 2 mos",
+    "place": "Pune",
+    "note": "220 members. Ran 2 hackathons.",
+    "evidence": [
+     "r-extra"
+    ],
+    "parse": "clean"
+   }
+  ],
+  "projects": [
+   {
+    "id": "p-split",
+    "title": "Splitkart",
+    "org": {
+     "name": "Splitkart",
+     "short": "Sk",
+     "tint": "#16a37f",
+     "ink": "#ffffff"
+    },
+    "from": "Jan 2025",
+    "to": "Now",
+    "span": "1 yr 9 mos",
+    "place": "Campus UPI expense tracker",
+    "note": "Used by 1,200 students across 3 hostels in its first semester. Settles a shared bill in one tap. React, Node.js, PostgreSQL.",
+    "evidence": [
+     "r-proj-1-title",
+     "r-proj-1-a",
+     "r-proj-1-b"
+    ],
+    "parse": "clean"
+   },
+   {
+    "id": "p-canteen",
+    "title": "Canteen sales analysis",
+    "org": {
+     "name": "DIT Canteen Committee",
+     "short": "CC",
+     "tint": "#e8553e",
+     "ink": "#ffffff"
+    },
+    "from": "Aug 2025",
+    "to": "Apr 2026",
+    "span": "9 mos",
+    "place": "Python \u00b7 pandas",
+    "note": "Nine months of till data; food waste down 18%. The canteen committee adopted the menu changes.",
+    "evidence": [
+     "r-proj-2-title",
+     "r-proj-2-a",
+     "r-proj-2-b"
+    ],
+    "parse": "clean"
+   }
+  ],
+  "education": [
+   {
+    "id": "e-dit",
+    "title": "B.Tech, Computer Science and Engineering",
+    "org": {
+     "name": "Deccan Institute of Technology",
+     "short": "DIT",
+     "tint": "#1f3a5f",
+     "ink": "#ffffff"
+    },
+    "from": "2023",
+    "to": "2027",
+    "span": "4 yrs",
+    "place": "CGPA 8.6 of 10",
+    "evidence": [
+     "r-edu",
+     "r-edu-year"
+    ],
+    "parse": "clean"
+   }
+  ],
+  "skills": [
+   {
+    "name": "React",
+    "where": "Splitkart",
+    "evidence": [
+     "r-proj-1-b"
+    ]
+   },
+   {
+    "name": "TypeScript",
+    "where": "Resume",
+    "evidence": [
+     "r-skills"
+    ]
+   },
+   {
+    "name": "Node.js",
+    "where": "Splitkart",
+    "evidence": [
+     "r-proj-1-b"
+    ]
+   },
+   {
+    "name": "PostgreSQL",
+    "where": "Splitkart",
+    "evidence": [
+     "r-proj-1-b"
+    ]
+   },
+   {
+    "name": "Python",
+    "where": "Canteen sales analysis",
+    "evidence": [
+     "r-proj-2-a"
+    ]
+   },
+   {
+    "name": "pandas",
+    "where": "Canteen sales analysis",
+    "evidence": [
+     "r-proj-2-a"
+    ]
+   },
+   {
+    "name": "SQL",
+    "where": "Crunchwell Foods",
+    "evidence": [
+     "r-exp-2"
+    ]
+   },
+   {
+    "name": "Git",
+    "where": "Resume",
+    "evidence": [
+     "r-skills"
+    ]
+   }
+  ],
+  "prompts": [
+   {
+    "q": "What I'm proudest of",
+    "a": "Splitkart. I built it because splitting a hostel grocery run took a week of reminders. 1,200 students later, it takes one tap."
+   },
+   {
+    "q": "What I want to do next",
+    "a": "Join a small team as a software engineering intern, ship something real users touch, and watch the numbers move."
+   }
+  ],
+  "claims": [
+   {
+    "id": "c-degree",
+    "section": "intro",
+    "text": "Final-year B.Tech CSE, Class of 2027",
+    "evidence": [
+     "r-edu",
+     "r-edu-year"
+    ]
+   },
+   {
+    "id": "c-proj-1",
+    "section": "projects",
+    "text": "Built Splitkart, a UPI expense tracker used by 1,200 students",
+    "evidence": [
+     "r-proj-1-title",
+     "r-proj-1-a"
+    ]
+   },
+   {
+    "id": "c-proj-1-stack",
+    "section": "projects",
+    "text": "Shipped it with React, Node.js and PostgreSQL",
+    "evidence": [
+     "r-proj-1-b"
+    ]
+   },
+   {
+    "id": "c-proj-2",
+    "section": "projects",
+    "text": "Cut canteen food waste 18% with a sales analysis in Python",
+    "evidence": [
+     "r-proj-2-title",
+     "r-proj-2-a"
+    ]
+   },
+   {
+    "id": "c-exp",
+    "section": "experience",
+    "text": "Growth intern at a D2C snack brand: repeat orders up 11%",
+    "evidence": [
+     "r-exp-title",
+     "r-exp-1"
+    ]
+   },
+   {
+    "id": "c-dash",
+    "section": "experience",
+    "text": "Built the cohort dashboard used in weekly growth reviews",
+    "evidence": [
+     "r-exp-2"
+    ]
+   },
+   {
+    "id": "c-skills",
+    "section": "skills",
+    "text": "React, TypeScript, Node.js, PostgreSQL, Python, SQL",
+    "evidence": [
+     "r-skills"
+    ]
+   },
+   {
+    "id": "c-lead",
+    "section": "more",
+    "text": "Leads a 220-member coding club; ran 2 hackathons",
+    "evidence": [
+     "r-extra"
+    ]
+   },
+   {
+    "id": "c-x",
+    "section": "experience",
+    "text": "Led a team of 40.",
+    "evidence": [
+     "nope"
+    ]
+   }
+  ],
+  "lines": [
+   {
+    "id": "r-name",
+    "section": "header",
+    "text": "Riya Sharma",
+    "strong": true
+   },
+   {
+    "id": "r-contact",
+    "section": "header",
+    "text": "Pune, India \u00b7 riya.sharma@example.com"
+   },
+   {
+    "id": "r-edu",
+    "section": "education",
+    "text": "B.Tech, Computer Science and Engineering, Deccan Institute of Technology",
+    "strong": true
+   },
+   {
+    "id": "r-edu-year",
+    "section": "education",
+    "text": "Class of 2027 \u00b7 CGPA 8.6 of 10"
+   },
+   {
+    "id": "r-exp-title",
+    "section": "experience",
+    "text": "Growth Intern, Crunchwell Foods (D2C snack brand), May to Jul 2026",
+    "strong": true
+   },
+   {
+    "id": "r-exp-1",
+    "section": "experience",
+    "text": "Ran 14 social and chat campaigns; repeat orders up 11% over the quarter"
+   },
+   {
+    "id": "r-exp-2",
+    "section": "experience",
+    "text": "Built a cohort dashboard in SQL used in weekly growth reviews"
+   },
+   {
+    "id": "r-proj-1-title",
+    "section": "projects",
+    "text": "Splitkart: campus UPI expense tracker",
+    "strong": true
+   },
+   {
+    "id": "r-proj-1-a",
+    "section": "projects",
+    "text": "Used by 1,200 students across 3 hostels in its first semester"
+   },
+   {
+    "id": "r-proj-1-b",
+    "section": "projects",
+    "text": "React, Node.js and PostgreSQL; settles a shared bill in one tap"
+   },
+   {
+    "id": "r-proj-2-title",
+    "section": "projects",
+    "text": "Canteen sales analysis",
+    "strong": true
+   },
+   {
+    "id": "r-proj-2-a",
+    "section": "projects",
+    "text": "Python and pandas on 9 months of till data; cut food waste 18%"
+   },
+   {
+    "id": "r-proj-2-b",
+    "section": "projects",
+    "text": "Menu changes adopted by the campus canteen committee"
+   },
+   {
+    "id": "r-skills",
+    "section": "skills",
+    "text": "React, TypeScript, Node.js, PostgreSQL, Python, pandas, SQL, Git"
+   },
+   {
+    "id": "r-extra",
+    "section": "extra",
+    "text": "Lead, college coding club (220 members); ran 2 hackathons"
+   }
+  ],
+  "src": {
+   "name": [
+    "r-name"
+   ],
+   "college": [
+    "r-edu"
+   ],
+   "classOf": [
+    "r-edu-year"
+   ]
+  },
+  "updated": "2026-10-14T08:00:00Z"
+ }
+}
