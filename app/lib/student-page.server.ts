@@ -22,6 +22,7 @@ import type { Line, Org, Profile, Stint } from "~/components/student-page/types"
 import { cityCode } from "~/components/student-page/types";
 import db from "~/lib/db";
 import { namesMatch, sanitizeLinkedIn, schoolLine, type LinkedInRole, type LinkedInSchool } from "~/lib/student-page-linkedin";
+import { clean as cleanText, entryMode, isBullet, ROLE_TAIL, VERB } from "~/lib/student-page-text";
 
 /**
  * What this page reads from user_profile.talent. /flow writes it (outreach-flow
@@ -340,6 +341,176 @@ function splitSkills(text: string): string[] {
     .filter((s) => s.length >= 1 && s.length <= 30 && /[A-Za-z]/.test(s));
 }
 
+// ── Repairs on top of the parse ───────────────────────────────────────────────
+// The parse above reads resume lines by position, so a resume laid out its own
+// way can leave employers under Skills, a "from X to Y" number headlined by X,
+// or a status word ("Current") as a skill. These rules fix what they can and
+// tell the page how far to trust each entry (Stint.parse).
+
+const RANGE_END = new RegExp(`\\(?(${DATE})${SEP}(${END})\\)?\\s*$`, "i");
+const CURRENT_END = /\b(Current|Present|Ongoing|Now)\b\s*(?:\(\s*(\d+)\s*(months?|mos?|yrs?|years?)\s*\))?\s*$/i;
+const CAPS_WORD = /^[A-Z][A-Z0-9&.'/-]*$/;
+const STATUS = /^(current|present|now|ongoing|till date|to date|resume|skills?|others?)$/i;
+const FIG = String.raw`(?:[\u20b9$\u20ac\u00a3]\s?)?\d[\d,]*(?:\.\d+)?(?:\s?(?:%|\+|x|k|K|L|M|Cr))?`;
+const FROM_TO = new RegExp(String.raw`\bfrom\s+(${FIG})\s+to\s+(${FIG})`, "i");
+
+/** An ALL CAPS employer ("FITMEDIK") takes the casing the resume uses elsewhere ("Fitmedik"); failing that, word-like words of 4+ letters are title-cased ("MULYA" to "Mulya") while acronyms stay ("AI", "KPMG"). */
+function displayCase(org: string, lines: Line[]): string {
+  if (/[a-z]/.test(org)) return org;
+  const casedElsewhere = (w: string) => {
+    const re = new RegExp(`(?<![A-Za-z])${esc(w)}(?![A-Za-z])`, "i");
+    for (const l of lines) {
+      const m = re.exec(l.text);
+      if (m && /[a-z]/.test(m[0])) return m[0];
+    }
+    return null;
+  };
+  const whole = casedElsewhere(org);
+  if (whole) return whole;
+  return org
+    .split(" ")
+    .map((w) => {
+      const letters = w.replace(/[^A-Za-z]/g, "");
+      if (letters.length <= 3 || /[^AEIOUY\W\d]{3,}/i.test(letters)) return w;
+      return casedElsewhere(w) ?? w.slice(0, 1) + w.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+/** "Brand and Growth Strategy Intern FITMEDIK Current (9 months)": a role line, wherever the parse filed it. */
+function parseRoleLine(raw: string, lines: Line[], now: Date): { title: string; org: string; from: string; to: string; span: string } | null {
+  if (!raw || isBullet(raw)) return null;
+  const t = cleanText(raw);
+  if (VERB.test(t)) return null;
+  let from = "";
+  let to = "";
+  let span = "";
+  let rest: string;
+  const r = RANGE_END.exec(t);
+  if (r) {
+    from = normDate(r[1]);
+    to = normDate(r[2]);
+    rest = t.slice(0, r.index);
+  } else {
+    const c = CURRENT_END.exec(t);
+    if (!c) return null;
+    to = "Now";
+    rest = t.slice(0, c.index);
+    if (c[2]) {
+      const n = Number(c[2]);
+      span = /^y/i.test(c[3]) ? `${n} yr${n === 1 ? "" : "s"}` : `${n} mo${n === 1 ? "" : "s"}`;
+    }
+  }
+  rest = rest.replace(/^[\s|,:;-]+|[\s|,:;-]+$/g, "");
+  let title = "";
+  let org = "";
+  const at = /\s(?:at|@)\s/.exec(rest);
+  if (rest.includes(" | ")) {
+    const i = rest.indexOf(" | ");
+    [title, org] = [rest.slice(0, i).trim(), rest.slice(i + 3).trim()];
+  } else if (at) {
+    [title, org] = [rest.slice(0, at.index).trim(), rest.slice(at.index + at[0].length).trim()];
+  } else {
+    // A trailing run of ALL CAPS words is the employer: "... Intern FITMEDIK", "... Intern MARIANA AI".
+    const w = rest.split(" ");
+    let k = w.length;
+    while (k > 0 && CAPS_WORD.test(w[k - 1]) && /[A-Z]{2,}/.test(w[k - 1])) k--;
+    if (k > 0 && k < w.length) [title, org] = [w.slice(0, k).join(" "), w.slice(k).join(" ")];
+    else if (rest.includes(", ")) {
+      const i = rest.indexOf(", ");
+      [title, org] = [rest.slice(0, i).trim(), rest.slice(i + 2).trim()];
+    }
+  }
+  if (!title || !org || (!ROLE_TAIL.test(title.replace(/\)+$/, "")) && !ROLE_TAIL.test(title))) return null;
+  if (title.split(/\s+/).length > 8 || org.split(/\s+/).length > 6) return null;
+  if (!span && from && to) span = spanOf(from, to, now);
+  return { title, org: displayCase(org, lines), from, to, span };
+}
+
+/** Skills without role lines or status words, with a list wrapped across two resume lines rejoined ("Business" + "Partnerships"). Placed next to an entry only by that entry's body lines. */
+function tidySkills(lines: Line[], experience: Stint[], projects: Stint[], skip: Set<string>): Profile["skills"] {
+  const order = new Map(lines.map((l, i) => [l.id, i]));
+  const src = lines.filter((l) => l.section === "skills" && !skip.has(l.id) && !STATUS.test(cleanText(l.text)));
+  const items: { name: string; ids: string[] }[] = [];
+  let prev: Line | null = null;
+  for (const l of src) {
+    let parts = splitSkills(cleanText(l.text));
+    if (prev && parts.length && items.length && order.get(l.id) === (order.get(prev.id) ?? -2) + 1) {
+      const pt = cleanText(prev.text);
+      if (pt.length >= 90 && !/[,;|.:]$/.test(pt)) {
+        const last = items[items.length - 1];
+        last.name = `${last.name} ${parts[0]}`;
+        last.ids.push(l.id);
+        parts = parts.slice(1);
+      }
+    }
+    items.push(...parts.map((name) => ({ name, ids: [l.id] })));
+    prev = l;
+  }
+  const seen = new Set<string>();
+  const out: Profile["skills"] = [];
+  for (const { name, ids } of items) {
+    if (STATUS.test(name) || seen.has(name.toLowerCase()) || out.length >= 16) continue;
+    seen.add(name.toLowerCase());
+    let placed: Profile["skills"][number] | null = null;
+    for (const [kind, group] of [["experience", experience], ["projects", projects]] as const) {
+      for (const st of group) {
+        if (st.parse !== "clean") continue;
+        const body = st.evidence.slice(1);
+        const hit = lines.find((x) => body.includes(x.id) && has(x.text, name));
+        if (hit) {
+          placed = { name, where: kind === "projects" || st.hideOrg ? st.title : st.org.name, org: st.org, evidence: [hit.id] };
+          break;
+        }
+      }
+      if (placed) break;
+    }
+    out.push(placed ?? { name, where: "Resume", evidence: ids });
+  }
+  return out;
+}
+
+/** "Grew ... from $100K to $250K" headlines the outcome, $250K; 4+ digit values get separators. */
+function outcomeValue(value: string, label: string): string {
+  const m = FROM_TO.exec(label);
+  const v = m && m[1].replace(/[\s,]/g, "") === value.replace(/[\s,]/g, "") ? m[2] : value;
+  const d = /^([+\u2212-]?[\u20b9$\u20ac\u00a3]?)(\d{4,})(.*)$/.exec(v);
+  if (d && !(d[2].length === 4 && Number(d[2]) >= 1900 && Number(d[2]) <= 2099 && !d[1])) return `${d[1]}${Number(d[2]).toLocaleString("en-US")}${d[3]}`;
+  return v;
+}
+
+function repair(p: Profile, lines: Line[], approvedAt: string, now: Date): Profile {
+  for (const st of [...p.experience, ...p.projects, ...p.education]) st.parse = entryMode(st);
+  // Role lines filed under another section become real experience entries.
+  const usedByClean = new Set(p.experience.filter((s) => s.parse === "clean").flatMap((s) => s.evidence));
+  const roleIds = new Set<string>();
+  const recovered: Stint[] = [];
+  for (const l of lines) {
+    if (l.section === "header" || l.section === "education" || usedByClean.has(l.id)) continue;
+    const r = parseRoleLine(l.text, lines, now);
+    if (!r) continue;
+    roleIds.add(l.id);
+    recovered.push({
+      id: `x-r${recovered.length}`,
+      title: r.title,
+      org: { name: r.org, short: "", tint: "", ink: "" },
+      hideOrg: false,
+      ...(r.from ? { from: r.from } : {}),
+      ...(r.to ? { to: r.to } : {}),
+      ...(r.span ? { span: r.span } : {}),
+      evidence: [l.id],
+      parse: "clean",
+    });
+  }
+  p.experience = [...p.experience, ...recovered];
+  p.skills = tidySkills(lines, p.experience, p.projects, roleIds);
+  for (const n of p.numbers) n.value = outcomeValue(n.value, n.label);
+  p.updated = approvedAt;
+  // The page draws no org tiles any more.
+  delete p.feature;
+  return p;
+}
+
 // ── The mapper ────────────────────────────────────────────────────────────────
 
 const STAGE_PHRASE = ["Tiny startups", "Seed-stage startups", "Series A to B startups", "Growth-stage companies", "Large companies"];
@@ -370,7 +541,7 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
   const roleTitle = clean(t.prefs?.titles?.[0]);
   const start = /\b\d{4}\b/.test(clean(t.chat?.startWhen)) ? clean(t.chat?.startWhen) : "";
   const stage = typeof q.stage === "number" && STAGE_PHRASE[q.stage] ? STAGE_PHRASE[q.stage] : CHAT_STAGE[clean(t.chat?.companyStage)] ?? "";
-  const cityNames = (t.prefs?.cities ?? []).filter((c): c is string => typeof c === "string").slice(0, 8);
+  const cityNames = (t.prefs?.cities ?? []).filter((c): c is string => typeof c === "string").slice(0, 12);
   const remote = typeof q.remote === "boolean" ? q.remote : /remote|hybrid/i.test(clean(t.chat?.workMode));
   const type = q.jobType && q.jobType in JOB_PHRASE ? JOB_PHRASE[q.jobType] : "";
 
@@ -419,9 +590,8 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
   const proud = clean(t.chat?.proud);
   const slug = page.slug;
   const host = opts.origin.replace(/^https?:\/\//, "").replace(/\/$/, "");
-  const firstOrg = experience[0] && !experience[0].hideOrg ? experience[0].org : undefined;
 
-  return {
+  const profile: Profile = {
     name,
     first,
     initials,
@@ -436,7 +606,6 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
     email: opts.email,
     url: `${host}/profile/${slug}`,
     slug,
-    feature: firstOrg ? { org: firstOrg } : undefined,
     target: {
       role: roleTitle,
       start,
@@ -459,6 +628,7 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
       classOf: classOf ? eduLines.filter((l) => l.text.includes(classOf)).map((l) => l.id).slice(0, 1) : [],
     },
   };
+  return repair(profile, lines, typeof page.approvedAt === "string" ? page.approvedAt : "", now);
 }
 
 // ── Reading it ────────────────────────────────────────────────────────────────

@@ -1,15 +1,15 @@
 import { data } from "react-router";
-import ProfileBody from "~/components/student-page/body";
-import PassHero from "~/components/student-page/hero-pass";
-import { ReducedMotionProvider, useSafeReducedMotion } from "~/components/student-page/motion";
+import StudentPage from "~/components/student-page/page";
+import { profileView } from "~/components/student-page/profile-view";
+import { clean } from "~/lib/student-page-text";
 import { findStudentPage, studentEmail, toProfile } from "~/lib/student-page.server";
 import type { Route } from "./+types/profile_.$slug";
 
 /**
  * /profile/:slug: a student's public page, as they approved it in Studojo's
  * onboarding flow (/flow, Studojo1/outreach-flow, which saves it into
- * user_profile.talent), drawn as the boarding pass. Every claim keeps its
- * resume line, shown on tap. Who can open it is the student's choice: private
+ * user_profile.talent), drawn as a typeset CV (app/components/student-page).
+ * Every claim keeps its resume lines, shown on tap. Who can open it is the student's choice: private
  * pages are a 404, and search engines are told to stay out unless the student
  * switched search on. Their email is only on the page when they allow contact.
  * Not nested under /profile (the signed-in account page): the trailing _.
@@ -30,29 +30,37 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { profile, search: !!found.page.visibility.search, origin, hasPhoto: !!profile.photo };
 }
 
+/** Preload the name's typeface on this route only: the name is the largest paint. */
+export const links: Route.LinksFunction = () => [{ rel: "preload", href: "/fonts/newsreader-var.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" }];
+
 export function meta({ data: d }: Route.MetaArgs) {
   if (!d) return [{ title: "Page not found | Studojo" }, { name: "robots", content: "noindex, nofollow" }];
   const p = d.profile;
+  // The same cleaned strings the page shows.
+  const v = profileView(p);
   const url = `${d.origin}/profile/${p.slug}`;
-  const title = `${p.name} | Studojo`;
-  const description =
-    [p.headline && (/[.!?]$/.test(p.headline) ? p.headline : `${p.headline}.`), p.target.role ? `Looking for: ${p.target.role}${p.target.start ? `, from ${p.target.start}` : ""}.` : "", [p.degree, p.college].filter(Boolean).join(", ")]
-      .filter(Boolean)
-      .join(" ")
-      .slice(0, 300) || `${p.name}'s page on Studojo.`;
-  const image = d.hasPhoto ? `${url}/photo` : null;
+  const role = clean(p.target.role);
+  const start = clean(p.target.start);
+  const title = role ? (start ? `${v.name}, ${role} from ${start}` : `${v.name}, ${role}`) : `${v.name} | Studojo`;
+  const who = [[v.degree, v.college].filter(Boolean).join(", "), v.classOf && `Class of ${v.classOf}`].filter(Boolean).join(", ");
+  const description = ([who && `${who}.`, v.proof && `${v.proof.matched} of ${v.proof.total} claims matched to ${v.poss} resume.`].filter(Boolean).join(" ") || v.headline || `${v.name}\u2019s page on Studojo.`).slice(0, 300);
+  // The student's photo when they chose to show it, else the site's card.
+  const image = d.hasPhoto ? `${url}/photo` : `${d.origin}/og-default.png`;
   return [
-    { title },
+    { title: `${v.name} | Studojo` },
     { name: "description", content: description },
     { property: "og:type", content: "profile" },
+    { property: "og:site_name", content: "Studojo" },
+    { property: "og:url", content: url },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
-    { property: "og:url", content: url },
-    { property: "og:site_name", content: "Studojo" },
-    { property: "profile:first_name", content: p.first },
-    ...(image ? [{ property: "og:image", content: image }, { name: "twitter:card", content: "summary" }] : [{ name: "twitter:card", content: "summary" }]),
+    { property: "og:image", content: image },
+    { property: "og:image:alt", content: d.hasPhoto ? `Photo of ${v.name}` : "Studojo" },
+    { property: "profile:first_name", content: v.first },
+    { name: "twitter:card", content: d.hasPhoto ? "summary" : "summary_large_image" },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "twitter:image", content: image },
     ...(d.search
       ? [
           { tagName: "link", rel: "canonical", href: url },
@@ -60,14 +68,14 @@ export function meta({ data: d }: Route.MetaArgs) {
             "script:ld+json": {
               "@context": "https://schema.org",
               "@type": "Person",
-              name: p.name,
+              name: v.name,
               url,
-              ...(p.target.role ? { jobTitle: p.target.role } : {}),
-              ...(p.headline ? { description: p.headline } : {}),
-              ...(p.college ? { alumniOf: { "@type": "CollegeOrUniversity", name: p.college } } : {}),
-              ...(p.city ? { homeLocation: { "@type": "Place", name: p.city } } : {}),
-              ...(p.skills.length ? { knowsAbout: p.skills.map((s) => s.name) } : {}),
-              ...(image ? { image } : {}),
+              ...(role ? { jobTitle: role } : {}),
+              ...(v.headline ? { description: v.headline } : {}),
+              ...(v.college ? { alumniOf: { "@type": "CollegeOrUniversity", name: v.college } } : {}),
+              ...(clean(p.city) ? { homeLocation: { "@type": "Place", name: clean(p.city) } } : {}),
+              ...(v.skills.length ? { knowsAbout: v.skills.flatMap((g) => g.names) } : {}),
+              ...(d.hasPhoto ? { image } : {}),
             },
           },
         ]
@@ -75,19 +83,6 @@ export function meta({ data: d }: Route.MetaArgs) {
   ];
 }
 
-export default function StudentPage({ loaderData: d }: Route.ComponentProps) {
-  return (
-    <ReducedMotionProvider>
-      <Page profile={d.profile} />
-    </ReducedMotionProvider>
-  );
-}
-
-function Page({ profile }: { profile: Route.ComponentProps["loaderData"]["profile"] }) {
-  const reduced = useSafeReducedMotion();
-  return (
-    <main className="min-h-screen bg-[#faf8fd]">
-      <ProfileBody p={profile} reduced={reduced} Hero={PassHero} />
-    </main>
-  );
+export default function Page({ loaderData: d }: Route.ComponentProps) {
+  return <StudentPage p={d.profile} />;
 }

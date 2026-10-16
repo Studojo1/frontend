@@ -1,0 +1,39 @@
+{
+ "profile": {
+  "name": "Aarav Krishnamurthy-Venkataraman",
+  "first": "Aarav",
+  "initials": "AK",
+  "photo": null,
+  "headline": "",
+  "about": "",
+  "city": "",
+  "college": "",
+  "degree": "",
+  "degreeShort": "",
+  "classOf": "",
+  "email": null,
+  "url": "studojo.com/profile/aarav",
+  "slug": "aarav",
+  "target": {
+   "role": "",
+   "start": "",
+   "type": "",
+   "stage": "",
+   "cities": [],
+   "remote": false
+  },
+  "numbers": [],
+  "experience": [],
+  "projects": [],
+  "education": [],
+  "skills": [],
+  "prompts": [],
+  "claims": [],
+  "lines": [],
+  "src": {
+   "name": [],
+   "college": [],
+   "classOf": []
+  }
+ }
+}
