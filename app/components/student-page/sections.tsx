@@ -1,340 +1,382 @@
-// The student page's sections, top to bottom: identity, Looking for,
+// The student page's sections, top to bottom: the hero (who they are, what
+// they are looking for and how their claims held up against their resume),
 // Highlights, About, Experience / Projects / Education, Awards and Skills.
 // Every component takes a slice of the view model; nothing here decides data.
-import { forwardRef, Fragment, useId, useState, type CSSProperties } from "react";
-import {
-  Chevron,
-  Controls,
-  EmailButton,
-  ItemLi,
-  ItemLists,
-  MoreToggle,
-  Rich,
-  Section,
-  SourcePanel,
-  SummaryMark,
-  TextToggle,
-  useDisclosure,
-} from "./atoms";
-import type { AboutView, AwardsView, EntryView, FigColView, HighlightView, LookingView, ProfileView, SkillGroupView, StintSectionView } from "./profile-view";
+import { forwardRef, Fragment, useId, useState } from "react";
+import { Card, EmailButton, Icon, ItemLi, ItemLists, Meter, MoreButton, Rich, Seal, Section, SourceButton, SourcePanel, useDisclosure } from "./atoms";
+import type { AboutView, AwardsView, EntryView, HighlightView, LookingView, ProfileView, SkillGroupView, StintSectionView } from "./profile-view";
 
 const NAME_SIZE = {
-  m: "text-[34px] leading-[1.08] md:text-[54px] md:leading-[1.02]",
-  l: "text-[30px] leading-[1.1] md:text-[46px] md:leading-[1.05]",
-  xl: "text-[26px] leading-[1.12] md:text-[40px] md:leading-[1.08]",
+  m: "text-[34px] leading-[1.04] sm:text-[50px] sm:leading-[1.02]",
+  l: "text-[30px] leading-[1.06] sm:text-[44px] sm:leading-[1.04]",
+  xl: "text-[26px] leading-[1.1] sm:text-[38px] sm:leading-[1.06]",
 } as const;
 
-/** Who this is: the name (the page's one typographic moment), headline, study line, the claims summary and the photo. */
-export const Identity = forwardRef<HTMLElement, { v: ProfileView }>(function Identity({ v }, ref) {
-  const dot = (
-    <span aria-hidden="true" className="px-1.5 text-neutral-400">
-      {"\u00b7"}
-    </span>
-  );
-  const when = [v.classOf ? `Class of ${v.classOf}` : "", v.city].filter(Boolean);
-  const hasStudy = !!(v.degree || v.college);
+function Avatar({ v }: { v: ProfileView }) {
+  if (v.photo) {
+    return <img src={v.photo} alt={`Photo of ${v.name}`} className="h-16 w-16 rounded-[18px] object-cover shadow-[0_12px_28px_-14px_rgba(76,29,149,0.55)] ring-4 ring-white sm:h-[92px] sm:w-[92px] sm:rounded-[26px]" />;
+  }
   return (
-    <header id="intro" ref={ref} className="pb-8 pt-4 md:grid md:grid-cols-[144px_minmax(0,1fr)] md:gap-x-8 md:pb-12 md:pt-14">
-      <div className="hidden md:block">
-        {v.photo ? (
-          <img src={v.photo} alt={`Photo of ${v.name}`} className="h-20 w-20 rounded-full object-cover ring-1 ring-black/5" />
-        ) : (
-          <div aria-hidden="true" className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100 font-newsreader text-[26px] tracking-[0.04em] text-neutral-600">
-            {v.initials}
+    <div aria-hidden="true" className="grid h-16 w-16 place-items-center rounded-[18px] bg-gradient-to-br from-lilac-200 to-lilac-50 shadow-[0_12px_28px_-16px_rgba(76,29,149,0.45)] ring-4 ring-white sm:h-[92px] sm:w-[92px] sm:rounded-[26px]">
+      <span className="font-clash text-[24px] font-medium tracking-[-0.02em] text-studojo-purple-strong sm:text-[32px]">{v.initials}</span>
+    </div>
+  );
+}
+
+const ROW_LABEL: Record<LookingView["rows"][number]["k"], (v: string) => string> = {
+  Company: () => "Companies",
+  Location: (v) => (v.includes(", ") ? "Cities" : "City"),
+  Remote: () => "Remote",
+};
+
+/** What they are looking for, as the white card floating in the hero. */
+function LookingCard({ looking, first, email }: { looking: LookingView; first: string; email: string | null }) {
+  return (
+    <aside aria-labelledby="looking-h" className="mt-6 overflow-hidden rounded-[22px] border border-white bg-white shadow-lilac-card sm:mt-8 lg:mt-0">
+      <div className="px-5 pb-4 pt-5 sm:px-6">
+        <h2 id="looking-h" className="text-[13px] font-medium text-studojo-purple-strong">
+          {first} is looking for
+        </h2>
+        {looking.main && (
+          <p className="mt-1.5 text-balance text-[21px] font-bold leading-tight tracking-[-0.01em] text-studojo-ink">
+            <Rich text={looking.main} />
+          </p>
+        )}
+        {looking.sub && (
+          <p className="mt-1 text-[15px] leading-snug text-neutral-700">
+            <Rich text={looking.sub} />
+          </p>
+        )}
+      </div>
+      {looking.rows.length > 0 && (
+        <dl className="mx-5 divide-y divide-lilac-line border-t border-lilac-line sm:mx-6">
+          {looking.rows.map((r) => (
+            <div key={r.k} className="grid grid-cols-[86px_minmax(0,1fr)] gap-3 py-3">
+              <dt className="text-[13.5px] leading-snug text-neutral-600">{ROW_LABEL[r.k](r.v)}</dt>
+              <dd className="text-[14.5px] leading-snug text-studojo-ink">
+                <Rich text={r.v} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {email ? (
+        <div className="sp-no-print px-5 pb-5 pt-2 sm:px-6">
+          <EmailButton email={email} first={first} size="wide" />
+        </div>
+      ) : (
+        <div className="h-2" />
+      )}
+    </aside>
+  );
+}
+
+/** The hero: the student, what they want, and a strip with how their claims held up against their resume. */
+export const Hero = forwardRef<HTMLElement, { v: ProfileView }>(function Hero({ v }, ref) {
+  const facts = (
+    [
+      ["Studying", v.degree],
+      ["College", v.college],
+      ["Class of", v.classOf],
+      ["Based in", v.city],
+    ] as const
+  ).filter(([, x]) => x);
+  const when = [v.classOf ? `Class of ${v.classOf}` : "", v.city].filter(Boolean);
+  return (
+    <section id="intro" ref={ref} aria-label="Profile" className="sp-wash rounded-[28px] border border-lilac-200/80 px-5 pb-5 pt-6 sm:rounded-[32px] sm:p-8 lg:p-10">
+      <div className={v.looking ? "lg:grid lg:grid-cols-[minmax(0,1fr)_356px] lg:items-start lg:gap-12" : ""}>
+        <div className="min-w-0">
+          <Avatar v={v} />
+          <h1 className={`mt-5 text-balance font-clash font-medium tracking-[-0.02em] text-studojo-ink sm:mt-6 ${NAME_SIZE[v.nameSize]}`}>{v.name}</h1>
+          {v.headline && (
+            <p className="mt-3 max-w-[38ch] text-pretty text-[17px] leading-snug text-neutral-700 sm:text-[20px]">
+              <Rich text={v.headline} />
+            </p>
+          )}
+          {/* Phones: two quiet lines with icons. From 640px: the labelled facts. */}
+          {(v.degree || v.college || when.length > 0) && (
+            <div className="mt-4 flex flex-col gap-1.5 text-[14.5px] text-neutral-600 sm:hidden">
+              {(v.degree || v.college) && (
+                <p className="flex min-w-0 items-start gap-2">
+                  <Icon name="cap" size={17} className="mt-[1px]" />
+                  <span>
+                    <Rich text={[v.degree, v.college].filter(Boolean).join(", ")} />
+                  </span>
+                </p>
+              )}
+              {when.length > 0 && (
+                <p className="flex flex-wrap gap-x-5 gap-y-1.5">
+                  {v.classOf && (
+                    <span className="flex items-start gap-2">
+                      <Icon name="calendar" size={16} className="mt-[1px]" />
+                      Class of {v.classOf}
+                    </span>
+                  )}
+                  {v.city && (
+                    <span className="flex items-start gap-2">
+                      <Icon name="pin" size={16} className="mt-[1px]" />
+                      <Rich text={v.city} />
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+          )}
+          {facts.length > 0 && (
+            <dl className="mt-7 hidden grid-cols-2 gap-x-10 gap-y-5 border-t border-lilac-200 pt-6 sm:grid">
+              {facts.map(([k, x]) => (
+                <div key={k} className="min-w-0">
+                  <dt className="text-[12px] font-medium uppercase tracking-[0.08em] text-neutral-600">{k}</dt>
+                  <dd className="mt-1 text-[15.5px] font-medium leading-snug text-studojo-ink">
+                    <Rich text={x} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          <p className="sp-print-only mt-3 text-[12px] text-neutral-600">{v.url}</p>
+        </div>
+        {v.looking && <LookingCard looking={v.looking} first={v.first} email={v.email} />}
+      </div>
+      {v.proof ? (
+        <a href="#proof" className="group mt-6 flex items-center gap-4 rounded-[20px] border border-white/80 bg-white/75 px-4 py-3.5 shadow-lilac-soft backdrop-blur-sm transition-colors hover:bg-white sm:mt-8 sm:gap-5 sm:px-5 sm:py-4">
+          <Seal all={v.proof.all} size={46} />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold leading-tight text-studojo-ink">{v.proof.all ? "Resume-checked profile" : "Checked against the resume"}</span>
+            <span className="mt-1 block text-[13.5px] leading-snug text-neutral-600">
+              <span className="font-semibold text-studojo-ink">
+                {v.proof.matched} of {v.proof.total} claims
+              </span>{" "}
+              matched to {v.poss} resume
+              {v.updated && (
+                <>
+                  <span aria-hidden="true" className="px-1.5 text-neutral-400">
+                    {"·"}
+                  </span>
+                  <span className="whitespace-nowrap">Updated {v.updated}</span>
+                </>
+              )}
+            </span>
+            <span className="mt-2.5 block max-w-[360px]">
+              <Meter matched={v.proof.matched} total={v.proof.total} />
+            </span>
+          </span>
+          <span className="hidden items-center gap-1 whitespace-nowrap text-[14px] font-medium text-studojo-purple-strong sm:inline-flex">
+            See the proof
+            <Icon name="arrow" size={14} className="transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </a>
+      ) : (
+        v.updated && <p className="mt-6 text-[13px] text-neutral-600">Updated {v.updated}</p>
+      )}
+    </section>
+  );
+});
+
+function HighlightTile({ h, stacked, poss }: { h: HighlightView; stacked: boolean; poss: string }) {
+  const d = useDisclosure();
+  // A row on phones (figure beside its label) unless a long figure needs the whole width; a tile from 640px.
+  const shape = stacked ? "flex flex-col" : "grid grid-cols-[minmax(80px,max-content)_minmax(0,1fr)] items-baseline gap-x-4 sm:flex sm:flex-col sm:items-stretch";
+  return (
+    <div className={`${shape} rounded-[20px] border border-lilac-200/70 bg-lilac-50 p-4 sm:p-5`}>
+      <p className="sp-tnum font-clash text-[26px] font-medium leading-none tracking-[-0.02em] text-studojo-purple-strong [overflow-wrap:anywhere] sm:text-[32px]">{h.value}</p>
+      <div className={`flex min-w-0 flex-1 flex-col ${stacked ? "mt-2.5" : "sm:mt-3"}`}>
+        <p className="text-pretty text-[14.5px] leading-snug text-neutral-700">
+          <Rich text={h.label} />
+        </p>
+        {h.ref && (
+          <div className="mt-auto pt-2.5">
+            <SourceButton open={d.open} controls={d.id} onClick={d.toggle} label={h.ref.label} context={`${h.value} ${h.label}`} />
           </div>
         )}
       </div>
-      <div className="min-w-0">
-        <div className="flex items-start gap-4">
-          <h1 id="name" className={`sp-name min-w-0 flex-1 font-newsreader font-[440] tracking-[-0.015em] text-studojo-ink ${NAME_SIZE[v.nameSize]}`}>
-            {v.name}
-          </h1>
-          {v.photo && <img src={v.photo} alt={`Photo of ${v.name}`} className="mt-1 h-14 w-14 flex-none rounded-full object-cover ring-1 ring-black/5 md:hidden" />}
+      {h.ref && (
+        <div className="col-span-2 min-w-0">
+          <SourcePanel id={d.id} open={d.open} lines={h.ref.lines} poss={poss} />
         </div>
-        {v.headline && (
-          <p className="mt-3 max-w-[34em] text-[16px] leading-[1.5] text-neutral-700 md:text-[18px]">
-            <Rich text={v.headline} />
-          </p>
-        )}
-        {(hasStudy || when.length > 0) && (
-          <div className="mt-3 text-[14.5px] leading-[1.55] md:mt-5">
-            {hasStudy && (
-              <p className="text-neutral-700">
-                {v.degree && v.college ? (
-                  <>
-                    <span className="inline-block max-w-full">
-                      <Rich text={v.degree} />,
-                    </span>{" "}
-                    <span className="inline-block max-w-full">
-                      <Rich text={v.college} />
-                    </span>
-                  </>
-                ) : (
-                  <span className="inline-block max-w-full">
-                    <Rich text={v.degree || v.college} />
-                  </span>
-                )}
-              </p>
-            )}
-            {when.length > 0 && (
-              <p className="text-neutral-500">
-                {when.map((w, i) => (
-                  <Fragment key={w}>
-                    {i > 0 && dot}
-                    <span className="inline-block max-w-full">
-                      <Rich text={w} />
+      )}
+    </div>
+  );
+}
+
+const TILE_COLS = { 1: "grid-cols-1", 2: "grid-cols-1 sm:grid-cols-2", 3: "grid-cols-1 sm:grid-cols-3", 4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" } as const;
+
+/** The numbers, as lilac tiles; each opens to the resume line it came from. */
+export function Highlights({ items, stacked, poss }: { items: HighlightView[]; stacked: boolean; poss: string }) {
+  const cols = TILE_COLS[Math.min(4, Math.max(1, items.length)) as 1 | 2 | 3 | 4];
+  return (
+    <Section id="highlights" title="Highlights" sub={`Numbers from ${poss} resume. Open a source to see the line.`}>
+      <div className={`grid gap-3 ${cols}`}>
+        {items.map((h) => (
+          <HighlightTile key={`${h.value}|${h.label}`} h={h} stacked={stacked} poss={poss} />
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/** The student's own words: About, then their answers in lilac cards. */
+export function About({ about, poss }: { about: AboutView; poss: string }) {
+  return (
+    <Section id="about" title="About" sub={`In ${poss} own words`}>
+      {about.text && (
+        <p className="max-w-[66ch] text-pretty text-[17px] leading-[1.7] text-neutral-700">
+          <Rich text={about.text} />
+        </p>
+      )}
+      {about.prompts.length > 0 && (
+        <div className={`grid gap-3 ${about.text ? "mt-6" : ""} ${about.prompts.length > 1 ? "md:grid-cols-2" : ""}`}>
+          {about.prompts.map((q, i) => (
+            <figure key={i} className="rounded-[20px] border border-lilac-200/70 bg-lilac-50 px-5 py-5 sm:px-6">
+              {q.q && (
+                <figcaption className="text-[13px] font-medium text-studojo-purple-strong">
+                  <Rich text={q.q} />
+                </figcaption>
+              )}
+              <blockquote className="mt-2 max-w-[66ch] text-pretty text-[16.5px] leading-relaxed text-studojo-ink">
+                <Rich text={q.a} />
+              </blockquote>
+            </figure>
+          ))}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+const SMALL_WORDS = new Set(["of", "and", "the", "in", "at", "for", "to", "a", "an", "on", "&"]);
+/** "Mariana AI" to "MA", "Fitmedik" to "F": from a real org name only (entries the mapper trusts), never from resume sentences. */
+const initialsOf = (name: string) =>
+  name
+    .replace(/\(.*?\)/g, "")
+    .split(/[\s,]+/)
+    .filter((w) => w && !SMALL_WORDS.has(w.toLowerCase()) && /[A-Za-z0-9]/.test(w))
+    .slice(0, 2)
+    .map((w) => w.replace(/[^A-Za-z0-9]/g, "").charAt(0).toUpperCase())
+    .join("");
+
+function EntryMark({ kind, org, title }: { kind: StintSectionView["kind"]; org: string; title: string }) {
+  const base = "grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-lilac-100 text-studojo-purple-strong ring-1 ring-inset ring-lilac-200 sm:h-11 sm:w-11";
+  if (kind === "education") {
+    return (
+      <span aria-hidden="true" className={base}>
+        <Icon name="cap" size={20} />
+      </span>
+    );
+  }
+  const text = initialsOf(org || title) || "\u2022";
+  return (
+    <span aria-hidden="true" className={`${base} font-clash text-[15px] font-medium tracking-[-0.01em]`}>
+      {text}
+    </span>
+  );
+}
+
+function Entry({ e, kind, poss }: { e: EntryView; kind: StintSectionView["kind"]; poss: string }) {
+  const src = useDisclosure();
+  const more = useDisclosure();
+  const moreId = `${more.id}-more`;
+  const what = [e.title, e.org].filter(Boolean).join(", ");
+  const sub = [e.org, e.place].filter(Boolean);
+  const when = [e.dates, e.span].filter(Boolean).join(" · ");
+  const hidden = e.body.length - e.shown;
+  return (
+    <li className="px-5 py-5 sm:px-6">
+      <article className="flex gap-4">
+        <EntryMark kind={kind} org={e.org} title={e.title} />
+        <div className="min-w-0 flex-1">
+        <div className="sm:flex sm:items-baseline sm:justify-between sm:gap-6">
+          <div className="min-w-0">
+            <h3 className="text-[17px] font-bold leading-snug text-studojo-ink">
+              <Rich text={e.title} />
+            </h3>
+            {sub.length > 0 && (
+              <p className="mt-0.5 flex flex-wrap gap-x-1.5 text-[15px] leading-snug text-neutral-600">
+                {sub.map((x, i) => (
+                  <Fragment key={i}>
+                    {i > 0 && (
+                      <span aria-hidden="true" className="text-neutral-400">
+                        {"·"}
+                      </span>
+                    )}
+                    <span className={i === 0 ? "font-medium text-neutral-700" : ""}>
+                      <Rich text={x} />
                     </span>
                   </Fragment>
                 ))}
               </p>
             )}
+            {e.sub && (
+              <p className="mt-0.5 text-[15px] leading-snug text-neutral-600">
+                <Rich text={e.sub} />
+              </p>
+            )}
           </div>
-        )}
-        {v.proof ? (
-          <p className="mt-3 text-[14px] leading-5 md:mt-5">
-            <a href="#sources" className="group -my-3 inline-flex items-start gap-2 py-3 text-studojo-ink sm:-my-1 sm:py-1">
-              <span className="mt-0.5">
-                <SummaryMark all={v.proof.all} />
-              </span>
-              <span>
-                <span className="underline decoration-neutral-300 underline-offset-4 transition-colors group-hover:decoration-neutral-600">{v.proof.text}</span>
-                {v.updated && (
-                  <>
-                    <span className="sr-only">. </span>
-                    <span className="mt-1 block text-[13px] text-neutral-500 sm:ml-2 sm:mt-0 sm:inline">
-                      <span aria-hidden="true" className="mr-2 hidden text-neutral-400 sm:inline">
-                        {"\u00b7"}
-                      </span>
-                      Updated {v.updated}
-                    </span>
-                  </>
-                )}
-              </span>
-            </a>
+          {when && <p className="sp-tnum mt-1 shrink-0 text-[14px] text-neutral-600 sm:mt-0 sm:text-right">{when}</p>}
+        </div>
+        {e.note && (
+          <p className="mt-2.5 max-w-[64ch] text-pretty text-[15px] leading-relaxed text-neutral-700">
+            <Rich text={e.note} />
           </p>
-        ) : (
-          v.updated && <p className="mt-5 text-[13px] text-neutral-500">Updated {v.updated}</p>
         )}
-        <p className="sp-print-only mt-3 text-[12px] text-neutral-500">{v.url}</p>
-        {v.email && (
-          <div className="sp-no-print mt-6 hidden flex-wrap gap-2 sm:flex">
-            <EmailButton email={v.email} first={v.first} place="intro" />
+        {e.body.length > 0 && (
+          <div className="mt-3">
+            <ItemLists items={e.body} shown={e.shown} moreId={moreId} moreOpen={more.open} />
           </div>
         )}
-      </div>
-    </header>
-  );
-});
-
-/** What they are looking for: the role, one sentence for type and start, then Company, Location (every city) and Remote. */
-export function LookingFor({ looking }: { looking: LookingView }) {
-  return (
-    <Section id="looking" label="Looking for" labelTop={looking.main ? 7 : 4}>
-      {looking.main && (
-        <p className="text-[20px] font-medium leading-7 text-studojo-ink">
-          <Rich text={looking.main} />
-        </p>
-      )}
-      {looking.sub && (
-        <p className="text-[15px] leading-6 text-neutral-600">
-          <Rich text={looking.sub} />
-        </p>
-      )}
-      {looking.rows.length > 0 && (
-        <dl className={`${looking.main || looking.sub ? "mt-3 " : ""}grid grid-cols-[76px_minmax(0,1fr)] gap-x-4 gap-y-1 text-[15px] leading-6 md:grid-cols-[84px_minmax(0,1fr)]`}>
-          {looking.rows.map((r) => (
-            <Fragment key={r.k}>
-              <dt className="text-[14px] text-neutral-500">{r.k}</dt>
-              <dd className="text-neutral-800">
-                <Rich text={r.v} />
-              </dd>
-            </Fragment>
-          ))}
-        </dl>
-      )}
-    </Section>
-  );
-}
-
-const ROW_HINT =
-  "sp-hint mt-1 flex items-center gap-1.5 text-[13px] font-medium leading-5 text-neutral-500 transition-colors group-hover:text-studojo-purple-strong group-aria-expanded:text-studojo-purple-strong";
-
-// The figure column comes from the view (figCol) as CSS variables on the list; Tailwind only sees whole class strings, so the three layouts are a static map.
-const FIG_ROW = {
-  none: "grid-cols-[var(--fw)_minmax(0,1fr)] items-baseline gap-x-3 md:grid-cols-[var(--fwd)_minmax(0,1fr)] md:gap-x-5",
-  phone: "grid-cols-[minmax(0,1fr)] sm:grid-cols-[var(--fw)_minmax(0,1fr)] sm:items-baseline sm:gap-x-3 md:grid-cols-[var(--fwd)_minmax(0,1fr)] md:gap-x-5",
-  all: "grid-cols-[minmax(0,1fr)]",
-} as const;
-const FIG_INDENT = { none: "ml-[var(--fi)] md:ml-[var(--fid)]", phone: "sm:ml-[var(--fi)] md:ml-[var(--fid)]", all: "" } as const;
-const FIG_WRAP = { none: "whitespace-nowrap", phone: "[overflow-wrap:anywhere] sm:whitespace-nowrap", all: "[overflow-wrap:anywhere]" } as const;
-
-function HighlightRow({ h, stack }: { h: HighlightView; stack: FigColView["stack"] }) {
-  const d = useDisclosure();
-  const grid = `grid w-full py-3 text-left ${FIG_ROW[stack]}`;
-  const cells = (
-    <>
-      <span className={`sp-fig ${FIG_WRAP[stack]} font-newsreader text-[26px] font-[450] leading-8 tracking-[-0.01em] text-studojo-ink md:text-[30px]`}>{h.value}</span>
-      <span className="min-w-0">
-        <span className="block text-[15px] leading-6 text-neutral-700">
-          <Rich text={h.label} />
-        </span>
-        {h.ref && (
-          <span className={ROW_HINT}>
-            {h.ref.label}
-            <Chevron />
-          </span>
+        {(hidden > 0 || e.ref) && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-5">
+            {hidden > 0 && <MoreButton count={hidden} open={more.open} controls={moreId} onClick={more.toggle} what={what} />}
+            {e.ref && <SourceButton open={src.open} controls={src.id} onClick={src.toggle} label={e.ref.label} context={what} />}
+          </div>
         )}
-      </span>
-    </>
-  );
-  if (!h.ref) {
-    return (
-      <li>
-        <div className={grid}>{cells}</div>
-      </li>
-    );
-  }
-  return (
-    <li>
-      <button type="button" data-row="" aria-expanded={d.open} aria-controls={d.id} onClick={d.toggle} className={`group ${grid}`}>
-        {cells}
-      </button>
-      <SourcePanel id={d.id} open={d.open} lines={h.ref.lines} className={`mb-3 ${FIG_INDENT[stack]}`} />
+        {e.ref && <SourcePanel id={src.id} open={src.open} lines={e.ref.lines} poss={poss} />}
+        </div>
+      </article>
     </li>
   );
 }
 
-/** The numbers, each a row that opens to the resume line it came from. */
-export function Highlights({ items, col }: { items: HighlightView[]; col: FigColView }) {
-  const vars = { "--fw": `${col.phone}px`, "--fwd": `${col.desktop}px`, "--fi": `${col.phone + 12}px`, "--fid": `${col.desktop + 20}px` } as CSSProperties;
-  return (
-    <Section id="highlights" label="Highlights" labelTop={13}>
-      <ul role="list" className="-my-3" style={vars}>
-        {items.map((h) => (
-          <HighlightRow key={`${h.value}|${h.label}`} h={h} stack={col.stack} />
-        ))}
-      </ul>
-    </Section>
-  );
-}
-
-/** The student's own words: About, then their answers (in the serif italic, as quotes). */
-export function About({ about }: { about: AboutView }) {
-  return (
-    <Section id="about" label="About" labelTop={6}>
-      {about.text && (
-        <p className="max-w-[36em] text-[16px] leading-[1.7] text-neutral-700">
-          <Rich text={about.text} />
-        </p>
-      )}
-      {about.prompts.map((q, i) => (
-        <figure key={i} className={about.text || i ? "mt-8" : ""}>
-          {q.q && (
-            <figcaption className="text-[13px] font-medium text-neutral-500">
-              <Rich text={q.q} />
-            </figcaption>
-          )}
-          <blockquote className="mt-1.5 max-w-[34em] font-newsreader text-[19px] italic leading-[1.55] text-neutral-800">
-            <Rich text={q.a} />
-          </blockquote>
-        </figure>
-      ))}
-    </Section>
-  );
-}
-
-function Entry({ e, index }: { e: EntryView; index: number }) {
-  const src = useDisclosure();
-  const more = useDisclosure();
-  const moreId = `${more.id}-more`;
-  const sub = [e.org, e.place].filter(Boolean).join(" \u00b7 ");
-  const when = [e.dates, e.span].filter(Boolean).join(" \u00b7 ");
-  const what = [e.title, e.org].filter(Boolean).join(", ");
-  const hidden = e.body.length - e.shown;
-  return (
-    <article className={index ? "mt-8 md:mt-9" : ""}>
-      <div className="grid grid-cols-[minmax(0,1fr)] sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-8">
-        <h3 className="text-[16px] font-medium leading-6 text-studojo-ink">
-          <Rich text={e.title} />
-        </h3>
-        <p className="hidden whitespace-nowrap text-right text-[13.5px] leading-6 tabular-nums text-neutral-600 sm:block">{e.dates}</p>
-        {sub ? (
-          <p className="text-[15px] leading-6 text-neutral-600">
-            <Rich text={sub} />
-          </p>
-        ) : e.sub ? (
-          <p className="text-[15px] leading-6 text-neutral-600">
-            <Rich text={e.sub} />
-          </p>
-        ) : (
-          <span />
-        )}
-        <p className="hidden whitespace-nowrap text-right text-[13px] leading-6 tabular-nums text-neutral-500 sm:block">{e.span}</p>
-        {sub && e.sub && (
-          <p className="text-[15px] leading-6 text-neutral-600">
-            <Rich text={e.sub} />
-          </p>
-        )}
-      </div>
-      {when && <p className="text-[13.5px] leading-6 tabular-nums text-neutral-600 sm:hidden">{when}</p>}
-      {e.note && (
-        <p className="mt-2.5 max-w-[34em] text-[15px] leading-[1.65] text-neutral-700">
-          <Rich text={e.note} />
-        </p>
-      )}
-      {e.body.length > 0 && (
-        <div className="mt-2.5">
-          <ItemLists items={e.body} shown={e.shown} moreId={moreId} moreOpen={more.open} />
-        </div>
-      )}
-      <Controls>
-        {[
-          hidden > 0 && <MoreToggle key="more" count={hidden} open={more.open} controls={moreId} onClick={more.toggle} what={what} />,
-          e.ref && (
-            <TextToggle key="src" open={src.open} controls={src.id} onClick={src.toggle}>
-              <span className="sr-only">Show </span>
-              {e.ref.label}
-              <span className="sr-only"> for {what}</span>
-            </TextToggle>
-          ),
-        ]}
-      </Controls>
-      {e.ref && <SourcePanel id={src.id} open={src.open} lines={e.ref.lines} />}
-    </article>
-  );
-}
-
-function Pool({ pool, label }: { pool: NonNullable<StintSectionView["pool"]>; label: string }) {
+function Pool({ pool, label, poss, under }: { pool: NonNullable<StintSectionView["pool"]>; label: string; poss: string; under: boolean }) {
   const more = useDisclosure();
   const moreId = `${more.id}-more`;
   const hidden = pool.items.length - pool.shown;
   return (
-    <>
-      <p className="mb-3 text-[13px] font-medium text-neutral-600">{pool.caption}</p>
+    <div className={`${under ? "border-t border-lilac-line bg-lilac-50/50 " : ""}px-5 py-5 sm:px-6`}>
+      <p className="mb-3.5 flex items-center gap-2 text-[13px] font-medium text-neutral-600">
+        <Icon name="file" size={15} />
+        {under ? `Also under ${label} on ${poss} resume` : `As written on ${poss} resume`}
+      </p>
       <ItemLists items={pool.items} shown={pool.shown} moreId={moreId} moreOpen={more.open} />
-      <Controls>{[hidden > 0 && <MoreToggle key="more" count={hidden} open={more.open} controls={moreId} onClick={more.toggle} what={label} />]}</Controls>
-    </>
+      {hidden > 0 && (
+        <div className="mt-3">
+          <MoreButton count={hidden} open={more.open} controls={moreId} onClick={more.toggle} what={label} />
+        </div>
+      )}
+    </div>
   );
 }
 
-/** Experience, Projects or Education: entries drawn as a CV, then what the resume says that could not be tied to an entry. */
-export function StintSection({ section }: { section: StintSectionView }) {
+/** Experience, Projects or Education: a white card of entries, then what the resume says that could not be tied to an entry. */
+export function StintSection({ section, poss }: { section: StintSectionView; poss: string }) {
   return (
-    <Section id={section.kind} label={section.label} labelTop={section.entries.length ? 5 : 3}>
-      {section.entries.map((e, i) => (
-        <Entry key={e.key} e={e} index={i} />
-      ))}
-      {section.pool && (
-        <div className={section.entries.length ? "mt-10 border-t border-neutral-100 pt-7" : ""}>
-          <Pool pool={section.pool} label={section.label} />
-        </div>
-      )}
+    <Section id={section.kind} title={section.label}>
+      <Card>
+        {section.entries.length > 0 && (
+          <ul role="list" className="divide-y divide-lilac-line">
+            {section.entries.map((e) => (
+              <Entry key={e.key} e={e} kind={section.kind} poss={poss} />
+            ))}
+          </ul>
+        )}
+        {section.pool && <Pool pool={section.pool} label={section.label} poss={poss} under={section.entries.length > 0} />}
+      </Card>
     </Section>
   );
 }
 
 /** Awards (or Activities): resume lines nothing else on the page uses, grouped under the resume's own headings. */
-export function Awards({ awards }: { awards: AwardsView }) {
+export function Awards({ awards, poss }: { awards: AwardsView; poss: string }) {
   const base = useId();
   const src = useDisclosure();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -348,103 +390,98 @@ export function Awards({ awards }: { awards: AwardsView }) {
   const restIds = blocks.filter((b) => b.rest.length).map((b) => b.restId).join(" ");
   const hidden = awards.count - awards.shown;
   return (
-    <Section id="awards" label={awards.label} labelTop={3}>
-      {blocks.map((b, i) => (
-        <div key={b.restId} className={i ? "mt-6" : ""}>
-          {b.caption && <p className="mb-3 text-[13px] font-medium text-neutral-600">{b.caption}</p>}
-          {b.head.length > 0 && (
-            <ul role="list" className="sp-dots max-w-[35em] space-y-1.5">
-              {b.head.map((o, k) => (
-                <ItemLi key={k} item={o} />
-              ))}
-            </ul>
-          )}
-          {b.rest.length > 0 && (
-            <ul id={b.restId} role="list" data-more-list="" hidden={!moreOpen} className="sp-dots mt-1.5 max-w-[35em] space-y-1.5">
-              {b.rest.map((o, k) => (
-                <ItemLi key={k} item={o} />
-              ))}
-            </ul>
-          )}
-        </div>
-      ))}
-      <Controls>
-        {[
-          hidden > 0 && restIds && <MoreToggle key="more" count={hidden} open={moreOpen} controls={restIds} onClick={() => setMoreOpen((o) => !o)} what={awards.label} />,
-          awards.ref && (
-            <TextToggle key="src" open={src.open} controls={src.id} onClick={src.toggle}>
-              <span className="sr-only">Show </span>
-              {awards.ref.label}
-              <span className="sr-only"> for {awards.label}</span>
-            </TextToggle>
-          ),
-        ]}
-      </Controls>
-      {awards.ref && <SourcePanel id={src.id} open={src.open} lines={awards.ref.lines} />}
+    <Section id="awards" title={awards.label}>
+      <Card className="px-5 py-5 sm:px-6">
+        {blocks.map((b, i) => (
+          <div key={b.restId} className={i ? "mt-6" : ""}>
+            {b.caption && <p className="mb-3 text-[13px] font-medium uppercase tracking-[0.06em] text-neutral-600">{b.caption}</p>}
+            {b.head.length > 0 && (
+              <ul role="list" className="space-y-2.5">
+                {b.head.map((o, k) => (
+                  <ItemLi key={k} item={o} />
+                ))}
+              </ul>
+            )}
+            {b.rest.length > 0 && (
+              <ul id={b.restId} role="list" data-more-list="" hidden={!moreOpen} className="mt-2.5 space-y-2.5">
+                {b.rest.map((o, k) => (
+                  <ItemLi key={k} item={o} />
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+        {(hidden > 0 || awards.ref) && (
+          <div className="mt-4 flex flex-wrap items-center gap-x-5">
+            {hidden > 0 && restIds && <MoreButton count={hidden} open={moreOpen} controls={restIds} onClick={() => setMoreOpen((o) => !o)} what={awards.label} />}
+            {awards.ref && <SourceButton open={src.open} controls={src.id} onClick={src.toggle} label={awards.ref.label} context={awards.label} />}
+          </div>
+        )}
+        {awards.ref && <SourcePanel id={src.id} open={src.open} lines={awards.ref.lines} poss={poss} />}
+      </Card>
     </Section>
   );
 }
 
-function SkillRow({ g, solo }: { g: SkillGroupView; solo: boolean }) {
+function SkillGroup({ g, solo, poss }: { g: SkillGroupView; solo: boolean; poss: string }) {
   const d = useDisclosure();
-  const grid = solo ? "grid w-full grid-cols-[minmax(0,1fr)] py-3 text-left" : "grid w-full grid-cols-[minmax(0,1fr)] gap-x-6 py-3 text-left sm:grid-cols-[150px_minmax(0,1fr)]";
-  const cells = (
-    <>
-      {!solo && (
-        <span className="text-[13.5px] leading-6 text-neutral-600 sm:leading-7">
-          <Rich text={g.where} />
+  const pills = (
+    <div className="flex flex-wrap items-center gap-2">
+      <ul role="list" className="contents">
+        {g.names.map((n) => (
+          <li key={n} data-skill="" className="inline-flex min-h-8 max-w-full items-center rounded-full bg-lilac-100 px-3 py-1 text-[14px] font-medium leading-tight text-studojo-ink">
+            {n}
+          </li>
+        ))}
+        {g.more > 0 && (
+          <li data-skill="" className="inline-flex min-h-8 items-center px-1 text-[14px] text-neutral-600">
+            and {g.more} more
+          </li>
+        )}
+      </ul>
+      {g.ref && (
+        <span className="pl-1">
+          <SourceButton open={d.open} controls={d.id} onClick={d.toggle} label={g.ref.label} context={`skills, ${g.where}`} />
         </span>
       )}
-      <span className="min-w-0">
-        {/* Each skill and its comma is one inline-block: lines break between skills, and only a skill wider than the whole line wraps inside its box. */}
-        <span className="block text-[15px] leading-7 text-studojo-ink">
-          {g.names.map((n, i) => (
-            <Fragment key={n}>
-              <span data-skill="" className="inline-block max-w-full">{`${n}${i < g.names.length - 1 || g.more ? "," : ""}`}</span>{" "}
-            </Fragment>
-          ))}
-          {g.more > 0 && (
-            <span data-skill="" className="inline-block max-w-full text-neutral-600">
-              and {g.more} more
-            </span>
-          )}
-        </span>
-        {g.ref && (
-          <span className={ROW_HINT}>
-            {g.ref.label}
-            <Chevron />
-          </span>
-        )}
-      </span>
-    </>
+    </div>
   );
-  if (!g.ref) {
+  const panel = g.ref ? <SourcePanel id={d.id} open={d.open} lines={g.ref.lines} poss={poss} /> : null;
+  if (solo) {
     return (
-      <li>
-        <div className={grid}>{cells}</div>
+      <li className="px-5 py-5 sm:px-6">
+        <p className="mb-3 text-[13px] font-medium text-neutral-600">Listed on {poss} resume</p>
+        {pills}
+        {panel}
       </li>
     );
   }
   return (
-    <li>
-      <button type="button" data-row="" aria-expanded={d.open} aria-controls={d.id} onClick={d.toggle} className={`group ${grid}`}>
-        {cells}
-      </button>
-      <SourcePanel id={d.id} open={d.open} lines={g.ref.lines} className={solo ? "mb-3" : "mb-3 sm:ml-[174px]"} />
+    <li className="grid gap-2.5 px-5 py-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-6 sm:px-6">
+      <p className="text-[14px] font-medium text-studojo-ink sm:pt-1.5">
+        <Rich text={g.where} />
+      </p>
+      <div className="min-w-0">
+        {pills}
+        {panel}
+      </div>
     </li>
   );
 }
 
-/** Skills, grouped by where they show up (an employer or project), else "Listed on the resume". */
-export function Skills({ groups }: { groups: SkillGroupView[] }) {
+/** Skills as pills, grouped by where they show up (an employer or project), else "Listed on the resume". */
+export function Skills({ groups, first, poss }: { groups: SkillGroupView[]; first: string; poss: string }) {
   const solo = groups.length === 1 && groups[0].where === "Listed on the resume";
+  const named = groups.some((g) => g.where !== "Listed on the resume");
   return (
-    <Section id="skills" label="Skills" labelTop={11}>
-      <ul role="list" className="-my-3">
-        {groups.map((g) => (
-          <SkillRow key={g.where} g={g} solo={solo} />
-        ))}
-      </ul>
+    <Section id="skills" title="Skills" sub={named ? `Grouped by where ${first} used them` : undefined}>
+      <Card>
+        <ul role="list" className="divide-y divide-lilac-line">
+          {groups.map((g) => (
+            <SkillGroup key={g.where} g={g} solo={solo} poss={poss} />
+          ))}
+        </ul>
+      </Card>
     </Section>
   );
 }

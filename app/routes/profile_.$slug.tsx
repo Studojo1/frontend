@@ -30,9 +30,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { profile, search: !!found.page.visibility.search, origin, hasPhoto: !!profile.photo };
 }
 
-/** Preload the name's typeface on this route only: the name is the largest paint. */
-export const links: Route.LinksFunction = () => [{ rel: "preload", href: "/fonts/newsreader-var.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" }];
-
 export function meta({ data: d }: Route.MetaArgs) {
   if (!d) return [{ title: "Page not found | Studojo" }, { name: "robots", content: "noindex, nofollow" }];
   const p = d.profile;

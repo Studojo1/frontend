@@ -5,8 +5,17 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-satoshi: "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --font-clash: "Clash Display", ui-sans-serif, system-ui, sans-serif;
-  /* The student page (/profile/:slug): name, highlight figures and the student's own answers. */
-  --font-newsreader: "Newsreader", ui-serif, Georgia, serif;
+  /* The student page (/profile/:slug): a soft lilac wash, white cards, one green for "matched to the resume". */
+  --color-lilac-50: #faf5fe;
+  --color-lilac-100: #f3edfe;
+  --color-lilac-200: #e6dcfc;
+  --color-lilac-300: #d4c3fa;
+  --color-lilac-400: #b69cf6;
+  --color-lilac-line: #ebe5f5;
+  --color-ok-ink: #047857;
+  --color-ok-soft: #f0fdf7;
+  --shadow-lilac-card: 0 1px 2px rgba(23, 23, 23, 0.04), 0 18px 40px -22px rgba(76, 29, 149, 0.28);
+  --shadow-lilac-soft: 0 1px 2px rgba(23, 23, 23, 0.035);
 
   /* Studojo design system: reference colors */
   --color-studojo-ink: #171717;
@@ -538,35 +547,36 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
- * Student page (/profile/:slug, app/components/student-page). A typeset CV:
- * the rest is Tailwind classes in the components; this block holds what
- * utilities cannot say (optical sizing, the bullet dots, the sticky bar's
- * states and print).
+ * Student page (/profile/:slug, app/components/student-page): a lilac hero
+ * card, white section cards, Clash Display for the name, headings and figures,
+ * Satoshi for text. This block holds what utilities cannot say: the hero wash,
+ * the chevron turn, focus, the sticky bar's states and print.
  * ------------------------------------------------------------------------- */
 /* overflow-wrap is inherited: a long URL or token in any resume text wraps instead of widening the page. */
 .student-page { overflow-wrap: break-word; }
 /* Tailwind v4's preflight no longer gives buttons a pointer; every disclosure on this page is a button. */
 .student-page button:not(:disabled) { cursor: pointer; }
-.student-page .sp-label { font-size: 11px; line-height: 16px; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; color: #737373; }
-.student-page .sp-name { font-optical-sizing: auto; text-wrap: balance; overflow-wrap: break-word; hyphens: manual; }
-.student-page .sp-fig { font-optical-sizing: auto; font-variant-numeric: lining-nums tabular-nums; }
-.student-page .sp-dots > li { position: relative; padding-left: 16px; }
-.student-page .sp-dots > li::before { content: ""; position: absolute; left: 2px; top: .74em; width: 4px; height: 4px; border-radius: 50%; background: #a3a3a3; }
-.student-page :is(a, button):focus { outline: none; }
-.student-page :is(a, button):focus-visible { outline: 2px solid #6d28d9; outline-offset: 2px; border-radius: 6px; }
+.student-page .sp-wash {
+  background:
+    radial-gradient(60% 85% at 100% 0%, rgba(167, 139, 250, 0.26) 0%, rgba(167, 139, 250, 0) 65%),
+    radial-gradient(55% 70% at 0% 100%, rgba(237, 233, 254, 0.85) 0%, rgba(237, 233, 254, 0) 70%),
+    linear-gradient(180deg, #f6f1ff 0%, #faf7ff 100%);
+}
 .student-page .sp-chev { flex: none; transition: transform .18s ease; }
 .student-page [aria-expanded="true"] .sp-chev { transform: rotate(180deg); }
+.student-page :is(a, button):focus { outline: none; }
+.student-page :is(a, button):focus-visible { outline: 2px solid #6d28d9; outline-offset: 2px; border-radius: 10px; }
+.student-page .sp-tnum { font-variant-numeric: tabular-nums; }
 
-/* Sticky bar: the name and Email join it once the identity block has scrolled
-   away; its actions step aside while the closing row (which has its own) shows. */
-.sp-bar { border-bottom: 1px solid transparent; transition: border-color .2s ease; }
-.sp-bar[data-scrolled="true"] { border-bottom-color: #e5e5e5; }
-.sp-bar .sp-bar-name, .sp-bar .sp-bar-email { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility .2s; }
-.sp-bar[data-compact="true"] .sp-bar-name, .sp-bar[data-compact="true"] .sp-bar-email { opacity: 1; visibility: visible; }
-.sp-bar .sp-bar-actions { transition: opacity .2s ease, visibility .2s; }
-.sp-bar[data-end="true"] .sp-bar-actions { opacity: 0; visibility: hidden; }
+/* Sticky bar: the student's name and Email join it once the hero has scrolled away. */
+.sp-bar { transition: border-color .2s ease, background-color .2s ease; }
+.sp-bar .sp-bar-name { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility .2s; }
+.sp-bar[data-compact="true"] .sp-bar-name { opacity: 1; visibility: visible; }
+/* Email takes no room until it shows (on a 320px phone the bar has none to spare). */
+.sp-bar .sp-bar-email { display: none; }
+.sp-bar[data-compact="true"] .sp-bar-email { display: inline-flex; }
 @media (max-width: 639px) {
-  .sp-bar .sp-bar-email { opacity: 1; visibility: visible; }
+  /* Room on a phone: once compact, the two actions become icons (their text stays for screen readers). */
   .sp-bar[data-compact="true"] :is(.sp-email-text, .sp-copy-text) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .sp-bar[data-compact="true"] :is(.sp-copy-chip, .sp-email-chip) { padding-left: 0; padding-right: 0; width: 36px; justify-content: center; }
   /* After a tap, the icon-only Copy button shows "Copied" (or "Copy failed") for 1.8s, so the result is on screen. */
@@ -578,7 +588,7 @@ body {
 }
 
 /* Print: a clean CV. The bar and every control go, source panels stay closed,
-   every "show more" list prints in full, the page address prints under the name. */
+   every "show more" list prints in full. */
 .sp-print-only { display: none; }
 @media print {
   @page { margin: 14mm 14mm 16mm; }
@@ -586,14 +596,11 @@ body {
   html:has(.student-page) { font-size: 12px; }
   /* The site's cookie and policy notices sit beside the page in <body>; a printed CV leaves them out. */
   html:has(.student-page) body > :not(.student-page) { display: none !important; }
-  .sp-bar, .sp-no-print, .student-page [data-toggle], .student-page [data-copy], .student-page a[href^="mailto:"], .student-page .sp-hint, .student-page .sp-chev { display: none !important; }
+  .sp-bar, .sp-no-print, .student-page [data-toggle], .student-page [data-copy], .student-page a[href^="mailto:"], .student-page .sp-chev { display: none !important; }
   .student-page [data-more-list][hidden] { display: block !important; }
   .student-page .sp-print-only { display: block !important; }
-  .student-page button[data-row] { color: inherit; }
   .student-page a { color: inherit !important; text-decoration: none !important; }
-  .student-page :is(article, li) { break-inside: avoid; }
+  .student-page :is(article, li, figure) { break-inside: avoid; }
   .student-page :is(h2, h3) { break-after: avoid; }
-  .student-page main section { padding-top: 16px !important; padding-bottom: 16px !important; }
-  .student-page header#intro { padding-top: 0 !important; padding-bottom: 16px !important; }
+  .student-page .shadow-lilac-card, .student-page .shadow-lilac-soft { box-shadow: none !important; }
 }
-
