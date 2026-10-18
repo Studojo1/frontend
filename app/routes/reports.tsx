@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "background-verification-report-what-bgv-checks-2026",
+    publishDate: "2026-10-19",
+    title: "The Background Verification Report: What BGV Actually Checks and What Fails It",
+    subtitle: "The Background Verification Report · 2026",
+    excerpt: "Background verification is the last gate between an offer and a joining date, and about 6% of white-collar hires in India get flagged. Most flags are not fake degrees. They are inflated titles, stretched tenures, missing relieving letters and PF records that contradict the resume. This report explains what BGV checks, how the UAN trail is read, and how to clear it first time.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "job-scam-report-fake-internships-task-scams-students-2026",
     publishDate: "2026-10-18",
     title: "The Job Scam Report: Fake Internships, Pay-to-Join Offers and Task Scams Targeting Students",
