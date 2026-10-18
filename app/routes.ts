@@ -127,4 +127,5 @@ export default [
   route("reports/proof-of-work-report-projects-github-portfolio-2026", "routes/reports.proof-of-work-report-projects-github-portfolio-2026.tsx"),
   route("reports/aptitude-coding-test-report-2026", "routes/reports.aptitude-coding-test-report-2026.tsx"),
   route("reports/us-internships-international-students-2026", "routes/reports.us-internships-international-students-2026.tsx"),
+  route("reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026", "routes/reports.ctc-illusion-report-what-12-lpa-pays-in-hand-2026.tsx"),
 ] satisfies RouteConfig;
