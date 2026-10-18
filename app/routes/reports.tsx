@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "service-vs-product-company-report-5-years-later-2026",
+    publishDate: "2026-10-14",
+    title: "The Service vs Product Company Report: IT Services vs Startups vs Product Firms, 5 Years Later",
+    subtitle: "The Service vs Product Report · 2026",
+    excerpt: "IT services fresher pay has barely moved in a decade while product companies pay four to five times more at entry. But the starting company matters less than what you do in years two and three. We modelled five-year paths across services, product firms and startups, including the switch that closes most of the gap.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "salary-negotiation-report-do-freshers-who-negotiate-get-more-2026",
     publishDate: "2026-10-13",
     title: "The Salary Negotiation Report: Do Freshers Who Negotiate Actually Get More?",
