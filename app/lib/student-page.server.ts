@@ -22,7 +22,7 @@ import type { Line, Org, Profile, Stint } from "~/components/student-page/types"
 import { cityCode } from "~/components/student-page/types";
 import db from "~/lib/db";
 import { namesMatch, sanitizeLinkedIn, schoolLine, type LinkedInRole, type LinkedInSchool } from "~/lib/student-page-linkedin";
-import { clean as cleanText, entryMode, isBullet, redact, ROLE_TAIL, VERB } from "~/lib/student-page-text";
+import { clean as cleanText, entryMode, isBullet, redact, redactHeader, ROLE_TAIL, VERB } from "~/lib/student-page-text";
 
 /**
  * What this page reads from user_profile.talent. /flow writes it (outreach-flow
@@ -40,6 +40,8 @@ export type TalentStore = {
     about: string;
     claims: { id: string; section: string; text: string; evidence: string[] }[];
     lines: { id: string; section: string; text: string }[];
+    /** The skills the student checked on their page: kept from the resume (with their lines) or added in their own words. */
+    skills?: { name: string; evidence?: string[]; by?: "resume" | "you" }[];
     visibility: { link: boolean; search: boolean; managers: boolean; adult: boolean; contact?: boolean };
     approvedAt: string;
   };
@@ -494,7 +496,44 @@ function scrubContacts<T>(v: T, key = ""): T {
   return v;
 }
 
-function repair(p: Profile, lines: Line[], approvedAt: string, now: Date): Profile {
+/**
+ * The skills the student approved on their page, when they checked them (the
+ * job app's onboarding saves page.skills): only those, in their order. One
+ * from the resume sits next to the entry its line belongs to; one they added
+ * in their own words says so.
+ */
+function approvedSkills(list: NonNullable<NonNullable<TalentStore["page"]>["skills"]>, lines: Line[], experience: Stint[], projects: Stint[], first: string): Profile["skills"] {
+  const ids = new Set(lines.map((l) => l.id));
+  const out: Profile["skills"] = [];
+  const seen = new Set<string>();
+  for (const s of list) {
+    const name = cleanText(typeof s?.name === "string" ? s.name : "").slice(0, 40);
+    if (!name || STATUS.test(name) || seen.has(name.toLowerCase()) || out.length >= 20) continue;
+    seen.add(name.toLowerCase());
+    const evidence = (Array.isArray(s.evidence) ? s.evidence : []).filter((id): id is string => typeof id === "string" && ids.has(id));
+    if (s.by === "you" || !evidence.length) {
+      out.push({ name, where: first ? `Added by ${first}` : "Added by them", evidence: [] });
+      continue;
+    }
+    let placed: Profile["skills"][number] | null = null;
+    for (const [kind, group] of [["experience", experience], ["projects", projects]] as const) {
+      for (const st of group) {
+        if (st.parse !== "clean") continue;
+        const body = st.evidence.slice(1);
+        const hit = evidence.find((id) => body.includes(id)) ?? lines.find((x) => body.includes(x.id) && has(x.text, name))?.id;
+        if (hit) {
+          placed = { name, where: kind === "projects" || st.hideOrg ? st.title : st.org.name, org: st.org, evidence: [hit] };
+          break;
+        }
+      }
+      if (placed) break;
+    }
+    out.push(placed ?? { name, where: "Resume", evidence });
+  }
+  return out;
+}
+
+function repair(p: Profile, lines: Line[], approvedAt: string, now: Date, approved: NonNullable<TalentStore["page"]>["skills"] = undefined, first = ""): Profile {
   for (const st of [...p.experience, ...p.projects, ...p.education]) st.parse = entryMode(st);
   // Role lines filed under another section become real experience entries.
   const usedByClean = new Set(p.experience.filter((s) => s.parse === "clean").flatMap((s) => s.evidence));
@@ -518,7 +557,7 @@ function repair(p: Profile, lines: Line[], approvedAt: string, now: Date): Profi
     });
   }
   p.experience = [...p.experience, ...recovered];
-  p.skills = tidySkills(lines, p.experience, p.projects, roleIds);
+  p.skills = Array.isArray(approved) && approved.length ? approvedSkills(approved, lines, p.experience, p.projects, first) : tidySkills(lines, p.experience, p.projects, roleIds);
   for (const n of p.numbers) n.value = outcomeValue(n.value, n.label);
   p.updated = approvedAt;
   // The page draws no org tiles any more.
@@ -536,7 +575,8 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
   const now = opts.now ?? new Date();
   const t = row.talent ?? {};
   const page = t.page!;
-  const lines: Line[] = (page.lines ?? []).map((l) => ({ id: l.id, section: l.section, text: l.text }));
+  // Header lines (name and contact band) never carry an address, a birth date or a phone number to the page.
+  const lines: Line[] = (page.lines ?? []).map((l) => ({ id: l.id, section: l.section, text: l.section === "header" ? redactHeader(l.text) : l.text }));
   const ids = new Set(lines.map((l) => l.id));
   const sec = (s: string) => lines.filter((l) => l.section === s);
   const q = (t.quiz ?? {}) as { role?: string | null; cities?: unknown; remote?: unknown; jobType?: string | null; startMonth?: string | null; stage?: number | null };
@@ -643,7 +683,7 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
       classOf: classOf ? eduLines.filter((l) => l.text.includes(classOf)).map((l) => l.id).slice(0, 1) : [],
     },
   };
-  return scrubContacts(repair(profile, lines, typeof page.approvedAt === "string" ? page.approvedAt : "", now));
+  return scrubContacts(repair(profile, lines, typeof page.approvedAt === "string" ? page.approvedAt : "", now, page.skills, first));
 }
 
 // ── Reading it ────────────────────────────────────────────────────────────────

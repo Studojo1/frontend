@@ -42,6 +42,23 @@ export function redact(t: string): string {
 }
 export const txt = (s: unknown) => redact(clean(s));
 
+/** Personal particulars a resume header can carry: none of them belong on a public page. */
+const PERSONAL = /\b(address|addr|residence|resident of|d\.?\s?o\.?\s?b|date of birth|birth\s?date|born on|age\s*:|father|mother|parent|guardian|gender|sex\s*:|marital|married|nationality|religion|caste|aadhaa?r|passport|pan\s*(?:card|no)|blood group)\b|\b\d{3}\s?\d{3}\b/i;
+/** A phone number in any common form: 8 or more digits with spaces, dots, dashes, slashes or brackets between. */
+const ANY_PHONE = /\+?\(?\d[\d\s().\-\u2010-\u2015/]{6,}\d/g;
+
+/**
+ * A resume header line (name and contact band) as the page may show or ship
+ * it: contact details hidden, and a line with personal particulars (an
+ * address, a PIN code, date of birth, parents' names and the like) hidden
+ * whole. The job app (Studojo1/career-agent) stores header lines this way
+ * already; this also covers pages saved before it did.
+ */
+export function redactHeader(t: string): string {
+  if (PERSONAL.test(t)) return "[personal details hidden]";
+  return redact(t).replace(ANY_PHONE, (m) => (m.replace(/\D/g, "").length >= 8 ? "[phone hidden]" : m));
+}
+
 /** 4+ digit numbers get separators (1000 to 1,000). Years (1900 to 2099), codes and decimals are left alone. */
 export function fmtNum(t: string): string {
   return t.replace(/(^|[^\w.,/:-])(\d{4,9})(?![\w]|[.,]\d)/g, (m: string, pre: string, d: string, off: number, all: string) => {
