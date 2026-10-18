@@ -22,7 +22,7 @@ import type { Line, Org, Profile, Stint } from "~/components/student-page/types"
 import { cityCode } from "~/components/student-page/types";
 import db from "~/lib/db";
 import { namesMatch, sanitizeLinkedIn, schoolLine, type LinkedInRole, type LinkedInSchool } from "~/lib/student-page-linkedin";
-import { clean as cleanText, entryMode, isBullet, redact, redactHeader, ROLE_TAIL, VERB } from "~/lib/student-page-text";
+import { clean as cleanText, entryMode, hidePhones, isBullet, personalLine, redact, redactLine, ROLE_TAIL, VERB } from "~/lib/student-page-text";
 
 /**
  * What this page reads from user_profile.talent. /flow writes it (outreach-flow
@@ -42,6 +42,8 @@ export type TalentStore = {
     lines: { id: string; section: string; text: string }[];
     /** The skills the student checked on their page: kept from the resume (with their lines) or added in their own words. */
     skills?: { name: string; evidence?: string[]; by?: "resume" | "you" }[];
+    /** The job app's onboarding sets it: page.skills is the student's checked list, even when empty. */
+    skillsChecked?: boolean;
     visibility: { link: boolean; search: boolean; managers: boolean; adult: boolean; contact?: boolean };
     approvedAt: string;
   };
@@ -519,7 +521,8 @@ function approvedSkills(list: NonNullable<NonNullable<TalentStore["page"]>["skil
     for (const [kind, group] of [["experience", experience], ["projects", projects]] as const) {
       for (const st of group) {
         if (st.parse !== "clean") continue;
-        const body = st.evidence.slice(1);
+        // the whole entry, its head line included (a skill read from a role's title belongs with that role)
+        const body = st.evidence;
         const hit = evidence.find((id) => body.includes(id)) ?? lines.find((x) => body.includes(x.id) && has(x.text, name))?.id;
         if (hit) {
           placed = { name, where: kind === "projects" || st.hideOrg ? st.title : st.org.name, org: st.org, evidence: [hit] };
@@ -528,12 +531,14 @@ function approvedSkills(list: NonNullable<NonNullable<TalentStore["page"]>["skil
       }
       if (placed) break;
     }
-    out.push(placed ?? { name, where: "Resume", evidence });
+    // Unplaced: "Resume" only when a line of the skills section lists it; else the view names the section its line is in.
+    const listed = evidence.some((id) => lines.find((l) => l.id === id)?.section === "skills");
+    out.push(placed ?? { name, where: listed ? "Resume" : "", evidence });
   }
   return out;
 }
 
-function repair(p: Profile, lines: Line[], approvedAt: string, now: Date, approved: NonNullable<TalentStore["page"]>["skills"] = undefined, first = ""): Profile {
+function repair(p: Profile, lines: Line[], approvedAt: string, now: Date, approved: NonNullable<TalentStore["page"]>["skills"] = undefined, first = "", checked = false): Profile {
   for (const st of [...p.experience, ...p.projects, ...p.education]) st.parse = entryMode(st);
   // Role lines filed under another section become real experience entries.
   const usedByClean = new Set(p.experience.filter((s) => s.parse === "clean").flatMap((s) => s.evidence));
@@ -557,7 +562,10 @@ function repair(p: Profile, lines: Line[], approvedAt: string, now: Date, approv
     });
   }
   p.experience = [...p.experience, ...recovered];
-  p.skills = Array.isArray(approved) && approved.length ? approvedSkills(approved, lines, p.experience, p.projects, first) : tidySkills(lines, p.experience, p.projects, roleIds);
+  // The student's checked list when they checked one (an empty list means they took every skill off); older pages fall back to the resume's skills section.
+  const useChecked = Array.isArray(approved) && (checked || approved.length > 0);
+  p.skills = useChecked ? approvedSkills(approved, lines, p.experience, p.projects, first) : tidySkills(lines, p.experience, p.projects, roleIds);
+  if (useChecked) p.skillsChecked = true;
   for (const n of p.numbers) n.value = outcomeValue(n.value, n.label);
   p.updated = approvedAt;
   // The page draws no org tiles any more.
@@ -575,8 +583,9 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
   const now = opts.now ?? new Date();
   const t = row.talent ?? {};
   const page = t.page!;
-  // Header lines (name and contact band) never carry an address, a birth date or a phone number to the page.
-  const lines: Line[] = (page.lines ?? []).map((l) => ({ id: l.id, section: l.section, text: l.section === "header" ? redactHeader(l.text) : l.text }));
+  // No line carries an address, a birth date, a parent's name or a phone number to the page: a line with a
+  // personal particular, or a header line that reads like the contact band, is hidden whole.
+  const lines: Line[] = (page.lines ?? []).map((l) => ({ id: l.id, section: l.section, text: redactLine(l.text, l.section) }));
   const ids = new Set(lines.map((l) => l.id));
   const sec = (s: string) => lines.filter((l) => l.section === s);
   const q = (t.quiz ?? {}) as { role?: string | null; cities?: unknown; remote?: unknown; jobType?: string | null; startMonth?: string | null; stage?: number | null };
@@ -628,8 +637,10 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
     }
   }
 
+  // A claim with a personal particular is never shown (pages saved before the job app left them off).
   const claims = (page.claims ?? [])
-    .map((c) => ({ id: c.id, section: c.section, text: c.text, evidence: c.evidence.filter((id) => ids.has(id)) }))
+    .filter((c) => !personalLine(c.text ?? ""))
+    .map((c) => ({ id: c.id, section: c.section, text: hidePhones(c.text), evidence: c.evidence.filter((id) => ids.has(id)) }))
     .filter((c) => c.text && c.evidence.length);
 
   const numbers: Profile["numbers"] = [];
@@ -683,7 +694,7 @@ export function toProfile(row: ProfileRow, opts: { origin: string; email: string
       classOf: classOf ? eduLines.filter((l) => l.text.includes(classOf)).map((l) => l.id).slice(0, 1) : [],
     },
   };
-  return scrubContacts(repair(profile, lines, typeof page.approvedAt === "string" ? page.approvedAt : "", now, page.skills, first));
+  return scrubContacts(repair(profile, lines, typeof page.approvedAt === "string" ? page.approvedAt : "", now, page.skills, first, page.skillsChecked === true));
 }
 
 // ── Reading it ────────────────────────────────────────────────────────────────

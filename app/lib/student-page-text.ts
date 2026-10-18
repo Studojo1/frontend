@@ -42,22 +42,72 @@ export function redact(t: string): string {
 }
 export const txt = (s: unknown) => redact(clean(s));
 
-/** Personal particulars a resume header can carry: none of them belong on a public page. */
-const PERSONAL = /\b(address|addr|residence|resident of|d\.?\s?o\.?\s?b|date of birth|birth\s?date|born on|age\s*:|father|mother|parent|guardian|gender|sex\s*:|marital|married|nationality|religion|caste|aadhaa?r|passport|pan\s*(?:card|no)|blood group)\b|\b\d{3}\s?\d{3}\b/i;
-/** A phone number in any common form: 8 or more digits with spaces, dots, dashes, slashes or brackets between. */
-const ANY_PHONE = /\+?\(?\d[\d\s().\-\u2010-\u2015/]{6,}\d/g;
+// ---------------------------------------------------------------- personal details
+// The same rules as the job app's page store (Studojo1/career-agent
+// app/lib/onboarding/page.ts redactLine): run again here when a page is read,
+// so pages saved before those rules existed (by /flow/ too) are covered.
+
+/** A labelled personal particular, on any line: "Date of Birth: ...", "Father's Name: ...", "Address: ...", "Age: 21", "S/O ...". */
+const LABELLED = /(?:^|[\s|,;(\u2022\u00b7])(?:date\s*of\s*birth|d\.?\s?o\.?\s?b\.?|birth\s?(?:date|day)|born(?:\s+on)?|(?:father|mother|parent|guardian|spouse|husband|wife)(?:'?s|s)?(?:\s*names?)?|(?:permanent|residential|home|current|postal|mailing|present)?\s*address|age|sex|gender|marital(?:\s+status)?|nationality|religion|caste|passport(?:\s*(?:no\.?|number))?|aadhaa?r(?:\s*(?:no\.?|number|card))?|pan(?:\s*(?:no\.?|number|card))|blood\s*group)\s*[:\-\u2013\u2014]/i;
+const RELATION = /(?:^|[\s|,;(])[sdwc]\s?\/\s?o\b/i;
+const BORN = /\bborn\s+(?:on\s+|in\s+)?\d/i;
+
+/** Does this line carry a personal particular (the whole line is then hidden)? */
+export function personalLine(t: string): boolean {
+  return LABELLED.test(t) || RELATION.test(t) || BORN.test(t);
+}
+
+/** A phone number after a phone label ("Mobile (SG): 9123 4567"), 7 or more digits in any common form. */
+const PHONE_LABELLED = /\b(?:mobile|mob|phone|ph|tel|telephone|whatsapp|cell|contact(?:\s*(?:no\.?|number))?)\b\.?\s*(?:\([^)]{0,20}\))?\s*(?:no\.?|number)?\s*[:-]?\s*(\+?\(?\d[\d\s().\-\u2010-\u2015/]{5,}\d)/gi;
+
+export function hidePhones(t: string): string {
+  return t.replace(PHONE_LABELLED, (m, num: string) => m.replace(num, "[phone hidden]"));
+}
+
+const PHONEISH = /\+?\(?\d[\d\s().\-\u2010-\u2015/]{6,}\d/g;
+const YEARS = /^\(?(?:19|20)\d{2}\)?\s*[-\u2010-\u2015/]\s*\(?(?:19|20)\d{2}\)?$/;
+
+/** Words of a street address, next to a number on the same line. */
+const ADDRESS_WORD = /\b(?:flat|house|h\.?\s?no|plot|apt|apartment|apartments|blk|block|street|road|rd|lane|cross|layout|nagar|colony|sector|villa|floor|tower|wing|society|residency|enclave|avenue|ave|p\.?\s?o\.?\s?box)\b|#\s?\d/i;
 
 /**
- * A resume header line (name and contact band) as the page may show or ship
- * it: contact details hidden, and a line with personal particulars (an
- * address, a PIN code, date of birth, parents' names and the like) hidden
- * whole. The job app (Studojo1/career-agent) stores header lines this way
- * already; this also covers pages saved before it did.
+ * Does a header line read like the contact band (or an address), rather than
+ * a summary sentence: separated items, a link or address, a run of 5 or more
+ * digits, street words next to a number, or a short list of places.
  */
-export function redactHeader(t: string): string {
-  if (PERSONAL.test(t)) return "[personal details hidden]";
-  return redact(t).replace(ANY_PHONE, (m) => (m.replace(/\D/g, "").length >= 8 ? "[phone hidden]" : m));
+export function bandLike(t: string): boolean {
+  const s = t.trim();
+  if (!s) return false;
+  if (/[|\u2022\u00b7]/.test(s)) return true;
+  if (/@|https?:|www\.|linkedin|github|behance|dribbble|\[(?:email|phone) hidden\]/i.test(s)) return true;
+  if (/\d{5,}/.test(s) || /\b\d{3}\s\d{3}\b/.test(s)) return true;
+  // a phone number in any form (8 or more digits with separators), but not a year range like "2022 - 2025"
+  if ((s.match(PHONEISH) ?? []).some((m) => m.replace(/\D/g, "").length >= 8 && !YEARS.test(m.trim()))) return true;
+  if (ADDRESS_WORD.test(s) && /\d/.test(s)) return true;
+  const words = s.split(/\s+/).length;
+  if ((s.match(/,/g) ?? []).length >= 1 && words <= 6 && !/[.!?]$/.test(s)) return true;
+  if ((s.match(/,/g) ?? []).length >= 2 && words <= 14 && !/[.!?]$/.test(s)) return true;
+  return false;
 }
+
+/**
+ * A resume line as the page may store it. A line with a personal particular
+ * is hidden whole, in any section. In the header (the name and contact band,
+ * and summary sections) a line that reads like the contact band or an address
+ * is hidden whole; a summary sentence keeps its words. Emails and phone
+ * numbers are hidden everywhere.
+ */
+export function redactLine(t: string, section: string): string {
+  if (personalLine(t)) return "[personal details hidden]";
+  if (section === "header" && bandLike(t)) return "[contact details hidden]";
+  return hidePhones(redact(t));
+}
+
+/** A header line (kept for the tests and older callers). */
+export const redactHeader = (t: string) => redactLine(t, "header");
+
+/** Is this a line the page must never quote (hidden contact or personal details)? */
+export const hiddenLine = (t: string) => t === "[personal details hidden]" || t === "[contact details hidden]";
 
 /** 4+ digit numbers get separators (1000 to 1,000). Years (1900 to 2099), codes and decimals are left alone. */
 export function fmtNum(t: string): string {

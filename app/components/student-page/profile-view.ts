@@ -95,7 +95,7 @@ const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const CONNECTOR = /(?:,|\b(?:to|and|or|of|the|for|with|in|on|a|an|by|from|at|as|&))$/i;
 const endsSentence = (t: string) => /[.!?:;)\]]$/.test(t);
 /** A resume header line with contact details (raw, or already redacted on the server): never shown, cited or used as context. */
-const contactHeader = (l: RLine) => l.section === "header" && /@|\d{5}|\[(?:email|phone) hidden\]/.test(l.raw);
+const contactHeader = (l: RLine) => /\[(?:personal|contact) details hidden\]/.test(l.raw) || (l.section === "header" && /@|\d{5}|\[(?:email|phone) hidden\]/.test(l.raw));
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const FILLER =
   /\b(class|of|to|and|the|in|at|present|now|current|ongoing|cgpa|gpa|grade|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\b/g;
@@ -391,7 +391,8 @@ export function profileView(input: Profile | null | undefined): ProfileView {
     let list = arr<{ name?: unknown; where?: unknown; evidence?: unknown }>(P.skills)
       .map((s) => ({ name: txt(s?.name), where: String(s?.where ?? ""), ev: arr<string>(s?.evidence) }))
       .filter((s) => s.name && s.name.length <= 40 && !STOP.test(s.name))
-      .filter((s) => !resolve(s.ev).some((l) => clean(l.raw).toLowerCase() === s.name.toLowerCase()));
+      // A skill whose only line reads as its name is a sub-heading, unless the student checked the list.
+      .filter((s) => P.skillsChecked === true || !resolve(s.ev).some((l) => clean(l.raw).toLowerCase() === s.name.toLowerCase()));
     const seen = new Set<string>();
     list = list.filter((s) => {
       const k = s.name.toLowerCase();
@@ -403,7 +404,7 @@ export function profileView(input: Profile | null | undefined): ProfileView {
     // A one-word skill a longer one already covers goes ("Partnerships" with "Strategic Partnerships").
     list = list.filter((s) => {
       const n = s.name.toLowerCase();
-      if (/\s/.test(n)) return true;
+      if (P.skillsChecked === true || /\s/.test(n)) return true;
       return !all.some((m) => m !== n && m.split(/[\s/-]+/).some((w) => w === n || w === `${n}s` || w === `${n}es` || w === `${n}ing`));
     });
     if (!list.length) return [];
@@ -441,7 +442,7 @@ export function profileView(input: Profile | null | undefined): ProfileView {
     for (const n of arr<{ evidence?: unknown }>(P.numbers)) arr<string>(n?.evidence).forEach((id) => cited.add(String(id)));
     for (const c of arr<{ evidence?: unknown }>(P.claims)) arr<string>(c?.evidence).forEach((id) => cited.add(String(id)));
     for (const s of arr<{ evidence?: unknown }>(P.skills)) arr<string>(s?.evidence).forEach((id) => cited.add(String(id)));
-    const ls = LINES.filter((l) => l.section === "extra" && !cited.has(l.id) && clean(l.raw));
+    const ls = LINES.filter((l) => l.section === "extra" && !cited.has(l.id) && clean(l.raw) && !contactHeader(l) && !/\[phone hidden\]/.test(l.raw));
     if (!ls.length) return null;
     const isHead = (l: RLine) => {
       const t = clean(l.raw);

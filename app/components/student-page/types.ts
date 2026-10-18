@@ -66,6 +66,8 @@ export type Profile = {
   education: Stint[];
   /** Each skill with where it was used ("Resume" when only listed). */
   skills: { name: string; where: string; org?: Org; evidence: string[] }[];
+  /** The skills are the student's own checked list: shown as they are, never thinned out. */
+  skillsChecked?: boolean;
   prompts: { q: string; a: string }[];
   claims: { id: string; section: string; text: string; evidence: string[] }[];
   lines: Line[];

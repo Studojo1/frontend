@@ -167,10 +167,56 @@ test("toProfile: role lines become employers, numbers headline outcomes, skills 
   const all = JSON.stringify(p);
   assert.ok(!/student@example\.com|90000 00000/.test(all), "contact details in the profile");
   assert.equal(p.lines.length, raw.lines.length, "lines keep their place, so line numbers still match the resume");
-  assert.match(p.lines.find((l) => l.section === "header" && /hidden/.test(l.text)).text, /\[email hidden\].*\[phone hidden\]/);
+  // The contact band line is hidden whole (city, links and all), not only its email and phone.
+  assert.equal(p.lines.find((l) => l.section === "header" && /hidden/.test(l.text)).text, "[contact details hidden]");
   // ...and the page still never shows or quotes that line.
   const v = profileView(p);
-  assert.ok(!/\[email hidden\]|\[phone hidden\]/.test(JSON.stringify(v)), "redacted header line reached the view");
+  assert.ok(!/\[(?:email|phone|contact details|personal details) hidden\]/.test(JSON.stringify(v)), "a hidden header line reached the view");
+});
+
+test("toProfile: the student's checked skills are what the page shows, an empty check included", () => {
+  const lines = [
+    { id: "r1", section: "header", text: "Aanya Kapoor" },
+    { id: "r2", section: "experience", text: "Growth Marketing Intern, Leafline Foods | May 2025 - Jul 2025" },
+    { id: "r3", section: "experience", text: "Ran 4 influencer campaigns using Canva that reached 2 lakh people" },
+    { id: "r4", section: "skills", text: "Canva" },
+    { id: "r5", section: "skills", text: "Copywriting" },
+    { id: "r6", section: "skills", text: "Market Research" },
+  ];
+  const page = (skills, skillsChecked) => ({ fullName: "Aanya Kapoor", college: "", course: "", yearOfStudy: "", talent: { page: { slug: "aanya-kapoor", meta: "", headline: "h", about: "a", claims: [], lines, skills, skillsChecked, visibility: { link: true, search: false, managers: false, adult: true }, approvedAt: "2026-10-18T00:00:00Z" } } });
+  const now = { origin: "https://studojo.pro", email: null, now: new Date("2026-10-19T00:00:00Z") };
+  // every skill taken off: none come back
+  assert.deepEqual(toProfile(page([], true), now).skills, []);
+  // one skill per line, kept: none thinned out by the view; an added one-word skill stays beside a longer one
+  const kept = toProfile(page([{ name: "Copywriting", evidence: ["r5"], by: "resume" }, { name: "Market Research", evidence: ["r6"], by: "resume" }, { name: "Research", evidence: [], by: "you" }], true), now);
+  const shown = profileView(kept).skills.flatMap((g) => g.names);
+  assert.deepEqual(shown.sort(), ["Copywriting", "Market Research", "Research"]);
+  // a page with no check keeps the resume's skills section
+  assert.deepEqual(toProfile(page(undefined, undefined), now).skills.map((s) => s.name), ["Canva", "Copywriting", "Market Research"]);
+});
+
+test("toProfile: personal details never reach the page, in any section", () => {
+  const lines = [
+    { id: "r1", section: "header", text: "Riya Menon" },
+    { id: "r2", section: "header", text: "Flat 4B, Sai Residency, 12th Main Road, Indiranagar, Bengaluru" },
+    { id: "r3", section: "header", text: "Commerce student at St. Xavier's College (2022 - 2025) building fintech side projects" },
+    { id: "r4", section: "extra", text: "Date of Birth: 14/03/2004" },
+    { id: "r5", section: "extra", text: "Mobile (SG): 9123 4567" },
+    { id: "r6", section: "extra", text: "Won the inter-college quiz in 2024" },
+  ];
+  const claims = [
+    { id: "c1", section: "intro", text: "Commerce student at St. Xavier's College (2022 - 2025) building fintech side projects", evidence: ["r3"] },
+    { id: "c2", section: "more", text: "Date of Birth: 14/03/2004", evidence: ["r4"] },
+    { id: "c3", section: "more", text: "Won the inter-college quiz in 2024", evidence: ["r6"] },
+  ];
+  const row = { fullName: "Riya Menon", college: "", course: "", yearOfStudy: "", talent: { page: { slug: "riya-menon", meta: "", headline: "h", about: "a", claims, lines, visibility: { link: true, search: false, managers: false, adult: true }, approvedAt: "2026-10-18T00:00:00Z" } } };
+  const p = toProfile(row, { origin: "https://studojo.pro", email: null, now: new Date("2026-10-19T00:00:00Z") });
+  const all = JSON.stringify(p);
+  assert.ok(!/Indiranagar|14\/03\/2004|9123 4567/.test(all), "personal details in the profile");
+  assert.deepEqual(p.claims.map((c) => c.id), ["c1", "c3"], "the personal claim is left off; the summary claim still matches its line");
+  assert.equal(p.lines.find((l) => l.id === "r3").text, lines[2].text, "a summary sentence keeps its words");
+  const v = profileView(p);
+  assert.ok(!/\[(?:contact|personal) details hidden\]/.test(JSON.stringify(v)), "a hidden line is never quoted");
 });
 
 // ---------------------------------------------------------------- hostile and edge cases
