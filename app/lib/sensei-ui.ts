@@ -18,7 +18,9 @@
  */
 export type SenseiUi = "new" | "old";
 
-export const NEW_UI_HOSTS: readonly string[] = ["app.studojo.pro", "dashboard.studojo.pro"];
+// Owner 2026-10-19: staging shows the original (production) look again, for the demo chats sent to prospects.
+// To bring the new look back on staging: list "app.studojo.pro" and "dashboard.studojo.pro" again.
+export const NEW_UI_HOSTS: readonly string[] = [];
 
 function bareHost(host: string | null | undefined): string {
   return (host || "").toLowerCase().trim().split(":")[0];
