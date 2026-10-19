@@ -1,7 +1,7 @@
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.resumes.rewrite";
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama:11434";
 
 const CONTENT_RULES =
@@ -33,24 +33,17 @@ export async function action({ request }: Route.ActionArgs) {
 
   const systemPrompt = PROMPTS[rewriteAction] || PROMPTS.polish;
 
-  // Try OpenAI first
-  if (OPENAI_API_KEY) {
+  // Try Azure OpenAI first
+  if (azureOpenAIConfigured()) {
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: text.trim() },
-          ],
-          max_tokens: 500,
-          temperature: 0.7,
-        }),
+      const response = await azureChatCompletions({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: text.trim() },
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
       });
 
       if (response.ok) {
@@ -61,7 +54,7 @@ export async function action({ request }: Route.ActionArgs) {
         }
       }
     } catch (e) {
-      console.error("[rewrite] OpenAI error:", e);
+      console.error("[rewrite] Azure OpenAI error:", e);
     }
   }
 

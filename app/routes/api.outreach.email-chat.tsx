@@ -3,13 +3,13 @@
  *
  * AI cold email assistant for student job seekers.
  * Intent-classified, locked-anchor editing.
- * OpenAI gpt-4o-mini primary, Ollama llama3.2:1b fallback.
+ * gpt-4o-mini on Azure OpenAI primary, Ollama llama3.2:1b fallback.
  */
 
 import type { Route } from "./+types/api.outreach.email-chat";
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama.staging.svc.cluster.local:11434";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // ── Core framework ────────────────────────────────────────────────────
 
@@ -301,18 +301,12 @@ function sanitise(s: any): string {
 }
 
 async function callOpenAI(userPrompt: string): Promise<any | null> {
-  if (!OPENAI_API_KEY) return null;
+  if (!azureOpenAIConfigured()) return null;
   try {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 25000);
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: ctrl.signal,
-      body: JSON.stringify({
+    const res = await azureChatCompletions(
+      {
         model: "gpt-4o-mini",
         messages: [
           {
@@ -325,8 +319,9 @@ async function callOpenAI(userPrompt: string): Promise<any | null> {
         temperature: 0.65,
         max_tokens: 900,
         response_format: { type: "json_object" },
-      }),
-    });
+      },
+      { signal: ctrl.signal }
+    );
     clearTimeout(tid);
     if (!res.ok) return null;
     const data = await res.json();

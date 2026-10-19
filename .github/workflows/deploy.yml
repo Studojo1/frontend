@@ -158,6 +158,13 @@ jobs:
           secret_adopt LEADSFORGE_API_KEY leadsforge-api-key
           # Career Coach / job-outreach-svc internal header (audit G1).
           secret_ref INTERNAL_API_SECRET INTERNAL_API_SECRET
+          # OpenAI models run on Azure OpenAI only (app/lib/azure-openai.server.ts).
+          # The direct OpenAI key was retired on 2026-10-12: reference the Azure
+          # settings and drop OPENAI_API_KEY from the Deployment (a no-op once gone).
+          secret_ref AZURE_OPENAI_ENDPOINT azure-openai-endpoint
+          secret_ref AZURE_OPENAI_API_KEY azure-openai-api-key
+          secret_ref AZURE_OPENAI_CHAT_DEPLOYMENT azure-openai-chat-deployment
+          kubectl set env deployment/"$DEP" -c "$DEP" -n "$NS" OPENAI_API_KEY- || true
           secret_audit
 
       - name: Non-secret runtime env
