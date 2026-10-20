@@ -1,0 +1,443 @@
+{
+ "id": 42,
+ "handle": "ananya",
+ "slug": "blinkit-vs-instamart",
+ "title": "Blinkit versus Instamart: what one order earns",
+ "summary": "I rebuilt order value, contribution margin and dark store count for Blinkit and Instamart from four quarters of shareholder letters, and what I would change.",
+ "theme": "masala",
+ "fonts": "clash",
+ "version": 2,
+ "published_on": "2026-10-20",
+ "noindex": true,
+ "meta": {
+  "student": {
+   "name": "Ananya Kulkarni",
+   "college": "MIT World Peace University, Pune",
+   "degree": "BTech",
+   "profile_slug": "ananya"
+  },
+  "kind": "side",
+  "skills": [
+   "Excel",
+   "Financial modelling",
+   "Market research"
+  ],
+  "company": null,
+  "cover": {
+   "image": null
+  }
+ },
+ "blocks": [
+  {
+   "id": "h1a1b2c3",
+   "type": "heading",
+   "level": 1,
+   "text": "What one quick commerce order earns"
+  },
+  {
+   "id": "tx1a2b3c",
+   "type": "text",
+   "rich": [
+    {
+     "kind": "p",
+     "spans": [
+      {
+       "t": "Both apps promise groceries in ten minutes. I wanted to know which one makes money on an order, and why. "
+      },
+      {
+       "t": "Every number below is a placeholder in this fixture.",
+       "b": true
+      }
+     ]
+    },
+    {
+     "kind": "ul",
+     "items": [
+      [
+       {
+        "t": "Sources: the last four quarterly shareholder letters on "
+       },
+       {
+        "t": "Eternal's investor page",
+        "href": "https://www.eternal.com/investor-relations/"
+       }
+      ],
+      [
+       {
+        "t": "Method: order value, take rate, delivery cost and store cost per order, quarter by quarter"
+       }
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mt1a2b3c",
+   "type": "metrics",
+   "items": [
+    {
+     "label": "Average order value",
+     "value": "\u20b9665",
+     "note": "Placeholder figure for the fixture"
+    },
+    {
+     "label": "Contribution margin",
+     "value": "3.1%",
+     "note": "Placeholder figure for the fixture"
+    },
+    {
+     "label": "Dark stores",
+     "value": "1,007",
+     "note": "Placeholder figure for the fixture"
+    }
+   ]
+  },
+  {
+   "id": "tb1a2b3c",
+   "type": "table",
+   "caption": "Order value and margin by quarter (placeholders)",
+   "columns": [
+    "Quarter",
+    "Blinkit AOV",
+    "Instamart AOV",
+    "Blinkit margin",
+    "Instamart margin"
+   ],
+   "align": [
+    "left",
+    "right",
+    "right",
+    "right",
+    "right"
+   ],
+   "rows": [
+    [
+     "Q1",
+     635,
+     534,
+     "3.8%",
+     "-5.6%"
+    ],
+    [
+     "Q2",
+     660,
+     547,
+     "3.0%",
+     "-4.6%"
+    ],
+    [
+     "Q3",
+     665,
+     534,
+     "1.4%",
+     "-5.5%"
+    ],
+    [
+     "Q4",
+     669,
+     527,
+     "0.4%",
+     "-6.2%"
+    ]
+   ]
+  },
+  {
+   "id": "ch1a2b3c",
+   "type": "chart",
+   "kind": "bar",
+   "title": "Average order value (\u20b9, placeholders)",
+   "labels": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4"
+   ],
+   "series": [
+    {
+     "name": "Blinkit",
+     "values": [
+      635,
+      660,
+      665,
+      669
+     ]
+    },
+    {
+     "name": "Instamart",
+     "values": [
+      534,
+      547,
+      534,
+      527
+     ]
+    }
+   ],
+   "unit": "inr",
+   "source": "tb1a2b3c"
+  },
+  {
+   "id": "md1a2b3c",
+   "type": "model",
+   "title": "One order, Blinkit Q4 (placeholders)",
+   "columns": [
+    "Per order",
+    "Share of AOV"
+   ],
+   "rows": [
+    {
+     "label": "Order value",
+     "values": [
+      669,
+      100
+     ],
+     "format": "inr",
+     "bold": true
+    },
+    {
+     "label": "Commission and ads",
+     "values": [
+      128,
+      19.1
+     ],
+     "format": "inr"
+    },
+    {
+     "label": "Delivery cost",
+     "values": [
+      -58,
+      -8.7
+     ],
+     "format": "inr"
+    },
+    {
+     "label": "Dark store cost",
+     "values": [
+      -67,
+      -10.0
+     ],
+     "format": "inr"
+    },
+    {
+     "label": "Contribution",
+     "values": [
+      3,
+      0.4
+     ],
+     "format": "inr",
+     "bold": true
+    }
+   ],
+   "notes": "The second column is a share of order value, shown in rupees here for the fixture only."
+  },
+  {
+   "id": "ch2a2b3c",
+   "type": "chart",
+   "kind": "line",
+   "title": "Contribution margin (%, placeholders)",
+   "labels": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4"
+   ],
+   "series": [
+    {
+     "name": "Blinkit",
+     "values": [
+      3.8,
+      3.0,
+      1.4,
+      0.4
+     ]
+    },
+    {
+     "name": "Instamart",
+     "values": [
+      -5.6,
+      -4.6,
+      -5.5,
+      -6.2
+     ]
+    }
+   ],
+   "unit": "pct"
+  },
+  {
+   "id": "ch3a2b3c",
+   "type": "chart",
+   "kind": "pie",
+   "title": "Where Blinkit's order value goes (placeholders)",
+   "labels": [
+    "Delivery",
+    "Dark store",
+    "Discounts",
+    "Contribution"
+   ],
+   "series": [
+    {
+     "name": "Share",
+     "values": [
+      8.7,
+      10.0,
+      6.2,
+      0.4
+     ]
+    }
+   ],
+   "unit": "pct"
+  },
+  {
+   "id": "qt1a2b3c",
+   "type": "quote",
+   "text": "The fastest store is not the cheapest one to run.",
+   "by": "My note after the third letter"
+  },
+  {
+   "id": "co1a2b3c",
+   "type": "callout",
+   "tone": "result",
+   "rich": [
+    {
+     "kind": "p",
+     "spans": [
+      {
+       "t": "Result: ",
+       "b": true
+      },
+      {
+       "t": "Blinkit's margin fell as it opened stores faster; Instamart lost less per order each quarter."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "h2a1b2c3",
+   "type": "heading",
+   "level": 2,
+   "text": "What I would change"
+  },
+  {
+   "id": "tx2a2b3c",
+   "type": "text",
+   "rich": [
+    {
+     "kind": "ol",
+     "items": [
+      [
+       {
+        "t": "Slow new stores where orders a day are below the city median"
+       }
+      ],
+      [
+       {
+        "t": "Charge a small fee on baskets under \u20b9199"
+       }
+      ],
+      [
+       {
+        "t": "Push high margin categories in the first screen"
+       }
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tl1a2b3c",
+   "type": "timeline",
+   "items": [
+    {
+     "when": "Week 1",
+     "what": "Read four letters and built the table"
+    },
+    {
+     "when": "Week 2",
+     "what": "Modelled one order and wrote the changes"
+    }
+   ]
+  },
+  {
+   "id": "dv1a2b3c",
+   "type": "divider"
+  },
+  {
+   "id": "em1a2b3c",
+   "type": "embed",
+   "provider": "google_sheets",
+   "src": "https://docs.google.com/spreadsheets/d/e/2PACX-fixture/pubhtml?widget=true",
+   "title": "The full model as a sheet",
+   "aspect": "4:3"
+  },
+  {
+   "id": "em2a2b3c",
+   "type": "embed",
+   "provider": "youtube",
+   "src": "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ",
+   "title": "A two minute walkthrough",
+   "aspect": "16:9"
+  },
+  {
+   "id": "fl1a2b3c",
+   "type": "file",
+   "href": "/b2cnew/media/0123456789abcdef0123",
+   "name": "Blinkit vs Instamart, full report.pdf",
+   "kind": "pdf",
+   "size": 482113
+  },
+  {
+   "id": "im1a2b3c",
+   "type": "image",
+   "src": "/b2cnew/media/abcdef0123456789abcd",
+   "alt": "A chart of order value by quarter drawn by hand",
+   "caption": "My first sketch of the numbers",
+   "width": 1200,
+   "height": 800
+  },
+  {
+   "id": "wb1a2b3c",
+   "type": "web",
+   "src": "/b2cnew/sites/42/2/index.html",
+   "title": "Try the order calculator",
+   "height": 520
+  },
+  {
+   "id": "xx1a2b3c",
+   "type": "unknown_future_block",
+   "note": "A renderer skips this."
+  },
+  {
+   "id": "bad1a2b3",
+   "type": "embed",
+   "provider": "youtube",
+   "src": "https://evil.example/embed/x",
+   "title": "Must be skipped: not an allowlisted host",
+   "aspect": "16:9"
+  },
+  {
+   "id": "bad2a2b3",
+   "type": "text",
+   "rich": [
+    {
+     "kind": "p",
+     "spans": [
+      {
+       "t": "This link must render as plain text: "
+      },
+      {
+       "t": "click me",
+       "href": "javascript:alert(1)"
+      },
+      {
+       "t": " and this one too: "
+      },
+      {
+       "t": "data",
+       "href": "data:text/html,hi"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

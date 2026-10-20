@@ -13,7 +13,9 @@ export const streamTimeout = 5_000;
  * full CSP from security-headers.server.ts, which would block PostHog and the
  * Meta pixel. Set on HEAD too, which is what `curl -I` and scanners send. */
 export function setPageSecurityHeaders(headers: Headers): void {
-  headers.set("Content-Security-Policy", "frame-ancestors 'self'");
+  // A route may send a stricter policy of its own (a launched project page,
+  // app/routes/$handle.$slug.tsx, which also says frame-ancestors 'self').
+  if (!headers.has("Content-Security-Policy")) headers.set("Content-Security-Policy", "frame-ancestors 'self'");
   headers.set("X-Frame-Options", "SAMEORIGIN");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");

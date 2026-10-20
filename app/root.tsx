@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
   useLoaderData,
   useLocation,
+  useMatches,
   useNavigate,
 } from "react-router";
 import { Toaster } from "sonner";
@@ -397,16 +398,20 @@ export default function App() {
     location.pathname.startsWith("/reset-password");
   // A student's public page (/profile/:slug) is for the people they share it with, not a place to ask Studojo for help.
   const onStudentPage = /^\/profile\/[^/]/.test(location.pathname);
+  // A student's launched project page (/:handle/:slug) carries no analytics and
+  // none of the site's widgets: its CSP allows only its own scripts (contract
+  // section 4, app/routes/$handle.$slug.tsx).
+  const projectPage = useMatches().some((m) => (m.handle as { projectPage?: boolean } | undefined)?.projectPage === true);
   const hideGlobalChat =
-    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || location.pathname.startsWith("/jernew") || location.pathname.startsWith("/b2cnew") || location.pathname.startsWith("/pbadmin") || onSensei || onAuth || onStudentPage;
+    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || location.pathname.startsWith("/jernew") || location.pathname.startsWith("/b2cnew") || location.pathname.startsWith("/pbadmin") || onSensei || onAuth || onStudentPage || projectPage;
 
   return (
     <>
-      <AnalyticsInit />
+      {!projectPage && <AnalyticsInit />}
       <Outlet />
       {!hideGlobalChat && <ChatWidget />}
-      {!onSensei && <CookieNotice />}
-      {!onSensei && <PolicyUpdateNotice />}
+      {!onSensei && !projectPage && <CookieNotice />}
+      {!onSensei && !projectPage && <PolicyUpdateNotice />}
     </>
   );
 }
@@ -460,6 +465,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
     <>
       <title>{statusCode === 404 ? "Page not found | Studojo" : "Something went wrong | Studojo"}</title>
+      {statusCode === 404 && <meta name="robots" content="noindex, nofollow" />}
       <ErrorTracker errorType={errorType} errorMessage={details} errorCode={errorCode} />
       <ErrorPage
         statusCode={statusCode}

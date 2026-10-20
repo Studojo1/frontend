@@ -1,0 +1,123 @@
+/* A launched project page (/<handle>/<slug>). Colours and fonts come from the
+   CSS variables view.ts sets on .pp (themeVars). Clash Display and Satoshi are
+   the site's own faces (fonts.css); JetBrains Mono is only needed by the mono
+   font set, so it is declared here. */
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-500.woff2') format('woff2');
+  font-weight: 500 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.pp {
+  background: var(--pp-bg);
+  color: var(--pp-ink);
+  font-family: var(--pp-body);
+  -webkit-font-smoothing: antialiased;
+}
+.pp-head {
+  font-family: var(--pp-head);
+}
+.pp-data {
+  font-family: var(--pp-data);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Links in text: ink with an accent underline. */
+.pp-link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: var(--pp-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: color 120ms;
+}
+.pp-link:hover {
+  color: var(--pp-accent);
+}
+
+/* Lists in rich text. */
+.pp-rich ul > li {
+  position: relative;
+  padding-left: 1.4em;
+}
+.pp-rich ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0.2em;
+  top: 0.62em;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 2px;
+  background: var(--pp-accent);
+}
+.pp-rich ol {
+  counter-reset: pp-ol;
+}
+.pp-rich ol > li {
+  position: relative;
+  padding-left: 2em;
+  counter-increment: pp-ol;
+}
+.pp-rich ol > li::before {
+  content: counter(pp-ol);
+  position: absolute;
+  left: 0;
+  top: 0.36em;
+  width: 1.45em;
+  height: 1.45em;
+  border-radius: 999px;
+  background: var(--pp-accent-soft);
+  color: var(--pp-accent);
+  font-family: var(--pp-head);
+  font-weight: 600;
+  font-size: 0.8em;
+  line-height: 1.45em;
+  text-align: center;
+}
+
+/* A table or model scrolls sideways inside its own box on a phone; the page never does.
+   A soft shadow at an edge shows there is more to scroll to (it scrolls away at the end). */
+.pp-scroll {
+  overflow-x: auto;
+  background:
+    linear-gradient(to left, var(--pp-row, var(--pp-bg)) 40%, transparent) right / 28px 100% no-repeat local,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.14), transparent) right / 12px 100% no-repeat scroll;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.pp-scroll:focus-visible {
+  outline: 2px solid var(--pp-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.pp :focus-visible {
+  outline: 2px solid var(--pp-accent);
+  outline-offset: 3px;
+}
+
+/* Two drawings of each bar or line chart: one laid out for a phone, one for wider screens. */
+.pp-chart-narrow {
+  display: block;
+}
+.pp-chart-wide {
+  display: none;
+}
+@media (min-width: 640px) {
+  .pp-chart-narrow {
+    display: none;
+  }
+  .pp-chart-wide {
+    display: block;
+  }
+}
