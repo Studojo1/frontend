@@ -156,10 +156,10 @@ test("render: every fixture block draws, links and frames as the contract says",
   assert.match(sheet, / src="https:\/\/docs\.google\.com\/spreadsheets\/d\//);
   assert.match(video, / src="https:\/\/www\.youtube-nocookie\.com\/embed\//);
   assert.match(web, / src="\/b2cnew\/sites\/42\/2\/index\.html"/);
-  assert.match(web, / sandbox="allow-scripts"/);
+  assert.match(web, / sandbox="allow-scripts allow-forms"/);
   assert.match(web, / referrerPolicy="no-referrer"/i);
   assert.match(web, / title="Try the order calculator"/);
-  assert.ok(!/allow-same-origin|allow-forms|allow-top-navigation|allow-popups/.test(web), "a web build never gets more than allow-scripts");
+  assert.ok(!/allow-same-origin|allow-top-navigation|allow-popups|allow-modals/.test(web), "a web build gets scripts and forms for its own JavaScript, nothing more");
   assert.match(html, /<img [^>]*src="\/b2cnew\/media\/abcdef0123456789abcd"/);
   // Charts are drawn: bars, a line path and donut slices, with the numbers in a table for screen readers.
   assert.equal((html.match(/<rect /g) ?? []).length, 16, "8 bars, drawn for a phone and for wide screens");

@@ -82,7 +82,9 @@ export function WebBuild({ b }: { b: Of<"web"> }) {
         <span className="text-[15px] font-bold leading-snug">{b.title}</span>
       </figcaption>
       <div className="overflow-hidden rounded-xl border border-(--pp-line) bg-white">
-        <iframe src={b.src} title={b.title} sandbox="allow-scripts" referrerPolicy="no-referrer" className="block w-full border-0" style={{ height: b.height }} />
+        {/* allow-forms: without it a browser stops a form before its submit event, so the build's own JavaScript never
+            sees it; career-agent's CSP on these files has form-action 'none', so nothing is ever submitted. */}
+        <iframe src={b.src} title={b.title} sandbox="allow-scripts allow-forms" referrerPolicy="no-referrer" className="block w-full border-0" style={{ height: b.height }} />
       </div>
     </figure>
   );
