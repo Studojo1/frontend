@@ -47,7 +47,9 @@ export const PAGE_CSP = [
   "img-src 'self' data:",
   "font-src 'self' https://cdn.fontshare.com",
   "connect-src 'self'",
-  "frame-src 'self' https://docs.google.com https://www.figma.com https://*.notion.site https://www.loom.com https://www.youtube-nocookie.com https://www.canva.com https://public.tableau.com https://lookerstudio.google.com",
+  // Each embed host only at its embed path (view.ts PROVIDERS), so a student's web build cannot move its own sandboxed
+  // frame to another page of an allowed host, such as a Google Form that would record what a visitor typed.
+  "frame-src 'self' https://docs.google.com/spreadsheets/d/ https://docs.google.com/presentation/d/ https://docs.google.com/document/d/ https://www.figma.com/embed https://*.notion.site https://www.loom.com/embed/ https://www.youtube-nocookie.com/embed/ https://www.canva.com/design/ https://public.tableau.com/views/ https://lookerstudio.google.com/embed/",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

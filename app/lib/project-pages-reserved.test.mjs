@@ -100,10 +100,27 @@ console.log(`  ok  no raw HTML in ${pageFiles.length} page modules`);
 // ── 4. The contract's Content-Security-Policy, sent by the route.
 assert.equal(
   PAGE_CSP,
-  "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdn.fontshare.com; connect-src 'self'; frame-src 'self' https://docs.google.com https://www.figma.com https://*.notion.site https://www.loom.com https://www.youtube-nocookie.com https://www.canva.com https://public.tableau.com https://lookerstudio.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
+  "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdn.fontshare.com; connect-src 'self'; frame-src 'self' https://docs.google.com/spreadsheets/d/ https://docs.google.com/presentation/d/ https://docs.google.com/document/d/ https://www.figma.com/embed https://*.notion.site https://www.loom.com/embed/ https://www.youtube-nocookie.com/embed/ https://www.canva.com/design/ https://public.tableau.com/views/ https://lookerstudio.google.com/embed/; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
 );
 const routeSrc = readFileSync(join(ROUTES, "$handle.$slug.tsx"), "utf8");
 assert.match(routeSrc, /"Content-Security-Policy": PAGE_CSP/);
+// Every embed provider's host and path is framable, and docs.google.com only at its three embed paths.
+{
+  const { PROVIDERS } = await import("../components/project-page/view.ts");
+  const frameSrc = PAGE_CSP.split("; ").find((d) => d.startsWith("frame-src ")).split(" ").slice(1).filter((s) => s.startsWith("https://"));
+  const sample = { google_sheets: "docs.google.com", google_slides: "docs.google.com", google_docs: "docs.google.com", figma: "www.figma.com", notion: "a.notion.site", loom: "www.loom.com", youtube: "www.youtube-nocookie.com", canva: "www.canva.com", tableau: "public.tableau.com", looker_studio: "lookerstudio.google.com" };
+  for (const [key, p] of Object.entries(PROVIDERS)) {
+    const host = sample[key];
+    assert.ok(p.host(host), key);
+    const ok = frameSrc.some((s) => {
+      const u = new URL(s.replace("*.", "x."));
+      const hostOk = s.includes("*.") ? host.endsWith(u.hostname.slice(1)) : u.hostname === host;
+      return hostOk && (u.pathname === "/" || p.path.startsWith(u.pathname));
+    });
+    assert.ok(ok, `frame-src allows ${key} at ${host}${p.path}`);
+  }
+  assert.ok(!frameSrc.includes("https://docs.google.com"), "docs.google.com is never allowed whole (Google Forms)");
+}
 assert.match(routeSrc, /export const handle = \{ projectPage: true \}/, "root.tsx keeps analytics off pages with this handle");
 // entry.server must keep a route's own policy instead of overwriting it.
 const { setPageSecurityHeaders } = await import("../entry.server.tsx");
