@@ -6,6 +6,7 @@ import { ServerRouter, isRouteErrorResponse } from "react-router";
 import { isbot } from "isbot";
 import type { RenderToPipeableStreamOptions } from "react-dom/server";
 import { renderToPipeableStream } from "react-dom/server";
+import { markStaging } from "./lib/staging-host";
 
 export const streamTimeout = 5_000;
 
@@ -51,6 +52,9 @@ export default function handleRequest(
     url.protocol = "https:"; // TLS ends at the ingress, so request.url is http
     return new Response(null, { status: 301, headers: { Location: url.toString() } });
   }
+
+  // NOINDEX: on studojo.pro (staging) every page says noindex; studojo.com is untouched.
+  markStaging(request, responseHeaders);
 
   // https://httpwg.org/specs/rfc9110.html#HEAD
   if (request.method.toUpperCase() === "HEAD") {
