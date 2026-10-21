@@ -3321,14 +3321,24 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
       )}
 
       {!run && activeDisplay && view === "table" && (
-        <DenseTable
-          table={activeDisplay}
-          newIds={newIds}
-          onRowClick={setDetailRow}
-          onRowStatus={rowStatusG}
-          onEnrich={enrichRowG}
-          onDelete={deleteRowG}
-        />
+        isPeopleTable(activeDisplay) ? (
+          <PeopleTable
+            table={activeDisplay}
+            newIds={newIds}
+            onRowClick={setDetailRow}
+            onRowStatus={rowStatusG}
+            onDelete={deleteRowG}
+          />
+        ) : (
+          <DenseTable
+            table={activeDisplay}
+            newIds={newIds}
+            onRowClick={setDetailRow}
+            onRowStatus={rowStatusG}
+            onEnrich={enrichRowG}
+            onDelete={deleteRowG}
+          />
+        )
       )}
 
       {detailRow && activeDisplay && (
@@ -3835,6 +3845,101 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
       {table.rows.length === 0 && (
         <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Sensei finds them.</p>
       )}
+    </div>
+  );
+}
+
+// A table of people from lookups ("8 contacts in this chat" -> "Open as table"): each row IS a contact, so the phone and
+// email are columns of their own instead of a search table's click-to-open Contact cell, and Company shows the person's
+// employer, not their name (owner 2026-10-21: "the contacts table doesn't show the email and number").
+function isPeopleTable(table: BobTable): boolean {
+  return table.rows.length > 0 && table.rows.every((r) => r.cells._lookup === "person");
+}
+
+function PeopleTable({ table, newIds, onRowClick, onRowStatus, onDelete }: {
+  table: BobTable;
+  newIds: Set<number>;
+  onRowClick: (r: BobRow) => void;
+  onRowStatus: (rowId: number, status: string) => void;
+  onDelete: (rowId: number) => void;
+}) {
+  const TH = "px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap";
+  const none = (label: string) => <span className="text-neutral-400 text-[11.5px]">{label}</span>;
+  return (
+    <div className="flex-1 overflow-auto bg-white">
+      <table className="text-[12.5px] border-collapse w-full">
+        <thead className="sticky top-0 z-20">
+          <tr className="bg-[#faf7f2]">
+            <th className={`sticky left-0 z-30 bg-[#faf7f2] ${TH}`}>Name</th>
+            <th className={TH}>Title</th>
+            <th className={TH}>Company</th>
+            <th className={TH}>Phone</th>
+            <th className={TH}>Email</th>
+            <th className={TH}>LinkedIn</th>
+            <th className={TH}>City</th>
+            <th className={TH}>Status</th>
+            <th className="px-2 py-2.5 border-b-2 border-neutral-900" />
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((r, idx) => {
+            const phone = str(r.cells.contact_phone) || str(r.cells.phone);
+            const email = str(r.cells.contact_email) || str(r.cells.email);
+            const li = str(r.cells.linkedin_url) || str(r.cells.contact_linkedin_url);
+            return (
+              <tr
+                key={r.id}
+                onClick={() => onRowClick(r)}
+                className={`border-b border-neutral-200 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
+              >
+                <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                    {str(r.cells.name) || str(r.cells.contact_name) || "-"}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 max-w-[240px]">{str(r.cells.title) || str(r.cells.contact_title) || none("-")}</td>
+                <td className="px-3 py-2.5 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-2">
+                    <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={18} />
+                    {str(r.cells.company) || none("-")}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                  {phone ? (
+                    <a href={`tel:${phone}`} className="inline-flex items-center gap-1 font-semibold hover:text-violet-700">
+                      <FiPhone size={11} className="text-green-600" /> {phone}
+                    </a>
+                  ) : none("No number found")}
+                </td>
+                <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                  {email ? (
+                    <a href={`mailto:${email}`} className="inline-flex items-center gap-1 hover:text-violet-700">
+                      <FiMail size={11} className="text-violet-600" /> {email}
+                    </a>
+                  ) : none("No work email found")}
+                </td>
+                <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                  {li ? <LinkChip href={li} label="LinkedIn" icon={<FiLinkedin size={11} className="text-[#0a66c2]" />} /> : none("-")}
+                </td>
+                <td className="px-3 py-2.5 whitespace-nowrap">{str(r.cells.city) || none("-")}</td>
+                <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                  <select
+                    value={r.status}
+                    onChange={(e) => onRowStatus(r.id, e.target.value)}
+                    className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
+                  >
+                    {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </td>
+                <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
+                  <DeleteRowButton onDelete={() => onDelete(r.id)} />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
