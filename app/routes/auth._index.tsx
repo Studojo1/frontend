@@ -230,6 +230,9 @@ export default function Auth() {
   // uploading a resume. Tell them what they get for signing up. Read from the
   // raw param, which the server render sees too.
   const forOutreach = (searchParams.get("redirect") ?? "").startsWith("/outreach");
+  // Signing in to set up the job search (/b2cnew): the student's page is public there,
+  // so the notice under the buttons says so; there is no step for it after sign-in.
+  const forJobSearch = (searchParams.get("redirect") ?? "").startsWith("/b2cnew");
 
   // EX-06 experiment, flag `upload-before-signup` (off by default): an ad
   // visitor on the way to resume upload may pick the resume before signing
@@ -644,6 +647,7 @@ export default function Auth() {
                     By continuing, you confirm you are 18 or older and agree to our{" "}
                     <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a> and{" "}
                     <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
+                    {forJobSearch && " Your Studojo page will be public, so hiring managers can see it."}
                   </p>
                   {mode === "signin" && (
                     <button
@@ -730,6 +734,7 @@ export default function Auth() {
                     By signing up, you confirm you are 18 or older and agree to our{" "}
                     <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a> and{" "}
                     <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
+                    {forJobSearch && " Your Studojo page will be public, so hiring managers can see it."}
                   </p>
                 )}
                 </div>
