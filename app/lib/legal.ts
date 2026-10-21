@@ -16,10 +16,15 @@ export const LEGAL_ENTITY = {
 
 export const EFFECTIVE_DATE = "2 October 2026";
 
+// The Terms' own date since version 2.1 (section 5, Your Studojo page). In production a material change takes effect
+// at least 7 days after we email every user about it (Terms section 23), so set this to that date when it ships there.
+export const TERMS_EFFECTIVE_DATE = "22 October 2026";
+
 // Bump a version whenever that document changes materially. Signed-in users
 // whose stored version is older see the update notice and accept again.
 export const POLICY_VERSIONS = {
-  terms: "2.0",
+  // 2.1 (22 Oct 2026): section 5, Your Studojo page (the public profile page the job search makes).
+  terms: "2.1",
   privacy: "2.0",
   refund: "3.0",
 } as const;

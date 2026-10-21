@@ -11,6 +11,7 @@ import { capturePostHog, featureFlagEnabled } from "~/lib/posthog";
 import { ResumeFirstCard } from "~/components/outreach/ResumeFirstCard";
 import { UPLOAD_BEFORE_SIGNUP_FLAG, headedToUpload, isAdVisitor } from "~/lib/outreach/resume-draft";
 import type { Route } from "./+types/auth._index";
+import { ConsentLine } from "~/components/auth/consent-line";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
@@ -230,9 +231,6 @@ export default function Auth() {
   // uploading a resume. Tell them what they get for signing up. Read from the
   // raw param, which the server render sees too.
   const forOutreach = (searchParams.get("redirect") ?? "").startsWith("/outreach");
-  // Signing in to set up the job search (/b2cnew): the student's page is public there,
-  // so the notice under the buttons says so; there is no step for it after sign-in.
-  const forJobSearch = (searchParams.get("redirect") ?? "").startsWith("/b2cnew");
 
   // EX-06 experiment, flag `upload-before-signup` (off by default): an ad
   // visitor on the way to resume upload may pick the resume before signing
@@ -644,10 +642,7 @@ export default function Auth() {
                     Continue with Google
                   </button>
                   <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
-                    By continuing, you confirm you are 18 or older and agree to our{" "}
-                    <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a> and{" "}
-                    <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
-                    {forJobSearch && " Your Studojo page will be public, so hiring managers can see it."}
+                    <ConsentLine lead="By continuing" />
                   </p>
                   {mode === "signin" && (
                     <button
@@ -729,14 +724,9 @@ export default function Auth() {
                 >
                   {submitting ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
                 </button>
-                {mode === "signup" && (
-                  <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
-                    By signing up, you confirm you are 18 or older and agree to our{" "}
-                    <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a> and{" "}
-                    <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
-                    {forJobSearch && " Your Studojo page will be public, so hiring managers can see it."}
-                  </p>
-                )}
+                <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
+                  <ConsentLine lead={mode === "signup" ? "By signing up" : "By continuing"} />
+                </p>
                 </div>
               </form>
 
