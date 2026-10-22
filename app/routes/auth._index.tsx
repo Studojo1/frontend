@@ -1,11 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Header } from "~/components";
 import { PasswordInput } from "~/components/password-input";
 import { heldTrackingParams } from "~/lib/attribution";
 import { authClient } from "~/lib/auth-client";
 import { logFunnelStep } from "~/lib/funnel";
+import { isOtherApp } from "~/lib/other-apps";
 import { chromeIntentUrl, detectInAppBrowser, isAndroid, type InAppBrowser } from "~/lib/in-app-browser";
 import { capturePostHog, featureFlagEnabled } from "~/lib/posthog";
 import { ResumeFirstCard } from "~/components/outreach/ResumeFirstCard";
@@ -316,9 +317,23 @@ export default function Auth() {
 
   const redirectUrl = getRedirectUrl();
 
+  // Another app on this host (career-agent's /b2cnew/start, for one) opens as a page of its own: this site's router
+  // would ask that app for its data and show this site's error page (app/lib/other-apps.ts).
+  const goOn = useCallback(
+    (to: string, replace = false) => {
+      if (isOtherApp(to)) {
+        if (replace) window.location.replace(to);
+        else window.location.assign(to);
+        return;
+      }
+      navigate(to, { replace });
+    },
+    [navigate],
+  );
+
   useEffect(() => {
-    if (!isPending && session) navigate(redirectUrl, { replace: true });
-  }, [isPending, session, navigate, redirectUrl]);
+    if (!isPending && session) goOn(redirectUrl, true);
+  }, [isPending, session, goOn, redirectUrl]);
 
   // Surface a failed OAuth round-trip. better-auth redirects a failed callback
   // to /api/auth/error?error=<code>, which forwards to "/?error=<code>"; nothing
@@ -521,7 +536,7 @@ export default function Auth() {
           });
         }
         // Success - navigate will happen via onSuccess callback if provided
-        navigate(redirectUrl);
+        goOn(redirectUrl);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Passkey authentication failed. Please try again.");
