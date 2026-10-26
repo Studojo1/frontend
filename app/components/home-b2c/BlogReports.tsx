@@ -1,32 +1,72 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { BLOG, REPORTS } from "./links";
+import { SectionEnd } from "./cta";
+import { Arrow, Book, Chart } from "./icons";
+import { BLOG, REPORTS, SECTION_READ } from "./links";
 
-// Blog and reports: the two kept resources. Placeholder cards until the owner picks a direction; the design
-// can list the latest posts and reports here (a homepage loader reading what /blog and /reports already read).
-const CARDS = [
-  { to: BLOG, title: "Blog", body: "Guides to the job search, written for students and freshers." },
-  { to: REPORTS, title: "Reports", body: "Research on hiring, pay and the job market for students." },
-] as const;
+// 6. Read (#read): blogs and reports, the two kept resources. Real titles and routes (a1v2-copy.md): the blog
+// posts are live on studojo.com, the reports are routes in this app. All router links (this site).
+const SHELVES: { title: string; icon: ReactNode; all: { label: string; to: string }; items: { title: string; to: string }[] }[] = [
+  {
+    title: "from the blog",
+    icon: <Book />,
+    all: { label: "all blogs", to: BLOG },
+    items: [
+      { title: "How Many Internships to Apply To? Find the Ideal Number", to: "/blog/how-many-internships-to-apply-to-find-the-ideal-number" },
+      { title: "Internship Myths Debunked: Real Advice for Career Success", to: "/blog/internship-myths-debunked-real-advice-for-career-success" },
+      {
+        title: "Why Students Reject Internship Offers & How to Choose the Right One",
+        to: "/blog/why-students-reject-internship-offers-and-how-to-choose-the-right-one",
+      },
+    ],
+  },
+  {
+    title: "from our reports",
+    icon: <Chart />,
+    all: { label: "all reports", to: REPORTS },
+    items: [
+      { title: "First Job Report India 2026: What Entry-Level Actually Looks Like", to: "/reports/first-job-india-2026" },
+      { title: "Cold Outreach: What Actually Gets a Reply", to: "/reports/cold-outreach-what-gets-reply-2026" },
+      { title: "Why Companies Post Jobs Without Planning to Hire", to: "/reports/ghost-jobs-2026" },
+    ],
+  },
+];
 
 export function BlogReports() {
   return (
-    <section aria-labelledby="resources-title" className="bg-white">
-      <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24">
-        <h2 id="resources-title" className="font-clash text-3xl font-medium text-studojo-ink md:text-5xl">
-          Read before you apply
-        </h2>
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          {CARDS.map((card) => (
-            <Link
-              key={card.to}
-              to={card.to}
-              className="block rounded-[var(--radius-card)] border border-lilac-line bg-white p-6 shadow-lilac-soft hover:shadow-lilac-card"
-            >
-              <h3 className="font-clash text-2xl font-medium text-studojo-ink">{card.title}</h3>
-              <p className="mt-2 font-satoshi text-base text-studojo-muted">{card.body}</p>
-            </Link>
+    <section className="sjb-sec" id={SECTION_READ} aria-labelledby="read-h">
+      <div className="sjb-sec-in">
+        <header className="sjb-sec-head">
+          <span className="sjb-kicker">blogs and reports</span>
+          <h2 className="sjb-h-sec" id="read-h">
+            read before you call.
+          </h2>
+          <p className="sjb-lead">Plain answers on getting hired, from the Studojo team.</p>
+        </header>
+
+        <div className="s-read">
+          {SHELVES.map((shelf) => (
+            <div className="sjb-card s-shelf" key={shelf.title}>
+              <div className="s-shelf-h">
+                <span className="s-ico" aria-hidden="true">
+                  {shelf.icon}
+                </span>
+                <h3 className="sjb-h-card">{shelf.title}</h3>
+              </div>
+              {shelf.items.map((item) => (
+                <Link key={item.to} to={item.to} className="s-item">
+                  <span>{item.title}</span>
+                  <Arrow />
+                </Link>
+              ))}
+              <Link to={shelf.all.to} className="sjb-link-type s-all">
+                {shelf.all.label}
+              </Link>
+            </div>
           ))}
         </div>
+
+        <SectionEnd line="Or skip the reading and talk it through." />
       </div>
     </section>
   );

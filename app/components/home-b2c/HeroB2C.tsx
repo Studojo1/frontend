@@ -1,46 +1,49 @@
-import type { ReactNode } from "react";
+import { StartButton, StuOrb, TypeLink, useSignedIn, useStartCta } from "./cta";
+import { Check, Clock } from "./icons";
+import { StuSlot } from "./stu-embed";
 
-// Hero: a thin, swappable shell. The owner is choosing a restrained desktop hero (round 2, variants A1/A2/A3);
-// the picked variant replaces this markup and keeps the props: a headline, a subhead, two CTAs and the Stu slot.
-// No hero visuals here yet on purpose. Headline type per the owner: Satoshi 500 (or Geist 500), about
-// 80 to 88px, -0.03em tracking, lowercase, not Clash.
+// Hero: the first step of the app's flow. Stu, one line, one big unmistakable "start the call" button (the
+// thumb zone on phones), "free . about 10 minutes" and the quiet "prefer typing?" link. Kept thin on purpose:
+// the owner is picking the final hero (H1/H2), which replaces this markup and keeps #hero-start, the id the
+// phone's bottom bar watches (PhoneBar.tsx).
 //
-// CTAs into /b2cnew are another app, so every CTA is a plain <a href> (links.ts). The primary one signed out
-// opens /b2cnew/start, and it is the way in when the Stu embed does not load.
+// Stu is the <stu-agent data-size="hero" data-mode="join"> embed (stu-embed.tsx); until the script defines it,
+// a static Stu stands in its reserved box, itself a plain link to the same place as the button.
 
-export type HeroCta = { label: string; href: string };
+export const HERO_START_ID = "hero-start";
 
-export type HeroB2CProps = {
-  headline: string;
-  subhead: string;
-  primary: HeroCta;
-  secondary: HeroCta;
-  /** Stu in the hero (StuSlot). Placed by the variant. */
-  stu?: ReactNode;
-};
-
-export function HeroB2C({ headline, subhead, primary, secondary, stu }: HeroB2CProps) {
+export function HeroB2C() {
+  const { href } = useStartCta();
+  const signedIn = useSignedIn();
   return (
-    <section aria-labelledby="hero-title" className="bg-white">
-      <div className="mx-auto grid max-w-[var(--section-max-width)] gap-10 px-4 py-16 md:grid-cols-[1.4fr_1fr] md:items-center md:px-8 md:py-24">
-        <div className="flex flex-col gap-6">
-          <h1 id="hero-title" className="font-satoshi text-5xl font-medium lowercase leading-[1.02] tracking-[-0.03em] text-studojo-ink md:text-[84px]">
-            {headline}
-          </h1>
-          <p className="max-w-xl font-satoshi text-lg text-studojo-muted md:text-xl">{subhead}</p>
-          <div className="flex flex-wrap items-center gap-4">
-            <a
-              href={primary.href}
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-studojo-ink px-6 font-satoshi text-base font-medium text-white hover:bg-studojo-purple-strong"
-            >
-              {primary.label}
-            </a>
-            <a href={secondary.href} className="font-satoshi text-base font-medium text-studojo-ink underline underline-offset-4 hover:text-studojo-purple-strong">
-              {secondary.label}
-            </a>
-          </div>
+    <section className="sjb-hero" aria-labelledby="hero-title">
+      <div className="sjb-center">
+        <StuSlot className="sjb-stu-box">
+          <a href={href} className="sjb-orb-link" aria-label={signedIn ? "open my jobs" : "start the call with stu"} tabIndex={-1}>
+            <StuOrb rings />
+          </a>
+        </StuSlot>
+        <p className="sjb-kicker">stu, your ai job agent</p>
+        <h1 className="sjb-h-hero" id="hero-title">
+          talk to stu.
+          <br /> get jobs that fit you.
+        </h1>
+        <div className="sjb-go">
+          <StartButton size="xl" wide place="hero" id={HERO_START_ID} />
+          {signedIn ? null : (
+            <ul className="sjb-facts">
+              <li>
+                <Check size={14} />
+                free to start
+              </li>
+              <li>
+                <Clock size={14} />
+                about 10 minutes
+              </li>
+            </ul>
+          )}
+          <TypeLink />
         </div>
-        {stu}
       </div>
     </section>
   );

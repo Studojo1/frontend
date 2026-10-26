@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
-import { Link, redirect, redirectDocument } from "react-router";
+import { Link, redirect } from "react-router";
 import {
   BackedBySection,
   CTABanner,
@@ -15,7 +15,6 @@ import {
 } from "~/components";
 import { useLoaderData } from "react-router";
 import { HomeB2C } from "~/components/home-b2c/HomeB2C";
-import { STU_HOME } from "~/components/home-b2c/links";
 import { isB2cRequest } from "~/lib/b2c-home";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { senseiUi } from "~/lib/sensei-ui";
@@ -53,15 +52,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     // (app/lib/sensei-ui.ts), on the server, so the first paint is already in the right one.
     return { bobApp: senseiApp === "bob", dashboardApp: senseiApp === "dashboard", b2cHome: false, senseiUi: senseiUi(request.headers.get("host")) };
   }
-  const session = await getSessionFromRequest(request);
   // HOMEPAGE: studojo.pro (and localhost) get the B2C homepage, Studojo's job agent only; studojo.com never
-  // does (app/lib/b2c-home.ts). A signed-in student goes straight to their agent instead of the old
-  // /onboarding check. /b2cnew is another app on this host, so the redirect is a full page load
-  // (redirectDocument), also when the router asks for this page's data on an in-app navigation.
+  // does (app/lib/b2c-home.ts). Signed in or not, everyone sees it (the owner reviews it signed in), with no
+  // redirect and no old /onboarding check. The session is read here only so the first paint is already right
+  // (signed in: "my jobs" in the header, "open my jobs" on every button); a failed read is "signed out".
   if (isB2cRequest(request)) {
-    if (session) throw redirectDocument(`${STU_HOME}${new URL(request.url).search}`);
-    return { bobApp: false, dashboardApp: false, b2cHome: true, senseiUi: "old" as const };
+    const signedIn = !!(await getSessionFromRequest(request).catch(() => null));
+    return { bobApp: false, dashboardApp: false, b2cHome: true, signedIn, senseiUi: "old" as const };
   }
+  const session = await getSessionFromRequest(request);
   if (session) {
     const onboardingStatus = await requireOnboardingComplete(session.user.id);
     if (!onboardingStatus.complete) {
@@ -80,10 +79,10 @@ export function meta({ data }: Route.MetaArgs) {
     return [{ title: "Bob | Studojo" }, { name: "robots", content: "noindex" }];
   }
   if (d?.b2cHome) {
-    // Placeholder until the owner picks a direction. No canonical: studojo.pro is noindex (app/lib/staging-host.ts).
-    // The share image falls back to root's og-default.png until the design brings a B2C card.
-    const title = "Studojo | Find jobs with Stu, your job agent";
-    const description = "Stu is Studojo's job agent. Tell Stu what you want, and Stu finds roles that fit you and helps you go after them.";
+    // No canonical: studojo.pro is noindex (app/lib/staging-host.ts). The share image falls back to root's
+    // og-default.png until the design brings a B2C card.
+    const title = "Studojo | Stu, your AI job agent";
+    const description = "Stu is Studojo's AI job agent. A short call with Stu, then jobs that fit you, every day.";
     return [
       { title },
       { name: "description", content: description },

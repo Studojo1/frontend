@@ -21,9 +21,33 @@ assert.equal(deploymentAllowsB2c(PROD), false);
 assert.equal(deploymentAllowsB2c("http://localhost:3000"), true);
 assert.equal(deploymentAllowsB2c("not a url"), false);
 
-// Signed-in students on the B2C homepage go to /b2cnew with a full page load, never the router.
+// Everyone on a B2C host sees the homepage, signed in or not: no redirect and no old /onboarding check
+// (the explainer, 27 Oct: the owner reviews it signed in). The B2C branch reads the session only to return
+// signedIn, so the first paint is right, and a failed read is "signed out".
 const index = readFileSync(new URL("../routes/_index.tsx", import.meta.url), "utf8");
-assert.match(index, /if \(isB2cRequest\(request\)\) \{\n\s+if \(session\) throw redirectDocument\(/);
+const b2cBranch = index.slice(index.indexOf("if (isB2cRequest(request)) {"), index.indexOf("\n  }\n", index.indexOf("if (isB2cRequest(request)) {")));
+assert.match(b2cBranch, /const signedIn = !!\(await getSessionFromRequest\(request\)\.catch\(\(\) => null\)\);/);
+assert.match(b2cBranch, /return \{ bobApp: false, dashboardApp: false, b2cHome: true, signedIn,/);
+assert.doesNotMatch(b2cBranch, /redirect|requireOnboardingComplete/, "no redirect and no /onboarding check on a B2C host");
+assert.ok(index.indexOf("isB2cRequest(request)") < index.indexOf("requireOnboardingComplete("), "B2C branch before the old /onboarding check");
+// Signed in, the header offers "my jobs" (a plain <a> to /b2cnew) and keeps /settings (account deletion) reachable.
+const header = readFileSync(new URL("../components/home-b2c/HeaderB2C.tsx", import.meta.url), "utf8");
+assert.match(header, /<a\s[^>]*href=\{STU_HOME\}/);
+assert.match(header, /to=\{SETTINGS\}/);
+
+// "start the call" (signed out): /b2cnew/join with the visit's whole landing query, each key once, then
+// via=home&how=voice; "prefer typing?" the same into /b2cnew/start with how=type. Signed in: "open my jobs".
+const { startHref, startCta } = await import("../components/home-b2c/links.ts");
+assert.equal(startHref("", "voice"), "/b2cnew/join?via=home&how=voice");
+assert.equal(startHref(undefined, "type"), "/b2cnew/start?via=home&how=type");
+assert.equal(
+  startHref("?utm_source=meta&utm_medium=paid&utm_campaign=oct&fbclid=abc&gclid=g1&ref=x", "voice"),
+  "/b2cnew/join?utm_source=meta&utm_medium=paid&utm_campaign=oct&fbclid=abc&gclid=g1&ref=x&via=home&how=voice",
+);
+assert.equal(startHref("?via=ad&how=type&utm_source=a&utm_source=b", "voice"), "/b2cnew/join?utm_source=a&via=home&how=voice", "no key twice");
+assert.equal(startHref("utm_term=a%20b&x=%26", "type"), "/b2cnew/start?utm_term=a+b&x=%26&via=home&how=type", "values stay encoded");
+assert.deepEqual(startCta(false, "?gclid=1"), { label: "start the call", href: "/b2cnew/join?gclid=1&via=home&how=voice" });
+assert.deepEqual(startCta(true, "?gclid=1"), { label: "open my jobs", href: "/b2cnew" }, "signed in: never /join again");
 
 // The B2C components link into /b2cnew with a plain <a href> (commit 93ba6dd), and name no old product.
 const dir = new URL("../components/home-b2c/", import.meta.url);
@@ -34,20 +58,32 @@ for (const f of readdirSync(dir)) {
   assert.doesNotMatch(src, /["'`]\/(outreach|dojos|resume-maker|resumes|cc|internships|assignments|my-applications|onboarding)\b/, `${f}: an old product route`);
 }
 
-// Stu's embed (career-agent): the real script path, the two elements, and data-base left to its default.
+// Stu's embed (career-agent): the real script path, the two elements, and data-base left to its default. The hero
+// Stu taps straight into /b2cnew/join (data-mode="join"); the dock's panel offers both (data-mode="voice"). Only
+// the hero element holds a fallback (light DOM, shown until the element is defined); the dock holds none.
 const embed = readFileSync(new URL("stu-embed.tsx", dir), "utf8");
 const links = readFileSync(new URL("links.ts", dir), "utf8");
 assert.match(links, /STU_EMBED_SRC = "\/b2cnew\/embed\/stu\.js"/);
-assert.match(embed, /<stu-agent data-size="hero" data-mode="voice" data-signed-in="auto"/);
-assert.match(embed, /<stu-agent data-size="dock" data-mode="voice" data-signed-in="auto"/);
+assert.match(embed, /<stu-agent data-size="hero" data-mode="join" data-signed-in="auto"[^>]*>\s*\{children\}\s*<\/stu-agent>/);
+assert.match(embed, /<stu-agent data-size="dock" data-mode="voice" data-signed-in="auto" \/>/);
 assert.doesNotMatch(embed, /data-base=/, "on studojo.pro data-base defaults to /b2cnew");
-// The plain link stays in the hero as the way in when the embed does not load: "Talk to Stu" to stuHref
-// (/b2cnew/start signed out), rendered as an <a href>.
-const hero = readFileSync(new URL("HeroB2C.tsx", dir), "utf8");
+// The plain button stays as the way in either way: one StartButton component everywhere, a plain <a href>, and
+// every section ends with it.
+const cta = readFileSync(new URL("cta.tsx", dir), "utf8");
+assert.match(cta, /<a href=\{href\}[^>]*data-start=\{place\}/);
+for (const f of ["WhatB2C.tsx", "HowItWorks.tsx", "WhyCall.tsx", "WhatYouGet.tsx", "FaqB2C.tsx", "BlogReports.tsx"]) {
+  assert.match(readFileSync(new URL(f, dir), "utf8"), /<SectionEnd line=/, `${f} ends with the start button`);
+}
 const home = readFileSync(new URL("HomeB2C.tsx", dir), "utf8");
-assert.match(hero, /<a\s+href=\{primary\.href\}/);
-assert.match(home, /primary=\{\{ label: "Talk to Stu", href: stu \}\}/);
-assert.match(home, /const stu = stuHref\(!!session\)/);
+const order = ["<HeroB2C", "<WhatB2C", "<HowItWorks", "<WhyCall", "<WhatYouGet", "<FaqB2C", "<BlogReports", "<FooterB2C"].map((t) => home.indexOf(t));
+assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), "sections in order: hero, what, how, why, get, faq, read, footer");
+// The B2C look is scoped: every rule of b2c.css sits under .sjb, so studojo.com never changes.
+const css = readFileSync(new URL("b2c.css", dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+for (const rule of css.match(/(^|[{}])\s*([^{}@]+)\{/g) ?? []) {
+  const sel = rule.replace(/^[{}]?\s*/, "").replace(/\{$/, "").trim();
+  if (!sel || /^(from|to|\d+%)/.test(sel) || sel === "@font-face") continue;
+  for (const part of sel.split(",")) assert.match(part.trim(), /^\.sjb[\s.:#[]|^\.sjb$/, `b2c.css: unscoped selector "${part.trim()}"`);
+}
 
 // Stu's events reach PostHog and the pixel with known names and known fields only, never free text.
 const { stuEventProps } = await import("../components/home-b2c/stu-events.ts");
