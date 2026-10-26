@@ -428,6 +428,8 @@ export function ChatWidget() {
                         <Link
                           key={link.url}
                           to={link.url}
+                          // /b2cnew (Stu) is another app: a full page load, never the router.
+                          reloadDocument={link.url.startsWith("/b2cnew")}
                           onClick={() => setOpen(false)}
                           className="inline-block rounded-lg border border-violet-300 bg-white px-3 py-1 font-['Satoshi'] text-xs font-medium text-violet-600 hover:bg-violet-50"
                         >

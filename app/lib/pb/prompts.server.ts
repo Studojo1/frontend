@@ -88,8 +88,11 @@ export type PbCandidate = {
 export type PbPastPost = { hook: string; angle: string; format: string };
 export type PbCohortPost = { name: string; hook: string; angle: string };
 
-/** Nothing about Studojo is approved for posts beyond this line. No numbers, ever. */
-export const APPROVED_STUDOJO_FACTS = "Studojo is a career platform for students.";
+/**
+ * Nothing about Studojo is approved for posts beyond this line. No numbers, ever. PRODUCT-ALIGN (27 Oct 2026, staging
+ * only): Studojo is one product, Stu, its job agent.
+ */
+export const APPROVED_STUDOJO_FACTS = "Studojo is a job agent for students and early-career people: Stu finds jobs and internships that fit them and helps them apply.";
 
 const FORMAT_GUIDE: Record<string, string> = {
   story: "one moment, told as a scene",

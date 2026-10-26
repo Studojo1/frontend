@@ -4,7 +4,7 @@
 // NEW-05). Runs the real matcher against the real knowledge base.
 import assert from "node:assert/strict";
 import { matchIntent } from "./matcher.ts";
-import { KNOWLEDGE_CONTEXT } from "./knowledge-base.ts";
+import { INTENTS, KNOWLEDGE_CONTEXT } from "./knowledge-base.ts";
 
 for (const q of ["delete my account", "please delete my account", "how do I close my account"]) {
   const { intent } = matchIntent(q);
@@ -31,4 +31,23 @@ assert.match(KNOWLEDGE_CONTEXT, /aged 18 and over/);
 assert.doesNotMatch(KNOWLEDGE_CONTEXT, /plagiarism-safe/i);
 const { intent: turnitin } = matchIntent("will it pass turnitin");
 assert.doesNotMatch(turnitin.response, /plagiarism-safe|undetectable|pass/i);
+// PRODUCT-ALIGN (27 Oct 2026, staging only): Studojo is one product, Stu the job agent at /b2cnew. The bot says so,
+// answers the three questions students ask about the old products, and never sells or links them.
+const RETIRED = /(?<!stu)dojo|outreach tool|resume maker|resume builder is free|ATS-optimised|pay per assignment|10,000\+/i;
+const about = matchIntent("what does studojo do").intent;
+assert.equal(about?.id, "about");
+assert.match(about.response, /^Studojo is one product: Stu, a job agent/);
+const resume = matchIntent("can you build my resume").intent;
+assert.equal(resume?.id, "careers_resume");
+assert.match(resume.response, /inside Stu/);
+assert.ok(resume.links?.some((l) => l.url.startsWith("/b2cnew")));
+const homework = matchIntent("do you do assignments").intent;
+assert.equal(homework?.id, "assignments");
+assert.match(homework.response, /^Studojo doesn't do assignments/);
+for (const intent of INTENTS) {
+  assert.doesNotMatch(intent.response, RETIRED, `${intent.id} sells a retired product`);
+  for (const l of intent.links ?? []) assert.doesNotMatch(l.url, /^\/(outreach|resume-maker|jrs|dojos|assignments)\b/, `${intent.id} links ${l.url}`);
+}
+assert.doesNotMatch(KNOWLEDGE_CONTEXT, /\*\*(Outreach Tool|Careers Dojo|Internship Dojo|Assignment Dojo|AI Risk Dojo|Revision Dojo)\*\*|PRIMARY RECOMMENDATION/);
+assert.match(KNOWLEDGE_CONTEXT, /Studojo is one product: Stu, a job agent/);
 console.log("support-answers: all passed");

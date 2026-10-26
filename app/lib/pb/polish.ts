@@ -227,11 +227,12 @@ export function firstCommentFor(seed: string, link: string, lowercase: boolean):
   return `${lowercase ? line.charAt(0).toLowerCase() + line.slice(1) : line}\n${link}`;
 }
 
-/** Studojo by name or by one of its products ("the Internship Dojo"). */
+/** Studojo by name, by Stu (its job agent), or by one of the products it had ("the Internship Dojo"). */
 const STUDOJO_REF = /studojo|\b(?:internship|careers|assignment|revision)\s+dojo\b/i;
+const STU = /\bStu\b/;
 
 export function mentionsStudojo(text: string): boolean {
-  return STUDOJO_REF.test(text);
+  return STUDOJO_REF.test(text) || STU.test(text);
 }
 
 const QUANTITY_WORDS = /\b(?:hundreds?|thousands?|lakhs?|crores?|millions?|billions?|percent|dozens?)\b/gi;
@@ -751,7 +752,7 @@ export function lintPost(fullBody: string, o: LintOptions): LintIssue[] {
     const ss = sentencesOf(body);
     const ask = ss.map((x, i) => ({ x, i })).filter(({ x }) => /\bcomments?\b/i.test(x)).pop();
     if (ask && !mentionsStudojo(ask.x) && !(ask.i > 0 && mentionsStudojo(ss[ask.i - 1]))) {
-      add("cta_ref", "mention", "Make the ask say the link is to Studojo (or its Internship Dojo), right where it points to the comments, so nobody thinks it is their own project.");
+      add("cta_ref", "mention", "Make the ask say the link is to Studojo (or Stu, its job agent), right where it points to the comments, so nobody thinks it is their own project.");
     }
   }
   if (o.sample && hookLiftsSample(hookOf(body), o.sample)) {
