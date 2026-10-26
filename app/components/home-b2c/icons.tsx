@@ -65,10 +65,22 @@ export const Plus = ({ size = 14 }: P) => (
     <path d="M12 5v14M5 12h14" />
   </Svg>
 );
-export const Doc = ({ size }: P) => (
-  <Svg size={size}>
+export const Doc = ({ size, width = 2 }: P & { width?: number }) => (
+  <Svg size={size} width={width}>
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
     <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+  </Svg>
+);
+export const Briefcase = ({ size }: P) => (
+  <Svg size={size} width={2.2}>
+    <rect x="3" y="7" width="18" height="13" rx="2" />
+    <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+  </Svg>
+);
+export const Mail = ({ size }: P) => (
+  <Svg size={size} width={2.2}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="m3 7 9 6 9-6" />
   </Svg>
 );
 export const DocLines = ({ size }: P) => (

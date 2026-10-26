@@ -67,14 +67,14 @@ assert.match(links, /STU_EMBED_SRC = "\/b2cnew\/embed\/stu\.js"/);
 assert.match(embed, /<stu-agent data-size="hero" data-mode="join" data-signed-in="auto"[^>]*>\s*\{children\}\s*<\/stu-agent>/);
 assert.match(embed, /<stu-agent data-size="dock" data-mode="voice" data-signed-in="auto" \/>/);
 assert.doesNotMatch(embed, /data-base=/, "on studojo.pro data-base defaults to /b2cnew");
-// The plain button stays as the way in either way: one StartButton component, a plain <a href>, in the header,
-// the hero, the floating start (pill or phone bar) and the footer only, no per-section buttons (owner, 27 Oct).
+// The plain button stays as the way in either way: one StartButton component, a plain <a href>, in the hero, the
+// floating start (side pill or phone bar) and the footer only; no per-section and no header buttons (owner, 27 Oct).
 const cta = readFileSync(new URL("cta.tsx", dir), "utf8");
 assert.match(cta, /<a href=\{href\}[^>]*data-start=\{place\}/);
 for (const f of readdirSync(dir)) {
-  if (!/\.tsx$/.test(f)) continue;
+  if (!f.endsWith(".tsx")) continue;
   const uses = readFileSync(new URL(f, dir), "utf8").match(/<StartButton\b[^>]*place="(\w+)"/g) ?? [];
-  for (const u of uses) assert.match(u, /place="(header|hero|bar|footer)"/, `${f}: ${u}`);
+  for (const u of uses) assert.match(u, /place="(hero|side|bar|footer)"/, `${f}: ${u}`);
 }
 const home = readFileSync(new URL("HomeB2C.tsx", dir), "utf8");
 const order = ["<HeroB2C", "<WhatB2C", "<HowItWorks", "<WhyCall", "<WhatYouGet", "<FaqB2C", "<BlogReports", "<FooterB2C", "<StickyCta"].map((t) => home.indexOf(t));

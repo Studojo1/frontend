@@ -137,6 +137,12 @@
 .sjb .sjb-hero .sjb-kicker { margin: 30px 0 0; font-size: 11.5px; letter-spacing: .06em; opacity: .85; }
 .sjb .sjb-hero .sjb-line { margin: 10px 0 0; font-family: Satoshi, system-ui, sans-serif; font-weight: 500; font-size: 33px; line-height: 1.08; letter-spacing: -0.035em;
   color: var(--sjb-ink); text-wrap: balance; }
+/* a quiet hint of what's inside: three small chips, never louder than the line */
+.sjb .sjb-hint { margin: 18px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.sjb .sjb-hint li { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px 0 8px; border-radius: 999px; white-space: nowrap;
+  background: rgba(255, 255, 255, .72); border: 1px solid rgba(109, 40, 217, .11); box-shadow: 0 1px 2px rgba(76, 29, 149, .04);
+  font-size: 12.5px; font-weight: 500; letter-spacing: -0.005em; color: var(--sjb-muted); }
+.sjb .sjb-hint svg { flex: none; color: var(--sjb-purple); opacity: .9; }
 .sjb .sjb-go { display: flex; flex-direction: column; align-items: center; gap: 13px; width: 100%; }
 .sjb .sjb-hero .sjb-btn.sjb-go-btn { width: 100%; height: 60px; font-size: 19px; gap: 10px; padding: 0 24px; }
 .sjb .sjb-hero .sjb-btn.sjb-go-btn::before { left: 22px; right: 22px; }
@@ -160,16 +166,32 @@
 .sjb .sjb-foot-links a:hover { color: var(--sjb-ink); }
 .sjb .sjb-legal { max-width: var(--sjb-sec-max); margin: 22px auto 0; font-size: 13px; color: var(--sjb-faint); }
 
-/* ---------- the floating start: once the hero's button has scrolled away (StickyCta.tsx) ----------
-   wider screens: a pill at the bottom right, a small Stu and the button; phones: a bar pinned to the bottom */
-.sjb .sjb-sticky { position: fixed; right: 24px; bottom: 24px; z-index: 55; display: flex; align-items: center; gap: 10px; padding: 7px 7px 7px 8px;
-  border-radius: 999px; background: rgba(255, 255, 255, .92); border: 1px solid var(--sjb-line1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, .04), 0 24px 48px -20px rgba(46, 16, 101, .45); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
-  opacity: 0; transform: translateY(14px) scale(.96); visibility: hidden; pointer-events: none;
-  transition: opacity .3s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), visibility 0s linear .35s; }
-.sjb .sjb-sticky.sjb-show { opacity: 1; transform: none; visibility: visible; pointer-events: auto; transition: opacity .3s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), visibility 0s; }
-.sjb .sjb-sticky .sjb-stu { --s: 48px; }
-.sjb .sjb-sticky .sjb-btn { height: 52px; padding: 0 24px; font-size: 17.5px; }
+/* ---------- the floating start: once the hero's button has scrolled away (StickyCta.tsx, h1.html) ----------
+   wider screens: the side pill (the button itself, led by a small Stu); phones: a bar pinned to the bottom.
+   Both rise above the cookie notice while it is open (--sj-notice-h, as app.css [data-floating-cta]). */
+.sjb .sjb-btn.sjb-side { position: fixed; right: 24px; bottom: 24px; z-index: 60; display: none; height: 58px; padding: 0 26px 0 6px; gap: 12px; font-size: 18px;
+  margin-bottom: var(--sj-notice-h, 0px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18), 0 2px 4px rgba(0, 0, 0, .06), 0 22px 40px -14px rgba(76, 29, 149, .62);
+  opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; visibility: hidden;
+  transition: opacity .35s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), box-shadow .18s ease, visibility 0s linear .35s; }
+.sjb .sjb-btn.sjb-side.sjb-show { opacity: 1; transform: none; pointer-events: auto; visibility: visible; transition: opacity .35s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), box-shadow .18s ease, visibility 0s; }
+.sjb .sjb-btn.sjb-side.sjb-show:hover { transform: translateY(-2px); }
+.sjb .sjb-btn.sjb-side::before { left: 58px; right: 18px; }
+.sjb .sjb-side .sjb-stu { --s: 46px; }
+.sjb .sjb-side .sjb-stu img { filter: drop-shadow(0 3px 6px rgba(46, 16, 101, .3)); }
+.sjb .sjb-side .sjb-stu::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .7); pointer-events: none; opacity: 0;
+  animation: sjb-ring 4.8s cubic-bezier(.2, .6, .3, 1) infinite; }
+.sjb .sjb-bar-m { display: flex; align-items: center; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; margin-bottom: var(--sj-notice-h, 0px);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(247, 246, 250, .86);
+  backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-top: 1px solid var(--sjb-hair);
+  transform: translateY(110%); visibility: hidden; transition: transform .3s cubic-bezier(.2, .9, .3, 1), visibility 0s linear .3s; }
+.sjb .sjb-bar-m.sjb-show { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2, .9, .3, 1), visibility 0s; }
+.sjb .sjb-bar-m .sjb-stu { --s: 50px; }
+.sjb .sjb-bar-m .sjb-btn { flex: 1; height: 52px; font-size: 17.5px; padding: 0 20px; }
+@media (min-width: 641px) {
+  .sjb .sjb-bar-m { display: none; }
+  .sjb .sjb-btn.sjb-side { display: inline-flex; }
+}
 
 /* Stu's own dock (<stu-agent data-size="dock">, #stu-float) would sit where the floating start sits. The owner's CTA
    list (27 Oct) has the pill and the phone bar, not the dock, so the dock is kept in the page (the embed and its
@@ -320,8 +342,6 @@
   .sjb .sjb-brand img { height: 28px; width: 28px; }
   .sjb .sjb-brand b { font-size: 19px; }
   .sjb .sjb-hdr-right { gap: 16px; }
-  /* phones: no start button in the header; the hero's button, then the bottom bar, carry it */
-  .sjb .sjb-hdr .sjb-hdr-start { display: none; }
   .sjb .sjb-sec { padding: 80px 16px; }
   .sjb .sjb-sec-head { margin-bottom: 36px; }
   .sjb .sjb-lead { font-size: 18px; }
@@ -332,11 +352,6 @@
   .sjb .sjb-foot-row { margin-top: 56px; flex-direction: column; align-items: flex-start; gap: 14px; }
   .sjb .sjb-foot-links { margin-left: 0; gap: 10px 18px; }
   .sjb .sjb-legal { margin-top: 18px; padding-bottom: 88px; }
-  /* phones: the floating start is a bar pinned to the bottom */
-  .sjb .sjb-sticky { left: 0; right: 0; bottom: 0; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); border-radius: 0; border: 0;
-    border-top: 1px solid var(--sjb-hair); background: rgba(247, 246, 250, .86); box-shadow: none; transform: translateY(110%); }
-  .sjb .sjb-sticky .sjb-stu { --s: 50px; }
-  .sjb .sjb-sticky .sjb-btn { flex: 1; }
   .sjb .s-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .sjb .s-step { padding: 22px 20px 22px; }
   .sjb .s-step .sjb-h-card { margin-top: 16px; }
@@ -369,10 +384,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sjb .sjb-hero-stu .sjb-glow, .sjb .sjb-hero-stu .sjb-ring, .sjb .sjb-hero-stu .sjb-body-s, .sjb .sjb-hero-stu .sjb-floor, .sjb .s-wave i { animation: none !important; }
+  .sjb .sjb-hero-stu .sjb-glow, .sjb .sjb-hero-stu .sjb-ring, .sjb .sjb-hero-stu .sjb-body-s, .sjb .sjb-hero-stu .sjb-floor, .sjb .sjb-side .sjb-stu::after, .sjb .s-wave i { animation: none !important; }
   .sjb .sjb-hero-stu .sjb-ring { opacity: .3; transform: scale(1.08); }
   .sjb .sjb-hero-stu .sjb-ring.sjb-r2 { display: none; }
   .sjb .s-wave i { height: 9px; }
-  .sjb .sjb-btn, .sjb .sjb-sticky, .sjb.sjb-hdr, .sjb .sjb-hero-stu img, .sjb .s-q, .sjb .s-q summary .s-plus, .sjb .s-item, .sjb .s-item svg { transition: none !important; }
+  .sjb .sjb-btn, .sjb .sjb-btn.sjb-side, .sjb .sjb-bar-m, .sjb.sjb-hdr, .sjb .sjb-hero-stu img, .sjb .s-q, .sjb .s-q summary .s-plus, .sjb .s-item, .sjb .s-item svg { transition: none !important; }
 }
 

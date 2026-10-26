@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { StartButton, StuArt, useStartCta } from "./cta";
 import { HERO_START_ID } from "./HeroB2C";
 
-// The one floating "start the call", once the hero's button has scrolled away (above the top of the screen) and
-// never while the footer's button is on screen, so there are never two at once (owner, 27 Oct):
+// The one floating "start the call" (h1.html), once the hero's button has scrolled up under the header and never
+// while the footer's button is on screen, so there are never two at once (owner, 27 Oct):
+//   wider screens: the side pill at the bottom right, the button itself led by a small Stu
 //   phones (640px and below): a bar pinned to the bottom, a small Stu and the button
-//   wider: a pill at the bottom right, a small Stu and the button
-// Hidden from assistive tech and the tab order while hidden. data-floating-cta lifts it above the cookie notice
-// (app.css, --sj-notice-h).
+// Hidden from assistive tech and the tab order while hidden. Both rise above the cookie notice
+// (b2c.css, the same --sj-notice-h lift as app.css [data-floating-cta]).
 
 export function StickyCta() {
   const ref = useRef<HTMLDivElement>(null);
@@ -30,10 +30,8 @@ export function StickyCta() {
     );
     heroObs.observe(hero);
 
-    // Any other start button in the page (the footer's), but not the header's, which is always there.
-    const others = Array.from(document.querySelectorAll("[data-start]")).filter(
-      (el) => el !== hero && !ref.current?.contains(el) && el.getAttribute("data-start") !== "header",
-    );
+    // Any other start button in the page (the footer's).
+    const others = Array.from(document.querySelectorAll("[data-start]")).filter((el) => el !== hero && !ref.current?.contains(el));
     const otherObs = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (e.isIntersecting) visible.add(e.target);
@@ -50,11 +48,20 @@ export function StickyCta() {
   }, []);
 
   return (
-    <div ref={ref} className={`sjb-sticky${show ? " sjb-show" : ""}`} aria-hidden={!show} data-floating-cta>
-      <a href={href} className="sjb-stu-link" tabIndex={-1} aria-hidden="true">
-        <StuArt />
-      </a>
-      <StartButton place="bar" tabIndex={show ? 0 : -1} />
+    <div ref={ref} className="sjb-sticky">
+      <StartButton
+        place="side"
+        className={`sjb-side${show ? " sjb-show" : ""}`}
+        lead={<StuArt />}
+        tabIndex={show ? 0 : -1}
+        aria-hidden={!show}
+      />
+      <div className={`sjb-bar-m${show ? " sjb-show" : ""}`} aria-hidden={!show}>
+        <a href={href} className="sjb-stu-link" tabIndex={-1} aria-hidden="true">
+          <StuArt />
+        </a>
+        <StartButton place="bar" tabIndex={show ? 0 : -1} />
+      </div>
     </div>
   );
 }

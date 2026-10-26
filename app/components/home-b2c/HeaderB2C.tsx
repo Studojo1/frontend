@@ -5,17 +5,17 @@ import { clearTokenCache } from "~/lib/control-plane";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import "./b2c.css";
-import { StartButton, useSignedIn } from "./cta";
+import { useSignedIn } from "./cta";
 import { SETTINGS, SIGN_IN, STU_HOME } from "./links";
 import { Logo } from "./Logo";
 
 // The header on B2C hosts (studojo.pro): the job agent only. Used by the B2C homepage and, through
 // components/common/header.tsx, by every other page there (blog, reports, legal). No old products and no nav
 // links (owner, 27 Oct): blog and reports are reached through the footer and the homepage's read section.
-//   signed out: logo, "sign in", and on desktop the small "start the call" button (sticky, so it stays)
+//   signed out: logo and "sign in"
 //   signed in:  logo, "my jobs" (/b2cnew, another app: a plain <a>, a full page load) and a small account menu
 //               with "settings" (account deletion lives there) and "sign out"
-// On phones the header carries no start button: the hero's button, then the bottom bar, do.
+// No start button in the header (h1.html): the hero's button, then the side pill or the phone's bar, carry it.
 
 export function HeaderB2C() {
   const { pathname } = useLocation();
@@ -111,7 +111,6 @@ export function HeaderB2C() {
                   sign in
                 </Link>
               )}
-              <StartButton size="sm" place="header" className="sjb-hdr-start" />
             </>
           )}
         </div>

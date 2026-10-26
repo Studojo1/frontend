@@ -1,8 +1,9 @@
 import { StartButton, TypeLink, useSignedIn, useStartCta } from "./cta";
+import { Briefcase, Doc, Mail } from "./icons";
 import { StuSlot } from "./stu-embed";
 
 // Hero (H1 "Stu screen"): the first step of the app's flow, like a voice assistant's start screen. Stu, large,
-// one line, one big full-width "start the call" in the thumb zone and "free . about 10 minutes"; the quiet
+// one line, three small chips, one big full-width "start the call" in the thumb zone and "free . about 10 minutes"; the quiet
 // "prefer typing?" sits just below the fold. Kept thin: the owner's final pick between H1 and H2 replaces this
 // markup and keeps HERO_START_ID, the id the phone's bottom bar watches (PhoneBar.tsx).
 //
@@ -34,6 +35,20 @@ export function HeroB2C() {
             find jobs that fit you.
             <br /> just talk to stu.
           </h1>
+          <ul className="sjb-hint" aria-label="what you get">
+            <li>
+              <Doc size={13} width={2.2} />
+              your brief
+            </li>
+            <li>
+              <Briefcase size={13} />
+              jobs every day
+            </li>
+            <li>
+              <Mail size={13} />
+              emails to hiring people
+            </li>
+          </ul>
         </div>
         <div className="sjb-go">
           <StartButton place="hero" id={HERO_START_ID} className="sjb-go-btn" />
