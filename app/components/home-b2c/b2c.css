@@ -191,6 +191,45 @@
   .sjb .sjb-btn.sjb-side { display: inline-flex; }
 }
 
+/* ---------- smaller screens ---------- */
+@media (max-width: 640px) {
+  .sjb { --sjb-hdr: 60px; }
+  .sjb .sjb-hdr-in { padding: 0 12px 0 16px; gap: 10px; }
+  .sjb .sjb-brand img { height: 28px; width: 28px; }
+  .sjb .sjb-brand b { font-size: 19px; }
+  .sjb .sjb-hdr-right { gap: 16px; }
+  .sjb .sjb-sec { padding: 80px 16px; }
+  .sjb .sjb-sec-head { margin-bottom: 36px; }
+  .sjb .sjb-lead { font-size: 18px; }
+  .sjb .sjb-btn { height: 56px; font-size: 18px; padding: 0 24px; }
+  .sjb .sjb-btn.sjb-wide { width: 100%; }
+  .sjb.sjb-foot { padding: 72px 16px 32px; }
+  .sjb .sjb-foot-cta .sjb-btn { width: 100%; }
+  .sjb .sjb-foot-row { margin-top: 56px; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .sjb .sjb-foot-links { margin-left: 0; gap: 0 18px; }
+  .sjb .sjb-legal { margin-top: 18px; padding-bottom: 88px; }
+}
+@media (max-width: 360px) { .sjb .sjb-hero .sjb-line { font-size: 29px; } }
+
+/* larger screens: the same composition, centred, generous space */
+@media (min-width: 641px) {
+  .sjb .sjb-hero { --sjb-hero-stu: clamp(300px, 39svh, 356px); grid-template-rows: auto; align-content: center; justify-items: center; padding: 24px 24px 72px; }
+  .sjb .sjb-stage { padding-bottom: 0; }
+  .sjb .sjb-hero .sjb-kicker { margin-top: 40px; font-size: 12px; }
+  .sjb .sjb-hero .sjb-line { margin-top: 12px; font-size: clamp(40px, 3.5vw, 50px); line-height: 1.06; }
+  .sjb .sjb-go { margin-top: 40px; gap: 14px; }
+  .sjb .sjb-hero .sjb-btn.sjb-go-btn { width: 392px; height: 64px; font-size: 20px; gap: 11px; }
+  .sjb .sjb-micro { font-size: 14px; }
+  .sjb .sjb-hint { margin-top: 22px; gap: 8px; }
+  .sjb .sjb-hint li { height: 30px; padding: 0 12px 0 10px; gap: 6px; font-size: 13px; letter-spacing: -0.005em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sjb .sjb-hero-stu .sjb-glow, .sjb .sjb-hero-stu .sjb-body-s, .sjb .sjb-hero-stu .sjb-floor, .sjb .sjb-side .sjb-stu::after { animation: none !important; }
+  .sjb .sjb-side .sjb-stu::after { display: none; }
+  .sjb .sjb-btn, .sjb .sjb-btn.sjb-side, .sjb .sjb-bar-m, .sjb.sjb-hdr, .sjb .sjb-hero-stu .sjb-faces, .sjb .sjb-hero-stu .sjb-faces img { transition: none !important; }
+}
+
 /* ---------- the story sections (h-sections.html), prefixed st- ---------- */
 /* ---------- shared bits ---------- */
 .sjb .st-ico { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: var(--sjb-lilac); color: var(--sjb-purple-strong); }
