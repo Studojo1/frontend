@@ -1,4 +1,3 @@
-import { SectionEnd } from "./cta";
 import { Check } from "./icons";
 import { SECTION_WHAT } from "./links";
 
@@ -85,8 +84,6 @@ export function WhatB2C() {
             <p className="sjb-body">Stu finds them, and writes to them for you.</p>
           </article>
         </div>
-
-        <SectionEnd line="It starts with one conversation." />
       </div>
     </section>
   );

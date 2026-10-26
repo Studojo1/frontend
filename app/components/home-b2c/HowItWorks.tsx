@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { SectionEnd } from "./cta";
 import { Doc, Mic, Send, Target } from "./icons";
 import { SECTION_HOW } from "./links";
 
@@ -35,8 +34,6 @@ export function HowItWorks() {
             </li>
           ))}
         </ol>
-
-        <SectionEnd line="Step one takes about 10 minutes." />
       </div>
     </section>
   );

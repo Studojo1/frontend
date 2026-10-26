@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { SectionEnd, TypeLink } from "./cta";
+import { TypeLink } from "./cta";
 import { Plus } from "./icons";
 import { PRIVACY, SECTION_FAQ } from "./links";
 
@@ -66,8 +66,6 @@ export function FaqB2C() {
             </details>
           ))}
         </div>
-
-        <SectionEnd line="The rest is easier to say out loud." />
       </div>
     </section>
   );

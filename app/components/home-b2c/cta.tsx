@@ -3,8 +3,8 @@ import { authClient } from "~/lib/auth-client";
 import { Arrow, Mic } from "./icons";
 import { startCta, startHref } from "./links";
 
-// THE button, "start the call", the same everywhere: the header, the hero, the end of every section, the footer
-// and the phone's bottom bar. Signed out it opens /b2cnew/join with the visit's landing query; signed in it is
+// THE button, "start the call", the same everywhere it appears: the header (desktop), the hero, the floating one
+// (StickyCta.tsx) and the footer. No per-section buttons (owner, 27 Oct). Signed out it opens /b2cnew/join with the visit's landing query; signed in it is
 // "open my jobs" to /b2cnew (links.ts startCta). Always a plain <a href>: /b2cnew is another app.
 
 /**
@@ -32,7 +32,7 @@ type StartButtonProps = {
   id?: string;
   className?: string;
   /** Where it sits (data-start, as in the mocks). */
-  place: "header" | "hero" | "section" | "footer" | "bar";
+  place: "header" | "hero" | "footer" | "bar";
   tabIndex?: number;
 };
 
@@ -60,31 +60,11 @@ export function TypeLink({ label = "prefer typing?", className = "" }: { label?:
   );
 }
 
-/** The end of every section: one short line, then the same button. */
-export function SectionEnd({ line }: { line: string }) {
+/** Stu, the ink-line art (a static image; the live Stu is the embed, stu-embed.tsx). Decorative. */
+export function StuArt({ className = "" }: { className?: string }) {
   return (
-    <div className="sjb-sec-end">
-      <p className="s-endline">{line}</p>
-      <StartButton place="section" wide />
-    </div>
-  );
-}
-
-/** Stu as a calm orb: the face on a lilac plate, optional breathing rings and the green "live" dot. */
-export function StuOrb({ rings = false, className = "" }: { rings?: boolean; className?: string }) {
-  return (
-    <span className={`sjb-orb ${className}`.trim()} aria-hidden="true">
-      {rings ? (
-        <>
-          <span className="sjb-ring" />
-          <span className="sjb-ring sjb-r2" />
-        </>
-      ) : null}
-      <span className="sjb-plate" />
-      <span className="sjb-face">
-        <img src="/stu/stu2-speak.svg" alt="" width={88} height={88} />
-      </span>
-      <span className="sjb-live" />
+    <span className={`sjb-stu ${className}`.trim()} aria-hidden="true">
+      <img src="/stu/stu2-speak.svg" alt="" width={92} height={92} />
     </span>
   );
 }

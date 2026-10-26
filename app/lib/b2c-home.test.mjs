@@ -67,16 +67,18 @@ assert.match(links, /STU_EMBED_SRC = "\/b2cnew\/embed\/stu\.js"/);
 assert.match(embed, /<stu-agent data-size="hero" data-mode="join" data-signed-in="auto"[^>]*>\s*\{children\}\s*<\/stu-agent>/);
 assert.match(embed, /<stu-agent data-size="dock" data-mode="voice" data-signed-in="auto" \/>/);
 assert.doesNotMatch(embed, /data-base=/, "on studojo.pro data-base defaults to /b2cnew");
-// The plain button stays as the way in either way: one StartButton component everywhere, a plain <a href>, and
-// every section ends with it.
+// The plain button stays as the way in either way: one StartButton component, a plain <a href>, in the header,
+// the hero, the floating start (pill or phone bar) and the footer only, no per-section buttons (owner, 27 Oct).
 const cta = readFileSync(new URL("cta.tsx", dir), "utf8");
 assert.match(cta, /<a href=\{href\}[^>]*data-start=\{place\}/);
-for (const f of ["WhatB2C.tsx", "HowItWorks.tsx", "WhyCall.tsx", "WhatYouGet.tsx", "FaqB2C.tsx", "BlogReports.tsx"]) {
-  assert.match(readFileSync(new URL(f, dir), "utf8"), /<SectionEnd line=/, `${f} ends with the start button`);
+for (const f of readdirSync(dir)) {
+  if (!/\.tsx$/.test(f)) continue;
+  const uses = readFileSync(new URL(f, dir), "utf8").match(/<StartButton\b[^>]*place="(\w+)"/g) ?? [];
+  for (const u of uses) assert.match(u, /place="(header|hero|bar|footer)"/, `${f}: ${u}`);
 }
 const home = readFileSync(new URL("HomeB2C.tsx", dir), "utf8");
-const order = ["<HeroB2C", "<WhatB2C", "<HowItWorks", "<WhyCall", "<WhatYouGet", "<FaqB2C", "<BlogReports", "<FooterB2C"].map((t) => home.indexOf(t));
-assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), "sections in order: hero, what, how, why, get, faq, read, footer");
+const order = ["<HeroB2C", "<WhatB2C", "<HowItWorks", "<WhyCall", "<WhatYouGet", "<FaqB2C", "<BlogReports", "<FooterB2C", "<StickyCta"].map((t) => home.indexOf(t));
+assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), "in order: hero, the sections, footer, the floating start");
 // The B2C look is scoped: every rule of b2c.css sits under .sjb, so studojo.com never changes.
 const css = readFileSync(new URL("b2c.css", dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 for (const rule of css.match(/(^|[{}])\s*([^{}@]+)\{/g) ?? []) {

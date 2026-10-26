@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { SectionEnd } from "./cta";
 import { Board, Book, Building, Check, DocLines, Globe, Refresh } from "./icons";
 import { SECTION_GET } from "./links";
 
@@ -94,8 +93,6 @@ export function WhatYouGet() {
             ))}
           </ul>
         </div>
-
-        <SectionEnd line="Stu starts looking the day you talk." />
       </div>
     </section>
   );

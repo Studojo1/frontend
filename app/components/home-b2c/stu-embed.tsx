@@ -64,7 +64,8 @@ export function loadStuEmbed(src: string = STU_EMBED_SRC): Promise<boolean> {
   return loading;
 }
 
-const HERO_STYLE = { "--stu-size": "112px" } as CSSProperties;
+// The hero Stu's size follows the hero (b2c.css --sjb-hero-stu: about 168 to 230px on phones, 232 to 292px wider).
+const HERO_STYLE = { "--stu-size": "var(--sjb-hero-stu, 112px)" } as CSSProperties;
 // While the cookie notice is open it sets --sj-notice-h (components/legal/cookie-notice.tsx); the dock rises by
 // --stu-dock-lift (career-agent 9ca96333), which inherits into its shadow DOM. A custom property makes no stacking context.
 const DOCK_STYLE = { "--stu-dock-lift": "var(--sj-notice-h, 0px)" } as CSSProperties;

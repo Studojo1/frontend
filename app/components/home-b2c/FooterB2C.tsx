@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router";
 import "./b2c.css";
-import { StartButton, StuOrb, TypeLink, useSignedIn } from "./cta";
+import { StartButton, StuArt, TypeLink, useSignedIn } from "./cta";
 import { BLOG, CONTACT_EMAIL, PRIVACY, REFUNDS, REPORTS, SECTION_HOW, TERMS } from "./links";
 import { Logo } from "./Logo";
 
@@ -15,7 +15,7 @@ export function FooterB2C() {
   return (
     <footer className="sjb sjb-foot">
       <div className="sjb-foot-cta">
-        <StuOrb />
+        <StuArt />
         <h2 className="sjb-h-sec">{signedIn ? "your jobs are waiting." : "ready when you are."}</h2>
         <p className="sjb-lead">{signedIn ? "stu keeps looking, every day." : "one short call. then stu gets to work."}</p>
         <StartButton size="xl" place="footer" />

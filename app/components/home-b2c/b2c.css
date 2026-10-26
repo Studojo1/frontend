@@ -1,5 +1,5 @@
-/* The B2C homepage look (A1v2 "quiet desktop"), ported from the design mocks a1v2-base.css (tokens, type, the
-   button), a1v2.html (header, hero, phone bar, footer) and a1v2-sections.html (the sections).
+/* The B2C homepage look, ported from the design mocks: a1v2-base.css (tokens, type, the button), h1.html (header,
+   the "Stu screen" hero, phone bar, footer) and a1v2-sections.html (the sections).
    Imported only by the home-b2c components. Every rule sits under .sjb (the homepage root, and the B2C header
    and footer on blog, reports and legal pages) and every token is --sjb-*, so studojo.com's styles never change,
    and no token reaches Stu's shadow DOM by accident. Class names are prefixed (sjb-, and s- for the sections)
@@ -97,87 +97,59 @@
   color: var(--sjb-ink); background: none; border: 0; text-align: left; cursor: pointer; font-family: inherit; }
 .sjb .sjb-acct-menu a:hover, .sjb .sjb-acct-menu button:hover { background: var(--sjb-lilac-bg); }
 
-/* ---------- hero: the first step of the app ---------- */
-.sjb .sjb-hero { position: relative; z-index: 1; min-height: calc(100vh - var(--sjb-hdr)); min-height: calc(100svh - var(--sjb-hdr));
-  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 20px 64px; text-align: center; }
-/* a soft light in the middle so the words sit on a calm patch */
-.sjb .sjb-hero::before { content: ""; position: absolute; inset: -64px 0 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(46% 52% at 50% 48%, rgba(247, 246, 250, .97) 0%, rgba(247, 246, 250, .74) 50%, rgba(247, 246, 250, 0) 100%); }
-.sjb .sjb-center { position: relative; z-index: 2; width: 100%; max-width: 720px; display: flex; flex-direction: column; align-items: center; }
+/* ---------- Stu: the ink-line art (career-agent 3a596c7c), a square image ---------- */
+.sjb .sjb-stu { --s: 64px; position: relative; display: block; width: var(--s); height: var(--s); flex: none; border-radius: 50%; }
+.sjb .sjb-stu img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(76, 29, 149, .14)); }
+.sjb a.sjb-stu:focus-visible { outline: 2px solid var(--sjb-purple); outline-offset: 6px; }
+.sjb .sjb-stu-link { display: block; flex: none; border-radius: 50%; }
 
-/* Stu, a calm orb: the face on a soft lilac plate, a slow breathing ring. Tapping it starts the call. */
-.sjb .sjb-orb { --s: 120px; position: relative; display: block; width: var(--s); height: var(--s); border-radius: 50%; flex: none; }
-.sjb .sjb-orb .sjb-plate { position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(70% 70% at 32% 24%, #ffffff 0%, rgba(255, 255, 255, 0) 62%), radial-gradient(90% 90% at 70% 86%, #d9c8fd 0%, rgba(217, 200, 253, 0) 70%), #efe8fd;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(109, 40, 217, .10), 0 1px 2px rgba(0, 0, 0, .05), 0 18px 36px -16px rgba(109, 40, 217, .45); }
-.sjb .sjb-orb .sjb-ring { position: absolute; inset: -1px; border-radius: 50%; border: 1.5px solid rgba(139, 92, 246, .38); pointer-events: none; animation: sjb-breathe 4.8s ease-out infinite; }
-.sjb .sjb-orb .sjb-ring.sjb-r2 { animation-delay: 2.4s; }
-@keyframes sjb-breathe { 0% { transform: scale(1); opacity: .9; } 80%, 100% { transform: scale(1.32); opacity: 0; } }
-.sjb .sjb-orb .sjb-face { position: absolute; inset: 13%; }
-.sjb .sjb-orb .sjb-face img { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(76, 29, 149, .12)); }
-.sjb .sjb-orb .sjb-live { position: absolute; right: 9%; bottom: 9%; width: 14px; height: 14px; border-radius: 50%; background: var(--sjb-green); border: 2.5px solid #f7f3ff; }
-.sjb a.sjb-orb { cursor: pointer; transition: transform .25s ease; }
-.sjb a.sjb-orb:hover { transform: scale(1.03); }
-.sjb a.sjb-orb:focus-visible { outline: 2px solid var(--sjb-purple); outline-offset: 6px; }
-/* The hero's Stu: <stu-agent data-size="hero"> (career-agent's embed). Its box keeps its size before the embed
-   defines the element; only :not(:defined), so the component's own :host rules win once it runs. The light-DOM
-   orb inside is the fallback until then (no <slot>, so it stops rendering). */
-.sjb .sjb-stu-box { width: 120px; height: 120px; display: grid; place-items: center; animation: sjb-float 6s ease-in-out infinite; }
-.sjb stu-agent:not(:defined) { display: inline-block; width: 112px; height: 112px; }
-.sjb stu-agent:not(:defined) .sjb-orb { --s: 112px; }
-@keyframes sjb-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+/* ---------- hero (H1 "Stu screen"): Stu, one line, one button in the thumb zone. Phone first. ---------- */
+.sjb .sjb-hero { --sjb-hero-stu: clamp(168px, min(57vw, 27svh), 230px);
+  position: relative; z-index: 1; isolation: isolate; min-height: calc(100vh - var(--sjb-hdr)); min-height: calc(100svh - var(--sjb-hdr));
+  display: grid; grid-template-rows: 1fr auto; padding: 8px 16px max(28px, 9svh); text-align: center; overflow-x: clip; }
+/* calm the dot grid to a whisper on the first screen */
+.sjb .sjb-hero::before { content: ""; position: absolute; inset: calc(-1 * var(--sjb-hdr)) 0 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(247, 246, 250, .9) 0%, rgba(247, 246, 250, .9) 88%, rgba(247, 246, 250, .7) 100%); }
+.sjb .sjb-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 2svh; }
+/* The hero's Stu is <stu-agent data-size="hero" data-mode="join"> (career-agent's embed), sized by --stu-size. Before the
+   embed defines it, the box keeps that size (only :not(:defined), so the component's own :host rules win once it
+   runs) and the light-DOM fallback below stands in (no <slot>, so it stops rendering once the shadow root attaches). */
+.sjb #stu-slot stu-agent:not(:defined) { display: block; width: var(--sjb-hero-stu); height: var(--sjb-hero-stu); }
+.sjb .sjb-hero-stu { --s: var(--sjb-hero-stu); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sjb .sjb-hero-stu .sjb-glow { position: absolute; inset: -42%; border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(closest-side, rgba(196, 170, 252, .5) 0%, rgba(214, 196, 253, .34) 38%, rgba(232, 223, 252, .16) 64%, rgba(247, 246, 250, 0) 100%);
+  animation: sjb-glow 7s ease-in-out infinite; }
+@keyframes sjb-glow { 0%, 100% { transform: scale(.94); opacity: .8; } 50% { transform: scale(1.04); opacity: 1; } }
+.sjb .sjb-hero-stu .sjb-ring { position: absolute; inset: 1%; border-radius: 50%; border: 1.5px solid rgba(139, 92, 246, .34); pointer-events: none; opacity: 0;
+  animation: sjb-ring 7s cubic-bezier(.2, .6, .3, 1) infinite; }
+.sjb .sjb-hero-stu .sjb-ring.sjb-r2 { animation-delay: -3.5s; }
+@keyframes sjb-ring { 0% { transform: scale(.96); opacity: 0; } 12% { opacity: .85; } 100% { transform: scale(1.38); opacity: 0; } }
+.sjb .sjb-hero-stu .sjb-body-s { position: absolute; inset: 0; animation: sjb-breathe 5.6s ease-in-out infinite; transition: transform .3s ease; }
+@keyframes sjb-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+.sjb .sjb-hero-stu img { filter: drop-shadow(0 14px 22px rgba(76, 29, 149, .16)); transition: transform .3s ease; }
+.sjb .sjb-hero-stu:hover img { transform: scale(1.02); }
+.sjb .sjb-hero-stu:active img { transform: scale(.98); }
+.sjb .sjb-hero-stu .sjb-floor { position: absolute; left: 24%; right: 24%; bottom: -7%; height: 8%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(76, 29, 149, .2), rgba(76, 29, 149, 0)); animation: sjb-floor 5.6s ease-in-out infinite; }
+@keyframes sjb-floor { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(.92); opacity: .75; } }
+.sjb .sjb-hero-stu:focus-visible { outline: 2px solid var(--sjb-purple); outline-offset: 10px; }
 
-.sjb .sjb-hero .sjb-kicker { margin-top: 26px; display: inline-flex; align-items: center; gap: 8px; }
-.sjb .sjb-hero .sjb-kicker::before, .sjb .sjb-hero .sjb-kicker::after { content: ""; width: 18px; height: 1px; background: rgba(109, 40, 217, .28); }
-.sjb .sjb-hero h1 { margin-top: 16px; font-size: clamp(44px, 5.2vw, 76px); line-height: 1.03; }
-.sjb .sjb-hero .sjb-lead { margin-top: 22px; max-width: 540px; text-wrap: balance; }
-.sjb .sjb-go { margin-top: 36px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.sjb .sjb-go .sjb-facts { margin-top: 2px; }
-.sjb .sjb-go .sjb-link-type { margin-top: 2px; }
-
-/* the flow, said quietly: the call, your brief, jobs every day */
-.sjb .sjb-steps { margin: 52px 0 0; padding: 0; list-style: none; display: flex; align-items: center; gap: 14px; font-size: 14px; color: var(--sjb-muted); }
-.sjb .sjb-steps li { display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
-.sjb .sjb-steps li b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; font-weight: 500;
-  color: var(--sjb-purple-strong); background: #fff; border: 1px solid #e2d8f6; box-shadow: 0 1px 2px rgba(76, 29, 149, .06); }
-.sjb .sjb-steps .sjb-sep { width: 34px; height: 1px; background: repeating-linear-gradient(90deg, #cfc6de 0 4px, transparent 4px 8px); }
-
-/* the desk: four quiet objects at the outer edges, the centre column left clear */
-.sjb .sjb-desk { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.sjb .sjb-obj { position: absolute; transform: rotate(var(--r, 0deg)); animation: sjb-in .9s ease both, sjb-bob var(--d, 7s) ease-in-out var(--dl, 0s) infinite; animation-delay: var(--fi, .2s), var(--dl, 0s); }
-@keyframes sjb-bob { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-4px) rotate(var(--r, 0deg)); } }
-@keyframes sjb-in { from { opacity: 0; } to { opacity: 1; } }
-.sjb .sjb-sticker { width: 124px; border-radius: 9px; overflow: hidden; background: #fff; border: 1px solid var(--sjb-line1); box-shadow: var(--sjb-soft); }
-.sjb .sjb-sticker .sjb-st-top { background: var(--sjb-brand); color: #fff; padding: 6px 0 5px; text-align: center; line-height: 1; }
-.sjb .sjb-sticker .sjb-st-top b { display: block; font-weight: 700; font-size: 12.5px; letter-spacing: .16em; }
-.sjb .sjb-sticker .sjb-st-top small { display: block; margin-top: 2px; font-size: 8.5px; letter-spacing: .06em; opacity: .82; }
-.sjb .sjb-sticker .sjb-st-mid { height: 50px; display: grid; place-items: center; background: #fff; }
-.sjb .sjb-sticker .sjb-st-mid svg { display: block; }
-.sjb .sjb-sticker .sjb-st-base { height: 7px; background: var(--sjb-brand); }
-.sjb .sjb-desk .sjb-win { width: 206px; border-radius: 10px; }
-.sjb .sjb-desk .sjb-win .sjb-bar { height: 24px; }
-.sjb .sjb-pane { position: relative; height: 98px; display: grid; place-items: center; padding: 0 16px; }
-.sjb .sjb-pane b { position: relative; font-weight: 500; font-size: 17.5px; letter-spacing: -0.02em; line-height: 1.15; color: var(--sjb-ink); }
-.sjb .sjb-pane.sjb-pane-lilac { background: radial-gradient(90% 120% at 12% 0%, #ffffff 0%, rgba(255, 255, 255, 0) 60%), radial-gradient(80% 110% at 100% 100%, #dccbfd 0%, rgba(220, 203, 253, 0) 70%), #f1ebfd; }
-.sjb .sjb-pane.sjb-pane-white { background: radial-gradient(70% 90% at 0% 100%, #ece3fe 0%, rgba(236, 227, 254, 0) 70%), radial-gradient(60% 80% at 100% 0%, #f6f1ff 0%, rgba(246, 241, 255, 0) 70%), #fff; }
-.sjb .sjb-pane::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(255, 255, 255, .26) 0%, rgba(255, 255, 255, 0) 38%); pointer-events: none; }
-.sjb .sjb-folder { position: relative; width: 66px; height: 52px; margin: 0 auto; filter: drop-shadow(0 8px 12px rgba(76, 29, 149, .16)); }
-.sjb .sjb-folder .sjb-f-back { position: absolute; left: 0; right: 0; top: 6px; bottom: 0; border-radius: 6px; background: linear-gradient(180deg, #c6aefa, #b597f7); }
-.sjb .sjb-folder .sjb-f-back::before { content: ""; position: absolute; left: 0; top: -6px; width: 26px; height: 9px; border-radius: 5px 6px 0 0; background: #c6aefa; }
-.sjb .sjb-folder .sjb-f-paper { position: absolute; left: 7px; right: 7px; top: 9px; height: 18px; border-radius: 3px; background: #fff; opacity: .92; }
-.sjb .sjb-folder .sjb-f-front { position: absolute; left: 0; right: 0; bottom: 0; height: 39px; border-radius: 6px; background: linear-gradient(180deg, #e7dcfe 0%, #d3bffc 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 0 0 1px rgba(109, 40, 217, .08); }
-/* places at 1440: everything sits outside a 720px centre column */
-.sjb .sjb-o-sticker { right: calc(50% + 440px); top: 13%; --r: -3deg; --d: 7.4s; --dl: -1s; --fi: .35s; }
-.sjb .sjb-o-win1 { left: calc(50% + 410px); top: 19%; --r: 2deg; --d: 8s; --dl: -3s; --fi: .5s; }
-.sjb .sjb-o-win2 { right: calc(50% + 404px); top: 60%; --r: -1.5deg; --d: 7.2s; --dl: -5s; --fi: .65s; }
-.sjb .sjb-o-folder { left: calc(50% + 476px); top: 68%; --r: 2.5deg; --d: 6.6s; --dl: -2s; --fi: .8s; }
+.sjb .sjb-hero .sjb-kicker { margin: 30px 0 0; font-size: 11.5px; letter-spacing: .06em; opacity: .85; }
+.sjb .sjb-hero .sjb-line { margin: 10px 0 0; font-family: Satoshi, system-ui, sans-serif; font-weight: 500; font-size: 33px; line-height: 1.08; letter-spacing: -0.035em;
+  color: var(--sjb-ink); text-wrap: balance; }
+.sjb .sjb-go { display: flex; flex-direction: column; align-items: center; gap: 13px; width: 100%; }
+.sjb .sjb-hero .sjb-btn.sjb-go-btn { width: 100%; height: 60px; font-size: 19px; gap: 10px; padding: 0 24px; }
+.sjb .sjb-hero .sjb-btn.sjb-go-btn::before { left: 22px; right: 22px; }
+.sjb .sjb-micro { margin: 0; font-size: 13.5px; color: var(--sjb-faint); letter-spacing: .005em; }
+/* below the fold: the quiet alternative, then the sections */
+.sjb .sjb-alt { position: relative; z-index: 1; padding: 22px 16px 0; text-align: center; }
+.sjb .sjb-alt .sjb-link-type { font-size: 14.5px; }
 
 /* ---------- footer ---------- */
 .sjb.sjb-foot { position: relative; z-index: 1; border-top: 1px solid var(--sjb-hair); padding: 96px 28px 40px; background-color: var(--sjb-bg); }
 .sjb.sjb-page .sjb.sjb-foot { background-color: transparent; }
 .sjb .sjb-foot-cta { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
-.sjb .sjb-foot-cta .sjb-orb { --s: 76px; margin-bottom: 6px; }
+.sjb .sjb-foot-cta .sjb-stu { --s: 92px; margin-bottom: 4px; }
 .sjb .sjb-foot-cta .sjb-h-sec { font-size: clamp(30px, 3.2vw, 44px); }
 .sjb .sjb-foot-cta .sjb-btn { margin-top: 14px; }
 .sjb .sjb-foot-row { max-width: var(--sjb-sec-max); margin: 80px auto 0; padding-top: 28px; border-top: 1px solid var(--sjb-hair); display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
@@ -188,8 +160,21 @@
 .sjb .sjb-foot-links a:hover { color: var(--sjb-ink); }
 .sjb .sjb-legal { max-width: var(--sjb-sec-max); margin: 22px auto 0; font-size: 13px; color: var(--sjb-faint); }
 
-/* ---------- phone bottom bar: the same button, once the hero button has scrolled away ---------- */
-.sjb .sjb-bar-m { display: none; }
+/* ---------- the floating start: once the hero's button has scrolled away (StickyCta.tsx) ----------
+   wider screens: a pill at the bottom right, a small Stu and the button; phones: a bar pinned to the bottom */
+.sjb .sjb-sticky { position: fixed; right: 24px; bottom: 24px; z-index: 55; display: flex; align-items: center; gap: 10px; padding: 7px 7px 7px 8px;
+  border-radius: 999px; background: rgba(255, 255, 255, .92); border: 1px solid var(--sjb-line1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .04), 0 24px 48px -20px rgba(46, 16, 101, .45); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  opacity: 0; transform: translateY(14px) scale(.96); visibility: hidden; pointer-events: none;
+  transition: opacity .3s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), visibility 0s linear .35s; }
+.sjb .sjb-sticky.sjb-show { opacity: 1; transform: none; visibility: visible; pointer-events: auto; transition: opacity .3s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), visibility 0s; }
+.sjb .sjb-sticky .sjb-stu { --s: 48px; }
+.sjb .sjb-sticky .sjb-btn { height: 52px; padding: 0 24px; font-size: 17.5px; }
+
+/* Stu's own dock (<stu-agent data-size="dock">, #stu-float) would sit where the floating start sits. The owner's CTA
+   list (27 Oct) has the pill and the phone bar, not the dock, so the dock is kept in the page (the embed and its
+   events stay wired) but not shown. Delete this rule to bring it back. */
+.sjb #stu-float { display: none; }
 
 /* ---------- sections (a1v2-sections.html) ---------- */
 .sjb .s-ico { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: var(--sjb-lilac); color: var(--sjb-purple-strong); }
@@ -337,22 +322,6 @@
   .sjb .sjb-hdr-right { gap: 16px; }
   /* phones: no start button in the header; the hero's button, then the bottom bar, carry it */
   .sjb .sjb-hdr .sjb-hdr-start { display: none; }
-  .sjb .sjb-hero { justify-content: flex-start; min-height: 0; padding: 30px 16px 56px; }
-  .sjb .sjb-hero::before { background: radial-gradient(80% 50% at 50% 34%, rgba(247, 246, 250, .97) 0%, rgba(247, 246, 250, .7) 55%, rgba(247, 246, 250, 0) 100%); }
-  .sjb .sjb-stu-box { width: 84px; height: 84px; }
-  .sjb stu-agent:not(:defined) { width: 84px; height: 84px; }
-  .sjb stu-agent:not(:defined) .sjb-orb { --s: 84px; }
-  .sjb .sjb-orb .sjb-live { width: 12px; height: 12px; border-width: 2px; }
-  .sjb .sjb-hero .sjb-kicker { margin-top: 20px; font-size: 11.5px; }
-  .sjb .sjb-hero h1 { margin-top: 12px; font-size: 42px; line-height: 1.04; }
-  .sjb .sjb-hero .sjb-lead { margin-top: 16px; font-size: 17px; max-width: 340px; }
-  .sjb .sjb-go { margin-top: 26px; width: 100%; gap: 14px; }
-  .sjb .sjb-btn.sjb-xl { height: 58px; font-size: 18.5px; padding: 0 24px; }
-  .sjb .sjb-go .sjb-facts { gap: 6px 14px; font-size: 13.5px; }
-  .sjb .sjb-steps { margin-top: 40px; gap: 8px; font-size: 13px; }
-  .sjb .sjb-steps .sjb-sep { width: 14px; }
-  .sjb .sjb-steps li { gap: 6px; }
-  .sjb .sjb-steps li b { width: 20px; height: 20px; font-size: 10px; }
   .sjb .sjb-sec { padding: 80px 16px; }
   .sjb .sjb-sec-head { margin-bottom: 36px; }
   .sjb .sjb-lead { font-size: 18px; }
@@ -363,16 +332,11 @@
   .sjb .sjb-foot-row { margin-top: 56px; flex-direction: column; align-items: flex-start; gap: 14px; }
   .sjb .sjb-foot-links { margin-left: 0; gap: 10px 18px; }
   .sjb .sjb-legal { margin-top: 18px; padding-bottom: 88px; }
-  /* phones: no floating orb; the bottom bar carries a small Stu and the button */
-  .sjb #stu-float { display: none; }
-  .sjb .sjb-bar-m { display: flex; align-items: center; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55;
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(247, 246, 250, .86);
-    backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-top: 1px solid var(--sjb-hair);
-    transform: translateY(110%); transition: transform .3s cubic-bezier(.2, .9, .3, 1); }
-  .sjb .sjb-bar-m.sjb-show { transform: none; }
-  .sjb .sjb-bar-m .sjb-orb { --s: 50px; }
-  .sjb .sjb-bar-m .sjb-orb .sjb-live { width: 10px; height: 10px; right: 0; bottom: 0; border-width: 2px; }
-  .sjb .sjb-bar-m .sjb-btn { flex: 1; height: 52px; font-size: 17.5px; }
+  /* phones: the floating start is a bar pinned to the bottom */
+  .sjb .sjb-sticky { left: 0; right: 0; bottom: 0; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); border-radius: 0; border: 0;
+    border-top: 1px solid var(--sjb-hair); background: rgba(247, 246, 250, .86); box-shadow: none; transform: translateY(110%); }
+  .sjb .sjb-sticky .sjb-stu { --s: 50px; }
+  .sjb .sjb-sticky .sjb-btn { flex: 1; }
   .sjb .s-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .sjb .s-step { padding: 22px 20px 22px; }
   .sjb .s-step .sjb-h-card { margin-top: 16px; }
@@ -390,15 +354,25 @@
   .sjb .s-q .s-a p { font-size: 16px; }
   .sjb .s-shelf { padding: 18px 6px 10px; }
 }
-@media (max-width: 360px) { .sjb .sjb-hero h1 { font-size: 40px; } .sjb .sjb-steps { font-size: 12px; } }
+@media (max-width: 360px) { .sjb .sjb-hero .sjb-line { font-size: 29px; } }
 
-@media (prefers-reduced-motion: reduce) {
-  .sjb .sjb-obj, .sjb .sjb-stu-box, .sjb .sjb-orb .sjb-ring, .sjb .s-wave i { animation: none !important; }
-  .sjb .sjb-orb .sjb-ring { opacity: .35; transform: scale(1.08); }
-  .sjb .s-wave i { height: 9px; }
-  .sjb .sjb-btn, .sjb .sjb-bar-m, .sjb.sjb-hdr, .sjb a.sjb-orb, .sjb .s-q, .sjb .s-q summary .s-plus, .sjb .s-item, .sjb .s-item svg { transition: none !important; }
+/* larger screens: the same composition, centred, generous space */
+@media (min-width: 641px) {
+  .sjb .sjb-hero { --sjb-hero-stu: clamp(232px, 32svh, 292px); grid-template-rows: auto; align-content: center; justify-items: center; padding: 24px 24px 72px; }
+  .sjb .sjb-stage { padding-bottom: 0; }
+  .sjb .sjb-hero .sjb-kicker { margin-top: 40px; font-size: 12px; }
+  .sjb .sjb-hero .sjb-line { margin-top: 12px; font-size: clamp(40px, 3.5vw, 50px); line-height: 1.06; }
+  .sjb .sjb-go { margin-top: 40px; gap: 14px; }
+  .sjb .sjb-hero .sjb-btn.sjb-go-btn { width: 392px; height: 64px; font-size: 20px; gap: 11px; }
+  .sjb .sjb-micro { font-size: 14px; }
+  .sjb .sjb-alt { padding-top: 8px; }
 }
 
-/* a static Stu that links where the button does (the hero's fallback, the phone bar) */
-.sjb .sjb-orb-link { display: block; border-radius: 50%; }
-.sjb .sjb-orb-link:focus-visible { outline: 2px solid var(--sjb-purple); outline-offset: 6px; }
+@media (prefers-reduced-motion: reduce) {
+  .sjb .sjb-hero-stu .sjb-glow, .sjb .sjb-hero-stu .sjb-ring, .sjb .sjb-hero-stu .sjb-body-s, .sjb .sjb-hero-stu .sjb-floor, .sjb .s-wave i { animation: none !important; }
+  .sjb .sjb-hero-stu .sjb-ring { opacity: .3; transform: scale(1.08); }
+  .sjb .sjb-hero-stu .sjb-ring.sjb-r2 { display: none; }
+  .sjb .s-wave i { height: 9px; }
+  .sjb .sjb-btn, .sjb .sjb-sticky, .sjb.sjb-hdr, .sjb .sjb-hero-stu img, .sjb .s-q, .sjb .s-q summary .s-plus, .sjb .s-item, .sjb .s-item svg { transition: none !important; }
+}
+

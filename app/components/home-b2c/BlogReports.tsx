@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { SectionEnd } from "./cta";
 import { Arrow, Book, Chart } from "./icons";
 import { BLOG, REPORTS, SECTION_READ } from "./links";
 
@@ -65,8 +64,6 @@ export function BlogReports() {
             </div>
           ))}
         </div>
-
-        <SectionEnd line="Or skip the reading and talk it through." />
       </div>
     </section>
   );

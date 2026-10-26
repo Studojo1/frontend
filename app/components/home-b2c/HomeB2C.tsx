@@ -5,7 +5,7 @@ import { FooterB2C } from "./FooterB2C";
 import { HeaderB2C } from "./HeaderB2C";
 import { HeroB2C } from "./HeroB2C";
 import { HowItWorks } from "./HowItWorks";
-import { PhoneBar } from "./PhoneBar";
+import { StickyCta } from "./StickyCta";
 import { StuDock } from "./stu-embed";
 import { WhatB2C } from "./WhatB2C";
 import { WhatYouGet } from "./WhatYouGet";
@@ -30,7 +30,7 @@ export function HomeB2C() {
         <BlogReports />
       </main>
       <FooterB2C />
-      <PhoneBar />
+      <StickyCta />
       <StuDock />
     </div>
   );

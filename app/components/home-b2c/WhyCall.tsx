@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { SectionEnd } from "./cta";
 import { Ban, Chat, Mic, Money, Pencil, Pin, Question } from "./icons";
 import { SECTION_WHY } from "./links";
 
@@ -96,8 +95,6 @@ export function WhyCall() {
             <span className="sjb-capt">an example brief</span>
           </div>
         </div>
-
-        <SectionEnd line="Say it once. Stu remembers." />
       </div>
     </section>
   );
