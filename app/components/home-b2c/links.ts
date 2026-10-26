@@ -8,10 +8,9 @@ import { authUrl } from "../../lib/return-to";
 // plain <a href>, a full page load, never this site's router <Link>: the router would ask that app for its
 // data and show this site's error page (commit 93ba6dd).
 export const STU_HOME = "/b2cnew";
-/** Signed out, "start the call": a quick sign-up, then straight into the voice call. */
+/** Signed out, every way in: a quick sign-up, then straight into the call (owner rule, 27 Oct: every way in goes
+ * through /b2cnew/join, and the homepage links nothing else in /b2cnew but "my jobs"). */
 export const STU_JOIN = "/b2cnew/join";
-/** Signed out, "prefer typing?": the typed set-up. */
-export const STU_START = "/b2cnew/start";
 /** Defines the <stu-agent> web component; served by career-agent. Loaded on the B2C homepage only (stu-embed.tsx). */
 export const STU_EMBED_SRC = "/b2cnew/embed/stu.js";
 
@@ -43,15 +42,12 @@ export const SECTION_EXPECT = "expect";
 export const SECTION_FAQ = "faq";
 export const SECTION_READ = "read";
 
-export type StartHow = "voice" | "type";
-
 /**
- * The way into the agent from the homepage, signed out. "voice" is the big "start the call" button
- * (/b2cnew/join), "type" the small "prefer typing?" link (/b2cnew/start). The visit's whole landing query is
- * kept (utm_*, gclid, fbclid and anything else), each key once (its first value), and via=home&how=<how> is
- * set last, replacing any via or how the query brought. Pure, for tests.
+ * The way into the agent from the homepage, signed out: /b2cnew/join with the visit's whole landing query (utm_*,
+ * gclid, fbclid and anything else), each key once (its first value), then via=home&how=voice, replacing any via or
+ * how the query brought. Pure, for tests.
  */
-export function startHref(landingSearch: string | null | undefined, how: StartHow): string {
+export function startHref(landingSearch: string | null | undefined): string {
   const landing = new URLSearchParams(landingSearch ?? "");
   const out = new URLSearchParams();
   for (const [key, value] of landing) {
@@ -59,8 +55,8 @@ export function startHref(landingSearch: string | null | undefined, how: StartHo
     out.append(key, value);
   }
   out.set("via", "home");
-  out.set("how", how);
-  return `${how === "voice" ? STU_JOIN : STU_START}?${out}`;
+  out.set("how", "voice");
+  return `${STU_JOIN}?${out}`;
 }
 
 /**
@@ -68,7 +64,7 @@ export function startHref(landingSearch: string | null | undefined, how: StartHo
  * /join again would restart their onboarding. Pure, for tests.
  */
 export function startCta(signedIn: boolean, landingSearch: string | null | undefined): { label: string; href: string } {
-  return signedIn ? { label: "open my jobs", href: STU_HOME } : { label: "start the call", href: startHref(landingSearch, "voice") };
+  return signedIn ? { label: "open my jobs", href: STU_HOME } : { label: "start the call", href: startHref(landingSearch) };
 }
 
 /** True on hosts that get the B2C homepage, header and footer (root loader, app/lib/b2c-home.ts). */

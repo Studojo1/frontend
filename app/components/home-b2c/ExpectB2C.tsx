@@ -11,9 +11,9 @@ export function ExpectB2C() {
         </header>
         <div className="st-exp">
           <ol className="sjb-card st-steps">
-            <li><div><h3 className="sjb-h-card">join</h3><p className="sjb-body">Tap start and meet Stu.</p></div></li>
-            <li><div><h3 className="sjb-h-card">sign up <span className="sjb-chip">ten seconds</span></h3><p className="sjb-body">A quick sign up. Free to start.</p></div></li>
-            <li className="st-key"><div><h3 className="sjb-h-card">the call <span className="sjb-chip">about 10 minutes</span></h3><p className="sjb-body">Talk with Stu. Drop in your resume when Stu asks.</p></div></li>
+            <li><div><h3 className="sjb-h-card">join</h3><p className="sjb-body">Tap start the call. Stu says hi.</p></div></li>
+            <li><div><h3 className="sjb-h-card">sign up <span className="sjb-chip">ten seconds</span></h3><p className="sjb-body">Sign up with Google, and you are straight into the call. Free to start.</p></div></li>
+            <li className="st-key"><div><h3 className="sjb-h-card">the call <span className="sjb-chip">about 10 minutes</span></h3><p className="sjb-body">Talk with Stu. Add your resume when Stu asks, and Stu reads it while you talk.</p></div></li>
             <li><div><h3 className="sjb-h-card">your brief</h3><p className="sjb-body">Check what Stu wrote down, add links or anything Stu missed, and fix what is off.</p></div></li>
             <li><div><h3 className="sjb-h-card">your first matches</h3><p className="sjb-body">Jobs that fit, each with a reason.</p></div></li>
           </ol>

@@ -1,11 +1,11 @@
-import { StartButton, TypeLink, useSignedIn, useStartCta } from "./cta";
+import { StartButton, useSignedIn, useStartCta } from "./cta";
 import { Briefcase, Doc, Mail } from "./icons";
 import { StuSlot } from "./stu-embed";
 import { STU_ART } from "./links";
 
 // Hero (H1 "Stu screen"): the first step of the app's flow, like a voice assistant's start screen. Stu, large,
-// one line, three small chips, one big full-width "start the call" in the thumb zone and "free . about 10 minutes"; the quiet
-// "prefer typing?" sits just below the fold. Kept thin: the owner's final pick between H1 and H2 replaces this
+// one line, three small chips, one big full-width "start the call" in the thumb zone and "free . about 10 minutes". Every way in goes
+// through /b2cnew/join (owner rule): no typing link. Kept thin: the owner's final pick between H1 and H2 replaces this
 // markup and keeps HERO_START_ID, the id the phone's bottom bar watches (PhoneBar.tsx).
 //
 // Stu is the <stu-agent data-size="hero" data-mode="join"> embed (stu-embed.tsx): a tap goes straight into the
@@ -56,11 +56,6 @@ export function HeroB2C() {
           {signedIn ? null : <p className="sjb-micro">free · about 10 minutes</p>}
         </div>
       </section>
-      {signedIn ? null : (
-        <div className="sjb-alt">
-          <TypeLink />
-        </div>
-      )}
     </>
   );
 }

@@ -36,16 +36,16 @@ assert.match(header, /<a\s[^>]*href=\{STU_HOME\}/);
 assert.match(header, /to=\{SETTINGS\}/);
 
 // "start the call" (signed out): /b2cnew/join with the visit's whole landing query, each key once, then
-// via=home&how=voice; "prefer typing?" the same into /b2cnew/start with how=type. Signed in: "open my jobs".
+// via=home&how=voice. Every way in goes through /b2cnew/join (owner rule). Signed in: "open my jobs" to /b2cnew.
 const { startHref, startCta } = await import("../components/home-b2c/links.ts");
-assert.equal(startHref("", "voice"), "/b2cnew/join?via=home&how=voice");
-assert.equal(startHref(undefined, "type"), "/b2cnew/start?via=home&how=type");
+assert.equal(startHref(""), "/b2cnew/join?via=home&how=voice");
+assert.equal(startHref(undefined), "/b2cnew/join?via=home&how=voice");
 assert.equal(
-  startHref("?utm_source=meta&utm_medium=paid&utm_campaign=oct&fbclid=abc&gclid=g1&ref=x", "voice"),
+  startHref("?utm_source=meta&utm_medium=paid&utm_campaign=oct&fbclid=abc&gclid=g1&ref=x"),
   "/b2cnew/join?utm_source=meta&utm_medium=paid&utm_campaign=oct&fbclid=abc&gclid=g1&ref=x&via=home&how=voice",
 );
-assert.equal(startHref("?via=ad&how=type&utm_source=a&utm_source=b", "voice"), "/b2cnew/join?utm_source=a&via=home&how=voice", "no key twice");
-assert.equal(startHref("utm_term=a%20b&x=%26", "type"), "/b2cnew/start?utm_term=a+b&x=%26&via=home&how=type", "values stay encoded");
+assert.equal(startHref("?via=ad&how=type&utm_source=a&utm_source=b"), "/b2cnew/join?utm_source=a&via=home&how=voice", "no key twice");
+assert.equal(startHref("utm_term=a%20b&x=%26"), "/b2cnew/join?utm_term=a+b&x=%26&via=home&how=voice", "values stay encoded");
 assert.deepEqual(startCta(false, "?gclid=1"), { label: "start the call", href: "/b2cnew/join?gclid=1&via=home&how=voice" });
 assert.deepEqual(startCta(true, "?gclid=1"), { label: "open my jobs", href: "/b2cnew" }, "signed in: never /join again");
 
@@ -56,16 +56,18 @@ for (const f of readdirSync(dir)) {
   const src = readFileSync(new URL(f, dir), "utf8");
   assert.doesNotMatch(src, /<Link[^>]*(to=\{(stu|STU_|stuHref)|to="\/b2cnew)/, `${f}: /b2cnew is another app, use <a href>`);
   assert.doesNotMatch(src, /["'`]\/(outreach|dojos|resume-maker|resumes|cc|internships|assignments|my-applications|onboarding)\b/, `${f}: an old product route`);
+  // Every way in goes through /b2cnew/join (owner rule, 27 Oct): nothing links the typed set-up.
+  assert.doesNotMatch(src, /\/b2cnew\/start|STU_START/, `${f}: links /b2cnew/start`);
 }
 
-// Stu's embed (career-agent): the real script path, the two elements, and data-base left to its default. The hero
-// Stu taps straight into /b2cnew/join (data-mode="join"); the dock's panel offers both (data-mode="voice"). Only
-// the hero element holds a fallback (light DOM, shown until the element is defined); the dock holds none.
+// Stu's embed (career-agent): the real script path, the two elements, and data-base left to its default. Both take
+// data-mode="join", straight into /b2cnew/join. Only the hero element holds a fallback (light DOM, shown until the
+// element is defined); the dock holds none.
 const embed = readFileSync(new URL("stu-embed.tsx", dir), "utf8");
 const links = readFileSync(new URL("links.ts", dir), "utf8");
 assert.match(links, /STU_EMBED_SRC = "\/b2cnew\/embed\/stu\.js"/);
 assert.match(embed, /<stu-agent data-size="hero" data-mode="join" data-signed-in="auto"[^>]*>\s*\{children\}\s*<\/stu-agent>/);
-assert.match(embed, /<stu-agent data-size="dock" data-mode="voice" data-signed-in="auto" \/>/);
+assert.match(embed, /<stu-agent data-size="dock" data-mode="join" data-signed-in="auto" \/>/);
 assert.doesNotMatch(embed, /data-base=/, "on studojo.pro data-base defaults to /b2cnew");
 // The plain button stays as the way in either way: one StartButton component, a plain <a href>, in the hero, the
 // floating start (side pill or phone bar) and the footer only; no per-section and no header buttons (owner, 27 Oct).

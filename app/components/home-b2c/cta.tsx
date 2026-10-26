@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useLocation, useRouteLoaderData } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { Arrow, Mic } from "./icons";
-import { STU_ART, startCta, startHref } from "./links";
+import { STU_ART, startCta } from "./links";
 
 // THE button, "start the call", the same everywhere it appears: the hero, the floating one (StickyCta.tsx: a side
 // pill on desktop, a bottom bar on phones) and the footer. No per-section and no header buttons (owner, 27 Oct). Signed out it opens /b2cnew/join with the visit's landing query; signed in it is
@@ -47,18 +47,6 @@ export function StartButton({ size = "md", wide = false, id, className = "", pla
   return (
     <a href={href} id={id} className={cls} data-start={place} tabIndex={tabIndex} aria-hidden={ariaHidden}>
       {lead ?? (signedIn ? <Arrow size={icon - 2} /> : <Mic size={icon} />)}
-      {label}
-    </a>
-  );
-}
-
-/** "prefer typing?": the one quiet alternative, signed out only. */
-export function TypeLink({ label = "prefer typing?", className = "" }: { label?: string; className?: string }) {
-  const signedIn = useSignedIn();
-  const { search } = useLocation();
-  if (signedIn) return null;
-  return (
-    <a href={startHref(search, "type")} className={`sjb-link-type ${className}`.trim()}>
       {label}
     </a>
   );

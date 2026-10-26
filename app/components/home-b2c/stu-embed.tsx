@@ -6,8 +6,8 @@ import { forwardStuEvent } from "./stu-events";
 // (/b2cnew/embed/stu.js, shadow DOM, no <slot>, no analytics of its own). The page carries two elements:
 //   #stu-slot   in the hero:  <stu-agent data-size="hero" data-mode="join" data-signed-in="auto">, a tap goes
 //               straight to /b2cnew/join with the landing query and via=home&how=voice
-//   #stu-float  once on page: <stu-agent data-size="dock" data-mode="voice" data-signed-in="auto">, its panel
-//               offers Talk to Stu and Type instead
+//   #stu-float  once on page: <stu-agent data-size="dock" data-mode="join" data-signed-in="auto">, the same way
+//               in (hidden behind the side pill for now, b2c.css)
 // The dock places itself (a fixed orb, bottom right, shown once the hero Stu scrolls away), so #stu-float is a
 // plain wrapper with no position or z-index of its own: a stacking context there would trap Stu's panel under
 // the header and the cookie notice. data-base is left out: on this host it defaults to /b2cnew.
@@ -98,7 +98,7 @@ export function StuDock() {
 
   return (
     <div id="stu-float" style={DOCK_STYLE}>
-      <stu-agent data-size="dock" data-mode="voice" data-signed-in="auto" />
+      <stu-agent data-size="dock" data-mode="join" data-signed-in="auto" />
     </div>
   );
 }

@@ -14,9 +14,9 @@ export function ProofB2C() {
           <div className="st-nums">
             <div className="sjb-card st-num"><b>8,500+</b><span>students signed up</span></div>
             <div className="sjb-card st-num"><b>4,000+</b><span>matched with hiring managers</span></div>
-            <div className="sjb-card st-num"><b>28,000+</b><span>personal emails sent from students&apos; own Gmail</span></div>
+            <div className="sjb-card st-num"><b>28,000+</b><span>personal emails sent from students&apos; own inboxes</span></div>
           </div>
-          <p className="st-foot">From Studojo&apos;s own records, September 2026. Replies are not guaranteed.</p>
+          <p className="st-foot">From Studojo&apos;s own records, as of September 2026. Replies are not guaranteed.</p>
         </div>
         <div className="st-strip" data-proof="company-strip">
           <p className="st-mono">Students have emailed hiring managers at</p>

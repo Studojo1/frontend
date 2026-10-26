@@ -39,12 +39,12 @@ export function GetJobB2C() {
           </div>
           <div className="st-media">
             <div className="st-stage">
-              <div className="st-phone st-only-phone"><div className="st-screen st-miss">
-                {/* screenshot to come: the placeholder shows */}
+              <div className="st-phone st-only-phone"><div className="st-screen">
+                <img src="/home/emails-390.jpg" width="300" height="649" loading="lazy" decoding="async" alt="Emails in the Studojo app: a personal email to the person who is hiring, with follow ups" />
                 <div className="st-ph" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg><div className="st-ghost"><i /><i /><i /><i /><b></b></div><span className="st-mono">emails screen coming</span></div>
               </div></div>
-              <div className="sjb-win st-mac st-only-desk"><div className="sjb-bar"><i /><i /><i /><span>your emails</span></div><div className="st-wscreen st-miss">
-                {/* screenshot to come: the placeholder shows */}
+              <div className="sjb-win st-mac st-only-desk"><div className="sjb-bar"><i /><i /><i /><span>your emails</span></div><div className="st-wscreen">
+                <img src="/home/emails-1440.jpg" width="1440" height="900" loading="lazy" decoding="async" alt="Emails in the Studojo app on a laptop: drafts, follow ups and replies" />
                 <div className="st-ph" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg><div className="st-ghost"><i /><i /><i /><i /><b></b></div><span className="st-mono">emails screen coming</span></div>
               </div></div>
             </div>
