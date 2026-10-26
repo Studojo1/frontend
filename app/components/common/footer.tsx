@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { FaInstagram, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
 import { FiUsers } from "react-icons/fi";
+import { FooterB2C } from "../home-b2c/FooterB2C";
+import { useB2cHost } from "../home-b2c/links";
 
 type FooterLink = {
   to: string;
@@ -82,7 +84,14 @@ function FooterItem({ to, label, icon, external }: FooterLink) {
   );
 }
 
+/** On B2C hosts (studojo.pro, app/lib/b2c-home.ts) the job-agent footer, without the old products. */
 export function Footer() {
+  const b2c = useB2cHost();
+  return b2c ? <FooterB2C /> : <ClassicFooter />;
+}
+
+/** The studojo.com footer, unchanged. */
+function ClassicFooter() {
   return (
     <footer
       id="resources"

@@ -7,6 +7,8 @@ import { clearTokenCache } from "~/lib/control-plane";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import { SmoothLink } from "./smooth-link";
+import { HeaderB2C } from "../home-b2c/HeaderB2C";
+import { useB2cHost } from "../home-b2c/links";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -50,8 +52,18 @@ const isResourcesPath = (pathname: string) => RESOURCES_LINKS.some((r) => isActi
  * landing: ad and marketing landing pages (/outreach, /start). No nav links
  * and no header Get Started, so the page's own CTA is the one thing to tap
  * (audit VS-V05: /outreach had 34 competing targets).
+ *
+ * On B2C hosts (studojo.pro, app/lib/b2c-home.ts) every page but those landing
+ * pages gets the job-agent header instead, without the old products.
  */
 export function Header({ landing = false }: { landing?: boolean } = {}) {
+  const b2c = useB2cHost();
+  if (b2c && !landing) return <HeaderB2C />;
+  return <ClassicHeader landing={landing} />;
+}
+
+/** The studojo.com header, unchanged. */
+function ClassicHeader({ landing = false }: { landing?: boolean } = {}) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);

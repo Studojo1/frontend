@@ -217,6 +217,24 @@ export function trackMeta(
   return eventId;
 }
 
+/**
+ * A custom (non-standard) event, browser pixel only (fbq trackCustom). No server
+ * mirror, so it never reaches the Conversions API dataset the money funnel bids
+ * on (api.meta-event.tsx allows standard events only). Same gates as every other
+ * call: production host, consent, no excluded page or secret in the URL. Used
+ * for Stu's events on the B2C homepage (components/home-b2c/stu-events.ts).
+ */
+export function trackMetaCustom(eventName: string, properties?: Record<string, unknown>): void {
+  if (typeof window === "undefined" || !metaAllowed()) return;
+  initMetaPixel();
+  if (!isInitialized) return;
+  try {
+    fbq()?.("trackCustom", eventName, properties ?? {});
+  } catch {
+    // Analytics must never break the app
+  }
+}
+
 /** PageView on the first load and on every client-side route change. This is
  * the only source of PageViews: fbevents' own history listener is switched off
  * in bootPixel, so each one passes metaAllowed. */

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
-import { Link, redirect } from "react-router";
+import { Link, redirect, redirectDocument } from "react-router";
 import {
   BackedBySection,
   CTABanner,
@@ -14,6 +14,9 @@ import {
   TrustStrip,
 } from "~/components";
 import { useLoaderData } from "react-router";
+import { HomeB2C } from "~/components/home-b2c/HomeB2C";
+import { STU_HOME } from "~/components/home-b2c/links";
+import { isB2cRequest } from "~/lib/b2c-home";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { senseiUi } from "~/lib/sensei-ui";
 import type { Route } from "./+types/_index";
@@ -48,25 +51,50 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (senseiApp) {
     // The look of the workspace and of the dashboard is decided per host
     // (app/lib/sensei-ui.ts), on the server, so the first paint is already in the right one.
-    return { bobApp: senseiApp === "bob", dashboardApp: senseiApp === "dashboard", senseiUi: senseiUi(request.headers.get("host")) };
+    return { bobApp: senseiApp === "bob", dashboardApp: senseiApp === "dashboard", b2cHome: false, senseiUi: senseiUi(request.headers.get("host")) };
   }
   const session = await getSessionFromRequest(request);
+  // HOMEPAGE: studojo.pro (and localhost) get the B2C homepage, Studojo's job agent only; studojo.com never
+  // does (app/lib/b2c-home.ts). A signed-in student goes straight to their agent instead of the old
+  // /onboarding check. /b2cnew is another app on this host, so the redirect is a full page load
+  // (redirectDocument), also when the router asks for this page's data on an in-app navigation.
+  if (isB2cRequest(request)) {
+    if (session) throw redirectDocument(`${STU_HOME}${new URL(request.url).search}`);
+    return { bobApp: false, dashboardApp: false, b2cHome: true, senseiUi: "old" as const };
+  }
   if (session) {
     const onboardingStatus = await requireOnboardingComplete(session.user.id);
     if (!onboardingStatus.complete) {
       throw redirect("/onboarding");
     }
   }
-  return { bobApp: false, dashboardApp: false, senseiUi: "old" as const };
+  return { bobApp: false, dashboardApp: false, b2cHome: false, senseiUi: "old" as const };
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  const d = data as { bobApp?: boolean; dashboardApp?: boolean } | undefined;
+  const d = data as { bobApp?: boolean; dashboardApp?: boolean; b2cHome?: boolean } | undefined;
   if (d?.dashboardApp) {
     return [{ title: "Sensei Dashboard | Studojo" }, { name: "robots", content: "noindex" }];
   }
   if (d?.bobApp) {
     return [{ title: "Bob | Studojo" }, { name: "robots", content: "noindex" }];
+  }
+  if (d?.b2cHome) {
+    // Placeholder until the owner picks a direction. No canonical: studojo.pro is noindex (app/lib/staging-host.ts).
+    // The share image falls back to root's og-default.png until the design brings a B2C card.
+    const title = "Studojo | Find jobs with Stu, your job agent";
+    const description = "Stu is Studojo's job agent. Tell Stu what you want, and Stu finds roles that fit you and helps you go after them.";
+    return [
+      { title },
+      { name: "description", content: description },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:site_name", content: "Studojo" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+    ];
   }
   const BASE_URL = "https://studojo.com";
   return [
@@ -231,10 +259,12 @@ function InternshipPopup() {
 }
 
 export default function Home() {
-  const { bobApp, dashboardApp, senseiUi: ui } = useLoaderData<typeof loader>();
+  const { bobApp, dashboardApp, b2cHome, senseiUi: ui } = useLoaderData<typeof loader>();
   // dashboard.studojo.* -> manager portal; app.studojo.* -> Bob workspace at root
   if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage ui={ui} /></Suspense>;
   if (bobApp) return <Suspense fallback={senseiFallback}><BobPage ui={ui} /></Suspense>;
+  // studojo.pro: the B2C homepage (app/components/home-b2c).
+  if (b2cHome) return <HomeB2C />;
   return (
     <>
       <AnnouncementBar />

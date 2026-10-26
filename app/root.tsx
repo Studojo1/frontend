@@ -21,6 +21,7 @@ import { grantMetaConsent, initMetaPixel, metaExcludedPath, revokeMetaConsent, t
 import { onConsentChange, trackingAllowed } from "./lib/consent";
 import { track } from "./lib/analytics";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
+import { isB2cRequest } from "./lib/b2c-home";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import { CookieNotice } from "./components/legal/cookie-notice";
@@ -341,7 +342,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Resolve the host on the SERVER so the global chat widget is never even
   // rendered on Sensei subdomains (no SSR flash, no hydration mismatch).
   const host = (request.headers.get("host") || "").toLowerCase();
-  return { isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host) };
+  // b2cHost: studojo.pro (and localhost) get the B2C homepage, header and footer; studojo.com never does
+  // (app/lib/b2c-home.ts). Read by components/common/header.tsx and footer.tsx.
+  return { isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host), b2cHost: isB2cRequest(request) };
 }
 
 export default function App() {
@@ -384,7 +387,7 @@ export default function App() {
     if (attributionUserId) flushAttribution(attributionUserId);
   }, [attributionUserId]);
 
-  const { isSenseiHost } = useLoaderData<typeof loader>();
+  const { isSenseiHost, b2cHost } = useLoaderData<typeof loader>();
   const location = useLocation();
   // The resume maker has its own coach chat, and Sensei has its own "Get
   // support", so the global floating widget would just float over those UIs.
@@ -402,8 +405,10 @@ export default function App() {
   // none of the site's widgets: its CSP allows only its own scripts (contract
   // section 4, app/routes/$handle.$slug.tsx).
   const projectPage = useMatches().some((m) => (m.handle as { projectPage?: boolean } | undefined)?.projectPage === true);
+  // The B2C homepage (studojo.pro) has Stu, its own floating agent (components/home-b2c/stu-embed.tsx).
+  const onB2cHome = b2cHost && location.pathname === "/";
   const hideGlobalChat =
-    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || location.pathname.startsWith("/jernew") || location.pathname.startsWith("/b2cnew") || location.pathname.startsWith("/pbadmin") || onSensei || onAuth || onStudentPage || projectPage;
+    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || location.pathname.startsWith("/jernew") || location.pathname.startsWith("/b2cnew") || location.pathname.startsWith("/pbadmin") || onSensei || onAuth || onStudentPage || projectPage || onB2cHome;
 
   return (
     <>
