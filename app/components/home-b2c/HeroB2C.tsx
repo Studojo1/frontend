@@ -70,7 +70,7 @@ export function HeroB2C() {
             ))}
           </span>
         </a>
-        <p className="nb-kicker">Stu, your AI job agent</p>
+        <p className="nb-kicker">Stu, your career agent</p>
         <h1 className="nb-h1" id="hero-title">
           <span className="nb-s">Find jobs that fit you.</span> <span className="nb-s">Just talk to Stu.</span>
         </h1>
