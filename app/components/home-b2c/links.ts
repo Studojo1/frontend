@@ -25,6 +25,9 @@ export const SETTINGS = "/settings";
 export const STU_HEAD = "/stu/head-laugh.png";
 export const STU_FACES = ["/stu/head-sparkle.png", "/stu/head-happy.png", "/stu/head-grin.png", STU_HEAD] as const;
 
+/** The bare doodle logo (transparent cutout, 96x120) for the B2C header and footer. */
+export const LOGO_DOODLE = "/stu/logo-doodle.png";
+
 export const BLOG = "/blog";
 export const REPORTS = "/reports";
 export const TERMS = "/terms";
