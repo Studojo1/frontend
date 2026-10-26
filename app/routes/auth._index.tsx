@@ -13,6 +13,8 @@ import { ResumeFirstCard } from "~/components/outreach/ResumeFirstCard";
 import { UPLOAD_BEFORE_SIGNUP_FLAG, headedToUpload, isAdVisitor } from "~/lib/outreach/resume-draft";
 import type { Route } from "./+types/auth._index";
 import { ConsentLine } from "~/components/auth/consent-line";
+import { useB2cHost } from "~/components/home-b2c/links";
+import "~/components/home-b2c/b2c.css";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
@@ -194,6 +196,13 @@ function InAppBrowserPrompt({ app, onDismiss }: { app: "instagram" | "facebook";
 
 export default function Auth() {
   const navigate = useNavigate();
+  // AUTH-B2C (27 Oct 2026): on B2C hosts (studojo.pro, app/lib/b2c-home.ts) the page wears the homepage's look,
+  // visual only. The page root gets "sjb sjb-auth", the floating shapes are not drawn, and a few elements carry a
+  // data-b2c mark that the scoped rules in home-b2c/b2c.css (.sjb.sjb-auth) restyle. Nothing else depends on b2c:
+  // every input, button, link, text and handler is the same on both hosts, and on studojo.com no mark is rendered,
+  // so its HTML is exactly as before (app/lib/auth-b2c.test.mjs).
+  const b2c = useB2cHost();
+  const b2cMark = (part: string) => (b2c ? { "data-b2c": part } : {});
   const [searchParams, setSearchParams] = useSearchParams();
   // Returning visitors are switched back to Sign In below once their last
   // login method is readable.
@@ -547,13 +556,15 @@ export default function Auth() {
   return (
     <>
       <Header />
-      <main className="relative min-h-screen overflow-hidden bg-purple-50">
-        {/* Background decorative shapes - Framer Motion, slow */}
+      <main className={b2c ? "sjb sjb-auth relative min-h-screen overflow-hidden" : "relative min-h-screen overflow-hidden bg-purple-50"}>
+        {/* Background decorative shapes - Framer Motion, slow (not on B2C hosts: a flat white page) */}
+        {!b2c && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           {BACKGROUND_SHAPES.map((shape, i) => (
             <FloatShape key={i} {...shape} />
           ))}
         </div>
+        )}
 
         <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-[var(--section-max-width)] items-center justify-center px-4 py-12 md:px-8 md:py-20">
           <motion.div
@@ -564,7 +575,7 @@ export default function Auth() {
           >
             {/* Studojo Logo */}
             <div className="mb-8 text-center">
-              <h2 className="font-['Satoshi'] text-3xl font-black leading-9 text-neutral-900 md:text-4xl md:leading-7">
+              <h2 {...b2cMark("brand")} className="font-['Satoshi'] text-3xl font-black leading-9 text-neutral-900 md:text-4xl md:leading-7">
                 studojo
               </h2>
             </div>
@@ -572,8 +583,9 @@ export default function Auth() {
             {inApp && !inAppDismissed && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
 
             {/* Toggle Tabs */}
-            <div className="mb-8 flex gap-2 rounded-2xl border-2 border-neutral-900 bg-white p-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+            <div {...b2cMark("tabs")} className="mb-8 flex gap-2 rounded-2xl border-2 border-neutral-900 bg-white p-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
               <button
+                {...b2cMark(mode === "signin" ? "tab-on" : "tab")}
                 type="button"
                 onClick={() => handleModeToggle("signin")}
                 className={`flex-1 rounded-xl px-4 py-3 font-['Satoshi'] text-base font-medium leading-6 transition-colors ${
@@ -585,6 +597,7 @@ export default function Auth() {
                 Sign In
               </button>
               <button
+                {...b2cMark(mode === "signup" ? "tab-on" : "tab")}
                 type="button"
                 onClick={() => handleModeToggle("signup")}
                 className={`flex-1 rounded-xl px-4 py-3 font-['Satoshi'] text-base font-medium leading-6 transition-colors ${
@@ -600,7 +613,7 @@ export default function Auth() {
             {resumeFirst && mode === "signup" && <ResumeFirstCard />}
 
             {/* Form Card */}
-            <div className="relative rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden">
+            <div {...b2cMark("card")} className="relative rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={mode}
@@ -641,6 +654,7 @@ export default function Auth() {
                     </p>
                   )}
                   <button
+                    {...b2cMark("google")}
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={submitting}
@@ -661,6 +675,7 @@ export default function Auth() {
                   </p>
                   {mode === "signin" && (
                     <button
+                      {...b2cMark("passkey")}
                       type="button"
                       onClick={handlePasskeySignIn}
                       disabled={submitting}
@@ -677,11 +692,12 @@ export default function Auth() {
                   </div>
                   <div className="relative flex justify-center">
                     {showEmailForm ? (
-                      <span className="bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
+                      <span {...b2cMark("or")} className="bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
                         or
                       </span>
                     ) : (
                       <button
+                        {...b2cMark("link")}
                         type="button"
                         onClick={() => setEmailFormOpen(true)}
                         className="inline-flex min-h-11 items-center bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500 underline underline-offset-2 hover:text-neutral-900"
@@ -692,7 +708,7 @@ export default function Auth() {
                   </div>
                 </div>
 
-                <div className={showEmailForm ? "contents" : "hidden"}>
+                <div {...b2cMark("email-form")} className={showEmailForm ? "contents" : "hidden"}>
                 <div>
                   <label htmlFor="email" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
                     Email
@@ -735,7 +751,7 @@ export default function Auth() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
+                  className={`${b2c ? "nb-btn nb-wide " : ""}w-full rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none`}
                 >
                   {submitting ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
                 </button>
@@ -749,6 +765,7 @@ export default function Auth() {
                 <p className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                   Don't have an account?{" "}
                   <button
+                    {...b2cMark("link")}
                     type="button"
                     onClick={() => handleModeToggle("signup")}
                     className="font-medium text-purple-500 hover:text-purple-600"
@@ -762,6 +779,7 @@ export default function Auth() {
                 <p className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                   Already have an account?{" "}
                   <button
+                    {...b2cMark("link")}
                     type="button"
                     onClick={() => handleModeToggle("signin")}
                     className="font-medium text-purple-500 hover:text-purple-600"
