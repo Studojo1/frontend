@@ -21,6 +21,9 @@ export const SIGN_IN = authUrl("signin", STU_HOME);
 /** Account settings, account deletion included: in the signed-in header menu, so it stays reachable. */
 export const SETTINGS = "/settings";
 
+/** Stu's static art (the hero's fallback, the floating start, the footer, the call example). ONE place to swap it. */
+export const STU_ART = "/stu/stu2-speak.svg";
+
 export const BLOG = "/blog";
 export const REPORTS = "/reports";
 export const TERMS = "/terms";
@@ -28,11 +31,15 @@ export const PRIVACY = "/privacy";
 export const REFUNDS = "/refund-policy";
 export const CONTACT_EMAIL = "admin@studojo.com";
 
-/** In-page sections of the B2C homepage, in page order. The header's "how it works" is #how, "jobs" is #get. */
+/** In-page sections of the B2C homepage, in page order (h-sections.html). */
 export const SECTION_WHAT = "what";
-export const SECTION_HOW = "how";
-export const SECTION_WHY = "why";
-export const SECTION_GET = "get";
+export const SECTION_CALL = "call";
+export const SECTION_BRIEF = "brief";
+export const SECTION_MATCHES = "matches";
+export const SECTION_GETJOB = "getjob";
+export const SECTION_MORE = "more";
+export const SECTION_PROOF = "proof";
+export const SECTION_EXPECT = "expect";
 export const SECTION_FAQ = "faq";
 export const SECTION_READ = "read";
 

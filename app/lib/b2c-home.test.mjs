@@ -77,8 +77,16 @@ for (const f of readdirSync(dir)) {
   for (const u of uses) assert.match(u, /place="(hero|side|bar|footer)"/, `${f}: ${u}`);
 }
 const home = readFileSync(new URL("HomeB2C.tsx", dir), "utf8");
-const order = ["<HeroB2C", "<WhatB2C", "<HowItWorks", "<WhyCall", "<WhatYouGet", "<FaqB2C", "<BlogReports", "<FooterB2C", "<StickyCta"].map((t) => home.indexOf(t));
-assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), "in order: hero, the sections, footer, the floating start");
+const ORDER = ["HeroB2C", "WhatB2C", "CallB2C", "BriefB2C", "MatchesB2C", "GetJobB2C", "MoreB2C", "ProofB2C", "ExpectB2C", "FaqB2C", "BlogReports", "FooterB2C", "StickyCta"];
+const order = ORDER.map((t) => home.indexOf(`<${t} />`));
+assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `in order: ${ORDER.join(", ")}`);
+// Each story section is its own component with its id (h-sections.html), and none carries a start button.
+const IDS = { WhatB2C: "what", CallB2C: "call", BriefB2C: "brief", MatchesB2C: "matches", GetJobB2C: "getjob", MoreB2C: "more", ProofB2C: "proof", ExpectB2C: "expect", FaqB2C: "faq", BlogReports: "read" };
+for (const [c, id] of Object.entries(IDS)) {
+  const src = readFileSync(new URL(`${c}.tsx`, dir), "utf8");
+  assert.match(src, new RegExp(`<section className="sjb-sec" id="${id}"`), `${c} is #${id}`);
+  assert.doesNotMatch(src, /StartButton|data-start/, `${c}: no per-section button`);
+}
 // The B2C look is scoped: every rule of b2c.css sits under .sjb, so studojo.com never changes.
 const css = readFileSync(new URL("b2c.css", dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 for (const rule of css.match(/(^|[{}])\s*([^{}@]+)\{/g) ?? []) {

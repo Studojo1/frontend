@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useLocation, useRouteLoaderData } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { Arrow, Mic } from "./icons";
-import { startCta, startHref } from "./links";
+import { STU_ART, startCta, startHref } from "./links";
 
 // THE button, "start the call", the same everywhere it appears: the hero, the floating one (StickyCta.tsx: a side
 // pill on desktop, a bottom bar on phones) and the footer. No per-section and no header buttons (owner, 27 Oct). Signed out it opens /b2cnew/join with the visit's landing query; signed in it is
@@ -68,7 +68,7 @@ export function TypeLink({ label = "prefer typing?", className = "" }: { label?:
 export function StuArt({ className = "" }: { className?: string }) {
   return (
     <span className={`sjb-stu ${className}`.trim()} aria-hidden="true">
-      <img src="/stu/stu2-speak.svg" alt="" width={92} height={92} />
+      <img src={STU_ART} alt="" width={92} height={92} />
     </span>
   );
 }

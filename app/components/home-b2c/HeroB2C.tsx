@@ -1,6 +1,7 @@
 import { StartButton, TypeLink, useSignedIn, useStartCta } from "./cta";
 import { Briefcase, Doc, Mail } from "./icons";
 import { StuSlot } from "./stu-embed";
+import { STU_ART } from "./links";
 
 // Hero (H1 "Stu screen"): the first step of the app's flow, like a voice assistant's start screen. Stu, large,
 // one line, three small chips, one big full-width "start the call" in the thumb zone and "free . about 10 minutes"; the quiet
@@ -26,7 +27,7 @@ export function HeroB2C() {
               <span className="sjb-ring sjb-r2" aria-hidden="true" />
               <span className="sjb-floor" aria-hidden="true" />
               <span className="sjb-body-s" aria-hidden="true">
-                <img src="/stu/stu2-speak.svg" alt="" width={230} height={230} />
+                <img src={STU_ART} alt="" width={230} height={230} />
               </span>
             </a>
           </StuSlot>

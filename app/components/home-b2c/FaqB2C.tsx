@@ -1,70 +1,33 @@
-import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { TypeLink } from "./cta";
-import { Plus } from "./icons";
-import { PRIVACY, SECTION_FAQ } from "./links";
 
-// 5. FAQ (#faq). Copy: a1v2-copy.md, with the owner's fix to "is it free?" (27 Oct). <details> works without JS.
-const FAQS: { q: string; a: string; more?: ReactNode; open?: boolean }[] = [
-  {
-    q: "is it free?",
-    a: "Free to start. Finding and matching jobs costs nothing. Some extras, like finding the people who hire so Stu can write to them, use credits.",
-    open: true,
-  },
-  {
-    q: "how long is the call?",
-    a: "About 10 minutes. It's one conversation, mostly about the role you want and why. Have your resume handy as a PDF, and find a quiet spot. Headphones help.",
-  },
-  {
-    q: "i'm a fresher. will it work for me?",
-    a: "Yes. Stu asks about your studies, your projects and any internships, not just past jobs. You can look for an internship or a full-time role.",
-  },
-  {
-    q: "can i type instead?",
-    a: "Yes. Can't talk right now? Set up by typing instead, and you still get your matches.",
-    more: <TypeLink label="set up by typing instead" />,
-  },
-  {
-    q: "what happens to my data?",
-    a: "Your profile is yours. Studojo uses it to find and explain your matches, and never sells it. You can download a copy or delete your account any time from Settings.",
-    more: (
-      <Link to={PRIVACY} className="sjb-link-type">
-        read the privacy policy
-      </Link>
-    ),
-  },
-  {
-    q: "what if i don't know what i want yet?",
-    a: "Say so. Stu asks what you've enjoyed so far, the roles you'd consider and the ones you wouldn't, and starts from there. You can change your brief any time.",
-  },
-];
-
+// 9. Questions (#faq). <details> works without JS.
+// Ported from the design mock h-sections.html (copy: story-copy.md); the look is in b2c.css (st-*).
 export function FaqB2C() {
   return (
-    <section className="sjb-sec" id={SECTION_FAQ} aria-labelledby="faq-h">
+    <section className="sjb-sec" id="faq" aria-labelledby="faq-h">
       <div className="sjb-sec-in">
         <header className="sjb-sec-head">
           <span className="sjb-kicker">questions</span>
-          <h2 className="sjb-h-sec" id="faq-h">
-            before you call.
-          </h2>
+          <h2 className="sjb-h-sec" id="faq-h">before you call.</h2>
         </header>
-
-        <div className="s-faq">
-          {FAQS.map(({ q, a, more, open }) => (
-            <details key={q} className="s-q" open={open}>
-              <summary>
-                {q}
-                <span className="s-plus" aria-hidden="true">
-                  <Plus />
-                </span>
-              </summary>
-              <div className="s-a">
-                <p>{a}</p>
-                {more}
-              </div>
-            </details>
-          ))}
+        <div className="st-faq">
+          <details className="st-q"><summary>is it free?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>Free to start. Finding and matching jobs costs nothing. Some extras, like finding the right person at a company to email, use credits.</p></div></details>
+          <details className="st-q"><summary>how long does it take?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>The call is about 10 minutes. With sign up and checking your brief, plan on 10 to 15 minutes.</p></div></details>
+          <details className="st-q"><summary>i&apos;m a fresher. will it work for me?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>Yes. Stu asks about your studies, your projects and any internships, not just past jobs. You can look for an internship or a full-time role.</p></div></details>
+          <details className="st-q"><summary>can i type instead?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>Yes. If you can&apos;t talk right now, set up by typing instead. During the call you can also type a word Stu misheard.</p><TypeLink label="set up by typing instead" /></div></details>
+          <details className="st-q"><summary>what happens to my data?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>Only you and Studojo see your resume, and Studojo never sells your data. You can download a copy or delete your account any time from Settings.</p><Link className="sjb-link-type" to="/privacy">read the privacy policy</Link></div></details>
+          <details className="st-q"><summary>what if i don&apos;t know what i want yet?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>Say so. Stu asks what you have enjoyed so far, the roles you would consider and the ones you would not, and starts from there.</p></div></details>
+          <details className="st-q"><summary>which countries?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>India, plus the US, the UK, the UAE and Singapore.</p></div></details>
+          <details className="st-q"><summary>can i change my brief later?<span className="st-plus" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></summary>
+            <div className="st-a"><p>Yes. Tap anything in your brief to change it, or talk to Stu again. A follow up call is shorter and covers only what is new.</p></div></details>
         </div>
       </div>
     </section>

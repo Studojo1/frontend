@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import "./b2c.css";
 import { StartButton, StuArt, TypeLink, useSignedIn } from "./cta";
-import { BLOG, CONTACT_EMAIL, PRIVACY, REFUNDS, REPORTS, SECTION_HOW, TERMS } from "./links";
+import { BLOG, CONTACT_EMAIL, PRIVACY, REFUNDS, REPORTS, SECTION_WHAT, TERMS } from "./links";
 import { Logo } from "./Logo";
 
 // The footer on B2C hosts (studojo.pro): used by the B2C homepage and, through components/common/footer.tsx,
@@ -26,7 +26,7 @@ export function FooterB2C() {
         <span className="sjb-line">{"stu is studojo's ai job agent."}</span>
         <nav className="sjb-foot-links" aria-label="footer">
           {/* On the homepage the section is in the page; anywhere else it is on the homepage. */}
-          {onHome ? <a href={`#${SECTION_HOW}`}>how it works</a> : <Link to={`/#${SECTION_HOW}`}>how it works</Link>}
+          {onHome ? <a href={`#${SECTION_WHAT}`}>how it works</a> : <Link to={`/#${SECTION_WHAT}`}>how it works</Link>}
           <Link to={BLOG}>blog</Link>
           <Link to={REPORTS}>reports</Link>
           <Link to={TERMS}>terms</Link>
