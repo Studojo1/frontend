@@ -431,8 +431,8 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
-                <p>Studojo Outreach helps you reach hiring managers with a tight brief and one proof link, the same pattern internal referrers use when they paste your name into Slack.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <p>Stu, Studojo's job agent, finds the hiring manager or recruiter for each role and drafts a short email with your proof link. You send it from your own mailbox.</p>
+                <Link to="/b2cnew/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -572,8 +572,8 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Reach the inbox that routes referrals</h4>
-                <p>Studojo Outreach finds hiring managers and recruiters behind real pipelines so your intro arrives with context, not just a resume attachment.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <p>Stu finds the hiring manager or recruiter at each company and drafts the email, so your intro arrives with context, not just a resume attachment.</p>
+                <Link to="/b2cnew/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -685,10 +685,10 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Turn channel data into conversations that convert</h3>
-              <p>Studojo Outreach helps you find hiring managers, send a credible intro, and show up with the same forwardable proof pattern referrals use.</p>
+              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Start with Stu →
             </Link>
           </div>
         </div>

@@ -228,7 +228,7 @@ export default function FinanceIndiaReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for finance internships in India?</span>
-            <Link to="/outreach" className="rpt-cta-pill">Browse finance roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-finance-india-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -281,9 +281,9 @@ export default function FinanceIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find finance internships in Mumbai, Bengaluru, and Delhi NCR</div>
-                <div className="rpt-inline-cta-sub">The Internship Dojo surfaces niche finance roles across India before job boards catch up.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds finance roles that fit you on company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/outreach" className="rpt-btn-primary">Browse Internships</Link>
+              <Link to="/b2cnew/join?via=report-finance-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -408,9 +408,9 @@ export default function FinanceIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into a finance role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume and cover letter to each finance role you apply to.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-finance-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -518,10 +518,10 @@ export default function FinanceIndiaReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Fix your resume before you apply</div>
-                  <div className="rpt-inline-cta-sub">The Careers Dojo builds ATS-optimised finance resumes. Free. Takes 5 minutes.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume to each finance role before you apply.</div>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to="/resume-maker" className="rpt-btn-primary">Build Resume</Link>
+                  <Link to="/b2cnew/join?via=report-finance-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
                   <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
                 </div>
               </div>
@@ -562,9 +562,9 @@ export default function FinanceIndiaReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Find your first finance internship</div>
-                  <div className="rpt-inline-cta-sub">FP&A, investment research, fintech analytics: curated weekly. Apply directly from Studojo.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds FP&A, investment research and fintech analytics roles that fit you, best fit first.</div>
                 </div>
-                <Link to="/outreach" className="rpt-btn-primary">Find Finance Internships</Link>
+                <Link to="/b2cnew/join?via=report-finance-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
               </div>
             </div>
             <p className="rpt-source">Source: AmbitionBox salary data, CFA Institute India member survey, recruiter interviews, April 2026</p>
@@ -630,10 +630,10 @@ export default function FinanceIndiaReport() {
           {/* Final CTA block */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the finance roles this report is talking about: FP&A, analytics, fintech, and investment research openings across India, curated weekly.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds the finance roles this report is talking about that fit you: FP&A, analytics, fintech, and investment research. Then it tailors your resume to each one.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/outreach" className="rpt-btn-white">Browse Finance Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-finance-india-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to="/b2cnew/join?via=report-finance-india-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

@@ -666,10 +666,10 @@ export default function AmazonInternshipReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find roles like this, without the queue.</h3>
-              <p>Studojo Outreach helps you reach hiring managers directly, so your application does not sit in the same pile as thousands of others.</p>
+              <p>Stu, Studojo&apos;s job agent, finds roles that fit you and the hiring manager to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-amazon-internship-report-2026-27&how=voice" reloadDocument className="rpt-cta-btn">
+              Start with Stu →
             </Link>
           </div>
         </div>

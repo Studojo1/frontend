@@ -587,10 +587,10 @@ export default function ApplicationResponseRateReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Stop applying into the void.</h3>
-              <p>Studojo Outreach finds the hiring managers who are actively looking and puts you in front of them directly. No ATS, no ghost jobs, no silence.</p>
+              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-application-response-rate-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Start with Stu →
             </Link>
           </div>
         </div>

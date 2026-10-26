@@ -662,10 +662,10 @@ export default function StartupVsMncReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find the roles worth choosing between.</h3>
-              <p>Studojo Outreach finds the right hiring managers at both startups and MNCs and puts you in front of them directly. No ATS, no job board noise.</p>
+              <p>Stu, Studojo's job agent, finds the roles that fit you at startups and MNCs, best fit first, and the right person to write to at each one. You send the email from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-startup-vs-mnc-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find roles →
             </Link>
           </div>
         </div>

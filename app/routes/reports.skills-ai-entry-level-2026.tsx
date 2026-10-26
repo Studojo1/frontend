@@ -215,7 +215,7 @@ export default function AISkillsReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for AI internships and entry-level roles?</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill">Find AI Roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-skills-ai-entry-level-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -356,9 +356,9 @@ export default function AISkillsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find AI internships and entry-level roles globally</div>
-                <div className="rpt-inline-cta-sub">The Internship Dojo surfaces AI roles with skill filters, pay data, and direct application links.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds AI roles that fit you from company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/dojos/internships" className="rpt-btn-primary">Find AI Roles</Link>
+              <Link to="/b2cnew/join?via=report-skills-ai-entry-level-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -471,9 +471,9 @@ export default function AISkillsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that clears AI company ATS filters</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>AI companies use keyword-heavy ATS systems. The Studojo resume builder outputs a clean, ATS-tested format in 5 minutes. Free.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>AI companies use keyword-heavy ATS systems. Stu, Studojo's job agent, tailors your resume and cover letter to each role you go for.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-skills-ai-entry-level-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -574,7 +574,7 @@ export default function AISkillsReport() {
                       ["Wellfound (Wellfound.com)", "Best for startup AI roles. Salary ranges shown upfront. Founder-posted roles often here 1-2 weeks before LinkedIn."],
                       ["Hugging Face Jobs", "AI-specific. Mostly ML engineering and research. Small volume but very high signal quality."],
                       ["Y Combinator job board", "YC companies post here. Strong for early-stage AI startup roles. roles.y-combinator.com"],
-                      ["Studojo Internship Dojo", "Curated AI internships globally. Pay data, sector filters, direct applications."],
+                      ["Stu, Studojo's job agent", "Finds AI internships that fit you from company career sites and job boards, best fit first."],
                     ].map(([name, note]) => (
                       <div key={name as string} style={{ display: "flex", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", flexShrink: 0, marginTop: 5 }}></div>
@@ -650,7 +650,7 @@ export default function AISkillsReport() {
                     items: [
                       "Polish your GitHub: clear READMEs, commit history visible, pinned repos pointing to your best work.",
                       "Update your resume: lead with the deployed project and skills. Remove anything that is not relevant to AI.",
-                      "Apply to 5 to 10 roles per week. Target: startups on Wellfound, internships on Studojo, YC companies.",
+                      "Apply to 5 to 10 roles per week. Target: startups on Wellfound, internships Stu finds for you, YC companies.",
                       "For each rejection or silence: improve one concrete thing. A rejected portfolio is not a failure. It is a data point.",
                     ],
                   },
@@ -702,10 +702,10 @@ export default function AISkillsReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find AI internships and entry-level roles globally. Build an ATS-ready resume in 5 minutes. Free.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds AI internships and entry-level roles that fit you, then tailors your resume to each one.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/dojos/internships" className="rpt-btn-white">Find AI Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-skills-ai-entry-level-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to="/b2cnew/join?via=report-skills-ai-entry-level-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

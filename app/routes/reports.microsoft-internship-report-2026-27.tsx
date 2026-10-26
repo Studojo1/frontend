@@ -579,10 +579,10 @@ export default function MicrosoftInternshipReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach the people behind the posting.</h3>
-              <p>Studojo Outreach helps you write personal messages to hiring teams, so your application does not sit alone in a portal.</p>
+              <p>Stu, Studojo's job agent, finds the right person to write to on the hiring team and drafts the email you send from your own mailbox, so your application does not sit alone in a portal.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Start Your Outreach →
+            <Link to="/b2cnew/join?via=report-microsoft-internship-report-2026-27&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find the right person →
             </Link>
           </div>
         </div>

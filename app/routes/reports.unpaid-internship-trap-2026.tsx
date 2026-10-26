@@ -464,10 +464,10 @@ export default function Report_UnpaidInternshipTrap2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Choose internships that build real proof.</h3>
-              <p>Browse internships on Studojo with clearer role scope, practical expectations, and candidate-first details so your effort translates into outcomes you can show.</p>
+              <p>Stu, Studojo's job agent, finds internships that fit you, best fit first, and tailors your resume to each one, so your effort goes into work you can show.</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              Browse Real Internships →
+            <Link to="/b2cnew/join?via=report-unpaid-internship-trap-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find roles →
             </Link>
           </div>
         </div>

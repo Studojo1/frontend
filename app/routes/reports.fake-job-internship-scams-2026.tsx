@@ -671,10 +671,10 @@ export default function FakeJobScamsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Apply to real roles, direct from the company.</h3>
-              <p>Studojo Outreach puts you in front of real hiring managers at verified companies, so you skip the fake listings and the middlemen.</p>
+              <p>Stu, Studojo's job agent, finds roles that fit you on company career sites and job boards, and the hiring manager or recruiter to write to. You send the email from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-fake-job-internship-scams-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find roles →
             </Link>
           </div>
         </div>

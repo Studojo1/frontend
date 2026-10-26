@@ -274,7 +274,7 @@ const FAQ = [
   },
   {
     q: "How do I find internships that hire international students?",
-    a: "Target employers with a track record of hiring international students, and skip postings that say they cannot sponsor or support work authorization, unless your CPT or OPT already covers you. Reach out directly to hiring managers and lead with your authorization status in plain words. Studojo's outreach tool helps you find and contact them.",
+    a: "Target employers with a track record of hiring international students, and skip postings that say they cannot sponsor or support work authorization, unless your CPT or OPT already covers you. Reach out directly to hiring managers and lead with your authorization status in plain words. Stu, Studojo's job agent, finds the right person to write to and drafts the email.",
   },
 ];
 
@@ -526,7 +526,7 @@ export default function USInternshipsInternationalReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>Use your school.</strong> Career offices and alumni networks know which employers have hired international students before.</span></div>
             </div>
             <div className="highlight">
-              Studojo's outreach tool finds the right people at the right companies and helps you write the message, so you are not stuck behind a form that screens you out.
+              Stu, Studojo's job agent, finds the right person to write to at each company and drafts the email, so you are not stuck behind a form that screens you out.
             </div>
           </div>
 
@@ -587,10 +587,10 @@ export default function USInternshipsInternationalReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach the people who hire international interns.</h3>
-              <p>Studojo's outreach tool finds hiring managers at the companies you want and helps you write a message that states your authorization clearly.</p>
+              <p>Stu, Studojo's job agent, finds the hiring manager or recruiter at each company and drafts an email that states your authorization clearly. You send it from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Start Your Outreach →
+            <Link to="/b2cnew/join?via=report-us-internships-international-students-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find the right person →
             </Link>
           </div>
         </div>

@@ -704,10 +704,10 @@ export default function LinkedInProfileReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Send the 20 outreach messages.</h3>
-              <p>Studojo Outreach finds the right hiring managers at your target companies and drafts personalized messages that actually get responses. No templates. No blasting.</p>
+              <p>Stu, Studojo's job agent, finds the right person to write to at your target companies and drafts each email. It goes from your own mailbox, only when you press Send.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-linkedin-profile-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find the right person →
             </Link>
           </div>
         </div>

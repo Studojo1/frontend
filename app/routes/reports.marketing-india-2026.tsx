@@ -231,7 +231,7 @@ export default function MarketingIndiaReport() {
         <div className="rpt-cta-strip rpt-cta-strip-green">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for marketing internships in India?</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill rpt-cta-pill-green">Find marketing roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-marketing-india-2026&how=voice" reloadDocument className="rpt-cta-pill rpt-cta-pill-green">Start with Stu →</Link>
           </div>
         </div>
 
@@ -303,9 +303,9 @@ export default function MarketingIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find marketing internships that actually pay</div>
-                <div className="rpt-inline-cta-sub">Studojo filters for stipend, niche role type, and company stage. Updated daily.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds marketing internships that fit you from company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/dojos/internships" className="rpt-btn-primary rpt-btn-green">Browse Internships Free</Link>
+              <Link to="/b2cnew/join?via=report-marketing-india-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-green">Let Stu find roles →</Link>
             </div>
           </div>
 
@@ -410,9 +410,9 @@ export default function MarketingIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Build a resume that actually reflects your marketing skills</div>
-                <div className="rpt-inline-cta-sub">ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume to each marketing role you apply for.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary rpt-btn-green">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-marketing-india-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-green">Let Stu tailor your resume →</Link>
             </div>
           </div>
 
@@ -618,10 +618,10 @@ export default function MarketingIndiaReport() {
           {/* Final CTA */}
           <div className="rpt-final-cta rpt-final-cta-green">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use Studojo to find niche marketing internships before everyone else does. Build an ATS-optimised resume that reflects real skills. Apply to the roles worth applying to.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds the marketing internships that fit you and tailors your resume to each one. Apply to the roles worth applying to.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/dojos/internships" className="rpt-btn-white">Find Marketing Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-marketing-india-2026&how=voice" reloadDocument className="rpt-btn-white">Start with Stu →</Link>
+              <Link to="/b2cnew/join?via=report-marketing-india-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

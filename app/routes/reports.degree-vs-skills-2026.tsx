@@ -586,10 +586,10 @@ export default function DegreeVsSkillsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Build the skills signals that actually get you hired.</h3>
-              <p>Studojo's Internship Dojo helps you find roles where demonstrated work is what gets you through the door.</p>
+              <p>Stu, Studojo's job agent, finds roles that fit you and tailors your resume to each one, so your demonstrated work is what gets you through the door.</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              Find Real Internships →
+            <Link to="/b2cnew/join?via=report-degree-vs-skills-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find roles →
             </Link>
           </div>
         </div>

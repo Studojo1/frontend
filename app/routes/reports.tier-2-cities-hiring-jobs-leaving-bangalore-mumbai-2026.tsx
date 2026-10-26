@@ -431,8 +431,8 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach hiring managers in your target city"}</h4>
-                <p>{"Studojo Outreach helps you message GCC recruiters and team leads in Pune, Hyderabad, or Chennai with a tight proof link, not a Bangalore-generic blast."}</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
+                <p>{"Stu, Studojo's job agent, finds the recruiter or team lead for each role and drafts a short email with your proof link, not a Bangalore-generic blast."}</p>
+                <Link to="/b2cnew/join?via=report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -544,10 +544,10 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Hire where the reqs actually are."}</h3>
-              <p>{"Studojo Outreach helps you reach GCC and hiring managers in tier 2 cities with proof that fits their lane, not a metro-generic spam loop."}</p>
+              <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox."}</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              {"Try Studojo Outreach →"}
+            <Link to="/b2cnew/join?via=report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Start with Stu →"}
             </Link>
           </div>
         </div>

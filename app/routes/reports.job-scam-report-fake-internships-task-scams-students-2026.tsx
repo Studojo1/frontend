@@ -407,10 +407,10 @@ export default function Report_JobScamReportFakeInternshipsTaskScamsStudents2026
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Look for internships where companies come to you openly"}</h3>
-              <p>{"Browse internships on Studojo from companies you can research, and never pay to apply."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships that fit you from company career sites and job boards, so you apply to companies you can research. Never pay to apply."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-job-scam-report-fake-internships-task-scams-students-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>

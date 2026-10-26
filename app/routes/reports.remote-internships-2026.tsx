@@ -591,10 +591,10 @@ export default function RemoteInternshipsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find the remote internships that are actually real.</h3>
-              <p>Studojo surfaces verified remote roles and puts you in front of the hiring managers directly. No fake listings. No noise.</p>
+              <p>Stu, Studojo's job agent, finds remote internships that fit you, from company career sites and job boards, best fit first. It also finds the right person to write to and drafts the email.</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              Browse Real Internships →
+            <Link to="/b2cnew/join?via=report-remote-internships-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find roles →
             </Link>
           </div>
         </div>

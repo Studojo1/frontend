@@ -1182,20 +1182,22 @@ export default function Reports() {
             Find the roles these reports talk about.
           </h2>
           <p className="mx-auto mt-3 max-w-xl font-['Satoshi'] text-base text-white/80">
-            Use the Studojo Outreach tool to discover and apply to niche finance, PM, and marketing roles across India. ATS resume builder included.
+            Stu, Studojo's job agent, finds the roles that fit you, tailors your resume to each one and finds the right person to write to.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              to="/outreach"
+              to="/b2cnew/join?via=reports&how=voice"
+              reloadDocument
               className="flex h-12 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-sm font-bold text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
-              Browse Internships
+              Start with Stu
             </Link>
             <Link
-              to="/resume-maker"
+              to="/b2cnew/start?via=reports&how=type"
+              reloadDocument
               className="flex h-12 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/10 px-8 font-['Satoshi'] text-sm font-bold text-white transition hover:bg-white/20"
             >
-              Build Your Resume Free
+              Set up by typing
             </Link>
           </div>
         </section>

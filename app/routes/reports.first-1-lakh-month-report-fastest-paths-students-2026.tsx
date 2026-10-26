@@ -501,8 +501,8 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build proof that wins international clients"}</h4>
-                <p>{"Studojo Careers helps you ship a portfolio and resume that reads credibly to global buyers, not just campus placement cells."}</p>
-                <Link to="/dojos/internships" className="rpt-cta-mid-btn">{"Build your resume free →"}</Link>
+                <p>{"Stu, Studojo's job agent, tailors your resume and cover letter to each job, so it reads credibly to the people hiring, not just campus placement cells."}</p>
+                <Link to="/b2cnew/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
               </div>
             </div>
 
@@ -650,10 +650,10 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Find roles that pay what the path promises"}</h3>
-              <p>{"Studojo Internship Dojo surfaces funded startups, product teams, and high-signal roles with real INR bands, so you pick a lane with data, not guesswork."}</p>
+              <p>{"Stu, Studojo's job agent, finds jobs and internships that fit you on company career sites and job boards, best fit first, so you pick a lane with data, not guesswork."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse internships →"}
+            <Link to="/b2cnew/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>

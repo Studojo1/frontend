@@ -492,9 +492,9 @@ export default function Report_SingaporeRemoteFromIndia2026() {
 
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
-                <h4>Get the full Singapore HQ target list in your inbox</h4>
-                <p>Studojo Outreach maintains a verified list of 240+ Singapore companies hiring India remote across engineering, product, and design.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <h4>Find the roles that fit you</h4>
+                <p>Stu, Studojo's job agent, finds jobs that fit you from company career sites and job boards, best fit first.</p>
+                <Link to="/b2cnew/join?via=report-singapore-remote-from-india-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
               </div>
             </div>
 
@@ -627,9 +627,9 @@ export default function Report_SingaporeRemoteFromIndia2026() {
 
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
-                <h4>The 4 step play, done for you</h4>
-                <p>Studojo Outreach finds the right Singapore hiring teams, writes the message, and lands the first reply. You show up to the conversation.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <h4>Steps two and three, with Stu</h4>
+                <p>Stu finds the hiring manager at each company and drafts a specific email. You send it from your own mailbox, only when you press Send.</p>
+                <Link to="/b2cnew/join?via=report-singapore-remote-from-india-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -717,10 +717,10 @@ export default function Report_SingaporeRemoteFromIndia2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach Singapore hiring teams directly.</h3>
-              <p>Studojo Outreach finds the right Singapore HQ companies, identifies the hiring manager, and writes the message. You show up to the reply.</p>
+              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-singapore-remote-from-india-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Start with Stu →
             </Link>
           </div>
         </div>

@@ -533,8 +533,8 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach the manager before the posting closes"}</h4>
-                <p>{"Studojo Outreach helps you find hiring managers behind real pipelines and send a forwardable intro, the same pattern connections use when they paste your name into Slack."}</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
+                <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox."}</p>
+                <Link to="/b2cnew/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -656,10 +656,10 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Start building the connections that convert"}</h3>
-              <p>{"Studojo Outreach finds hiring managers behind real pipelines and helps you send a credible, forwardable intro. Same mechanics as a referral. You supply the proof."}</p>
+              <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox. You supply the proof."}</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              {"Try Studojo Outreach →"}
+            <Link to="/b2cnew/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Start with Stu →"}
             </Link>
           </div>
         </div>

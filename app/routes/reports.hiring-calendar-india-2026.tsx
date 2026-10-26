@@ -233,7 +233,7 @@ export default function HiringCalendarReport() {
         <div className="rpt-cta-strip rpt-cta-strip-orange">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Ready to apply to the roles on this calendar?</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill rpt-cta-pill-orange">Find open roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-cta-pill rpt-cta-pill-orange">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -396,9 +396,9 @@ export default function HiringCalendarReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Don't wait for the window - prepare before it opens</div>
-                <div className="rpt-inline-cta-sub">Use Studojo's ATS resume builder to have your application ready before each deadline hits.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume and cover letter to each role, so your application is ready before each deadline hits.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary rpt-btn-orange">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -715,9 +715,9 @@ export default function HiringCalendarReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Get direct outreach to hiring managers at these companies</div>
-                <div className="rpt-inline-cta-sub">Studojo's Outreach tool emails hiring managers directly - bypassing the ATS queue entirely.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds the hiring manager or recruiter at each company and drafts the email. It goes from your own mailbox, only when you press Send.</div>
               </div>
-              <Link to="/outreach" className="rpt-btn-primary rpt-btn-orange">Try Outreach Free</Link>
+              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu find the right person</Link>
             </div>
           </div>
 
@@ -1108,11 +1108,11 @@ export default function HiringCalendarReport() {
           <div className="rpt-final-cta rpt-final-cta-orange">
             <div className="rpt-final-cta-title">You know the calendar. Now use it.</div>
             <p className="rpt-final-cta-sub">
-              Studojo's Outreach tool identifies the right hiring managers at every company on this calendar and sends personalized emails on your behalf. Most students wait for job boards. You don't have to.
+              Stu, Studojo's job agent, finds the right person to write to at the companies on this calendar and drafts a personal email to each. Emails go from your own mailbox, only when you press Send. Most students wait for job boards. You don't have to.
             </p>
             <div className="rpt-final-cta-btns">
-              <Link to="/outreach" className="rpt-btn-white">Start Outreach Free</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume</Link>
+              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-white">Start with Stu</Link>
+              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
             </div>
           </div>
 

@@ -194,8 +194,8 @@ export default function JobSearchReport() {
         {/* CTA strip */}
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Skip the boards. Find curated internships with pay data and direct applications.</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill">Browse Internships on Studojo →</Link>
+            <span className="rpt-cta-strip-text">Stop scrolling boards. Stu finds the roles that fit you, best fit first.</span>
+            <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
           </div>
         </div>
 
@@ -289,9 +289,9 @@ export default function JobSearchReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find internships that are actually worth applying to</div>
-                <div className="rpt-inline-cta-sub">Studojo curates roles with pay data, direct application links, and quality filters. No spray and pray.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds internships that fit you from company career sites and job boards, best fit first. No spray and pray.</div>
               </div>
-              <Link to="/dojos/internships" className="rpt-btn-primary">Browse Internships</Link>
+              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
             </div>
           </div>
 
@@ -404,9 +404,9 @@ export default function JobSearchReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that opens cold outreach doors</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>A clean, ATS-optimised resume is the attachment that makes cold emails credible. Build yours free in 5 minutes.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>A clean, ATS-optimised resume is the attachment that makes cold emails credible. Stu, Studojo's job agent, tailors yours to each job.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
             </div>
           </div>
 
@@ -479,7 +479,7 @@ export default function JobSearchReport() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
                       ["Wellfound (wellfound.com)", "Best for startup roles. Salary shown upfront. Less crowded than LinkedIn. Founder-posted roles appear here before boards."],
-                      ["Studojo Internship Dojo", "Curated internships with pay data, sector filters, and direct application links. Built to cut through noise."],
+                      ["Stu, Studojo's job agent", "Finds internships that fit you from company career sites and job boards, best fit first, and tailors your resume to each one."],
                       ["Y Combinator jobs (ycombinator.com/jobs)", "YC-backed companies. Early-stage roles with high growth potential. Less competition than mainstream boards."],
                       ["GlassDoor company pages", "Use for salary research and to identify team structure before applying. Not primarily for applications."],
                       ["Naukri / Internshala (India)", "High volume, but use only for direct company applications. Filter aggressively: minimum stipend, sector, and role type."],
@@ -651,10 +651,10 @@ export default function JobSearchReport() {
           {/* Final CTA */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stop spraying and praying. Find curated internships with pay data and direct applications on the Studojo Internship Dojo. Build an ATS-ready resume in 5 minutes. Free.</p>
+            <p className="rpt-final-cta-sub">Stop spraying and praying. Stu, Studojo's job agent, finds the internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/dojos/internships" className="rpt-btn-white">Find Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-white">Start with Stu →</Link>
+              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

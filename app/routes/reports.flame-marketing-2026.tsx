@@ -227,7 +227,7 @@ export default function FlameMarketingReport() {
         <div className="rpt-cta-strip rpt-cta-strip-purple">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Flame student looking for marketing internships?</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill rpt-cta-pill-purple">Find marketing roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-flame-marketing-2026&how=voice" reloadDocument className="rpt-cta-pill rpt-cta-pill-purple">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -361,7 +361,7 @@ export default function FlameMarketingReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">Where to find the ₹18k+ marketing internships</div>
-              <p>Wellfound (formerly AngelList) is the best source for funded startup internships: filter by India, marketing, internship. LinkedIn Jobs with a 'past 2 weeks' filter and 'internship' job type finds roles before they fill. Founder LinkedIn posts: search "marketing intern hiring" in LinkedIn Posts, India, past 7 days: are often the freshest source before any aggregator picks them up. Studojo's Internship Dojo aggregates these weekly. The volume of quality listings is higher than most Flame students realise because most students only look at Internshala.</p>
+              <p>Wellfound (formerly AngelList) is the best source for funded startup internships: filter by India, marketing, internship. LinkedIn Jobs with a 'past 2 weeks' filter and 'internship' job type finds roles before they fill. Founder LinkedIn posts: search "marketing intern hiring" in LinkedIn Posts, India, past 7 days: are often the freshest source before any aggregator picks them up. Stu, Studojo's job agent, finds roles that fit you from company career sites and job boards. The volume of quality listings is higher than most Flame students realise because most students only look at Internshala.</p>
             </div>
             <p className="rpt-source">Source: internshala.com/internships/marketing-internship/: live listings, April 2026</p>
           </div>
@@ -395,7 +395,7 @@ export default function FlameMarketingReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The off-campus stack that works</div>
-              <p>LinkedIn profile with a clear headline (not just 'MBA student at Flame'), 2-3 portfolio pieces visible, and 5-10 connection requests per week to marketing managers at target companies. Wellfound for funded startup roles. Internshala for explicit intern-to-hire roles. Direct email to founders who post about their company on LinkedIn: one specific, well-researched email is worth 50 generic applications. Studojo's Internship Dojo for a curated weekly list. This stack, run consistently for two months during final year, generates more quality marketing interviews than most Flame students get through campus placement.</p>
+              <p>LinkedIn profile with a clear headline (not just 'MBA student at Flame'), 2-3 portfolio pieces visible, and 5-10 connection requests per week to marketing managers at target companies. Wellfound for funded startup roles. Internshala for explicit intern-to-hire roles. Direct email to founders who post about their company on LinkedIn: one specific, well-researched email is worth 50 generic applications. Stu, Studojo's job agent, for roles that fit you, best fit first. This stack, run consistently for two months during final year, generates more quality marketing interviews than most Flame students get through campus placement.</p>
             </div>
             <p className="rpt-source">Source: Studojo editorial; flame.edu.in placement reports; LinkedIn India</p>
           </div>
@@ -428,10 +428,10 @@ export default function FlameMarketingReport() {
           {/* Closing CTA */}
           <div className="rpt-cta-block">
             <h2 className="rpt-cta-h">Find marketing internships worth applying to</h2>
-            <p className="rpt-cta-sub">Brand, GTM, content, and performance roles at D2C brands, B2B SaaS startups, and agencies. Updated weekly. No ₹3k agency listings.</p>
+            <p className="rpt-cta-sub">Stu, Studojo's job agent, finds brand, GTM, content, and performance roles that fit you, best fit first. Then it tailors your resume to each one.</p>
             <div className="rpt-cta-btns">
-              <Link to="/dojos/internships" className="rpt-btn rpt-btn-purple">Browse marketing internships</Link>
-              <Link to="/resume-maker" className="rpt-btn rpt-btn-out-purple">Build your resume free</Link>
+              <Link to="/b2cnew/join?via=report-flame-marketing-2026&how=voice" reloadDocument className="rpt-btn rpt-btn-purple">Let Stu find roles</Link>
+              <Link to="/b2cnew/join?via=report-flame-marketing-2026&how=voice" reloadDocument className="rpt-btn rpt-btn-out-purple">Let Stu tailor your resume</Link>
             </div>
           </div>
 

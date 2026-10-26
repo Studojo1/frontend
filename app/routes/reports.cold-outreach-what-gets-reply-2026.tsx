@@ -450,10 +450,10 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Turn outreach into structured practice, not guesswork</h3>
-              <p>Studojo helps you draft tighter asks, keep track of who you contacted, and iterate on what earns replies, without spamming your network.</p>
+              <p>Stu, Studojo's job agent, finds the right person to write to at each company and drafts the email. It goes from your own mailbox, and only when you press Send.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-cold-outreach-what-gets-reply-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find the right person →
             </Link>
           </div>
         </div>

@@ -228,7 +228,7 @@ export default function GermanyInternshipsReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for paid internships in Germany and Europe?</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill">Find Europe Internships on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-internships-germany-2026&how=voice" reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
           </div>
         </div>
 
@@ -333,10 +333,10 @@ export default function GermanyInternshipsReport() {
           <div className="rpt-inline-cta">
             <div className="rpt-inline-cta-inner">
               <div>
-                <div className="rpt-inline-cta-title">Find paid internships across Europe and Germany</div>
-                <div className="rpt-inline-cta-sub">The Internship Dojo surfaces roles in Germany, UK, Singapore and more. Filter by pay, sector and location.</div>
+                <div className="rpt-inline-cta-title">Find paid internships that fit you</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds internships that fit you from company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/dojos/internships" className="rpt-btn-primary">Find Europe Roles</Link>
+              <Link to="/b2cnew/join?via=report-internships-germany-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
             </div>
           </div>
 
@@ -443,9 +443,9 @@ export default function GermanyInternshipsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that clears German ATS filters</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>German companies use ATS systems that are strict about formatting. The Studojo resume builder outputs a clean, ATS-safe PDF in 5 minutes.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>German companies use ATS systems that are strict about formatting. Stu, Studojo's job agent, tailors your resume to each job you apply for.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-internships-germany-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
             </div>
           </div>
 
@@ -634,10 +634,10 @@ export default function GermanyInternshipsReport() {
           {/* Final CTA */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find paid internships in Germany, Europe, and beyond. Build an ATS-ready resume in 5 minutes. Free.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds paid internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/dojos/internships" className="rpt-btn-white">Find Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-internships-germany-2026&how=voice" reloadDocument className="rpt-btn-white">Start with Stu →</Link>
+              <Link to="/b2cnew/join?via=report-internships-germany-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

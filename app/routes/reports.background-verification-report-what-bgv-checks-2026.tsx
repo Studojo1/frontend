@@ -419,10 +419,10 @@ export default function Report_BackgroundVerificationReportWhatBgvChecks2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Build a resume that survives verification"}</h3>
-              <p>{"Studojo helps you write a resume that is sharp and accurate, so the story you tell is the one BGV confirms."}</p>
+              <p>{"Stu, Studojo's job agent, tailors your resume to each job. Keep every line accurate, so the story you tell is the one BGV confirms."}</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
-              {"Build Your Resume →"}
+            <Link to="/b2cnew/join?via=report-background-verification-report-what-bgv-checks-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu tailor your resume →"}
             </Link>
           </div>
         </div>

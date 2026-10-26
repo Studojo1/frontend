@@ -261,7 +261,7 @@ export default function CSIndiaReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for CS and SWE roles in India?</span>
-            <Link to="/outreach" className="rpt-cta-pill">Find CS roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-cs-india-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -333,9 +333,9 @@ export default function CSIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Build the resume that gets you into a product company</div>
-                <div className="rpt-inline-cta-sub">ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume to each role you go for, so the words match the job.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-cs-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -464,9 +464,9 @@ export default function CSIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Find SWE, AI/ML, and product company internships</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Build your track record before you apply full-time. The outreach tool finds the right roles.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Build your track record before you apply full-time. Stu, Studojo's job agent, finds the roles that fit you.</div>
               </div>
-              <Link to="/outreach" className="rpt-btn-primary">Find CS Roles</Link>
+              <Link to="/b2cnew/join?via=report-cs-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -652,10 +652,10 @@ export default function CSIndiaReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Outreach tool to find SWE, AI/ML, and product company roles across India. Build a resume that shows real skills, not just a degree.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds SWE, AI/ML, and product company roles that fit you and tailors your resume to each one, so it shows real skills, not just a degree.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/outreach" className="rpt-btn-white">Find CS Roles</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-cs-india-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to="/b2cnew/join?via=report-cs-india-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

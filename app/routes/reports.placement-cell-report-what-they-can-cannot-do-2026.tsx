@@ -438,8 +438,8 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Run the off-campus lane in parallel"}</h4>
-                <p>{"Studojo Outreach helps you reach hiring managers and recruiters at firms your placement cell never booked, with the same forwardable proof pattern campus referrers use."}</p>
-                <Link to="/dojos/internships" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
+                <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to at firms your placement cell never booked, and drafts the email you send from your own mailbox."}</p>
+                <Link to="/b2cnew/join?via=report-placement-cell-report-what-they-can-cannot-do-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -566,10 +566,10 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Run campus and off-campus lanes together."}</h3>
-              <p>{"Studojo helps you find internships and reach hiring managers at firms your placement cell never scheduled, so you are not betting everything on one drive calendar."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships that fit you and the right person to write to at firms your placement cell never scheduled, so you are not betting everything on one drive calendar."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Explore Studojo Internships →"}
+            <Link to="/b2cnew/join?via=report-placement-cell-report-what-they-can-cannot-do-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Start with Stu →"}
             </Link>
           </div>
         </div>

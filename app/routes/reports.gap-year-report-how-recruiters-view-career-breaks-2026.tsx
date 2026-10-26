@@ -374,10 +374,10 @@ export default function Report_GapYearReportHowRecruitersViewCareerBreaks2026() 
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Turn your gap into experience"}</h3>
-              <p>{"Part-time and remote internships on Studojo let you build proof while you prepare, or restart quickly when you are ready."}</p>
+              <p>{"Stu, Studojo's job agent, finds the internships that fit you, best fit first, so you can build proof while you prepare, or restart quickly when you are ready."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-gap-year-report-how-recruiters-view-career-breaks-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>

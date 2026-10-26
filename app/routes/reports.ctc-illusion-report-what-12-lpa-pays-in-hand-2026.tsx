@@ -510,10 +510,10 @@ export default function Report_CtcIllusionReportWhat12LpaPaysInHand2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Find roles where the numbers add up"}</h3>
-              <p>{"Browse internships and early-career roles on Studojo and compare offers on what you will actually take home."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first. Then compare offers on what you will actually take home."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-ctc-illusion-report-what-12-lpa-pays-in-hand-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>

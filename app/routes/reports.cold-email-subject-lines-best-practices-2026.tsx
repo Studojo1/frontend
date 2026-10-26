@@ -503,10 +503,10 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Practice better subjects before you hit send"}</h3>
-              <p>{"Studojo Outreach helps you draft tighter subject lines, track what earns replies, and iterate without burning your network."}</p>
+              <p>{"Stu, Studojo's job agent, finds the right person to write to and drafts the email, subject line included. You edit it and send it from your own mailbox."}</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              {"Try Studojo Outreach →"}
+            <Link to="/b2cnew/join?via=report-cold-email-subject-lines-best-practices-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Start with Stu →"}
             </Link>
           </div>
         </div>

@@ -492,7 +492,7 @@ export default function ITServicesHiringReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>Aptitude first:</strong> quant, logical reasoning and verbal. Practise against a timer, because speed is part of the score.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Coding basics:</strong> arrays, strings, loops and simple logic in one language you know well. Easy and medium problems are enough for most gates.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Communication:</strong> a clear self-introduction and a calm, simple answer to "tell me about a project". This often decides the premium tracks.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>A clean resume:</strong> keep one ready for the interview round. The <Link to="/resume-maker">Studojo resume builder</Link> is free if you need one.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>A clean resume:</strong> keep one ready for the interview round. <Link to="/b2cnew/join?via=report-it-services-hiring-report-tcs-infosys-wipro-2026&how=voice" reloadDocument>Stu, Studojo's job agent</Link>, tailors your resume to each job if you need help.</span></div>
             </div>
           </div>
 
@@ -589,10 +589,10 @@ export default function ITServicesHiringReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Do not wait on one exam.</h3>
-              <p>Studojo Outreach helps you reach hiring managers and recruiters directly, so a single test result is not your only way in.</p>
+              <p>Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts the email you send from your own mailbox, so a single test result is not your only way in.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-it-services-hiring-report-tcs-infosys-wipro-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find the right person →
             </Link>
           </div>
         </div>

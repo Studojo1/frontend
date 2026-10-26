@@ -492,10 +492,10 @@ export default function Report_HowToGetAHighSchoolInternship2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Send the fifteen emails.</h3>
-              <p>Studojo finds the right person at each organisation and helps you write the line that makes them reply, instead of guessing at info addresses.</p>
+              <p>Stu, Studojo's job agent, finds the right person to write to at each organisation and drafts the email, so you stop guessing at info addresses. You send it from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Start Reaching Out →
+            <Link to="/b2cnew/join?via=report-how-to-get-a-high-school-internship-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find the right person →
             </Link>
           </div>
         </div>

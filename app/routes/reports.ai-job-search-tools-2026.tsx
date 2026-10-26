@@ -625,10 +625,10 @@ export default function AIJobSearchToolsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Point AI at the right roles.</h3>
-              <p>Studojo uses AI to find roles that fit you and draft real outreach you can stand behind, so the speed is real and the words are still yours.</p>
+              <p>Stu, Studojo&apos;s job agent, finds roles that fit you, tailors your resume to each one and drafts the email. Nothing goes out until you press Send, so the words are still yours.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-ai-job-search-tools-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Start with Stu →
             </Link>
           </div>
         </div>

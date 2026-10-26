@@ -363,8 +363,8 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
-                <p>Studojo Outreach helps you reach hiring managers with a tight brief and one flagship link, the pattern Singapore teams actually forward.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <p>Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox.</p>
+                <Link to="/b2cnew/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -434,8 +434,8 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Reach the right inbox</h4>
-                <p>Studojo Outreach finds the people behind real internship pipelines and helps you land with a personalised, credible intro.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <p>Stu, Studojo's job agent, finds the right person to write to at each company and drafts the email. It goes from your own mailbox, only when you press Send.</p>
+                <Link to="/b2cnew/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -541,10 +541,10 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach Singapore hiring managers, directly.</h3>
-              <p>Studojo Outreach finds the people behind real internship pipelines and helps you land in their inbox with a personalised, credible intro. No resume builder rabbit hole.</p>
+              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+            <Link to="/b2cnew/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Start with Stu →
             </Link>
           </div>
         </div>

@@ -394,8 +394,8 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build discovery luck on purpose"}</h4>
-                <p>{"Studojo Outreach helps you reach hiring managers and alumni with a forwardable proof line, the same pattern referrals use when they paste your name into Slack."}</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
+                <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox."}</p>
+                <Link to="/b2cnew/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -506,8 +506,8 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Increase your at-bats without spamming"}</h4>
-                <p>{"Studojo Outreach pairs targeted manager contact with a tight proof line so discovery luck has something to attach to."}</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
+                <p>{"Stu, Studojo's job agent, finds the roles that fit you, best fit first, and drafts an email to the right person at each company."}</p>
+                <Link to="/b2cnew/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
               </div>
             </div>
 
@@ -590,10 +590,10 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Meet luck halfway with better discovery"}</h3>
-              <p>{"Studojo Outreach helps you reach the humans behind hiring pipelines with forwardable proof, so skill has openings to convert."}</p>
+              <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox."}</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              {"Try Studojo Outreach →"}
+            <Link to="/b2cnew/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Start with Stu →"}
             </Link>
           </div>
         </div>

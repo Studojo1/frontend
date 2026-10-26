@@ -395,10 +395,10 @@ export default function Report_RemoteJobsReportWhoHiresRemoteFreshers2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Reach the founders hiring remote teams"}</h3>
-              <p>{"Many remote startup roles are filled before they are posted. Studojo Outreach helps you reach founders and hiring managers directly with proof of your work."}</p>
+              <p>{"Many remote startup roles are filled before they are posted. Stu, Studojo's job agent, finds the founder or hiring manager at each company and drafts an email with proof of your work, sent from your own mailbox."}</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              {"Try Studojo Outreach →"}
+            <Link to="/b2cnew/join?via=report-remote-jobs-report-who-hires-remote-freshers-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find the right person →"}
             </Link>
           </div>
         </div>

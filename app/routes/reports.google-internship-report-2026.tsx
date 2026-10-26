@@ -480,10 +480,10 @@ export default function Report_GoogleInternshipReport2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Do not let one pool decide your season.</h3>
-              <p>Studojo puts you in front of hiring managers directly, at companies where a person reads your application instead of a queue.</p>
+              <p>Stu, Studojo's job agent, finds other roles that fit you and the hiring manager to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Find Roles →
+            <Link to="/b2cnew/join?via=report-google-internship-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find roles →
             </Link>
           </div>
         </div>

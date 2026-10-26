@@ -382,10 +382,10 @@ export default function Report_ServiceVsProductCompanyReport5YearsLater2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Build the evidence that gets you the better start"}</h3>
-              <p>{"Internships at product companies and startups are the fastest way to show product-ready skills before your first offer. Find them on Studojo."}</p>
+              <p>{"Internships at product companies and startups are the fastest way to show product-ready skills before your first offer. Stu, Studojo's job agent, finds the ones that fit you, best fit first."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-service-vs-product-company-report-5-years-later-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>

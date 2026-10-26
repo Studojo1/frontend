@@ -466,8 +466,8 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach data hiring managers directly"}</h4>
-                <p>{"Studojo Outreach helps you message analytics and ML leads with one project link before you are buried in a generic intern queue."}</p>
-                <Link to="/dojos/internships" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
+                <p>{"Stu, Studojo's job agent, finds the data hiring manager to write to and drafts the email. You add one project link before you are buried in a generic intern queue."}</p>
+                <Link to="/b2cnew/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -579,10 +579,10 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Land a paid data intern role with proof."}</h3>
-              <p>{"Studojo helps you find structured data and analytics internships and reach hiring managers with a project link, not a generic AI resume."}</p>
+              <p>{"Stu, Studojo's job agent, finds data and analytics internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Explore Studojo Internships →"}
+            <Link to="/b2cnew/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Start with Stu →"}
             </Link>
           </div>
         </div>

@@ -470,8 +470,8 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Prioritize paid pipelines</h4>
-                <p>Studojo helps you find structured internships and outreach to employers who pay stipends or wages, so you are not defaulting to free labour.</p>
-                <Link to="/dojos/internships" className="rpt-cta-mid-btn">Explore Studojo Internships →</Link>
+                <p>Stu, Studojo's job agent, finds paid internships that fit you, so you are not defaulting to unpaid labour.</p>
+                <Link to="/b2cnew/join?via=report-unpaid-internship-report-where-legal-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
               </div>
             </div>
 
@@ -591,10 +591,10 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Target paid internships first.</h3>
-              <p>Studojo helps you find structured, paid internship paths and reach employers with real stipends, so you are not relying on unlawful or exploitative free work.</p>
+              <p>Stu, Studojo's job agent, finds paid internships that fit you and the right person to write to at each company, so you are not relying on unlawful or exploitative unpaid work.</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              Explore Studojo Internships →
+            <Link to="/b2cnew/join?via=report-unpaid-internship-report-where-legal-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Start with Stu →
             </Link>
           </div>
         </div>

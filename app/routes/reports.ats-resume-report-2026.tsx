@@ -606,10 +606,10 @@ export default function ATSResumeReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Build a resume that parses cleanly.</h3>
-              <p>The free Studojo resume builder produces a single-column, ATS-safe resume with the right headings, so the format is handled and you can focus on the words.</p>
+              <p>Stu, Studojo's job agent, finds roles that fit you and tailors your resume to each one, so the words match the job you are going for.</p>
             </div>
-            <Link to="/resume-maker" className="rpt-cta-btn">
-              Build Your Resume Free →
+            <Link to="/b2cnew/join?via=report-ats-resume-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu tailor your resume →
             </Link>
           </div>
         </div>

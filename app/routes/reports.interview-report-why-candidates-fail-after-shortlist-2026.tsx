@@ -433,8 +433,8 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Sharpen the stories they will ask about"}</h4>
-                <p>{"Studojo Careers helps you turn project and internship bullets into outcome-led lines that survive follow-up questions in manager rounds."}</p>
-                <Link to="/resume-maker" className="rpt-cta-mid-btn">{"Build your resume →"}</Link>
+                <p>{"Stu, Studojo's job agent, tailors your resume to each job and runs mock interviews with you, so your stories hold up in manager rounds."}</p>
+                <Link to="/b2cnew/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
               </div>
             </div>
             <p>{"After each interview, send a short thank-you within twenty-four hours with one specific reference to the conversation. Not a novel. One paragraph. It rarely saves a bad interview, but it helps close ties."}</p>
@@ -541,10 +541,10 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Turn shortlists into offers with proof that survives follow-ups."}</h3>
-              <p>{"Studojo Careers helps you build outcome-led resume lines and project stories that hold up when a hiring manager pushes past the surface."}</p>
+              <p>{"Stu, Studojo's job agent, gets you ready for each interview with a brief on the company and mock interviews, and tailors your resume to the job."}</p>
             </div>
-            <Link to="/resume-maker" className="rpt-cta-btn">
-              {"Build your resume →"}
+            <Link to="/b2cnew/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Start with Stu →"}
             </Link>
           </div>
         </div>

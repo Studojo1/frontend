@@ -33,14 +33,14 @@ const FAQ_ITEMS = [
     link: { to: "/refund-policy", label: "View Refund Policy" },
   },
   {
-    question: "How does the Internship Dojo outreach work?",
-    answer: "Our AI finds relevant hiring managers, writes personalised emails, and sends them from your connected Gmail account. You control who gets contacted and what gets sent.",
-    link: { to: "/dojos/internships", label: "Learn more" },
+    question: "What does Stu do?",
+    answer: "Stu is Studojo's job agent. It finds jobs and internships that fit you, finds the right person to write to and drafts the email. Emails go from your own mailbox, and only when you press Send.",
+    link: { to: "/b2cnew/join?via=contact&how=voice", label: "Start with Stu" },
   },
   {
-    question: "Is the resume builder really free?",
-    answer: "Yes. The Careers Dojo resume builder is completely free | no hidden charges, no credit card required. Build as many resumes as you need.",
-    link: { to: "/resume-maker", label: "Try it now" },
+    question: "Can Stu help with my resume?",
+    answer: "Yes. Upload your resume when you set up, and Stu makes it stronger and tailors a version to each job you go after.",
+    link: { to: "/b2cnew/join?via=contact&how=voice", label: "Start with Stu" },
   },
   {
     question: "How is my data handled?",
@@ -74,6 +74,8 @@ function FAQItem({ item }: { item: (typeof FAQ_ITEMS)[number] }) {
           {item.link && (
             <Link
               to={item.link.to}
+              // /b2cnew (Stu) is another app: a full page load, never the router.
+              reloadDocument={item.link.to.startsWith("/b2cnew")}
               className="mt-3 inline-block font-['Satoshi'] text-sm font-medium text-violet-500 hover:underline"
             >
               {item.link.label} →

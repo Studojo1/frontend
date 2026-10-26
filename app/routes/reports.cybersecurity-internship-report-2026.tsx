@@ -450,10 +450,10 @@ export default function Report_CybersecurityInternshipReport2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach the security teams that never post.</h3>
-              <p>Studojo finds the person running security at employers outside the obvious list, and helps you put your write-ups in front of them.</p>
+              <p>Stu, Studojo's job agent, finds the right person to write to at each company and drafts the email that puts your write-ups in front of them.</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              Find Roles →
+            <Link to="/b2cnew/join?via=report-cybersecurity-internship-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find the right person →
             </Link>
           </div>
         </div>

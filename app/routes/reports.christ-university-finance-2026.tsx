@@ -215,7 +215,7 @@ export default function ChristUniversityFinanceReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for finance internships in Bangalore?</span>
-            <Link to="/outreach" className="rpt-cta-pill">Browse finance roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -253,9 +253,9 @@ export default function ChristUniversityFinanceReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find finance internships in Bangalore before placement season</div>
-                <div className="rpt-inline-cta-sub">Zerodha, Groww, Big 4, GCCs: curated weekly. Apply directly from Studojo.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds finance roles that fit you from company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/outreach" className="rpt-btn-primary">Browse Finance Roles</Link>
+              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -389,9 +389,9 @@ export default function ChristUniversityFinanceReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into a fintech finance role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume and cover letter to each finance role you go for.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -452,10 +452,10 @@ export default function ChristUniversityFinanceReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Fix your resume before you apply</div>
-                  <div className="rpt-inline-cta-sub">The Careers Dojo builds ATS-optimised finance resumes. Free. Takes 5 minutes.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume to each finance role, so the words match the job.</div>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to="/resume-maker" className="rpt-btn-primary">Build Resume</Link>
+                  <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
                   <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
                 </div>
               </div>
@@ -505,9 +505,9 @@ export default function ChristUniversityFinanceReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Find your first Bangalore finance internship</div>
-                  <div className="rpt-inline-cta-sub">Zerodha, Groww, GCCs: curated roles before they hit placement season.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds finance internships that fit you, best fit first.</div>
                 </div>
-                <Link to="/outreach" className="rpt-btn-primary">Find Finance Internships</Link>
+                <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
               </div>
             </div>
             <p className="rpt-source">Source: 200 Christ graduate hiring decisions tracked, recruiter interviews, April 2026</p>
@@ -579,16 +579,16 @@ export default function ChristUniversityFinanceReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The direct outreach system that works</div>
-              <p>Find the finance hiring manager or team lead at your target company on LinkedIn. Send a short, specific message: what you study, one concrete thing you have built or analysed, and one specific reason this company over others. Not a generic "I am interested in opportunities." A real signal. Studojo Outreach finds the right contacts, writes the email, and sends it automatically. You review and approve. That is it.</p>
+              <p>Find the finance hiring manager or team lead at your target company on LinkedIn. Send a short, specific message: what you study, one concrete thing you have built or analysed, and one specific reason this company over others. Not a generic "I am interested in opportunities." A real signal. Stu, Studojo's job agent, finds the right person to write to and drafts the email. It goes from your own mailbox, and only when you press Send.</p>
             </div>
 
             <div className="rpt-inline-cta">
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Reach Zerodha, Groww, and GCC hiring managers directly</div>
-                  <div className="rpt-inline-cta-sub">Studojo Outreach finds verified emails, writes personalized messages, and sends them automatically.</div>
+                  <div className="rpt-inline-cta-sub">Stu finds the hiring manager or recruiter to write to and drafts the email you send from your own mailbox.</div>
                 </div>
-                <Link to="/outreach" className="rpt-btn-primary">Start Outreach</Link>
+                <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find the right person</Link>
               </div>
             </div>
             <p className="rpt-source">Source: LinkedIn hiring data, company career pages, Studojo outreach conversion data, April 2026</p>
@@ -620,10 +620,10 @@ export default function ChristUniversityFinanceReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">The gap between a 5 LPA campus placement and a 10 LPA fintech role is not talent. It is preparation, timing, and knowing where to apply. Studojo gives you all three.</p>
+            <p className="rpt-final-cta-sub">The gap between a 5 LPA campus placement and a 10 LPA fintech role is not talent. It is preparation, timing, and knowing where to apply. Stu, Studojo's job agent, finds roles that fit you, tailors your resume to each one and gets you ready for interviews.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/outreach" className="rpt-btn-white">Browse Finance Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

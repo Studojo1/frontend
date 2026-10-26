@@ -135,7 +135,7 @@ export default function Internships15kReport() {
         <div className="r15-cta-strip">
           <div className="r15-inner r15-cta-strip-inner">
             <span className="r15-cta-strip-text">Looking for the roles in the amber and violet brackets?</span>
-            <Link to="/dojos/internships" className="r15-cta-pill">Find them on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-internships-15k-india-2026&how=voice" reloadDocument className="r15-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -198,9 +198,9 @@ export default function Internships15kReport() {
             <div className="r15-inline-cta-inner">
               <div>
                 <div className="r15-inline-cta-title">Find the amber and violet roles before everyone else</div>
-                <div className="r15-inline-cta-sub">Studojo surfaces niche, high-stipend internships across India: before job boards catch up.</div>
+                <div className="r15-inline-cta-sub">Stu, Studojo's job agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/dojos/internships" className="r15-btn-primary">Browse Internships</Link>
+              <Link to="/b2cnew/join?via=report-internships-15k-india-2026&how=voice" reloadDocument className="r15-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -335,9 +335,9 @@ export default function Internships15kReport() {
         {/* Final CTA */}
         <div className="r15-final-cta">
           <div className="r15-final-title">Work on things that matter.</div>
-          <div className="r15-final-sub">Studojo surfaces niche, high-signal internship roles across India. Not the generic listings. The ones worth your time.</div>
+          <div className="r15-final-sub">Stu, Studojo's job agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.</div>
           <div className="r15-final-btns">
-            <Link to="/dojos/internships" className="r15-btn-white">Find ₹15k+ Internships</Link>
+            <Link to="/b2cnew/join?via=report-internships-15k-india-2026&how=voice" reloadDocument className="r15-btn-white">Let Stu find roles</Link>
             <Link to="/reports" className="r15-btn-outline">Read More Reports</Link>
           </div>
         </div>

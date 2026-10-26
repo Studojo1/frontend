@@ -204,7 +204,7 @@ export default function OpsIndiaReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for operations internships in India?</span>
-            <Link to="/outreach" className="rpt-cta-pill">Browse ops roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-ops-india-2026&how=voice" reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
           </div>
         </div>
 
@@ -257,9 +257,9 @@ export default function OpsIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find ops internships in Bengaluru, Mumbai, and Delhi NCR</div>
-                <div className="rpt-inline-cta-sub">The Internship Dojo surfaces niche ops roles at D2C brands, SaaS startups, and logistics companies before job boards catch up.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds ops roles that fit you from company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/outreach" className="rpt-btn-primary">Browse Internships</Link>
+              <Link to="/b2cnew/join?via=report-ops-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
             </div>
           </div>
 
@@ -366,9 +366,9 @@ export default function OpsIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into an ops role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume to each ops role you apply for.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-ops-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
             </div>
           </div>
 
@@ -528,10 +528,10 @@ export default function OpsIndiaReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Find ops internships paying ₹20k and above</div>
-                  <div className="rpt-inline-cta-sub">Curated weekly from D2C brands, SaaS startups, and logistics companies across India.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds the ops internships that fit you, best fit first.</div>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to="/outreach" className="rpt-btn-primary">Browse Internships</Link>
+                  <Link to="/b2cnew/join?via=report-ops-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
                   <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
                 </div>
               </div>
@@ -632,10 +632,10 @@ export default function OpsIndiaReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the ops roles this report is talking about: D2C, SaaS, logistics, and health tech internships across India, curated weekly.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds the ops internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/outreach" className="rpt-btn-white">Browse Ops Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-ops-india-2026&how=voice" reloadDocument className="rpt-btn-white">Start with Stu →</Link>
+              <Link to="/b2cnew/join?via=report-ops-india-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

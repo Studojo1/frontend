@@ -401,10 +401,10 @@ export default function Report_SalaryNegotiationReportDoFreshersWhoNegotiateGetM
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Leverage starts with a second option"}</h3>
-              <p>{"Find more internships and early-career roles on Studojo so you never have to accept the first offer by default."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first, so the first offer is not your only one."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-salary-negotiation-report-do-freshers-who-negotiate-get-more-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>

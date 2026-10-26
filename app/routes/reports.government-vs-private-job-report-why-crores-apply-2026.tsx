@@ -369,10 +369,10 @@ export default function Report_GovernmentVsPrivateJobReportWhyCroresApply2026() 
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Keep your fallback ready while you prepare"}</h3>
-              <p>{"Find part-time and remote internships on Studojo that fit around exam preparation."}</p>
+              <p>{"Tell Stu, Studojo's job agent, what fits around your exam preparation, and it finds the internships that fit you, best fit first."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-government-vs-private-job-report-why-crores-apply-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>

@@ -619,10 +619,10 @@ export default function ProofOfWorkReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Put your best project first.</h3>
-              <p>Build a clean, ATS-safe resume with your projects up top, then use Outreach to send the link to the people who hire.</p>
+              <p>Stu, Studojo's job agent, tailors your resume to each job and finds the right person to write to, then drafts the email with your project link. You send it from your own mailbox.</p>
             </div>
-            <Link to="/resume-maker" className="rpt-cta-btn">
-              Build Your Resume Free →
+            <Link to="/b2cnew/join?via=report-proof-of-work-report-projects-github-portfolio-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu tailor your resume →
             </Link>
           </div>
         </div>

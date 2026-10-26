@@ -231,7 +231,7 @@ export default function PuneJobsReport() {
         <div className="rpt-cta-strip rpt-cta-strip-blue">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for jobs and internships in Pune?</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill rpt-cta-pill-blue">Find Pune roles on Studojo →</Link>
+            <Link to="/b2cnew/join?via=report-pune-jobs-2026&how=voice" reloadDocument className="rpt-cta-pill rpt-cta-pill-blue">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -331,9 +331,9 @@ export default function PuneJobsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find Pune roles that actually pay</div>
-                <div className="rpt-inline-cta-sub">Studojo filters for salary, company stage, and role type. Updated daily.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds the roles that fit you, from company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/dojos/internships" className="rpt-btn-primary rpt-btn-blue">Browse Pune Roles Free</Link>
+              <Link to="/b2cnew/join?via=report-pune-jobs-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-blue">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -455,9 +455,9 @@ export default function PuneJobsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Build an ATS-optimised resume for Pune roles</div>
-                <div className="rpt-inline-cta-sub">Free, takes 5 minutes. Used by 5,000+ students across India.</div>
+                <div className="rpt-inline-cta-sub">Stu tailors your resume and cover letter to each job you go for.</div>
               </div>
-              <Link to="/resume-maker" className="rpt-btn-primary rpt-btn-blue">Build Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-pune-jobs-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-blue">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -589,10 +589,10 @@ export default function PuneJobsReport() {
           {/* Final CTA */}
           <div className="rpt-final-cta rpt-final-cta-blue">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use Studojo to find the Pune roles worth applying to, build an ATS-ready resume that passes the first screen, and track every application in one place.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds the Pune roles that fit you and tailors your resume to each one. It also finds the right person to write to and drafts the email you send from your own mailbox.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/dojos/internships" className="rpt-btn-white">Find Pune Internships</Link>
-              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/b2cnew/join?via=report-pune-jobs-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to="/b2cnew/join?via=report-pune-jobs-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

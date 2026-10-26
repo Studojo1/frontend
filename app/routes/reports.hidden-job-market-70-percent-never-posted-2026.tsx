@@ -478,10 +478,10 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find roles worth showing proof for.</h3>
-              <p>Studojo connects students and early-career candidates with internships and career paths where context is clearer, so you can aim outreach and applications at real needs, not ghost listings alone.</p>
+              <p>Stu, Studojo's job agent, finds jobs and internships that fit you and the right person to write to at each company, so you can aim your emails and applications at real needs, not ghost listings alone.</p>
             </div>
-            <Link to="/resume-maker" className="rpt-cta-btn">
-              Explore Career Paths →
+            <Link to="/b2cnew/join?via=report-hidden-job-market-70-percent-never-posted-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              Let Stu find roles →
             </Link>
           </div>
         </div>

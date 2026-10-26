@@ -12,17 +12,17 @@ export function meta({}: Route.MetaArgs) {
     { title: "About Studojo | Work on Things That Matter" },
     {
       name: "description",
-      content: "Studojo is a global student career platform used by 8,500+ students to find internships, build standout resumes, and work on things that actually matter. Based in Bangalore, serving students worldwide.",
+      content: "Studojo is a job agent for students: Stu finds jobs and internships that fit you, tailors your resume and reaches the right people, so you can work on things that actually matter. Based in Bangalore, serving students worldwide.",
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/about` },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "About Studojo | Work on Things That Matter" },
-    { property: "og:description", content: "Studojo is a global student career platform used by 8,500+ students to find internships, build standout resumes, and work on things that actually matter." },
+    { property: "og:description", content: "Studojo is a job agent for students: Stu finds jobs and internships that fit you, tailors your resume and reaches the right people, so you can work on things that actually matter." },
     { property: "og:url", content: `${BASE_URL}/about` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "About Studojo | Work on Things That Matter" },
-    { name: "twitter:description", content: "Global student career platform used by 8,500+ students to find internships, build standout resumes, and work on things that actually matter." },
+    { name: "twitter:description", content: "A job agent for students: Stu finds jobs and internships that fit you, tailors your resume and reaches the right people." },
   ];
 }
 
@@ -41,54 +41,55 @@ const itemVariants: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
-const DOJOS = [
+// PRODUCT-ALIGN (27 Oct 2026, staging only): Studojo is one product, Stu the job agent; these are its parts. /b2cnew is
+// another app, so the cards load it with a full page load.
+const PARTS = [
   {
-    title: "Outreach Dojo",
-    description: "Upload your resume and we find the hiring managers who can hire you, write each one a personal email, and send it from your own Gmail.",
-    checklist: ["Finds real hiring managers", "Personal emails, not templates", "Sent from your Gmail"],
+    title: "Finds your roles",
+    description: "Stu reads company career sites and job boards and puts the jobs and internships that fit you first.",
+    checklist: ["Roles that fit you, best first", "Jobs and internships", "New roles every day"],
     accent: "bg-emerald-500",
     iconBg: "bg-emerald-200",
     iconColor: "text-emerald-500",
     ctaColor: "text-emerald-600",
     icon: <FiGlobe />,
-    href: "/outreach",
-    cta: "Get started",
+    href: "/b2cnew/join?via=about&how=voice",
+    cta: "Start with Stu",
     comingSoon: false,
   },
   {
-    title: "Resume Maker",
-    description: "ATS-optimized resume builder. Professional-grade, 100% free. No paywalls on the thing every student needs most.",
-    checklist: ["ATS optimized", "Professional design", "100% free forever"],
+    title: "Tailors your applications",
+    description: "Upload your resume once. Stu makes it stronger and tailors your resume and cover letter to each job.",
+    checklist: ["A resume version for each job", "Cover letters", "Answers to form questions"],
     accent: "bg-amber-500",
     iconBg: "bg-amber-200",
     iconColor: "text-amber-500",
     ctaColor: "text-amber-600",
     icon: <IoBriefcaseOutline />,
-    href: "/resume-maker",
-    cta: "Build resume",
+    href: "/b2cnew/join?via=about&how=voice",
+    cta: "Start with Stu",
     comingSoon: false,
   },
   {
-    title: "Career Coach",
-    description: "Free AI career coach. Tell it where you are and where you want to go, and get a plan, resume feedback and interview prep.",
-    checklist: ["Personal career plan", "Resume feedback", "Interview prep"],
+    title: "Reaches the right person",
+    description: "Stu finds the hiring manager or recruiter and drafts the email. It goes from your own mailbox, only when you press Send.",
+    checklist: ["The right person to write to", "Emails from your own mailbox", "You approve everything"],
     accent: "bg-rose-500",
     iconBg: "bg-rose-200",
     iconColor: "text-rose-500",
     ctaColor: "text-rose-600",
     icon: <FiTarget />,
-    href: "/cc",
-    cta: "Talk to the coach",
+    href: "/b2cnew/join?via=about&how=voice",
+    cta: "Start with Stu",
     comingSoon: false,
   },
-
 ];
 
 const PRINCIPLES = [
   {
     number: "01",
     heading: "No tutorials.",
-    body: "Pick what you need, answer 2-3 questions, get something ready to use. That's the whole experience. No onboarding courses. No unnecessary steps.",
+    body: "Tell Stu what you want in a short call or a few lines, and it gets to work. No onboarding courses. No unnecessary steps.",
     bg: "bg-violet-500",
   },
   {
@@ -144,7 +145,7 @@ export default function About() {
                 <span className="text-yellow-300">who mean business.</span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl font-['Satoshi'] text-lg font-normal leading-7 text-violet-100 md:text-xl">
-                Studojo is a global student career platform. We build tools that cut through the noise so ambitious students can spend their time on work that genuinely moves the needle.
+                Studojo is a job agent for students. Stu cuts through the noise so ambitious students can spend their time on work that genuinely moves the needle.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
@@ -185,7 +186,7 @@ export default function About() {
                   The tools that existed were either built to help recruiters filter applicants, or built to extract money from students in exchange for marginal improvements.
                 </p>
                 <p className="font-['Satoshi'] text-base leading-7 text-neutral-700 md:text-lg">
-                  We flipped that. Research-grade tools, AI that understands your context, and outreach infrastructure that was previously only available to paid recruiters.
+                  We flipped that. Stu, our job agent, finds the roles that fit you, tailors your resume to each one, and drafts the email to the right person that you send from your own mailbox.
                 </p>
               </motion.div>
             </motion.div>
@@ -225,7 +226,7 @@ export default function About() {
           </Section>
         </section>
 
-        {/* The Dojos */}
+        {/* Stu, the job agent */}
         <section className="border-b border-neutral-900 bg-white py-16 md:py-24">
           <Section width="default">
             <motion.div
@@ -235,9 +236,9 @@ export default function About() {
               viewport={{ once: true }}
             >
               <motion.div variants={itemVariants} className="mb-12 text-center">
-                <p className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">The products</p>
+                <p className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">The product</p>
                 <h2 className="font-['Clash_Display'] text-3xl font-medium text-neutral-900 md:text-4xl lg:text-5xl">
-                  Each Dojo does one thing.{" "}
+                  One agent for the whole job hunt.{" "}
                   <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-emerald-300 px-3 py-1">
                     No bloat.
                   </span>
@@ -245,7 +246,7 @@ export default function About() {
               </motion.div>
 
               <div className="grid gap-8 md:grid-cols-2">
-                {DOJOS.map((d) => (
+                {PARTS.map((d) => (
                   <motion.article
                     key={d.title}
                     variants={itemVariants}
@@ -271,6 +272,7 @@ export default function About() {
                     ) : (
                       <Link
                         to={d.href}
+                        reloadDocument
                         className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 py-3 font-['Satoshi'] text-base font-medium transition-transform hover:translate-x-[2px] hover:translate-y-[2px] md:w-fit ${d.ctaColor}`}
                       >
                         {d.cta}
@@ -366,7 +368,7 @@ export default function About() {
                 Ready to get started?
               </h2>
               <p className="mb-8 font-['Satoshi'] text-lg text-violet-100">
-                8,500+ students already have.
+                Stu is ready when you are.
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
