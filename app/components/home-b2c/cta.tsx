@@ -4,9 +4,10 @@ import { authClient } from "~/lib/auth-client";
 import { Arrow, Mic } from "./icons";
 import { STU_HEAD, startCta } from "./links";
 
-// THE button, "start the call", the same everywhere it appears: the hero, the floating one (StickyCta.tsx: a side
-// pill on desktop, a bottom bar on phones) and the footer. No per-section and no header buttons (owner, 27 Oct). Signed out it opens /b2cnew/join with the visit's landing query; signed in it is
-// "open my jobs" to /b2cnew (links.ts startCta). Always a plain <a href>: /b2cnew is another app.
+// THE button, "Start the call", the same everywhere it appears: the hero, the floating one (StickyCta.tsx: the side
+// pill on desktop, the bottom bar on phones) and the footer. No header and no per-section buttons (owner, 27 Oct).
+// Signed out it opens /b2cnew/join with the visit's landing query; signed in it is "Open my jobs" to /b2cnew
+// (links.ts startCta). Always a plain <a href>: /b2cnew is another app.
 
 /**
  * Whether the visitor is signed in. On the homepage the loader already read the session (no flash of the
@@ -27,36 +28,37 @@ export function useStartCta(): { label: string; href: string; signedIn: boolean 
 }
 
 type StartButtonProps = {
-  size?: "md" | "sm" | "xl";
-  /** Full width at phone size. */
+  size?: "md" | "sm";
+  /** Full width (the hero on phones). */
   wide?: boolean;
   id?: string;
   className?: string;
   /** Where it sits (data-start, as in the mocks). */
   place: "hero" | "side" | "bar" | "footer";
   tabIndex?: number;
-  /** In place of the mic (or arrow) icon: the side pill leads with a small Stu. */
+  /** In place of the mic (or arrow) icon: the side pill and the bar lead with a small Stu. */
   lead?: ReactNode;
+  /** A class for the label (the bar centres it). */
+  labelClass?: string;
   "aria-hidden"?: boolean;
 };
 
-export function StartButton({ size = "md", wide = false, id, className = "", place, tabIndex, lead, "aria-hidden": ariaHidden }: StartButtonProps) {
+export function StartButton({ size = "md", wide = false, id, className = "", place, tabIndex, lead, labelClass, "aria-hidden": ariaHidden }: StartButtonProps) {
   const { label, href, signedIn } = useStartCta();
-  const cls = ["sjb-btn", size === "md" ? "" : `sjb-${size}`, wide ? "sjb-wide" : "", className].filter(Boolean).join(" ");
-  const icon = size === "sm" ? 16 : 20;
+  const cls = ["nb-btn", size === "sm" ? "nb-sm" : "", wide ? "nb-wide" : "", className].filter(Boolean).join(" ");
   return (
     <a href={href} id={id} className={cls} data-start={place} tabIndex={tabIndex} aria-hidden={ariaHidden}>
-      {lead ?? (signedIn ? <Arrow size={icon - 2} /> : <Mic size={icon} />)}
-      {label}
+      {lead ?? (signedIn ? <Arrow /> : <Mic />)}
+      {labelClass ? <span className={labelClass}>{label}</span> : label}
     </a>
   );
 }
 
-/** Stu's laughing head on the logo purple, for the small round slots (side pill, phone bar, footer). Decorative. */
-export function StuArt({ className = "" }: { className?: string }) {
+/** Stu's laughing head in a white cell at the left of a small start button, so Stu never sits on purple. */
+export function StuCell() {
   return (
-    <span className={`sjb-stu sjb-stu-head ${className}`.trim()} aria-hidden="true">
-      <img src={STU_HEAD} alt="" width={92} height={92} />
+    <span className="sjb-cell" aria-hidden="true">
+      <img src={STU_HEAD} alt="" width={36} height={36} />
     </span>
   );
 }

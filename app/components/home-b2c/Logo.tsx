@@ -4,7 +4,7 @@ import { Link } from "react-router";
 export function Logo() {
   return (
     <Link to="/" className="sjb-brand" aria-label="studojo home">
-      <img src="/favicon.png" alt="" width={30} height={30} />
+      <img src="/favicon.png" alt="" width={32} height={32} />
       <b>studojo</b>
     </Link>
   );

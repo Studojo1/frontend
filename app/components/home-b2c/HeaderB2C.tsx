@@ -6,16 +6,16 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import "./b2c.css";
 import { useSignedIn } from "./cta";
-import { SETTINGS, SIGN_IN, STU_HOME } from "./links";
+import { BLOG, REPORTS, SETTINGS, SIGN_IN, STU_HOME } from "./links";
 import { Logo } from "./Logo";
 
-// The header on B2C hosts (studojo.pro): the job agent only. Used by the B2C homepage and, through
-// components/common/header.tsx, by every other page there (blog, reports, legal). No old products and no nav
-// links (owner, 27 Oct): blog and reports are reached through the footer and the homepage's read section.
-//   signed out: logo and "sign in"
-//   signed in:  logo, "my jobs" (/b2cnew, another app: a plain <a>, a full page load) and a small account menu
-//               with "settings" (account deletion lives there) and "sign out"
-// No start button in the header (h1.html): the hero's button, then the side pill or the phone's bar, carry it.
+// The header on B2C hosts (studojo.pro), nb.html: the job agent only. Used by the B2C homepage and, through
+// components/common/header.tsx, by every other page there (blog, reports, legal). No old products and no start
+// button (the hero's button, then the side pill or the phone bar, carry it).
+//   phones:   logo and "sign in" (signed in: "my jobs" and the account menu)
+//   desktop:  logo, blog, reports and "sign in" (signed in: "my jobs" and the account menu)
+// "my jobs" is /b2cnew, another app: a plain <a>, a full page load. The account menu has "settings" (account
+// deletion lives there) and "sign out" (the classic header's clean-up).
 
 export function HeaderB2C() {
   const { pathname } = useLocation();
@@ -23,17 +23,8 @@ export function HeaderB2C() {
   const signedIn = useSignedIn();
   const { data: session } = authClient.useSession();
   const onAuthPage = pathname === "/auth" || pathname.startsWith("/auth/");
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  // A hairline once the page scrolls.
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   // The account menu closes on a page change, a click outside and Escape.
   useEffect(() => setMenuOpen(false), [pathname]);
@@ -71,13 +62,19 @@ export function HeaderB2C() {
   const initial = (session?.user?.name || session?.user?.email || "").trim().charAt(0).toLowerCase() || "s";
 
   return (
-    <header className={`sjb sjb-hdr${scrolled ? " sjb-scrolled" : ""}`}>
+    <header className="sjb sjb-hdr">
       <div className="sjb-hdr-in">
         <Logo />
-        <div className="sjb-hdr-right">
+        <nav className="sjb-nav" aria-label="main">
+          <Link to={BLOG} className="sjb-navlink sjb-wide-only">
+            blog
+          </Link>
+          <Link to={REPORTS} className="sjb-navlink sjb-wide-only">
+            reports
+          </Link>
           {signedIn ? (
             <>
-              <a href={STU_HOME} className="sjb-quiet sjb-myjobs">
+              <a href={STU_HOME} className="sjb-signin">
                 my jobs
               </a>
               <div className="sjb-acct" ref={menuRef}>
@@ -104,16 +101,12 @@ export function HeaderB2C() {
                 ) : null}
               </div>
             </>
-          ) : (
-            <>
-              {onAuthPage ? null : (
-                <Link to={SIGN_IN} className="sjb-quiet">
-                  sign in
-                </Link>
-              )}
-            </>
+          ) : onAuthPage ? null : (
+            <Link to={SIGN_IN} className="sjb-signin">
+              sign in
+            </Link>
           )}
-        </div>
+        </nav>
       </div>
     </header>
   );

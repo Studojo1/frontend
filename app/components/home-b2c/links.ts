@@ -20,8 +20,8 @@ export const SIGN_IN = authUrl("signin", STU_HOME);
 /** Account settings, account deletion included: in the signed-in header menu, so it stays reachable. */
 export const SETTINGS = "/settings";
 
-/** Stu's art, the owner's hand-drawn head on the logo purple circle (27 Oct). ONE place to swap it.
- * STU_HEAD: the laughing head (the small round slots and the hero's default); STU_FACES: the hero's cross-fade. */
+/** Stu's art, the owner's hand-drawn head cut at the neck like the logo, straight on the page (27 Oct). ONE place
+ * to swap it. STU_HEAD: the laughing head (the hero's default, the small cells); STU_FACES: the hero's cross-fade. */
 export const STU_HEAD = "/stu/head-laugh.png";
 export const STU_FACES = ["/stu/head-sparkle.png", "/stu/head-happy.png", "/stu/head-grin.png", STU_HEAD] as const;
 
@@ -32,17 +32,12 @@ export const PRIVACY = "/privacy";
 export const REFUNDS = "/refund-policy";
 export const CONTACT_EMAIL = "admin@studojo.com";
 
-/** In-page sections of the B2C homepage, in page order (h-sections.html). */
-export const SECTION_WHAT = "what";
-export const SECTION_CALL = "call";
-export const SECTION_BRIEF = "brief";
-export const SECTION_MATCHES = "matches";
-export const SECTION_GETJOB = "getjob";
-export const SECTION_MORE = "more";
+/** In-page sections of the B2C homepage, in page order (nb-sections.html). */
+export const SECTION_WHY = "why";
+export const SECTION_HOW = "how";
+export const SECTION_GET = "get";
 export const SECTION_PROOF = "proof";
-export const SECTION_EXPECT = "expect";
 export const SECTION_FAQ = "faq";
-export const SECTION_READ = "read";
 
 /**
  * The way into the agent from the homepage, signed out: /b2cnew/join with the visit's whole landing query (utm_*,
@@ -62,11 +57,11 @@ export function startHref(landingSearch: string | null | undefined): string {
 }
 
 /**
- * Every "start the call" button. Signed in it becomes "open my jobs" to /b2cnew: sending a student through
+ * Every "Start the call" button. Signed in it becomes "Open my jobs" to /b2cnew: sending a student through
  * /join again would restart their onboarding. Pure, for tests.
  */
 export function startCta(signedIn: boolean, landingSearch: string | null | undefined): { label: string; href: string } {
-  return signedIn ? { label: "open my jobs", href: STU_HOME } : { label: "start the call", href: startHref(landingSearch) };
+  return signedIn ? { label: "Open my jobs", href: STU_HOME } : { label: "Start the call", href: startHref(landingSearch) };
 }
 
 /** True on hosts that get the B2C homepage, header and footer (root loader, app/lib/b2c-home.ts). */

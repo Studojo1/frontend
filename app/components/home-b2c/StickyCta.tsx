@@ -1,18 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { StartButton, StuArt, useStartCta } from "./cta";
+import { StartButton, StuCell } from "./cta";
 import { HERO_START_ID } from "./HeroB2C";
 
-// The one floating "start the call" (h1.html), once the hero's button has scrolled up under the header and never
-// while the footer's button is on screen, so there are never two at once (owner, 27 Oct):
-//   wider screens: the side pill at the bottom right, the button itself led by a small Stu
-//   phones (640px and below): a bar pinned to the bottom, a small Stu and the button
+// The one floating "Start the call" (nb.html), once the hero's button has scrolled up under the header and never
+// once the footer's button is reached (or passed), so there are never two at once (owner, 27 Oct):
+//   wider screens: the side pill at the bottom right, led by Stu's head in a white cell
+//   phones (640px and below): a bar pinned to the bottom, the same button
 // Hidden from assistive tech and the tab order while hidden. Both rise above the cookie notice
 // (b2c.css, the same --sj-notice-h lift as app.css [data-floating-cta]).
 
 export function StickyCta() {
   const ref = useRef<HTMLDivElement>(null);
   const [show, setShow] = useState(false);
-  const { href } = useStartCta();
 
   useEffect(() => {
     const hero = document.getElementById(HERO_START_ID);
@@ -32,9 +31,10 @@ export function StickyCta() {
 
     // Any other start button in the page (the footer's).
     const others = Array.from(document.querySelectorAll("[data-start]")).filter((el) => el !== hero && !ref.current?.contains(el));
+    // The footer's button counts while on screen or once passed (above the top).
     const otherObs = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) visible.add(e.target);
+        if (e.isIntersecting || e.boundingClientRect.top < 0) visible.add(e.target);
         else visible.delete(e.target);
       }
       update();
@@ -51,16 +51,14 @@ export function StickyCta() {
     <div ref={ref} className="sjb-sticky">
       <StartButton
         place="side"
+        size="sm"
         className={`sjb-side${show ? " sjb-show" : ""}`}
-        lead={<StuArt />}
+        lead={<StuCell />}
         tabIndex={show ? 0 : -1}
         aria-hidden={!show}
       />
       <div className={`sjb-bar-m${show ? " sjb-show" : ""}`} aria-hidden={!show}>
-        <a href={href} className="sjb-stu-link" tabIndex={-1} aria-hidden="true">
-          <StuArt />
-        </a>
-        <StartButton place="bar" tabIndex={show ? 0 : -1} />
+        <StartButton place="bar" size="sm" lead={<StuCell />} labelClass="sjb-lbl" tabIndex={show ? 0 : -1} />
       </div>
     </div>
   );

@@ -1,31 +1,34 @@
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 import "./b2c.css";
-import { StartButton, StuArt, useSignedIn } from "./cta";
-import { BLOG, CONTACT_EMAIL, PRIVACY, REFUNDS, REPORTS, SECTION_WHAT, TERMS } from "./links";
+import { StartButton, useSignedIn } from "./cta";
+import { BLOG, CONTACT_EMAIL, PRIVACY, REFUNDS, REPORTS, TERMS } from "./links";
 import { Logo } from "./Logo";
 
-// The footer on B2C hosts (studojo.pro): used by the B2C homepage and, through components/common/footer.tsx,
-// by every other page there. It ends the page with the same button, then the links: with no nav links in the
-// header (owner, 27 Oct) this is where blog and reports are always reachable. No old products.
+// The footer on B2C hosts (studojo.pro), nb.html: a stone band with one closing line, one button, then the links.
+// Used by the B2C homepage and, through components/common/footer.tsx, by every other page there. No old products.
 
 export function FooterB2C() {
-  const { pathname } = useLocation();
   const signedIn = useSignedIn();
-  const onHome = pathname === "/";
   return (
     <footer className="sjb sjb-foot">
       <div className="sjb-foot-cta">
-        <StuArt />
-        <h2 className="sjb-h-sec">{signedIn ? "your jobs are waiting." : "ready when you are."}</h2>
-        <p className="sjb-lead">{signedIn ? "stu keeps looking, every day." : "one short call. then stu gets to work."}</p>
-        <StartButton size="xl" place="footer" />
+        <h2 className="nb-h2">
+          {signedIn ? (
+            <>
+              <span className="nb-s">Your jobs are waiting.</span> <span className="nb-s">Stu keeps looking, every day.</span>
+            </>
+          ) : (
+            <>
+              <span className="nb-s">About ten minutes with Stu.</span> <span className="nb-s">Jobs that fit, every day.</span>
+            </>
+          )}
+        </h2>
+        <StartButton place="footer" />
+        {signedIn ? null : <p className="nb-micro">free · about 10 minutes</p>}
       </div>
       <div className="sjb-foot-row">
         <Logo />
-        <span className="sjb-line">{"stu is studojo's ai job agent."}</span>
         <nav className="sjb-foot-links" aria-label="footer">
-          {/* On the homepage the section is in the page; anywhere else it is on the homepage. */}
-          {onHome ? <a href={`#${SECTION_WHAT}`}>how it works</a> : <Link to={`/#${SECTION_WHAT}`}>how it works</Link>}
           <Link to={BLOG}>blog</Link>
           <Link to={REPORTS}>reports</Link>
           <Link to={TERMS}>terms</Link>

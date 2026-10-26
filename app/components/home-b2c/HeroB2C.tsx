@@ -1,18 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { StartButton, useSignedIn, useStartCta } from "./cta";
-import { Briefcase, Doc, Mail } from "./icons";
 import { STU_FACES, STU_HEAD } from "./links";
 
-// Hero (H1 "Stu screen", h1.html): the first step of the app's flow, like a voice assistant's start screen. Stu,
-// the owner's hand-drawn head on the logo purple circle, large; one line, three small chips, one big full-width "start the call" in
-// the thumb zone and "free . about 10 minutes". Every way in goes through /b2cnew/join (owner rule): no typing
-// link. HERO_START_ID is the id the floating start watches (StickyCta.tsx).
-//
-// Stu here is our own art, a plain link to the same place as the button (/b2cnew/join with the landing
-// query; signed in, /b2cnew). Not career-agent's stu-agent embed: it draws a head on a purple circle and would
-// replace ours once loaded (owner, 27 Oct; stu-embed.tsx stays in the tree, unused). The faces: laugh, then
-// sparkle, happy, grin, back to laugh, one every 3.5s; laugh while hovered, pressed or focused; laugh only
-// when the visitor asks for reduced motion.
+// Hero (NB, nb.html): Stu, the line, the button. Nothing else. Stu is the owner's hand-drawn head cut at the
+// neck like the logo, straight on white (no disc, no glow), a plain link to the same place as the button
+// (/b2cnew/join with the landing query; signed in, /b2cnew). Not career-agent's stu-agent embed (owner, 27 Oct;
+// stu-embed.tsx stays in the tree, unused). The faces: laugh, then sparkle, happy, grin, back to laugh, one every
+// 3.5s while the tab is visible; laugh while hovered, pressed or focused; laugh only under reduced motion.
+// Every way in goes through /b2cnew/join (owner rule). HERO_START_ID is the id the floating start watches.
 
 export const HERO_START_ID = "hero-start";
 
@@ -25,7 +20,7 @@ function useStuFace(): { face: number; hold: () => void; free: () => void } {
     if (typeof window === "undefined" || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     let k = 0;
     const id = window.setInterval(() => {
-      if (held.current) return;
+      if (held.current || document.hidden) return;
       setFace(k % STU_FACES.length);
       k += 1;
     }, CYCLE_MS);
@@ -53,53 +48,36 @@ export function HeroB2C() {
         <a
           href={href}
           className="sjb-hero-stu"
-          aria-label={signedIn ? "open my jobs" : "start the call with stu"}
+          aria-label={signedIn ? "Open my jobs" : "Start the call with Stu"}
           onPointerEnter={hold}
           onPointerDown={hold}
           onFocus={hold}
           onPointerLeave={free}
           onBlur={free}
         >
-          <span className="sjb-glow" aria-hidden="true" />
-          <span className="sjb-disc" aria-hidden="true">
-            <span className="sjb-faces">
-              {STU_FACES.map((src, i) => (
-                <img
-                  key={src}
-                  src={src}
-                  alt=""
-                  width={240}
-                  height={240}
-                  className={i === face ? undefined : "sjb-off"}
-                  loading={src === STU_HEAD ? undefined : "lazy"}
-                />
-              ))}
-            </span>
+          <span className="sjb-faces" aria-hidden="true">
+            {STU_FACES.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                width={232}
+                height={232}
+                className={i === face ? undefined : "sjb-off"}
+                decoding="async"
+                loading={src === STU_HEAD ? undefined : "lazy"}
+              />
+            ))}
           </span>
         </a>
-        <p className="sjb-kicker">stu, your ai job agent</p>
-        <h1 className="sjb-line" id="hero-title">
-          find jobs that fit you.
-          <br /> just talk to stu.
+        <p className="nb-kicker">Stu, your AI job agent</p>
+        <h1 className="nb-h1" id="hero-title">
+          <span className="nb-s">Find jobs that fit you.</span> <span className="nb-s">Just talk to Stu.</span>
         </h1>
-        <ul className="sjb-hint" aria-label="what you get">
-          <li>
-            <Doc size={13} width={2.2} />
-            your brief
-          </li>
-          <li>
-            <Briefcase size={13} />
-            jobs every day
-          </li>
-          <li>
-            <Mail size={13} />
-            emails to hiring people
-          </li>
-        </ul>
       </div>
       <div className="sjb-go">
-        <StartButton place="hero" id={HERO_START_ID} className="sjb-go-btn" />
-        {signedIn ? null : <p className="sjb-micro">free · about 10 minutes</p>}
+        <StartButton place="hero" id={HERO_START_ID} wide />
+        {signedIn ? null : <p className="nb-micro">free · about 10 minutes</p>}
       </div>
     </section>
   );

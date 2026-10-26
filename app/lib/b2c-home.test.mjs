@@ -36,7 +36,7 @@ assert.match(header, /<a\s[^>]*href=\{STU_HOME\}/);
 assert.match(header, /to=\{SETTINGS\}/);
 
 // "start the call" (signed out): /b2cnew/join with the visit's whole landing query, each key once, then
-// via=home&how=voice. Every way in goes through /b2cnew/join (owner rule). Signed in: "open my jobs" to /b2cnew.
+// via=home&how=voice. Every way in goes through /b2cnew/join (owner rule). Signed in: "Open my jobs" to /b2cnew.
 const { startHref, startCta } = await import("../components/home-b2c/links.ts");
 assert.equal(startHref(""), "/b2cnew/join?via=home&how=voice");
 assert.equal(startHref(undefined), "/b2cnew/join?via=home&how=voice");
@@ -46,8 +46,8 @@ assert.equal(
 );
 assert.equal(startHref("?via=ad&how=type&utm_source=a&utm_source=b"), "/b2cnew/join?utm_source=a&via=home&how=voice", "no key twice");
 assert.equal(startHref("utm_term=a%20b&x=%26"), "/b2cnew/join?utm_term=a+b&x=%26&via=home&how=voice", "values stay encoded");
-assert.deepEqual(startCta(false, "?gclid=1"), { label: "start the call", href: "/b2cnew/join?gclid=1&via=home&how=voice" });
-assert.deepEqual(startCta(true, "?gclid=1"), { label: "open my jobs", href: "/b2cnew" }, "signed in: never /join again");
+assert.deepEqual(startCta(false, "?gclid=1"), { label: "Start the call", href: "/b2cnew/join?gclid=1&via=home&how=voice" });
+assert.deepEqual(startCta(true, "?gclid=1"), { label: "Open my jobs", href: "/b2cnew" }, "signed in: never /join again");
 
 // The B2C components link into /b2cnew with a plain <a href> (commit 93ba6dd), and name no old product.
 const dir = new URL("../components/home-b2c/", import.meta.url);
@@ -83,16 +83,22 @@ for (const f of readdirSync(dir)) {
   for (const u of uses) assert.match(u, /place="(hero|side|bar|footer)"/, `${f}: ${u}`);
 }
 const home = readFileSync(new URL("HomeB2C.tsx", dir), "utf8");
-const ORDER = ["HeroB2C", "WhatB2C", "CallB2C", "BriefB2C", "MatchesB2C", "GetJobB2C", "MoreB2C", "ProofB2C", "ExpectB2C", "FaqB2C", "BlogReports", "FooterB2C", "StickyCta"];
+const ORDER = ["HeroB2C", "WhyB2C", "HowB2C", "GetB2C", "ProofB2C", "FaqB2C", "FooterB2C", "StickyCta"];
 const order = ORDER.map((t) => home.indexOf(`<${t} />`));
 assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `in order: ${ORDER.join(", ")}`);
-// Each story section is its own component with its id (h-sections.html), and none carries a start button.
-const IDS = { WhatB2C: "what", CallB2C: "call", BriefB2C: "brief", MatchesB2C: "matches", GetJobB2C: "getjob", MoreB2C: "more", ProofB2C: "proof", ExpectB2C: "expect", FaqB2C: "faq", BlogReports: "read" };
+// Each section is its own component with its id (nb-sections.html), and none carries a start button.
+const IDS = { WhyB2C: "why", HowB2C: "how", GetB2C: "get", ProofB2C: "proof", FaqB2C: "faq" };
 for (const [c, id] of Object.entries(IDS)) {
   const src = readFileSync(new URL(`${c}.tsx`, dir), "utf8");
-  assert.match(src, new RegExp(`<section className="sjb-sec" id="${id}"`), `${c} is #${id}`);
+  assert.match(src, new RegExp(`<section className="nb-sec[^"]*" id="${id}"`), `${c} is #${id}`);
   assert.doesNotMatch(src, /StartButton|data-start/, `${c}: no per-section button`);
 }
+// Purple only on the start buttons (owner, 27 Oct): the one purple token is used by .nb-btn rules alone.
+const nbCss = readFileSync(new URL("b2c.css", dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+for (const rule of nbCss.match(/[^{}]+\{[^{}]*var\(--sjb-cta[^)]*\)[^{}]*\}/g) ?? []) {
+  assert.match(rule.trim(), /\.nb-btn/, `purple outside a start button: ${rule.trim().slice(0, 80)}`);
+}
+assert.doesNotMatch(nbCss, /gradient\(|blur\(/, "no gradients or blur");
 // The B2C look is scoped: every rule of b2c.css sits under .sjb, so studojo.com never changes.
 const css = readFileSync(new URL("b2c.css", dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 for (const rule of css.match(/(^|[{}])\s*([^{}@]+)\{/g) ?? []) {
