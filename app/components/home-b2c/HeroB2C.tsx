@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { StartButton, useSignedIn, useStartCta } from "./cta";
 import { Briefcase, Doc, Mail } from "./icons";
-import { STU_ART, STU_FACES } from "./links";
+import { STU_FACES, STU_HEAD } from "./links";
 
 // Hero (H1 "Stu screen", h1.html): the first step of the app's flow, like a voice assistant's start screen. Stu,
-// the owner's hand-drawn character, large; one line, three small chips, one big full-width "start the call" in
+// the owner's hand-drawn head on the logo purple circle, large; one line, three small chips, one big full-width "start the call" in
 // the thumb zone and "free . about 10 minutes". Every way in goes through /b2cnew/join (owner rule): no typing
 // link. HERO_START_ID is the id the floating start watches (StickyCta.tsx).
 //
-// Stu here is our own full figure, a plain link to the same place as the button (/b2cnew/join with the landing
+// Stu here is our own art, a plain link to the same place as the button (/b2cnew/join with the landing
 // query; signed in, /b2cnew). Not career-agent's stu-agent embed: it draws a head on a purple circle and would
-// replace the figure once loaded (owner, 27 Oct; stu-embed.tsx stays in the tree, unused). The faces: laugh, then
-// sparkle, happy, grin, smug, back to laugh, one every 3.5s; laugh while hovered, pressed or focused; laugh only
+// replace ours once loaded (owner, 27 Oct; stu-embed.tsx stays in the tree, unused). The faces: laugh, then
+// sparkle, happy, grin, back to laugh, one every 3.5s; laugh while hovered, pressed or focused; laugh only
 // when the visitor asks for reduced motion.
 
 export const HERO_START_ID = "hero-start";
@@ -61,18 +61,17 @@ export function HeroB2C() {
           onBlur={free}
         >
           <span className="sjb-glow" aria-hidden="true" />
-          <span className="sjb-floor" aria-hidden="true" />
-          <span className="sjb-body-s" aria-hidden="true">
+          <span className="sjb-disc" aria-hidden="true">
             <span className="sjb-faces">
               {STU_FACES.map((src, i) => (
                 <img
                   key={src}
                   src={src}
                   alt=""
-                  width={385}
-                  height={784}
+                  width={240}
+                  height={240}
                   className={i === face ? undefined : "sjb-off"}
-                  loading={src === STU_ART ? undefined : "lazy"}
+                  loading={src === STU_HEAD ? undefined : "lazy"}
                 />
               ))}
             </span>

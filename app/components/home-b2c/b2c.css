@@ -99,40 +99,36 @@
 
 /* ---------- Stu: the owner's hand-drawn art (public/stu, from HP/assets/stu3) ---------- */
 .sjb .sjb-stu { --s: 64px; position: relative; display: block; width: var(--s); height: var(--s); flex: none; border-radius: 50%; }
-/* small round slots: the laughing head on the logo purple, cut off at the neck like the logo */
-.sjb .sjb-stu-head { overflow: hidden; background: #6e4b8e; box-shadow: 0 6px 14px -6px rgba(76, 29, 149, .45); }
+/* small round slots: the laughing head on the logo purple, cut off at the neck like the logo, ink edge and shadow */
+.sjb .sjb-stu-head { overflow: hidden; background: #6e4b8e; border: 2px solid var(--sjb-ink); box-shadow: 3px 3px 0 var(--sjb-ink); }
 .sjb .sjb-stu-head img { position: absolute; left: 3%; top: 9%; width: 94%; height: auto; display: block; }
 .sjb .sjb-stu-link { display: block; flex: none; border-radius: 50%; }
 
 /* ---------- hero (H1 "Stu screen"): Stu, one line, one button in the thumb zone. Phone first. ---------- */
-.sjb .sjb-hero { --sjb-hero-stu: clamp(236px, 34svh, 296px);
+.sjb .sjb-hero { --sjb-hero-stu: clamp(188px, 26svh, 228px);
   position: relative; z-index: 1; isolation: isolate; min-height: calc(100vh - var(--sjb-hdr)); min-height: calc(100svh - var(--sjb-hdr));
   display: grid; grid-template-rows: 1fr auto; padding: 8px 16px max(28px, 9svh); text-align: center; overflow-x: clip; }
 /* calm the dot grid to a whisper on the first screen */
 .sjb .sjb-hero::before { content: ""; position: absolute; inset: calc(-1 * var(--sjb-hdr)) 0 0; z-index: -1; pointer-events: none;
   background: linear-gradient(180deg, rgba(247, 246, 250, .9) 0%, rgba(247, 246, 250, .9) 88%, rgba(247, 246, 250, .7) 100%); }
 .sjb .sjb-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 2svh; }
-/* The hero's Stu: our own full figure, a plain link (HeroB2C.tsx), not career-agent's embed. */
-/* the full character (head and bean body), as drawn; the images are about 0.49 wide per unit of height */
-.sjb .sjb-hero-stu { position: relative; display: block; width: calc(var(--sjb-hero-stu) * .5); height: var(--sjb-hero-stu); cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.sjb .sjb-hero-stu .sjb-glow { position: absolute; inset: -12% -70% -6%; border-radius: 50%; pointer-events: none; z-index: -1;
-  background: radial-gradient(closest-side, rgba(196, 170, 252, .5) 0%, rgba(214, 196, 253, .34) 38%, rgba(232, 223, 252, .16) 64%, rgba(247, 246, 250, 0) 100%);
+/* The hero's Stu: the real-art head cut at the neck, on the logo purple circle, the same look as the app's embed
+   (career-agent 02e9c96e), so the circle carries on from the homepage into the call. A plain link (HeroB2C.tsx). */
+.sjb .sjb-hero-stu { position: relative; display: block; flex: none; width: var(--sjb-hero-stu); height: var(--sjb-hero-stu); border-radius: 50%; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; animation: sjb-float 5.2s ease-in-out infinite; }
+@keyframes sjb-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.sjb .sjb-hero-stu .sjb-glow { position: absolute; inset: -38%; border-radius: 50%; pointer-events: none; z-index: -1;
+  background: radial-gradient(closest-side, rgba(196, 170, 252, .5) 0%, rgba(214, 196, 253, .32) 42%, rgba(232, 223, 252, .14) 68%, rgba(247, 246, 250, 0) 100%);
   animation: sjb-glow 7s ease-in-out infinite; }
 @keyframes sjb-glow { 0%, 100% { transform: scale(.94); opacity: .8; } 50% { transform: scale(1.04); opacity: 1; } }
 @keyframes sjb-ring { 0% { transform: scale(.96); opacity: 0; } 12% { opacity: .85; } 100% { transform: scale(1.38); opacity: 0; } }
-/* idle: a slow sway from the feet, 3px of bob and about a degree each way */
-.sjb .sjb-hero-stu .sjb-body-s { position: absolute; inset: 0; transform-origin: 50% 100%; animation: sjb-sway 4.6s ease-in-out infinite; }
-@keyframes sjb-sway { 0%, 100% { transform: translateY(0) rotate(-1.1deg); } 50% { transform: translateY(-3px) rotate(1.1deg); } }
-.sjb .sjb-hero-stu .sjb-faces { position: absolute; inset: 0; transition: transform .3s ease; transform-origin: 50% 100%; }
-.sjb .sjb-hero-stu .sjb-faces img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; object-position: 50% 100%;
-  transition: opacity .45s ease; filter: drop-shadow(0 12px 18px rgba(76, 29, 149, .14)); }
+.sjb .sjb-hero-stu .sjb-disc { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: #6e4b8e; border: 2.5px solid var(--sjb-ink);
+  box-shadow: 5px 5px 0 var(--sjb-ink); transition: transform .25s ease, box-shadow .25s ease; }
+.sjb .sjb-hero-stu .sjb-faces img { position: absolute; left: 3%; top: 9%; width: 94%; height: auto; display: block; transition: opacity .45s ease; }
 .sjb .sjb-hero-stu .sjb-faces img.sjb-off { opacity: 0; }
-.sjb .sjb-hero-stu .sjb-floor { position: absolute; left: 14%; right: 14%; bottom: -3.5%; height: 6%; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(closest-side, rgba(76, 29, 149, .22), rgba(76, 29, 149, 0)); animation: sjb-floor 4.6s ease-in-out infinite; }
-@keyframes sjb-floor { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(.92); opacity: .75; } }
-.sjb .sjb-hero-stu:hover .sjb-faces { transform: scale(1.02); }
-.sjb .sjb-hero-stu:active .sjb-faces { transform: scale(.98); }
-.sjb .sjb-hero-stu:focus-visible { outline: 2px solid var(--sjb-purple); outline-offset: 10px; border-radius: 24px; }
+.sjb .sjb-hero-stu:hover .sjb-disc { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--sjb-ink); }
+.sjb .sjb-hero-stu:active .sjb-disc { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--sjb-ink); }
+.sjb .sjb-hero-stu:focus-visible { outline: 2px solid var(--sjb-purple); outline-offset: 10px; }
 
 .sjb .sjb-hero .sjb-kicker { margin: 30px 0 0; font-size: 12px; letter-spacing: .06em; opacity: .85; }
 .sjb .sjb-hero .sjb-line { margin: 10px 0 0; font-family: Satoshi, system-ui, sans-serif; font-weight: 500; font-size: 33px; line-height: 1.08; letter-spacing: -0.035em;
@@ -209,11 +205,11 @@
   .sjb .sjb-foot-links { margin-left: 0; gap: 0 18px; }
   .sjb .sjb-legal { margin-top: 18px; padding-bottom: 88px; }
 }
-@media (max-width: 360px) { .sjb .sjb-hero .sjb-line { font-size: 29px; } }
+@media (max-width: 374px) { .sjb .sjb-hero .sjb-line { font-size: 29px; } .sjb .sjb-hint { flex-wrap: wrap; } }
 
 /* larger screens: the same composition, centred, generous space */
 @media (min-width: 641px) {
-  .sjb .sjb-hero { --sjb-hero-stu: clamp(300px, 39svh, 356px); grid-template-rows: auto; align-content: center; justify-items: center; padding: 24px 24px 72px; }
+  .sjb .sjb-hero { --sjb-hero-stu: clamp(232px, 30svh, 268px); grid-template-rows: auto; align-content: center; justify-items: center; padding: 24px 24px 72px; }
   .sjb .sjb-stage { padding-bottom: 0; }
   .sjb .sjb-hero .sjb-kicker { margin-top: 40px; font-size: 12px; }
   .sjb .sjb-hero .sjb-line { margin-top: 12px; font-size: clamp(40px, 3.5vw, 50px); line-height: 1.06; }
@@ -225,9 +221,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sjb .sjb-hero-stu .sjb-glow, .sjb .sjb-hero-stu .sjb-body-s, .sjb .sjb-hero-stu .sjb-floor, .sjb .sjb-side .sjb-stu::after { animation: none !important; }
+  .sjb .sjb-hero-stu, .sjb .sjb-hero-stu .sjb-glow, .sjb .sjb-side .sjb-stu::after { animation: none !important; }
   .sjb .sjb-side .sjb-stu::after { display: none; }
-  .sjb .sjb-btn, .sjb .sjb-btn.sjb-side, .sjb .sjb-bar-m, .sjb.sjb-hdr, .sjb .sjb-hero-stu .sjb-faces, .sjb .sjb-hero-stu .sjb-faces img { transition: none !important; }
+  .sjb .sjb-btn, .sjb .sjb-btn.sjb-side, .sjb .sjb-bar-m, .sjb.sjb-hdr, .sjb .sjb-hero-stu .sjb-disc, .sjb .sjb-hero-stu .sjb-faces img { transition: none !important; }
 }
 
 /* ---------- the story sections (h-sections.html), prefixed st- ---------- */

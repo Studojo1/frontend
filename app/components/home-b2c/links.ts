@@ -20,12 +20,10 @@ export const SIGN_IN = authUrl("signin", STU_HOME);
 /** Account settings, account deletion included: in the signed-in header menu, so it stays reachable. */
 export const SETTINGS = "/settings";
 
-/** Stu's art, the owner's hand-drawn character (27 Oct). ONE place to swap it.
- * STU_ART: the full laughing figure (the hero's fallback, the call example); STU_HEAD: the laughing head, for the
- * small round slots on the logo purple (side pill, phone bar, footer); STU_FACES: the hero's cross-fade cycle. */
-export const STU_ART = "/stu/laugh.png";
+/** Stu's art, the owner's hand-drawn head on the logo purple circle (27 Oct). ONE place to swap it.
+ * STU_HEAD: the laughing head (the small round slots and the hero's default); STU_FACES: the hero's cross-fade. */
 export const STU_HEAD = "/stu/head-laugh.png";
-export const STU_FACES = ["/stu/sparkle.png", "/stu/happy.png", "/stu/grin.png", "/stu/smug.png", STU_ART] as const;
+export const STU_FACES = ["/stu/head-sparkle.png", "/stu/head-happy.png", "/stu/head-grin.png", STU_HEAD] as const;
 
 export const BLOG = "/blog";
 export const REPORTS = "/reports";
