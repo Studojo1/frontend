@@ -123,10 +123,28 @@ for (const ok of ["linkedin.com/in/riya-sharma", "https://www.linkedin.com/in/ri
 for (const bad of ["linkedin.com/company/studojo", "https://evil.com/linkedin.com/in/riya", "https://linkedin.com.evil.com/in/riya", "javascript:alert(1)//linkedin.com/in/x", "riya", "linkedin.com/in/", "linkedin.com/in/a b"]) {
   assert.equal(normalizeLinkedInProfile(bad), null, bad);
 }
-assert.equal(normalizeLinkedInPost("https://www.linkedin.com/feed/update/urn:li:activity:7123/"), "https://www.linkedin.com/feed/update/urn:li:activity:7123/");
+assert.equal(normalizeLinkedInPost("https://www.linkedin.com/feed/update/urn:li:activity:7123/"), "https://www.linkedin.com/feed/update/urn:li:activity:7123");
+assert.equal(normalizeLinkedInPost("https://www.linkedin.com/posts/riya_activity-71-abc?utm_source=share"), "https://www.linkedin.com/posts/riya_activity-71-abc", "query dropped");
+assert.equal(normalizeLinkedInPost("linkedin.com/posts/../in/riya"), null, "no path traversal");
+assert.equal(normalizeLinkedInPost("linkedin.com/posts/.."), null);
 assert.equal(normalizeLinkedInPost("https://www.linkedin.com/in/riya"), null, "a profile is not a post");
 assert.equal(normalizeLinkedInPost("https://linkedin.com.evil.com/posts/x"), null);
 assert.equal(normalizeLinkedInPost('https://www.linkedin.com/posts/x"><img src=x>'), null, "no markup characters");
+
+// Only real strings count, and hidden characters never reach the database.
+r = validateUgcApplication({ ...valid(), fullName: 12345 });
+assert.equal(r.field, "fullName", "a number is not a name");
+r = validateUgcApplication({ ...valid(), fullName: "Ri\u0000ya\u200B Sha\u202Erma", topics: [1, {}, "College life"] });
+assert.equal(r.ok, true);
+assert.equal(r.value.fullName, "Riya Sharma", "NUL, zero-width and bidi characters are stripped");
+assert.deepEqual(r.value.topics, ["College life"]);
+r = validateUgcApplication({ ...valid(), targetRoles: "PM" });
+assert.equal(r.ok, true, "a two-letter role is a real answer");
+r = validateUgcApplication({ ...valid(), whyJoin: "To grow" });
+assert.equal(r.field, "whyJoin");
+assert.match(r.error, /at least 10 characters/, "the error says how much is needed");
+r = validateUgcApplication({ ...valid(), whyJoin: "To grow fast" });
+assert.equal(r.ok, true);
 
 // WhatsApp numbers.
 assert.equal(normalizeWhatsapp("98765 43210"), "+919876543210");

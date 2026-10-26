@@ -71,6 +71,16 @@ export const PUBLIC_FORM_PATHS = new Set([
   "/api/webinar-ref-code",
 ]);
 
+export function normalizePath(raw: string): string {
+  let path = raw;
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    // Malformed escapes: keep the raw path.
+  }
+  return path.toLowerCase().replace(/\.data$/, "").replace(/\/+$/, "") || "/";
+}
+
 function getEndpointType(path: string): string {
   if (path === "/api/funnel-event" || path === "/api/meta-event") {
     return "tracking";
@@ -124,8 +134,10 @@ export async function checkRateLimit(
     return null;
   }
 
-  // Skip rate limiting for health/ready endpoints
-  const path = new URL(request.url).pathname;
+  // Skip rate limiting for health/ready endpoints. The path is normalised first:
+  // the router also serves "/api/x/", "/API/X" and percent-encoded spellings of
+  // a route, and each must land in that route's bucket, not a looser one.
+  const path = normalizePath(new URL(request.url).pathname);
   if (path === "/health" || path === "/ready") {
     return null;
   }
@@ -282,7 +294,7 @@ export async function guardPublicForm(
 ): Promise<Response | null> {
   const trap = (body as Record<string, unknown> | null)?.[HONEYPOT_FIELD];
   if (typeof trap === "string" && trap.trim()) {
-    return Response.json({ success: true, message: "Thanks, we got it." }, { status: 200 });
+    return Response.json({ ok: true, success: true, message: "Thanks, we got it." }, { status: 200 });
   }
   const limit = await checkRateLimit(request, undefined, store);
   if (limit && !limit.allowed) {

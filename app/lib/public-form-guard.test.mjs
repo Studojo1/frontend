@@ -63,4 +63,25 @@ for (let i = 0; i < 50; i++) {
 }
 assert.equal(ok, 30, `funnel-event burst let ${ok} through`);
 
+
+// The router also serves other spellings of a route ("/api/x/", "/API/X",
+// percent-encoded). They must share the route's forms bucket, not fall into
+// the looser default one (review of the Creator Program form, Oct 2026).
+{
+  const s2 = fakeRedis();
+  let ok = 0;
+  for (let i = 0; i < 120; i++) {
+    const path = ["/api/ugc-apply", "/api/ugc-apply/", "/API/UGC-APPLY", "/api/ugc%2Dapply"][i % 4];
+    const r = await guardPublicForm(req(path), { name: "x" }, s2);
+    if (r === null) ok++;
+  }
+  assert.equal(ok, 30, `path variants let ${ok} through instead of 30`);
+}
+// A filled honeypot gets the same shape as a real success on every form.
+{
+  const r = await guardPublicForm(req("/api/ugc-apply"), { sj_trap: "x" }, fakeRedis());
+  const body = await r.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.success, true);
+}
 console.log("public-form-guard: ok");
