@@ -1,5 +1,14 @@
 # CLAUDE.md
 
+## DO NOT MERGE STAGING INTO MAIN
+
+**Do not merge staging into main (owner, 27 Oct 2026).** staging (studojo.pro) now intentionally diverges: B2C-only homepage. Promote to studojo.com only by cherry-picking specific commits when the owner asks.
+
+- Never open or merge a staging to main pull request, and never fast-forward main to staging.
+- To ship one change to studojo.com: `git cherry-pick <sha>` onto main, then diff the result against origin/main so no other staging work comes along.
+- See `DO_NOT_MERGE_STAGING_INTO_MAIN.md` and `PROMOTION.md`.
+
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Build & Run Commands
