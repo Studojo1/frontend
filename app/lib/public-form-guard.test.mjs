@@ -28,7 +28,7 @@ const req = (path, ip = "203.0.113.9") =>
 
 // Every public form route is covered.
 for (const p of ["/api/contact", "/api/newsletter", "/api/consultation-signup", "/api/sensei-ticket",
-  "/api/campus-ambassador-apply", "/api/webinar-register", "/api/webinar-confirm", "/api/webinar-ref-code"]) {
+  "/api/campus-ambassador-apply", "/api/ugc-apply", "/api/webinar-register", "/api/webinar-confirm", "/api/webinar-ref-code"]) {
   assert.ok(PUBLIC_FORM_PATHS.has(p), `${p} is not rate limited`);
 }
 

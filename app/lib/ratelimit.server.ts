@@ -65,6 +65,7 @@ export const PUBLIC_FORM_PATHS = new Set([
   "/api/consultation-signup",
   "/api/sensei-ticket",
   "/api/campus-ambassador-apply",
+  "/api/ugc-apply",
   "/api/webinar-register",
   "/api/webinar-confirm",
   "/api/webinar-ref-code",
