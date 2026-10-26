@@ -14,7 +14,7 @@ import {
   TrustStrip,
 } from "~/components";
 import { useLoaderData } from "react-router";
-import { HomeB2C } from "~/components/home-b2c/HomeB2C";
+import { HomeV2 } from "~/components/home-v2/HomeV2";
 import { isB2cRequest } from "~/lib/b2c-home";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { senseiUi } from "~/lib/sensei-ui";
@@ -81,8 +81,8 @@ export function meta({ data }: Route.MetaArgs) {
   if (d?.b2cHome) {
     // No canonical: studojo.pro is noindex (app/lib/staging-host.ts). The share image falls back to root's
     // og-default.png until the design brings a B2C card.
-    const title = "Studojo | Stu, your AI job agent";
-    const description = "Stu is Studojo's AI job agent. A short call with Stu, then jobs that fit you, every day.";
+    const title = "Studojo | Stu, your career agent";
+    const description = "Stu is your career agent at Studojo. A short call with Stu, then jobs that fit you, every day.";
     return [
       { title },
       { name: "description", content: description },
@@ -263,7 +263,7 @@ export default function Home() {
   if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage ui={ui} /></Suspense>;
   if (bobApp) return <Suspense fallback={senseiFallback}><BobPage ui={ui} /></Suspense>;
   // studojo.pro: the B2C homepage (app/components/home-b2c).
-  if (b2cHome) return <HomeB2C />;
+  if (b2cHome) return <HomeV2 />;
   return (
     <>
       <AnnouncementBar />
