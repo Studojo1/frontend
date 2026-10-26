@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FiAward, FiCheck, FiCheckCircle, FiEdit3, FiSend, FiUserCheck } from "react-icons/fi";
 import { Header, Footer } from "~/components";
 import { checkEmail } from "~/lib/email-validate";
 import { revealResult } from "~/lib/reveal-result";
@@ -188,22 +189,22 @@ const REQUIRED = <span className="text-red-500" aria-hidden="true"> *</span>;
 
 const PERKS = [
   {
-    icon: "✍️",
+    icon: FiEdit3,
     title: "Posts written with you, every week",
     body: "Each week you get 3 ready-to-post drafts built from your own experiences: 2 about your journey and 1 about how you use Studojo. Change anything you like before you post.",
   },
   {
-    icon: "🪪",
+    icon: FiUserCheck,
     title: "A LinkedIn profile makeover",
     body: "We review your headline, About section and experience, and rewrite them for the roles you want next.",
   },
   {
-    icon: "📬",
+    icon: FiSend,
     title: "Free Studojo outreach access",
     body: "Use Studojo's outreach tool to reach hiring managers directly, free while you're in the program.",
   },
   {
-    icon: "🎓",
+    icon: FiAward,
     title: "A certificate for showing up",
     body: "Post consistently for 4 weeks and you get a Studojo Creator Program certificate.",
   },
@@ -533,9 +534,12 @@ export default function Creators() {
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
           {PERKS.map((p) => (
             <div key={p.title} className="rounded-3xl border-2 border-neutral-900 bg-white p-6 shadow-brutal">
-              <div className="text-3xl" aria-hidden="true">
-                {p.icon}
-              </div>
+              <span
+                aria-hidden="true"
+                className="grid h-12 w-12 place-items-center rounded-2xl border-2 border-neutral-900 bg-violet-100 text-violet-700"
+              >
+                <p.icon className="h-6 w-6" />
+              </span>
               <h3 className="mt-3 text-xl font-bold text-neutral-900 font-clash">{p.title}</h3>
               <p className="mt-2 text-neutral-600 font-satoshi">{p.body}</p>
             </div>
@@ -567,9 +571,7 @@ export default function Creators() {
             <ul className="mt-5 space-y-3">
               {FOR_YOU.map((t) => (
                 <li key={t} className="flex gap-3 font-satoshi text-neutral-800">
-                  <span aria-hidden="true" className="mt-0.5 font-bold text-violet-700">
-                    ✓
-                  </span>
+                  <FiCheck aria-hidden="true" className="mt-1 h-4 w-4 shrink-0 text-violet-700" />
                   <span>{t}</span>
                 </li>
               ))}
@@ -598,9 +600,7 @@ export default function Creators() {
             data-testid="apply-result"
             className="scroll-mt-24 rounded-[32px] border-2 border-neutral-900 bg-white p-8 text-center shadow-brutal-lg outline-none md:p-10"
           >
-            <div className="text-4xl" aria-hidden="true">
-              {alreadyApplied ? "✅" : "🎉"}
-            </div>
+            <FiCheckCircle aria-hidden="true" className="mx-auto h-12 w-12 text-violet-600" />
             <h3 className="mt-3 text-2xl font-bold text-neutral-900 font-clash">
               {alreadyApplied ? "You've already applied" : `Application received${firstName ? `, ${firstName}` : ""}!`}
             </h3>
@@ -953,7 +953,7 @@ export default function Creators() {
                             className="peer sr-only"
                           />
                           <span className="inline-flex min-h-11 select-none items-center rounded-full border-2 border-neutral-900 bg-white px-4 py-2 text-base font-medium text-neutral-900 transition-colors hover:bg-violet-50 peer-checked:bg-violet-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-violet-400 peer-focus-visible:ring-offset-2 font-satoshi">
-                            {on ? "✓ " : ""}
+                            {on && <FiCheck aria-hidden="true" className="mr-1.5 h-4 w-4" />}
                             {t}
                           </span>
                         </label>
@@ -1008,8 +1008,9 @@ export default function Creators() {
                         onChange={(e) => update(p.key, e.target.value)}
                       />
                       <div className="mt-1 flex justify-between text-sm font-satoshi">
-                        <span className={ready ? "font-semibold text-emerald-700" : "text-neutral-400"}>
-                          {ready ? "✓ Enough for us to write from" : value.trim() ? "Keep going, a little more detail helps" : ""}
+                        <span className={`inline-flex items-center gap-1 ${ready ? "font-semibold text-emerald-700" : "text-neutral-400"}`}>
+                          {ready && <FiCheck aria-hidden="true" className="h-4 w-4" />}
+                          {ready ? "Enough for us to write from" : value.trim() ? "Keep going, a little more detail helps" : ""}
                         </span>
                         <span className="text-neutral-400">
                           {value.length}/{LIMITS.story}
