@@ -36,6 +36,12 @@ export default [
   // do not treat the two as duplicates.
   route("insider", "routes/campus-ambassador.tsx", { id: "insider" }),
 
+  // ── /ugc serves the same page as /creators ─────────────────────────────
+  // The team calls it the UGC program; students see "Creator Program", and
+  // /creators is the URL to share. Same module with a canonical tag pointing
+  // at /creators, so the two paths are not read as duplicates.
+  route("ugc", "routes/creators.tsx", { id: "ugc" }),
+
   // ── /no-one-is-hiring serves the same page as /webinar ─────────────────
   // The webinar is titled "How to Get a Job When No One Is Hiring", so this
   // path reads as the event rather than as a generic word. /webinar stays live
