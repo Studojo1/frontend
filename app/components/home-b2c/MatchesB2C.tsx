@@ -8,10 +8,10 @@ export function MatchesB2C() {
           <div className="st-copy">
             <span className="sjb-kicker">your matches</span>
             <h2 className="sjb-h-sec" id="matches-h">jobs that fit, each with a reason.</h2>
-            <p className="sjb-lead">Stu keeps looking for new roles every few hours and puts the best fits first. Each one says why it fits, in your words.</p>
+            <p className="sjb-lead">Stu looks for new roles every day and puts the best fits first. Each one says why it fits, in your words.</p>
             <ul className="st-pts">
-              <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M9 7h.01M15 7h.01M9 11h.01M15 11h.01M9 15h.01M15 15h.01M10 21v-3h4v3" /></svg></span>From employers&apos; own career sites, LinkedIn and job boards.</li>
-              <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></svg></span>The full job description read, not just the title.</li>
+              <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M9 7h.01M15 7h.01M9 11h.01M15 11h.01M9 15h.01M15 15h.01M10 21v-3h4v3" /></svg></span>From employers&apos; own career sites and job boards.</li>
+              <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></svg></span>The job description read where the posting has one, not just the title.</li>
               <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></svg></span>India, plus the US, the UK, the UAE and Singapore.</li>
               <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18M7 12h10M10 18h4" /></svg></span>Hide work you said no to, or ask Stu to widen the search.</li>
             </ul>

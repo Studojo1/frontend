@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useLocation, useRouteLoaderData } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { Arrow, Mic } from "./icons";
-import { STU_ART, startCta } from "./links";
+import { STU_HEAD, startCta } from "./links";
 
 // THE button, "start the call", the same everywhere it appears: the hero, the floating one (StickyCta.tsx: a side
 // pill on desktop, a bottom bar on phones) and the footer. No per-section and no header buttons (owner, 27 Oct). Signed out it opens /b2cnew/join with the visit's landing query; signed in it is
@@ -52,11 +52,11 @@ export function StartButton({ size = "md", wide = false, id, className = "", pla
   );
 }
 
-/** Stu, the ink-line art (a static image; the live Stu is the embed, stu-embed.tsx). Decorative. */
+/** Stu's laughing head on the logo purple, for the small round slots (side pill, phone bar, footer). Decorative. */
 export function StuArt({ className = "" }: { className?: string }) {
   return (
-    <span className={`sjb-stu ${className}`.trim()} aria-hidden="true">
-      <img src={STU_ART} alt="" width={92} height={92} />
+    <span className={`sjb-stu sjb-stu-head ${className}`.trim()} aria-hidden="true">
+      <img src={STU_HEAD} alt="" width={92} height={92} />
     </span>
   );
 }

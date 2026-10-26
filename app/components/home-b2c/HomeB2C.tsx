@@ -12,14 +12,15 @@ import { MatchesB2C } from "./MatchesB2C";
 import { MoreB2C } from "./MoreB2C";
 import { ProofB2C } from "./ProofB2C";
 import { StickyCta } from "./StickyCta";
-import { StuDock } from "./stu-embed";
 import { WhatB2C } from "./WhatB2C";
 
 // The B2C homepage (studojo.pro): Studojo's job agent, Stu, only. Rendered by app/routes/_index.tsx when the
 // request is for a B2C host (app/lib/b2c-home.ts); studojo.com keeps the current homepage. Signed in or not,
 // everyone sees it; signed in, every "start the call" is "open my jobs" (cta.tsx).
 // In page order, each its own component: the hero, then the story (what, call, brief, matches, getjob, more, proof,
-// expect, faq, read), the footer, and the one floating start.
+// expect, faq, read), the footer, and the one floating start. Career-agent's Stu embed (stu-embed.tsx and its script)
+// is not loaded here (owner, 27 Oct): its dock would duplicate the side pill. Rendering <StuDock /> again brings it
+// back.
 
 export function HomeB2C() {
   return (
@@ -40,7 +41,6 @@ export function HomeB2C() {
       </main>
       <FooterB2C />
       <StickyCta />
-      <StuDock />
     </div>
   );
 }

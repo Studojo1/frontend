@@ -8,7 +8,7 @@ export function ProofB2C() {
         <header className="sjb-sec-head">
           <span className="sjb-kicker">so far</span>
           <h2 className="sjb-h-sec" id="proof-h">students have already reached hiring managers with studojo.</h2>
-          <p className="sjb-lead">These numbers come from Studojo&apos;s outreach, which now lives inside Stu.</p>
+          <p className="sjb-lead">These numbers come from Studojo&apos;s earlier outreach product. Stu now does that work for you.</p>
         </header>
         <div className="st-counts" data-proof="outreach-counts">
           <div className="st-nums">

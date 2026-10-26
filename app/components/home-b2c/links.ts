@@ -11,7 +11,7 @@ export const STU_HOME = "/b2cnew";
 /** Signed out, every way in: a quick sign-up, then straight into the call (owner rule, 27 Oct: every way in goes
  * through /b2cnew/join, and the homepage links nothing else in /b2cnew but "my jobs"). */
 export const STU_JOIN = "/b2cnew/join";
-/** Defines the <stu-agent> web component; served by career-agent. Loaded on the B2C homepage only (stu-embed.tsx). */
+/** The script that defines career-agent's stu-agent web component (stu-embed.tsx). Not loaded on the homepage (owner, 27 Oct). */
 export const STU_EMBED_SRC = "/b2cnew/embed/stu.js";
 
 /** Sign in, then on to the student's agent (/auth hands /b2cnew over with a full page load). */
@@ -20,8 +20,12 @@ export const SIGN_IN = authUrl("signin", STU_HOME);
 /** Account settings, account deletion included: in the signed-in header menu, so it stays reachable. */
 export const SETTINGS = "/settings";
 
-/** Stu's static art (the hero's fallback, the floating start, the footer, the call example). ONE place to swap it. */
-export const STU_ART = "/stu/stu2-speak.svg";
+/** Stu's art, the owner's hand-drawn character (27 Oct). ONE place to swap it.
+ * STU_ART: the full laughing figure (the hero's fallback, the call example); STU_HEAD: the laughing head, for the
+ * small round slots on the logo purple (side pill, phone bar, footer); STU_FACES: the hero's cross-fade cycle. */
+export const STU_ART = "/stu/laugh.png";
+export const STU_HEAD = "/stu/head-laugh.png";
+export const STU_FACES = ["/stu/sparkle.png", "/stu/happy.png", "/stu/grin.png", "/stu/smug.png", STU_ART] as const;
 
 export const BLOG = "/blog";
 export const REPORTS = "/reports";

@@ -8,11 +8,11 @@ export function BriefB2C() {
           <div className="st-copy">
             <span className="sjb-kicker">your brief</span>
             <h2 className="sjb-h-sec" id="brief-h">what you want, in your words.</h2>
-            <p className="sjb-lead">After the call, Stu writes your brief: the roles you want in your own words, then how Stu read them. Everything in it drives your matches, and you can change any of it.</p>
+            <p className="sjb-lead">After the call, Stu writes your brief: the roles you want in your own words, then how Stu read them. What you want in it drives your matches, and you can change any of it.</p>
             <ul className="st-pts">
               <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" /></svg></span>The roles you want, why you want them, and work that is not for you.</li>
               <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg></span>Where, how and how much: city, office or home, pay.</li>
-              <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" /></svg></span>What you can show, used in your cover letters and emails.</li>
+              <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" /></svg></span>What you can show, from your call and your resume.</li>
               <li><span className="st-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg></span>Tap anything to fix it, or just tell Stu.</li>
             </ul>
           </div>

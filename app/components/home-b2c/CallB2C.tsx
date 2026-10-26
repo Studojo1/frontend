@@ -1,4 +1,4 @@
-import { STU_ART } from "./links";
+import { StuArt } from "./cta";
 
 // 2. The call (#call): an example of how Stu talks, and the call screen.
 // Ported from the design mock h-sections.html (copy: story-copy.md); the look is in b2c.css (st-*).
@@ -18,7 +18,7 @@ export function CallB2C() {
             </div>
             <div className="sjb-card st-talk">
               <div className="st-talk-h">
-                <img src={STU_ART} width="46" height="46" alt="" />
+                <StuArt />
                 <div><b>Stu</b><small>on the call</small></div>
                 <span className="st-live" aria-hidden="true"><i /><i /><i /><i /><i /></span>
               </div>

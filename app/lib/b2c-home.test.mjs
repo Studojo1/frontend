@@ -60,15 +60,19 @@ for (const f of readdirSync(dir)) {
   assert.doesNotMatch(src, /\/b2cnew\/start|STU_START/, `${f}: links /b2cnew/start`);
 }
 
-// Stu's embed (career-agent): the real script path, the two elements, and data-base left to its default. Both take
-// data-mode="join", straight into /b2cnew/join. Only the hero element holds a fallback (light DOM, shown until the
-// element is defined); the dock holds none.
-const embed = readFileSync(new URL("stu-embed.tsx", dir), "utf8");
-const links = readFileSync(new URL("links.ts", dir), "utf8");
-assert.match(links, /STU_EMBED_SRC = "\/b2cnew\/embed\/stu\.js"/);
-assert.match(embed, /<stu-agent data-size="hero" data-mode="join" data-signed-in="auto"[^>]*>\s*\{children\}\s*<\/stu-agent>/);
-assert.match(embed, /<stu-agent data-size="dock" data-mode="join" data-signed-in="auto" \/>/);
-assert.doesNotMatch(embed, /data-base=/, "on studojo.pro data-base defaults to /b2cnew");
+// The homepage loads no career-agent embed (owner, 27 Oct): no <stu-agent> element and no /b2cnew/embed script;
+// stu-embed.tsx stays in the tree, unused, so it is a one-line switch later.
+for (const f of readdirSync(dir)) {
+  if (!/\.tsx?$/.test(f) || f === "stu-embed.tsx" || f === "stu-events.ts") continue;
+  const src = readFileSync(new URL(f, dir), "utf8").replace(/export const STU_EMBED_SRC = "[^"]*";/, "");
+  assert.doesNotMatch(src, /from "\.\/stu-embed"|<stu-agent|loadStuEmbed|\/b2cnew\/embed\/|STU_EMBED_SRC\b(?! =)/, `${f}: loads Stu's embed`);
+}
+// The hero Stu is our own figure, a plain link to the same place as the button (/b2cnew/join signed out).
+const hero = readFileSync(new URL("HeroB2C.tsx", dir), "utf8");
+assert.match(hero, /const \{ href \} = useStartCta\(\);/);
+assert.match(hero, /<a\s+href=\{href\}\s+className="sjb-hero-stu"/);
+assert.match(hero, /<StartButton place="hero"/);
+
 // The plain button stays as the way in either way: one StartButton component, a plain <a href>, in the hero, the
 // floating start (side pill or phone bar) and the footer only; no per-section and no header buttons (owner, 27 Oct).
 const cta = readFileSync(new URL("cta.tsx", dir), "utf8");
