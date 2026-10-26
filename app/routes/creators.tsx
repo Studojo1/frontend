@@ -36,12 +36,12 @@ export function meta() {
     {
       name: "description",
       content:
-        "Turn your internships, projects and setbacks into LinkedIn posts that get you noticed. Apply to the Studojo Creator Program in about 5 minutes.",
+        "Turn your internships, projects and setbacks into LinkedIn posts that get you noticed. Apply to the Studojo Creator Program in about 10 minutes.",
     },
     { property: "og:title", content: "Grow on LinkedIn with the Studojo Creator Program" },
     {
       property: "og:description",
-      content: "Your stories, turned into 3 LinkedIn posts a week, plus a profile makeover. Apply in about 5 minutes.",
+      content: "Your stories, turned into 3 LinkedIn posts a week, written with you. Apply in about 10 minutes.",
     },
     { property: "og:type", content: "website" },
     { property: "og:url", content: CANONICAL },
@@ -128,8 +128,11 @@ const EMPTY: FormState = {
 };
 
 // Answers are kept on the device while someone fills the form, so a closed tab
-// or a LinkedIn in-app browser reload does not throw five minutes away.
+// or a LinkedIn in-app browser reload does not throw the work away. Drafts
+// expire after a day (shared and lab computers), and the consent tick is never
+// kept: whoever submits must tick it themselves.
 const DRAFT_KEY = "studojo.creators.draft.v1";
+const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 function loadDraft(): { form: FormState; step: number } | null {
   try {
@@ -137,11 +140,15 @@ function loadDraft(): { form: FormState; step: number } | null {
     if (!raw) return null;
     const saved = JSON.parse(raw);
     if (!saved || typeof saved !== "object" || !saved.form) return null;
+    if (typeof saved.savedAt !== "number" || Date.now() - saved.savedAt > DRAFT_TTL_MS) {
+      clearDraft();
+      return null;
+    }
     const form = { ...EMPTY };
     for (const k of Object.keys(EMPTY) as (keyof FormState)[]) {
       const v = saved.form[k];
       if (k === "topics") form.topics = Array.isArray(v) ? v.map(String) : [];
-      else if (k === "consent") form.consent = v === true;
+      else if (k === "consent") form.consent = false;
       else if (typeof v === "string") (form as unknown as Record<string, unknown>)[k] = v;
     }
     const step = Number.isInteger(saved.step) ? Math.min(Math.max(saved.step, 0), STEPS.length - 1) : 0;
@@ -157,7 +164,7 @@ function loadDraft(): { form: FormState; step: number } | null {
 
 function saveDraft(form: FormState, step: number) {
   try {
-    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, step }));
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ form: { ...form, consent: false }, step, savedAt: Date.now() }));
   } catch {
     // Private mode or blocked storage: the form still works, it just won't remember.
   }
@@ -171,9 +178,14 @@ function clearDraft() {
   }
 }
 
+/** The story box that should carry a "stories" error: the one they wrote most in, else the first. */
+function storyTarget(form: FormState): (typeof STORY_PROMPTS)[number]["key"] {
+  return [...STORY_PROMPTS].sort((a, b) => form[b.key].trim().length - form[a.key].trim().length)[0].key;
+}
+
 /** The element to focus when an answer needs attention. */
-function focusField(field: UgcField) {
-  const id = field === "stories" ? "ugc-storyWork" : `ugc-${field}`;
+function focusField(field: UgcField, form: FormState) {
+  const id = field === "stories" ? `ugc-${storyTarget(form)}` : `ugc-${field}`;
   const el = document.getElementById(id) ?? document.getElementById(`${id}-0`);
   if (!el) return;
   el.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -181,10 +193,10 @@ function focusField(field: UgcField) {
 }
 
 const INPUT =
-  "w-full min-h-12 bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-400 aria-[invalid=true]:border-red-500 font-satoshi";
+  "w-full min-h-12 bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-400 aria-[invalid=true]:border-red-500 font-satoshi";
 const LABEL = "block text-base font-semibold text-neutral-900 mb-1 font-satoshi";
 const HINT = "text-sm text-neutral-500 mb-2 font-satoshi";
-const OPTIONAL = <span className="font-normal text-neutral-400"> (optional)</span>;
+const OPTIONAL = <span className="font-normal text-neutral-500"> (optional)</span>;
 const REQUIRED = <span className="text-red-500" aria-hidden="true"> *</span>;
 
 const PERKS = [
@@ -196,12 +208,12 @@ const PERKS = [
   {
     icon: FiUserCheck,
     title: "A LinkedIn profile makeover",
-    body: "We review your headline, About section and experience, and rewrite them for the roles you want next.",
+    body: "Post your first week and we review your headline, About section and experience, then rewrite them for the roles you want next.",
   },
   {
     icon: FiSend,
     title: "Free Studojo outreach access",
-    body: "Use Studojo's outreach tool to reach hiring managers directly, free while you're in the program.",
+    body: "From your second week, use Studojo's outreach tool free to reach hiring managers directly, for as long as you keep posting.",
   },
   {
     icon: FiAward,
@@ -211,7 +223,7 @@ const PERKS = [
 ];
 
 const HOW = [
-  { title: "Apply", body: "Tell us about you, your LinkedIn and one or two of your stories. About 5 minutes." },
+  { title: "Apply", body: "Tell us about you, your LinkedIn and one or two of your stories. About 10 minutes." },
   { title: "Hear from us", body: "We read every application. If you're selected, we message you on WhatsApp." },
   { title: "Get your posts", body: "Every week, 3 drafts written from your stories, ready to copy." },
   { title: "Post and grow", body: "Post them, share the links with us, and see what's working for you." },
@@ -220,14 +232,14 @@ const HOW = [
 const FOR_YOU = [
   "You're in college or graduated recently",
   "You can post 3 times a week for at least 4 weeks",
-  "You're happy for 1 in 3 posts to be about how you use Studojo",
+  "You're happy for 1 in 3 posts to be about how you use Studojo, labelled as a partnership",
   "You have stories: internships, projects, setbacks, lessons",
 ];
 
 const FAQ = [
   {
     q: "Do I need a lot of followers?",
-    a: "No. Real stories and posting consistently matter more to us than follower count. Tell us where you're starting from, small numbers are completely fine.",
+    a: "No. Real stories and posting consistently matter more to us than follower count. Tell us where you're starting from. Small numbers are completely fine.",
   },
   {
     q: "Who writes the posts?",
@@ -235,15 +247,15 @@ const FAQ = [
   },
   {
     q: "What does a Studojo post look like?",
-    a: "It's about your real experience using Studojo, for example reaching a hiring manager directly instead of applying on a portal. We never ask you to say anything that isn't true.",
+    a: "It's about your real experience using Studojo, for example reaching a hiring manager directly instead of applying on a portal. Because you get free Studojo access, these posts say so at the top (for example \"In partnership with Studojo\"), as Indian advertising rules require. We never ask you to say anything that isn't true.",
   },
   {
     q: "How much time does it take?",
-    a: "A few minutes per post: read the draft, tweak it if you like, post it, and paste the link back to us.",
+    a: "A few minutes per post: read the draft, tweak it if you like, post it and paste the link back to us. A week later, send us a screenshot of how it did.",
   },
   {
     q: "What happens to my answers?",
-    a: "We use them only to select creators and to write your posts. You can read more in our Privacy Policy.",
+    a: "We use them only to select creators and to write your posts.",
   },
 ];
 
@@ -258,7 +270,7 @@ export default function Creators() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"no" | "yes" | "failed">("no");
   const loaded = useRef(false);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -284,7 +296,7 @@ export default function Creators() {
   // After a step change, focus the field that needs attention, or the step title.
   useEffect(() => {
     if (pendingFocus.current) {
-      focusField(pendingFocus.current);
+      focusField(pendingFocus.current, form);
       pendingFocus.current = null;
     }
   }, [step, errors]);
@@ -334,6 +346,7 @@ export default function Creators() {
   }
 
   function goTo(s: number) {
+    setRestored(false);
     setErrors({});
     setFormError(null);
     setStep(s);
@@ -350,6 +363,7 @@ export default function Creators() {
   }
 
   function startOver() {
+    if (!window.confirm("Clear all your answers and start again?")) return;
     clearDraft();
     setForm(EMPTY);
     setRestored(false);
@@ -396,20 +410,25 @@ export default function Creators() {
     }
   }
 
-  const shareUrl = "https://studojo.com/creators?utm_source=linkedin&utm_medium=share&utm_campaign=creator_program";
+  const shareLink = (source: string) =>
+    `https://studojo.com/creators?utm_source=${source}&utm_medium=share&utm_campaign=creator_program`;
+  const whatsappText = `I just applied to the Studojo Creator Program. They help you turn your own stories into LinkedIn posts. Apply here: ${shareLink("whatsapp")}`;
   async function copyLink() {
+    const url = shareLink("copy");
+    let ok = false;
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(url);
+      ok = true;
     } catch {
       const t = document.createElement("textarea");
-      t.value = shareUrl;
+      t.value = url;
       document.body.appendChild(t);
       t.select();
-      document.execCommand("copy");
+      ok = document.execCommand("copy");
       t.remove();
     }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2500);
+    setCopied(ok ? "yes" : "failed");
+    if (ok) window.setTimeout(() => setCopied("no"), 2500);
   }
 
   const err = (f: UgcField) => errors[f];
@@ -459,7 +478,7 @@ export default function Creators() {
               onChange={() => update(f, o as FormState[typeof f])}
               className="peer sr-only"
             />
-            <span className="inline-flex min-h-11 select-none items-center rounded-full border-2 border-neutral-900 bg-white px-4 py-2 text-base font-medium text-neutral-900 transition-colors hover:bg-violet-50 peer-checked:bg-violet-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-violet-400 peer-focus-visible:ring-offset-2 font-satoshi">
+            <span className="inline-flex min-h-11 select-none items-center rounded-full border-2 border-neutral-900 bg-white px-4 py-2 text-base font-medium text-neutral-900 transition-colors hover:bg-violet-50 peer-checked:bg-violet-600 peer-checked:hover:bg-violet-700 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-violet-400 peer-focus-visible:ring-offset-2 font-satoshi">
               {o}
             </span>
           </label>
@@ -474,7 +493,7 @@ export default function Creators() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
-      <Header />
+      <Header landing />
 
       {/* Hero */}
       <section className="border-b-2 border-neutral-900 bg-studojo-purple-bg">
@@ -487,8 +506,8 @@ export default function Creators() {
               Turn your story into LinkedIn posts that get you noticed
             </h1>
             <p className="mt-5 max-w-xl text-lg text-neutral-700 font-satoshi">
-              Your internships, projects and even your rejections are exactly what recruiters want to read. Tell us your
-              stories, we turn them into 3 posts a week with you, and you build a LinkedIn presence that works for you.
+              Your internships, projects and even your rejections are worth posting about. Tell us your stories. We turn
+              them into 3 posts a week, written with you, and you build a LinkedIn presence that works for you.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-4">
               <a
@@ -497,9 +516,9 @@ export default function Creators() {
               >
                 Apply now
               </a>
-              <p className="text-neutral-600 font-satoshi">About 5 minutes. Free to join.</p>
+              <p className="text-neutral-600 font-satoshi">About 10 minutes. Free to join.</p>
             </div>
-            <p className="mt-4 text-sm text-neutral-500 font-satoshi">For college students and recent graduates.</p>
+            <p className="mt-4 text-sm text-neutral-600 font-satoshi">For college students and recent graduates.</p>
           </div>
 
           {/* What a week looks like: an illustration of the routine, not data. */}
@@ -598,7 +617,7 @@ export default function Creators() {
             tabIndex={-1}
             role="status"
             data-testid="apply-result"
-            className="scroll-mt-24 rounded-[32px] border-2 border-neutral-900 bg-white p-8 text-center shadow-brutal-lg outline-none md:p-10"
+            className="ph-no-capture scroll-mt-24 rounded-[32px] border-2 border-neutral-900 bg-white p-8 text-center shadow-brutal-lg outline-none md:p-10"
           >
             <FiCheckCircle aria-hidden="true" className="mx-auto h-12 w-12 text-violet-600" />
             <h3 className="mt-3 text-2xl font-bold text-neutral-900 font-clash">
@@ -606,14 +625,14 @@ export default function Creators() {
             </h3>
             <p className="mx-auto mt-3 max-w-lg text-neutral-600 font-satoshi">
               {alreadyApplied
-                ? "We already have an application with this email, so you're all set. We'll message you on WhatsApp if you're selected."
+                ? "We already have an application with this email, so you're all set. We'll message you on WhatsApp if you're selected. Need to change something? Write to us through the Contact page and we'll update it."
                 : "We read every application ourselves. If you're selected, we'll message you on WhatsApp with what happens next."}
             </p>
             <div className="mx-auto mt-8 max-w-md rounded-2xl bg-studojo-purple-bg p-5">
               <p className="font-semibold text-neutral-900 font-satoshi">Know someone with great stories?</p>
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 <a
-                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareLink("linkedin"))}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-violet-600 px-5 py-2 font-bold text-white font-satoshi"
@@ -625,16 +644,33 @@ export default function Creators() {
                   onClick={copyLink}
                   className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-white px-5 py-2 font-bold text-neutral-900 font-satoshi"
                 >
-                  {copied ? "Link copied" : "Copy link"}
+                  {copied === "yes" ? "Link copied" : "Copy link"}
                 </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(whatsappText)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-white px-5 py-2 font-bold text-neutral-900 font-satoshi"
+                >
+                  Share on WhatsApp
+                </a>
               </div>
+              {copied === "failed" && (
+                <input
+                  readOnly
+                  aria-label="Link to share"
+                  value={shareLink("copy")}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className={`${INPUT} mt-4 text-center`}
+                />
+              )}
             </div>
           </div>
         ) : (
           <form
             onSubmit={onSubmit}
             noValidate
-            className="rounded-[32px] border-2 border-neutral-900 bg-white p-5 shadow-brutal-lg md:p-10"
+            className="ph-no-capture rounded-[32px] border-2 border-neutral-900 bg-white p-5 shadow-brutal-lg md:p-10"
           >
             {/* Bots fill every field; people never see this one. */}
             <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
@@ -952,7 +988,7 @@ export default function Creators() {
                             onChange={() => toggleTopic(t)}
                             className="peer sr-only"
                           />
-                          <span className="inline-flex min-h-11 select-none items-center rounded-full border-2 border-neutral-900 bg-white px-4 py-2 text-base font-medium text-neutral-900 transition-colors hover:bg-violet-50 peer-checked:bg-violet-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-violet-400 peer-focus-visible:ring-offset-2 font-satoshi">
+                          <span className="inline-flex min-h-11 select-none items-center rounded-full border-2 border-neutral-900 bg-white px-4 py-2 text-base font-medium text-neutral-900 transition-colors hover:bg-violet-50 peer-checked:bg-violet-600 peer-checked:hover:bg-violet-700 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-violet-400 peer-focus-visible:ring-offset-2 font-satoshi">
                             {on && <FiCheck aria-hidden="true" className="mr-1.5 h-4 w-4" />}
                             {t}
                           </span>
@@ -980,21 +1016,19 @@ export default function Creators() {
             {step === 3 && (
               <div className="grid gap-7">
                 <div className="rounded-2xl bg-violet-50 p-4 text-violet-950 font-satoshi">
-                  <p className="font-semibold">This is the most important part.</p>
+                  <p className="font-semibold">This is the most important part. Answer at least one.</p>
                   <p className="mt-1">
-                    We write your posts from these. Tell us at least one story; a few honest lines are enough. More stories
-                    means better posts.
+                    We write your posts from these. A few honest lines are enough, and more stories means better posts.
                   </p>
                 </div>
-                {STORY_PROMPTS.map((p, i) => {
+                {STORY_PROMPTS.map((p) => {
                   const value = form[p.key];
                   const ready = value.trim().length >= LIMITS.storyMin;
-                  const invalid = i === 0 && Boolean(err("stories"));
+                  const invalid = Boolean(err("stories")) && storyTarget(form) === p.key;
                   return (
                     <div key={p.key}>
                       <label htmlFor={`ugc-${p.key}`} className={LABEL}>
                         {p.title}
-                        {i === 0 ? null : OPTIONAL}
                       </label>
                       <p className={HINT}>{p.hint}</p>
                       <textarea
@@ -1008,15 +1042,15 @@ export default function Creators() {
                         onChange={(e) => update(p.key, e.target.value)}
                       />
                       <div className="mt-1 flex justify-between text-sm font-satoshi">
-                        <span className={`inline-flex items-center gap-1 ${ready ? "font-semibold text-emerald-700" : "text-neutral-400"}`}>
+                        <span className={`inline-flex items-center gap-1 ${ready ? "font-semibold text-emerald-700" : "text-neutral-500"}`}>
                           {ready && <FiCheck aria-hidden="true" className="h-4 w-4" />}
                           {ready ? "Enough for us to write from" : value.trim() ? "Keep going, a little more detail helps" : ""}
                         </span>
-                        <span className="text-neutral-400">
+                        <span className="text-neutral-500">
                           {value.length}/{LIMITS.story}
                         </span>
                       </div>
-                      {i === 0 && errorText("stories")}
+                      {invalid && errorText("stories")}
                     </div>
                   );
                 })}
@@ -1037,7 +1071,7 @@ export default function Creators() {
                   f: "studojoOk",
                   options: STUDOJO_OK,
                   legend: "1 in 3 of your posts will be about how you use Studojo. Is that okay?",
-                  hint: "It's always about your real experience. We never ask you to say something that isn't true.",
+                  hint: "It's always about your real experience, and labelled as a partnership. We never ask you to say something that isn't true.",
                   required: true,
                 })}
                 <div>
@@ -1052,8 +1086,15 @@ export default function Creators() {
                     value={form.whyJoin}
                     onChange={(e) => update("whyJoin", e.target.value)}
                   />
-                  <div className="mt-1 text-right text-sm text-neutral-400 font-satoshi">
-                    {form.whyJoin.length}/{LIMITS.why}
+                  <div className="mt-1 flex justify-between text-sm text-neutral-500 font-satoshi">
+                    <span>
+                      {form.whyJoin.trim().length > 0 && form.whyJoin.trim().length < LIMITS.whyMin
+                        ? `${LIMITS.whyMin - form.whyJoin.trim().length} more characters`
+                        : ""}
+                    </span>
+                    <span>
+                      {form.whyJoin.length}/{LIMITS.why}
+                    </span>
                   </div>
                   {errorText("whyJoin")}
                 </div>
@@ -1162,6 +1203,7 @@ export default function Creators() {
                     <a href="/privacy" className="font-semibold text-violet-700 underline underline-offset-2">
                       Read the Privacy Policy
                     </a>
+                    .
                   </>
                 )}
               </p>

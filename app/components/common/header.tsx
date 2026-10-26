@@ -72,7 +72,8 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
   const showHomeOnLanding = landing && location.pathname !== "/start";
   // The header always has exactly one auth button, Get Started, except on
   // /start, where the ad page's own call to action is the only one.
-  const hideGetStarted = landing && location.pathname === "/start";
+  // Pages whose own call to action is the only thing to tap.
+  const hideGetStarted = landing && ["/start", "/creators", "/ugc"].includes(location.pathname);
   const { data: session, isPending } = authClient.useSession();
 
   // Listen for session update events and refetch session

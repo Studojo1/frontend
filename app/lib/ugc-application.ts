@@ -102,7 +102,7 @@ export const LIMITS = {
   story: 1500,
   storyMin: 60,
   why: 600,
-  whyMin: 20,
+  whyMin: 10,
   referredBy: 120,
   topicsMax: 5,
 } as const;
@@ -161,14 +161,24 @@ export function stepOf(field: UgcField): number {
   return i < 0 ? 0 : i;
 }
 
+// Control characters (a NUL makes Postgres reject the insert) and invisible or
+// direction-changing characters, which can disguise text in the admin panel.
+// eslint-disable-next-line no-control-regex -- matching control characters is the point
+const HIDDEN = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g;
+
+/** Only real strings count as answers: a number or an object is treated as blank. */
+function str(v: unknown): string {
+  return typeof v === "string" ? v.replace(HIDDEN, "") : "";
+}
+
 /** One line of text: collapse whitespace, trim, cap. */
 function line(v: unknown, max: number): string {
-  return String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+  return str(v).replace(/\s+/g, " ").trim().slice(0, max);
 }
 
 /** Free text that keeps its paragraphs. */
 function para(v: unknown, max: number): string {
-  return String(v ?? "")
+  return str(v)
     .replace(/\r\n?/g, "\n")
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
@@ -177,8 +187,7 @@ function para(v: unknown, max: number): string {
 }
 
 function oneOf(list: readonly string[], v: unknown): string | null {
-  const s = String(v ?? "");
-  return list.includes(s) ? s : null;
+  return typeof v === "string" && list.includes(v) ? v : null;
 }
 
 /**
@@ -187,7 +196,7 @@ function oneOf(list: readonly string[], v: unknown): string | null {
  * null when it is not a profile link.
  */
 export function normalizeLinkedInProfile(raw: unknown): string | null {
-  const s = String(raw ?? "").trim();
+  const s = str(raw).trim();
   const m = /^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?(?:www\.)?linkedin\.com\/in\/([^/?#\s]+)\/?(?:[?#]\S*)?$/i.exec(s);
   if (!m) return null;
   const slug = m[1];
@@ -195,11 +204,13 @@ export function normalizeLinkedInProfile(raw: unknown): string | null {
   return `https://www.linkedin.com/in/${slug}`;
 }
 
-/** A link to a LinkedIn post or article, or null. */
+/** A link to a LinkedIn post or article, or null. Query strings are dropped. */
 export function normalizeLinkedInPost(raw: unknown): string | null {
-  const s = String(raw ?? "").trim();
-  const m = /^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?(?:www\.)?linkedin\.com\/((?:posts|feed\/update|pulse)\/[^\s"'<>]+)$/i.exec(s);
-  if (!m || s.length > LIMITS.url) return null;
+  const s = str(raw).trim();
+  if (s.length > LIMITS.url) return null;
+  const m =
+    /^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?(?:www\.)?linkedin\.com\/(posts\/[\w%.-]+|feed\/update\/urn:li:(?:activity|share|ugcPost):\d+|pulse\/[\w%.-]+)\/?(?:[?#]\S*)?$/i.exec(s);
+  if (!m || m[1].includes("..")) return null;
   return `https://www.linkedin.com/${m[1]}`;
 }
 
@@ -208,7 +219,7 @@ export function normalizeLinkedInPost(raw: unknown): string | null {
  * (starting 6-9) gets +91. Anything that is not 10 to 15 digits is rejected.
  */
 export function normalizeWhatsapp(raw: unknown): string | null {
-  const s = String(raw ?? "").trim();
+  const s = str(raw).trim();
   if (!/^\+?[\d\s()-]+$/.test(s)) return null;
   let digits = s.replace(/\D/g, "");
   if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
@@ -247,7 +258,7 @@ export function validateUgcApplication(
   if (course.length < 2) return fail("course", "Please tell us your course or degree.");
   const yearOfStudy = oneOf(YEARS_OF_STUDY, body.yearOfStudy);
   if (!yearOfStudy) return fail("yearOfStudy", "Please pick your year of study.");
-  const graduationYear = /^\d{4}$/.test(String(body.graduationYear ?? "")) ? String(body.graduationYear) : null;
+  const graduationYear = /^\d{4}$/.test(str(body.graduationYear)) ? str(body.graduationYear) : null;
   const city = line(body.city, LIMITS.city) || null;
 
   // Step 2: LinkedIn
@@ -271,12 +282,14 @@ export function validateUgcApplication(
   const field = oneOf(FIELDS, body.field);
   if (!field) return fail("field", "Please pick your field.");
   const targetRoles = line(body.targetRoles, LIMITS.roles);
-  if (targetRoles.length < 3) return fail("targetRoles", "Tell us the roles you're aiming for, even roughly.");
+  if (targetRoles.length < 2) return fail("targetRoles", "Tell us the roles you're aiming for, even roughly.");
   const lookingFor = oneOf(LOOKING_FOR, body.lookingFor);
   if (!lookingFor) return fail("lookingFor", "Please tell us what you're looking for right now.");
   const dreamCompanies = line(body.dreamCompanies, LIMITS.companies) || null;
-  const rawTopics = Array.isArray(body.topics) ? body.topics : [];
-  const topics = [...new Set(rawTopics.map(String))].filter((t) => (TOPICS as readonly string[]).includes(t));
+  const rawTopics: unknown[] = Array.isArray(body.topics) ? body.topics : [];
+  const topics = [...new Set(rawTopics.filter((t): t is string => typeof t === "string"))].filter((t) =>
+    (TOPICS as readonly string[]).includes(t),
+  );
   if (!topics.length) return fail("topics", "Pick at least one topic you'd enjoy posting about.");
   if (topics.length > LIMITS.topicsMax) return fail("topics", `Pick up to ${LIMITS.topicsMax} topics.`);
   const avoidTopics = line(body.avoidTopics, LIMITS.avoid) || null;
@@ -297,7 +310,8 @@ export function validateUgcApplication(
   const studojoOk = oneOf(STUDOJO_OK, body.studojoOk);
   if (!studojoOk) return fail("studojoOk", "Please answer this one.");
   const whyJoin = para(body.whyJoin, LIMITS.why);
-  if (whyJoin.length < LIMITS.whyMin) return fail("whyJoin", "Tell us in a line or two why you want to join.");
+  if (whyJoin.length < LIMITS.whyMin)
+    return fail("whyJoin", `Tell us in a line or two why you want to join (at least ${LIMITS.whyMin} characters).`);
   const referralSource = oneOf(REFERRAL_SOURCES, body.referralSource);
   const referredBy = line(body.referredBy, LIMITS.referredBy) || null;
   if (body.consent !== true) return fail("consent", "Please tick the box so we can contact you about the program.");
