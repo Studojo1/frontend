@@ -28,6 +28,9 @@ const valid = () => ({
   lastPosted: "1-6 months ago",
   bestPostUrl: "",
   crossed1k: "No",
+  fellowshipGoals: ["A growth internship at Studojo", "Not a real goal"],
+  internInterest: "Yes, I'd love that",
+  networkShare: "Yes, share my profile",
   field: "Finance",
   targetRoles: "Investment banking analyst",
   dreamCompanies: "",
@@ -57,6 +60,9 @@ assert.equal(r.value.bestPostUrl, null);
 assert.equal(r.value.dreamCompanies, null, "empty optional text is stored as null");
 assert.equal(r.value.cameFromCode, null);
 assert.equal("storyWork" in r.value, false, "stories are asked after shortlisting, not here");
+assert.deepEqual(r.value.fellowshipGoals, ["A growth internship at Studojo"], "unknown goals are dropped");
+assert.equal(r.value.internInterest, "Yes, I'd love that");
+assert.equal(r.value.networkShare, "Yes, share my profile");
 
 // The answer lists the founder asked for.
 assert.deepEqual([...CROSSED_1K], ["Yes", "No"], "no 'Not sure' or 'Maybe'");
@@ -66,6 +72,7 @@ assert.ok(CONNECTIONS.includes("1,000+"));
 const required = [
   ["fullName", ""], ["email", ""], ["whatsapp", ""], ["college", ""], ["course", ""], ["yearOfStudy", "Year 9"], ["city", ""],
   ["linkedinUrl", ""], ["connections", "200"], ["postFrequency", "daily"], ["lastPosted", ""], ["crossed1k", "Not sure"],
+  ["fellowshipGoals", []], ["internInterest", "Sure"], ["networkShare", ""],
   ["field", "Astrology"], ["targetRoles", ""], ["lookingFor", ""], ["topics", []],
   ["canCommit", ""], ["studojoOk", "No"], ["whyJoin", "fun"], ["consent", "true"],
 ];
@@ -163,7 +170,7 @@ for (const bad of ["12345", "call me", "+91 98765 43210 ext 2", "123456789012345
 
 // Four steps now, and every answer the validator can point at lives on exactly one of them.
 assert.equal(STEPS.length, 4);
-const pointable = ["fullName", "email", "whatsapp", "college", "course", "yearOfStudy", "city", "linkedinUrl", "connections", "postFrequency", "lastPosted", "bestPostUrl", "crossed1k", "field", "targetRoles", "lookingFor", "topics", "canCommit", "studojoOk", "whyJoin", "consent"];
+const pointable = ["fullName", "email", "whatsapp", "college", "course", "yearOfStudy", "city", "linkedinUrl", "connections", "postFrequency", "lastPosted", "bestPostUrl", "crossed1k", "fellowshipGoals", "internInterest", "networkShare", "field", "targetRoles", "lookingFor", "topics", "canCommit", "studojoOk", "whyJoin", "consent"];
 for (const f of pointable) assert.equal(STEPS.filter((s) => s.fields.includes(f)).length, 1, f);
 assert.equal(stepOf("city"), 0);
 assert.equal(stepOf("crossed1k"), 1);

@@ -52,6 +52,18 @@ export const TOPICS = [
 
 export const CAN_COMMIT = ["Yes, 3 posts a week for 4 weeks", "I can do 1-2 posts a week", "Not right now"] as const;
 
+// The Growth Fellowship: what each applicant wants from it.
+export const FELLOWSHIP_GOALS = [
+  "Learn LinkedIn distribution",
+  "A growth internship at Studojo",
+  "Referrals to companies hiring",
+  "A stronger LinkedIn profile",
+] as const;
+
+export const INTERN_INTEREST = ["Yes, I'd love that", "Maybe later", "Not right now"] as const;
+
+export const NETWORK_SHARE = ["Yes, share my profile", "No, keep it with Studojo"] as const;
+
 export const STUDOJO_OK = ["Yes, that's fine", "I'd like to know more first"] as const;
 
 export const REFERRAL_SOURCES = [
@@ -100,6 +112,12 @@ export interface UgcApplication {
   lastPosted: string | null;
   bestPostUrl: string | null;
   crossed1k: string | null;
+  /** What they want from the fellowship (one or more of FELLOWSHIP_GOALS). */
+  fellowshipGoals: string[];
+  /** Whether to consider them for a growth internship at Studojo. */
+  internInterest: string;
+  /** Whether we may share their profile with people in our network who are hiring. */
+  networkShare: string;
   field: string;
   targetRoles: string;
   dreamCompanies: string | null;
@@ -125,8 +143,11 @@ export type UgcValidation =
 /** The form's steps, in order, and which answers live on each. */
 export const STEPS: { title: string; fields: UgcField[] }[] = [
   { title: "About you", fields: ["fullName", "email", "whatsapp", "college", "course", "yearOfStudy", "graduationYear", "city"] },
-  { title: "Your LinkedIn", fields: ["linkedinUrl", "connections", "postFrequency", "lastPosted", "bestPostUrl", "crossed1k"] },
-  { title: "Where you're headed", fields: ["field", "targetRoles", "lookingFor", "dreamCompanies", "topics", "avoidTopics"] },
+  { title: "Your LinkedIn today", fields: ["linkedinUrl", "connections", "postFrequency", "lastPosted", "bestPostUrl", "crossed1k"] },
+  {
+    title: "What you want from the fellowship",
+    fields: ["fellowshipGoals", "internInterest", "networkShare", "field", "targetRoles", "lookingFor", "dreamCompanies", "topics", "avoidTopics"],
+  },
   { title: "Last bit", fields: ["canCommit", "studojoOk", "whyJoin", "referralSource", "referredBy", "consent"] },
 ];
 
@@ -265,7 +286,16 @@ export function validateUgcApplication(
     if (!crossed1k) return fail("crossed1k", "Please answer yes or no.");
   }
 
-  // Step 3: direction
+  // Step 3: what they want from the fellowship, and where they are headed
+  const rawGoals: unknown[] = Array.isArray(body.fellowshipGoals) ? body.fellowshipGoals : [];
+  const fellowshipGoals = [...new Set(rawGoals.filter((g): g is string => typeof g === "string"))].filter((g) =>
+    (FELLOWSHIP_GOALS as readonly string[]).includes(g),
+  );
+  if (!fellowshipGoals.length) return fail("fellowshipGoals", "Pick at least one thing you want from the fellowship.");
+  const internInterest = oneOf(INTERN_INTEREST, body.internInterest);
+  if (!internInterest) return fail("internInterest", "Please tell us if you'd like to be considered for a growth internship.");
+  const networkShare = oneOf(NETWORK_SHARE, body.networkShare);
+  if (!networkShare) return fail("networkShare", "Please tell us if we can share your profile with people hiring.");
   const field = oneOf(FIELDS, body.field);
   if (!field) return fail("field", "Please pick your field.");
   const targetRoles = line(body.targetRoles, LIMITS.roles);
@@ -302,6 +332,7 @@ export function validateUgcApplication(
     value: {
       fullName, email, whatsapp, college, course, yearOfStudy, graduationYear, city,
       hasLinkedin, linkedinUrl, connections, postFrequency, lastPosted, bestPostUrl, crossed1k,
+      fellowshipGoals, internInterest, networkShare,
       field, targetRoles, dreamCompanies, lookingFor, topics, avoidTopics,
       canCommit, studojoOk, whyJoin, referralSource, referredBy, cameFromCode,
     },

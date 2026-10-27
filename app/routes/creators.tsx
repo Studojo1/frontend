@@ -8,10 +8,13 @@ import {
   CAN_COMMIT,
   CONNECTIONS,
   CROSSED_1K,
+  FELLOWSHIP_GOALS,
   FIELDS,
+  INTERN_INTEREST,
   LAST_POSTED,
   LIMITS,
   LOOKING_FOR,
+  NETWORK_SHARE,
   POST_FREQUENCY,
   REFERRAL_SOURCES,
   SHARE_CODE,
@@ -82,6 +85,9 @@ interface FormState {
   targetRoles: string;
   dreamCompanies: string;
   lookingFor: string;
+  fellowshipGoals: string[];
+  internInterest: string;
+  networkShare: string;
   topics: string[];
   avoidTopics: string;
   canCommit: string;
@@ -112,6 +118,9 @@ const EMPTY: FormState = {
   targetRoles: "",
   dreamCompanies: "",
   lookingFor: "",
+  fellowshipGoals: [],
+  internInterest: "",
+  networkShare: "",
   topics: [],
   avoidTopics: "",
   canCommit: "",
@@ -145,6 +154,7 @@ function loadDraft(): { form: FormState; step: number } | null {
     for (const k of Object.keys(EMPTY) as (keyof FormState)[]) {
       const v = saved.form[k];
       if (k === "topics") form.topics = Array.isArray(v) ? v.map(String) : [];
+      else if (k === "fellowshipGoals") form.fellowshipGoals = Array.isArray(v) ? v.map(String) : [];
       else if (k === "consent") form.consent = false;
       else if (k === "noLinkedin") form.noLinkedin = v === true;
       else if (typeof v === "string") (form as unknown as Record<string, unknown>)[k] = v;
@@ -346,6 +356,11 @@ export default function Creators() {
     });
     if (key === "email") setEmailSuggestion(null);
     setFormError(null);
+  }
+
+  function toggleGoal(goal: string) {
+    const has = form.fellowshipGoals.includes(goal);
+    update("fellowshipGoals", has ? form.fellowshipGoals.filter((g) => g !== goal) : [...form.fellowshipGoals, goal]);
   }
 
   function toggleTopic(topic: string) {
@@ -689,7 +704,7 @@ export default function Creators() {
             <p className="mx-auto mt-3 max-w-lg text-neutral-600 font-satoshi">
               {alreadyApplied
                 ? "We already have an application with this email, so you're all set. We'll message you on WhatsApp if you're selected. Need to change something? Write to us through the Contact page and we'll update it."
-                : "We read every application ourselves. If you're selected, we'll message you on WhatsApp with what happens next."}
+                : "We read every application ourselves. If you're selected for the fellowship, we'll message you on WhatsApp with what happens next. Fellows who do well get first preference when Studojo hires growth interns."}
             </p>
             <div className="mx-auto mt-8 max-w-md rounded-2xl bg-studojo-purple-bg p-5">
               <p className="font-semibold text-neutral-900 font-satoshi">Know someone with great stories?</p>
@@ -971,7 +986,7 @@ export default function Creators() {
                 ) : (
                   <>
                     <p className="text-neutral-600 font-satoshi">
-                      This tells us where you're starting from. Small numbers are completely fine.
+                      This is where you're starting from. The fellowship is about growing it, so small numbers are completely fine.
                     </p>
                     <div>
                       <label htmlFor="ugc-linkedinUrl" className={LABEL}>
@@ -1027,7 +1042,52 @@ export default function Creators() {
 
             {step === 2 && (
               <div className="grid gap-7">
-                <p className="text-neutral-600 font-satoshi">So your posts point where you want to go next.</p>
+                <p className="text-neutral-600 font-satoshi">
+                  The fellowship helps you learn distribution, opens a path to a growth internship at Studojo, and puts your
+                  profile in front of people hiring. Tell us what matters to you.
+                </p>
+                <fieldset aria-describedby={err("fellowshipGoals") ? "ugc-fellowshipGoals-error" : undefined}>
+                  <legend className={LABEL}>
+                    What do you want from the fellowship?{REQUIRED}
+                  </legend>
+                  <p className={HINT}>Pick all that apply.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {FELLOWSHIP_GOALS.map((g, i) => {
+                      const on = form.fellowshipGoals.includes(g);
+                      return (
+                        <label key={g} className="cursor-pointer">
+                          <input
+                            type="checkbox"
+                            id={`ugc-fellowshipGoals-${i}`}
+                            checked={on}
+                            onChange={() => toggleGoal(g)}
+                            className="peer sr-only"
+                          />
+                          <span className="inline-flex min-h-11 select-none items-center rounded-full border-2 border-neutral-900 bg-white px-4 py-2 text-base font-medium text-neutral-900 transition-colors hover:bg-violet-50 peer-checked:bg-violet-600 peer-checked:hover:bg-violet-700 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-violet-400 peer-focus-visible:ring-offset-2 font-satoshi">
+                            {on && <FiCheck aria-hidden="true" className="mr-1.5 h-4 w-4" />}
+                            {g}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {errorText("fellowshipGoals")}
+                </fieldset>
+                {choices({
+                  f: "internInterest",
+                  options: INTERN_INTEREST,
+                  legend: "Would you like to be considered for a growth internship at Studojo?",
+                  hint: "Studojo hires its growth interns from the fellowship. Fellows who do well get first preference.",
+                  required: true,
+                })}
+                {choices({
+                  f: "networkShare",
+                  options: NETWORK_SHARE,
+                  legend: "Can we share your profile with people in our network who are hiring?",
+                  hint: "If Studojo isn't the right fit, this is how strong fellows find other opportunities.",
+                  required: true,
+                })}
+                <p className="text-neutral-600 font-satoshi">And where are you headed next?</p>
                 <div>
                   <label htmlFor="ugc-field" className={LABEL}>
                     Your field{REQUIRED}
@@ -1119,17 +1179,17 @@ export default function Creators() {
             {step === 3 && (
               <div className="grid gap-7">
                 <p className="text-neutral-600 font-satoshi">Almost done.</p>
-                {choices({ f: "canCommit", options: CAN_COMMIT, legend: "Can you post 3 times a week for 4 weeks?", required: true })}
+                {choices({ f: "canCommit", options: CAN_COMMIT, legend: "Fellows post 3 times a week. Can you do that for at least 4 weeks?", required: true })}
                 {choices({
                   f: "studojoOk",
                   options: STUDOJO_OK,
-                  legend: "1 in 3 of your posts will be about how you use Studojo. Is that okay?",
+                  legend: "Some of your posts will be about how you use Studojo. Is that okay?",
                   hint: "It's always about your real experience, and labelled as a partnership. We never ask you to say something that isn't true.",
                   required: true,
                 })}
                 <div>
                   <label htmlFor="ugc-whyJoin" className={LABEL}>
-                    Why do you want to join?{REQUIRED}
+                    Why do you want to join the fellowship?{REQUIRED}
                   </label>
                   <textarea
                     {...a11y("whyJoin")}
