@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { FaInstagram, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
 import { FiUsers } from "react-icons/fi";
-import { FooterB2C } from "../home-b2c/FooterB2C";
-import { useB2cHost } from "../home-b2c/links";
+import { useSiteB2c } from "../site-b2c/host";
+import { SiteFooter } from "../site-b2c/SiteFooter";
 
 type FooterLink = {
   to: string;
@@ -84,10 +84,11 @@ function FooterItem({ to, label, icon, external }: FooterLink) {
   );
 }
 
-/** On B2C hosts (studojo.pro, app/lib/b2c-home.ts) the job-agent footer, without the old products. */
-export function Footer() {
-  const b2c = useB2cHost();
-  return b2c ? <FooterB2C /> : <ClassicFooter />;
+/** On B2C hosts (studojo.pro, app/lib/b2c-home.ts) the job-agent footer, without the old products (SITE-V2,
+ * components/site-b2c/SiteFooter.tsx; `compact` drops its closing button, for the sign-in pages). */
+export function Footer({ compact = false }: { compact?: boolean } = {}) {
+  const b2c = useSiteB2c();
+  return b2c ? <SiteFooter compact={compact} /> : <ClassicFooter />;
 }
 
 /** The studojo.com footer, unchanged. */

@@ -7,6 +7,8 @@ import { isbot } from "isbot";
 import type { RenderToPipeableStreamOptions } from "react-dom/server";
 import { renderToPipeableStream } from "react-dom/server";
 import { markStaging } from "./lib/staging-host";
+import { isB2cRequest } from "./lib/b2c-home";
+import { Sv2HostContext } from "./components/site-b2c/host";
 
 export const streamTimeout = 5_000;
 
@@ -84,7 +86,10 @@ export default function handleRequest(
     );
 
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter context={routerContext} url={request.url} />,
+      // SITE-V2: the request's B2C answer for pages that run no root loader (a 404); renders nothing itself.
+      <Sv2HostContext.Provider value={isB2cRequest(request)}>
+        <ServerRouter context={routerContext} url={request.url} />
+      </Sv2HostContext.Provider>,
       {
         [readyOption]() {
           shellRendered = true;

@@ -1,0 +1,152 @@
+/* SITE-V2 site-blog: see site.css for the shared look. Every rule is under html[data-sv2].
+   /blog (site-b2c/blog/BlogIndexB2C.tsx) and /blog/<slug> (site-b2c/blog/BlogPostB2C.tsx), B2C hosts only. */
+
+html[data-sv2] .sv-blog-wrap { position: relative; }
+
+/* ---------- /blog: page head, search ---------- */
+html[data-sv2] .sv-blog-main { padding-bottom: 96px; }
+html[data-sv2] .sv-blog-pagehead { padding-bottom: 44px; }
+html[data-sv2] .sv-blog-search { width: 100%; max-width: 520px; margin: 14px 0 0; }
+html[data-sv2] .sv-blog-search-box { display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 6px 0 18px; background: #fff;
+  border: 1px solid var(--sv-line); border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); transition: border-color .15s ease, box-shadow .15s ease; }
+html[data-sv2] .sv-blog-search-box:focus-within { border-color: rgba(139, 92, 246, .45); box-shadow: 0 0 0 4px rgba(139, 92, 246, .12), var(--sv-soft); }
+html[data-sv2] .sv-blog-search-box > svg { flex: none; width: 18px; height: 18px; color: var(--sv-faint); }
+html[data-sv2] .sv-blog-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; box-shadow: none;
+  font-family: var(--sv-sans); font-size: 16px; font-weight: 400; color: var(--sv-ink); }
+html[data-sv2] .sv-blog-search-input::placeholder { color: var(--sv-faint); opacity: 1; }
+html[data-sv2] .sv-blog-search-btn { flex: none; height: 42px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--sv-lilac); color: var(--sv-purple-strong);
+  font-family: var(--sv-sans); font-size: 15px; font-weight: 500; letter-spacing: -0.005em; cursor: pointer; transition: background .15s ease; }
+html[data-sv2] .sv-blog-search-btn:hover { background: var(--sv-lilac-2); }
+html[data-sv2] .sv-blog-search-btn:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
+
+/* ---------- /blog: the grid of white cards ---------- */
+html[data-sv2] .sv-blog-found { margin: 0 0 18px; text-align: center; }
+html[data-sv2] .sv-blog-found b { font-weight: 500; color: var(--sv-purple-strong); }
+html[data-sv2] .sv-blog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+html[data-sv2] a.sv-blog-card { flex-direction: column; padding: 8px; min-width: 0; }
+html[data-sv2] .sv-blog-card-img { display: block; aspect-ratio: 1200 / 630; border-radius: 12px; overflow: hidden; background: #0a0612; }
+html[data-sv2] .sv-blog-card-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+html[data-sv2] .sv-blog-card-body { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px 14px 12px; }
+html[data-sv2] .sv-blog-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; font-family: var(--sv-mono); font-size: 11.5px; font-weight: 500;
+  letter-spacing: .03em; line-height: 1.5; color: var(--sv-faint); text-transform: lowercase; }
+html[data-sv2] .sv-blog-card-meta > * + *::before { content: "\00B7"; margin: 0 8px; color: #c4bfcc; }
+html[data-sv2] .sv-blog-cat { color: var(--sv-purple-strong); }
+html[data-sv2] .sv-blog-card-title { margin: 0; font-family: var(--sv-sans); font-size: 19px; font-weight: 500; line-height: 1.28; letter-spacing: -0.018em; color: var(--sv-ink);
+  text-wrap: pretty; }
+html[data-sv2] .sv-blog-card-ex { margin: 0; font-size: 15px; line-height: 1.55; color: var(--sv-muted); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html[data-sv2] .sv-blog-card .sv-go { margin-top: auto; padding-top: 6px; }
+
+/* quiet pills: pagination, empty-state actions */
+html[data-sv2] .sv-blog-pill { height: 42px; padding: 0 18px; font-family: var(--sv-sans); font-size: 15px; }
+html[data-sv2] .sv-blog-pill svg { flex: none; }
+html[data-sv2] .sv-blog-pill:disabled { opacity: .45; cursor: default; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); border-color: var(--sv-line); }
+html[data-sv2] .sv-blog-pages { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 48px; }
+html[data-sv2] .sv-blog-page-of { min-width: 96px; text-align: center; }
+
+/* empty and loading */
+html[data-sv2] .sv-blog-empty { max-width: 560px; margin: 0 auto; padding: 44px 28px 40px; gap: 12px; }
+html[data-sv2] .sv-blog-empty .sv-h3 { font-size: 22px; }
+html[data-sv2] .sv-blog-empty .sv-body { max-width: 400px; }
+html[data-sv2] .sv-blog-empty-acts { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 20px; margin-top: 8px; }
+html[data-sv2] .sv-blog-loading { padding: 72px 24px; }
+
+/* ---------- /blog/<slug>: the post ---------- */
+html[data-sv2] .sv-blog-post { padding-top: 40px; padding-bottom: 88px; }
+html[data-sv2] .sv-blog-crumbs { margin-bottom: 36px; flex-wrap: nowrap; min-width: 0; }
+html[data-sv2] .sv-blog-crumbs > * { flex: none; }
+html[data-sv2] .sv-blog-crumbs .sv-blog-crumb-now { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--sv-faint); }
+html[data-sv2] .sv-blog-head { display: grid; gap: 18px; justify-items: start; margin-bottom: 36px; }
+html[data-sv2] .sv-blog-kick { text-transform: lowercase; }
+html[data-sv2] .sv-blog-title { margin: 0; font-family: var(--sv-sans); font-weight: 500; font-size: clamp(32px, 4.4vw, 50px); line-height: 1.08; letter-spacing: -0.032em;
+  color: var(--sv-ink); text-wrap: balance; overflow-wrap: anywhere; }
+html[data-sv2] .sv-blog-ex { font-size: 19px; }
+html[data-sv2] .sv-blog-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0; margin: 2px 0 0; font-size: 14.5px; color: var(--sv-muted); }
+html[data-sv2] .sv-blog-meta > * + *::before { content: "\00B7"; margin: 0 10px; color: #c4bfcc; font-family: var(--sv-sans); }
+html[data-sv2] .sv-blog-meta b { font-weight: 500; color: var(--sv-ink); }
+html[data-sv2] .sv-blog-meta .sv-mono { font-size: 12px; text-transform: lowercase; }
+html[data-sv2] .sv-blog-hero { padding: 8px; margin: 0 0 48px; }
+html[data-sv2] .sv-blog-hero img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; border-radius: 12px; background: #0a0612; }
+
+/* the post's own HTML inside .sv-prose: extra elements the shared prose rules do not cover */
+html[data-sv2] .sv-blog-prose > :first-child { margin-top: 0; }
+html[data-sv2] .sv-blog-prose h1, html[data-sv2] .sv-blog-prose .heading { margin-top: 2.1em; font-family: var(--sv-sans); font-size: 28px; font-weight: 500; line-height: 1.2;
+  letter-spacing: -0.025em; color: var(--sv-ink); }
+html[data-sv2] .sv-blog-prose > h1:first-child, html[data-sv2] .sv-blog-prose > .heading:first-child { margin-top: 0; }
+html[data-sv2] .sv-blog-prose :is(h2, h3, h4) + :not(h2, h3, h4) { margin-top: .6em; }
+html[data-sv2] .sv-blog-prose h2 + :is(h3, h4), html[data-sv2] .sv-blog-prose h3 + h4 { margin-top: .9em; }
+html[data-sv2] .sv-blog-prose em, html[data-sv2] .sv-blog-prose i { font-style: italic; }
+html[data-sv2] .sv-blog-prose li > p { margin: 0; }
+html[data-sv2] .sv-blog-prose li > ul, html[data-sv2] .sv-blog-prose li > ol { margin-top: .45em; }
+html[data-sv2] .sv-blog-prose ul ul { list-style: circle; }
+html[data-sv2] .sv-blog-prose blockquote { font-style: normal; }
+html[data-sv2] .sv-blog-prose blockquote > * { margin: 0; }
+html[data-sv2] .sv-blog-prose blockquote > * + * { margin-top: .6em; }
+html[data-sv2] .sv-blog-prose img { display: block; margin: 1.6em 0; }
+html[data-sv2] .sv-blog-prose p img, html[data-sv2] .sv-blog-prose figure img { margin: 0; }
+html[data-sv2] .sv-blog-prose figure { margin: 1.6em 0; }
+html[data-sv2] .sv-blog-prose figcaption { margin-top: 8px; font-size: 14px; line-height: 1.5; color: var(--sv-faint); }
+html[data-sv2] .sv-blog-prose iframe, html[data-sv2] .sv-blog-prose video { display: block; max-width: 100%; border: 0; border-radius: 14px; }
+html[data-sv2] .sv-blog-prose pre { margin-top: 1.4em; padding: 16px 18px; overflow-x: auto; border-radius: 14px; background: #1c1a22; color: #f2f0f6; font-size: 14.5px; line-height: 1.6; }
+html[data-sv2] .sv-blog-prose pre code { padding: 0; background: transparent; color: inherit; font-size: inherit; }
+html[data-sv2] .sv-blog-prose p:empty { display: none; }
+/* tables: a full-width white card on wider screens; on phones a card that fits its content and scrolls sideways when
+   it is wider than the column (never mid-word breaks in cells) */
+html[data-sv2] .sv-prose.sv-blog-prose table { display: table; width: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; }
+html[data-sv2] .sv-prose.sv-blog-prose :is(th, td) { overflow-wrap: normal; word-break: normal; }
+html[data-sv2] .sv-prose.sv-blog-prose tr:last-child > td { border-bottom: 0; }
+
+/* tags, back link */
+html[data-sv2] .sv-blog-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--sv-hair); }
+html[data-sv2] .sv-blog-tags .sv-mono { margin-right: 6px; }
+html[data-sv2] .sv-blog-tags a.sv-chip { text-decoration: none; transition: border-color .15s ease, color .15s ease; }
+html[data-sv2] .sv-blog-tags a.sv-chip:hover { border-color: rgba(139, 92, 246, .35); color: var(--sv-purple-strong); }
+html[data-sv2] .sv-blog-back { margin-top: 32px; }
+html[data-sv2] .sv-blog-post .sv-blog-tags + .sv-blog-back { margin-top: 24px; }
+
+/* ---------- the quiet Stu card (React in the middle of a post, and the HTML card that replaces CTA placeholders) ---------- */
+html[data-sv2] .sv-blog-stu { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px 18px; margin: 44px 0;
+  padding: 18px 20px 18px 18px; background: #fff; border: 1px solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); font-family: var(--sv-sans); }
+html[data-sv2] .sv-prose > .sv-blog-stu { margin: 2.2em 0; }
+html[data-sv2] .sv-blog-stu .sv-blog-stu-head { display: block; width: 52px; height: 52px; margin: 0; border: 0; border-radius: 0; object-fit: contain; }
+html[data-sv2] .sv-blog-stu .sv-blog-stu-line { margin: 0; font-size: 16.5px; font-weight: 500; line-height: 1.45; letter-spacing: -0.01em; color: var(--sv-ink); text-wrap: pretty; }
+html[data-sv2] .sv-blog-stu a.sv-blog-stu-go { color: #fff; text-decoration: none; }
+html[data-sv2] .sv-blog-stu a.sv-blog-stu-go svg { width: 16px; height: 16px; }
+
+/* ---------- the post page's own "no post" state ---------- */
+html[data-sv2] .sv-blog-missing { padding: 96px 0 88px; }
+html[data-sv2] .sv-blog-missing .sv-btn-ghost { margin-top: 8px; }
+
+@media (max-width: 1000px) {
+  html[data-sv2] .sv-blog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+}
+@media (max-width: 640px) {
+  html[data-sv2] .sv-blog-main { padding-bottom: 72px; }
+  html[data-sv2] .sv-blog-pagehead { padding-bottom: 32px; }
+  html[data-sv2] .sv-blog-search-box { height: 52px; padding-left: 16px; }
+  html[data-sv2] .sv-blog-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  html[data-sv2] .sv-blog-card-body { padding: 14px 12px 10px; }
+  html[data-sv2] .sv-blog-card-title { font-size: 18.5px; }
+  html[data-sv2] .sv-blog-pages { gap: 8px; margin-top: 36px; }
+  html[data-sv2] .sv-blog-pill { padding: 0 14px; }
+  html[data-sv2] .sv-blog-page-of { min-width: 0; }
+  html[data-sv2] .sv-blog-empty { padding: 36px 20px 32px; }
+  html[data-sv2] .sv-blog-post { padding-top: 24px; padding-bottom: 64px; }
+  html[data-sv2] .sv-blog-crumbs { margin-bottom: 26px; }
+  html[data-sv2] .sv-blog-head { gap: 14px; margin-bottom: 28px; }
+  html[data-sv2] .sv-blog-ex { font-size: 17.5px; }
+  html[data-sv2] .sv-blog-hero { padding: 6px; margin-bottom: 36px; border-radius: 16px; }
+  html[data-sv2] .sv-blog-hero img { border-radius: 11px; }
+  html[data-sv2] .sv-blog-prose h1, html[data-sv2] .sv-blog-prose .heading { font-size: 24px; }
+  html[data-sv2] .sv-prose.sv-blog-prose table { display: block; width: fit-content; max-width: 100%; overflow-x: auto; font-size: 15px; }
+  html[data-sv2] .sv-prose.sv-blog-prose :is(th, td) { padding: 9px 12px; }
+  html[data-sv2] .sv-blog-stu { grid-template-columns: auto minmax(0, 1fr); padding: 16px; gap: 14px; }
+  html[data-sv2] .sv-blog-stu .sv-blog-stu-head { width: 46px; height: 46px; }
+  html[data-sv2] .sv-blog-stu .sv-blog-stu-line { font-size: 16px; }
+  html[data-sv2] .sv-blog-stu a.sv-blog-stu-go { grid-column: 1 / -1; width: 100%; height: 46px; }
+  html[data-sv2] .sv-blog-tags { margin-top: 44px; }
+  html[data-sv2] .sv-blog-missing { padding: 64px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-sv2] .sv-blog-search-box, html[data-sv2] .sv-blog-search-btn, html[data-sv2] .sv-blog-tags a.sv-chip { transition: none; }
+}

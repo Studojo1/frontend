@@ -9,6 +9,7 @@ import {
   useLocation,
   useMatches,
   useNavigate,
+  useRouteError,
 } from "react-router";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
@@ -31,6 +32,13 @@ import "./app.css";
 // CDN kept only as a src fallback). Replaces the render-blocking external Fontshare stylesheet so
 // a Fontshare outage / CSP / network block can never blank the whole UI to serif again.
 import "./fonts.css";
+// SITE-V2: the studojo.pro look for every page but the homepage, linked only on those pages (see Layout).
+import sv2Css from "./components/site-b2c/site.css?url";
+import sv2BlogCss from "./components/site-b2c/site-blog.css?url";
+import sv2ReportsCss from "./components/site-b2c/site-reports.css?url";
+import sv2PagesCss from "./components/site-b2c/site-pages.css?url";
+import { sv2PageFor } from "./components/site-b2c/site-links";
+import { useSiteB2c } from "./components/site-b2c/host";
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.png", type: "image/png" },
@@ -40,8 +48,14 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
+  // SITE-V2: on B2C hosts (the root loader's b2cHost, app/lib/b2c-home.ts; site-b2c/host.tsx) the blog, reports, legal, contact, about,
+  // sign-in and error pages get html[data-sv2] and the SITE-V2 stylesheets. studojo.com never does: no attribute and
+  // no extra link, so its HTML is unchanged.
+  const b2c = useSiteB2c();
+  const routeError = useRouteError();
+  const sv2 = b2c ? (routeError ? "error" : sv2PageFor(pathname)) : null;
   return (
-    <html lang="en">
+    <html lang="en" data-sv2={sv2 ?? undefined}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -58,6 +72,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta property="og:image:height" content="630" />
         <meta name="twitter:image" content="https://studojo.com/og-default.png" />
         <Links />
+        {sv2 ? (
+          <>
+            <link rel="stylesheet" href={sv2Css} />
+            <link rel="stylesheet" href={sv2BlogCss} />
+            <link rel="stylesheet" href={sv2ReportsCss} />
+            <link rel="stylesheet" href={sv2PagesCss} />
+          </>
+        ) : null}
         {/* Suppress third-party warnings immediately, before any scripts load */}
         <script
           dangerouslySetInnerHTML={{
