@@ -15,9 +15,23 @@ html[data-sv2] {
   --sv-purple: #8b5cf6; --sv-purple-strong: #6d28d9; --sv-purple-light: #dab2ff;
   --sv-lilac: #f3eefc; --sv-lilac-2: #ebe5f5; --sv-lilac-bg: #faf5fe;
   --sv-green: #10b981; --sv-green-bg: #d0fae4;
-  --sv-bg: #f7f6fa; --sv-dot: #d9d5e2; --sv-hair: rgba(23, 23, 23, .07); --sv-line: rgba(23, 23, 23, .10); --sv-card: #fff;
-  --sv-soft: 0 1px 2px rgba(0, 0, 0, .04), 0 12px 32px -16px rgba(76, 29, 149, .18);
-  --sv-soft-up: 0 1px 2px rgba(0, 0, 0, .05), 0 20px 40px -18px rgba(76, 29, 149, .26);
+  --sv-bg: #f7f6fa; --sv-dot: #d9d5e2; --sv-hair: #e6e2ec; --sv-line: var(--sv-ink-e); --sv-line-soft: rgba(23, 23, 23, .10); --sv-card: #fff;
+  --sv-soft: var(--sv-hard);
+  --sv-soft-up: var(--sv-hard);
+  /* BORDERS-HOVER (owner, 27 Oct 2026): ink edges and a hard ink shadow at rest, a crisp lift on hover. One state
+     recipe for every button, card and field on every studojo.pro page but the homepage (which has the same tokens as
+     --hv-*): rest = a 1.5px ink edge and a hard 3px ink shadow; hover = lift 1px, the shadow grows 1px, the purple pill
+     darkens a step, white buttons take a lilac fill; press = sinks into the shadow; focus = a 2px purple ring 2px
+     out; disabled = flat. Every value is a token, so a different look is a token change. */
+  --sv-ink-e: #191a23; --sv-bw: 1.5px;
+  --sv-hard: 3px 3px 0 var(--sv-ink-e); --sv-hard-up: 4px 4px 0 var(--sv-ink-e); --sv-hard-down: 1px 1px 0 var(--sv-ink-e);
+  --sv-lift: translate(-1px, -1px); --sv-press: translate(2px, 2px); --sv-dur: .14s; --sv-ease: var(--sv-dur) ease;
+  --sv-states: transform var(--sv-ease), box-shadow var(--sv-ease), background-color var(--sv-ease), border-color var(--sv-ease), color var(--sv-ease);
+  --sv-fill-hover: #f6f2ff; --sv-soft-fill-hover: #e6dbfb;
+  --sv-cta-bg: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%);
+  --sv-cta-bg-hover: linear-gradient(180deg, #9a7cf7 0%, #7c4ef0 58%, #6f40e6 100%);
+  --sv-cta-in: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18);
+  --sv-cta-shadow: var(--sv-cta-in), var(--sv-hard); --sv-cta-shadow-up: var(--sv-cta-in), var(--sv-hard-up); --sv-cta-shadow-down: var(--sv-cta-in), var(--sv-hard-down);
   --sv-max: 1120px; --sv-read: 720px; --sv-hdr: 60px;
   --sv-sans: Satoshi, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --sv-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -45,13 +59,15 @@ html[data-sv2] .sv-micro { margin: 0; font-size: 13.5px; color: var(--sv-faint);
 /* ---------- THE button: the purple pill (a1v2-base .btn-start) ---------- */
 html[data-sv2] .sv-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 60px; padding: 0 30px; border-radius: 999px;
   font-family: var(--sv-sans); font-size: 19px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; color: #fff; text-decoration: none; cursor: pointer;
-  background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%); border: 1px solid #7446ea;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18), 0 1px 2px rgba(0, 0, 0, .06), 0 16px 32px -14px rgba(109, 40, 217, .72);
-  transition: transform .18s ease, box-shadow .18s ease; }
+  background: var(--sv-cta-bg); border: var(--sv-bw) solid var(--sv-ink-e);
+  box-shadow: var(--sv-cta-shadow);
+  transition: var(--sv-states); }
 html[data-sv2] .sv-btn::before { content: ""; position: absolute; left: 16px; right: 16px; top: 2px; height: 46%; border-radius: 999px;
   background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, 0)); pointer-events: none; }
-html[data-sv2] .sv-btn:hover { color: #fff; transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18), 0 1px 2px rgba(0, 0, 0, .06), 0 20px 36px -14px rgba(109, 40, 217, .78); }
-html[data-sv2] .sv-btn:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 3px; }
+html[data-sv2] .sv-btn:hover { color: #fff; transform: var(--sv-lift); background: var(--sv-cta-bg-hover); box-shadow: var(--sv-cta-shadow-up); }
+html[data-sv2] .sv-btn:active { transform: var(--sv-press); background: var(--sv-cta-bg-hover); box-shadow: var(--sv-cta-shadow-down); }
+html[data-sv2] .sv-btn:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
+html[data-sv2] .sv-btn:disabled { box-shadow: none; transform: none; }
 html[data-sv2] .sv-btn svg { flex: none; position: relative; }
 html[data-sv2] .sv-btn-sm { height: 38px; padding: 0 16px; font-size: 15px; gap: 7px; }
 html[data-sv2] .sv-btn-sm::before { left: 10px; right: 10px; }
@@ -59,10 +75,12 @@ html[data-sv2] .sv-btn-sm svg { width: 16px; height: 16px; }
 html[data-sv2] .sv-btn-wide { width: 100%; }
 /* the quiet second choice: a white pill with a hairline, never a second purple one */
 html[data-sv2] .sv-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 22px; border-radius: 999px;
-  background: #fff; border: 1px solid var(--sv-line); box-shadow: 0 1px 2px rgba(0, 0, 0, .04); color: var(--sv-ink); font-size: 16px; font-weight: 500; letter-spacing: -0.01em;
-  text-decoration: none; white-space: nowrap; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
-html[data-sv2] .sv-btn-ghost:hover { border-color: rgba(139, 92, 246, .35); box-shadow: var(--sv-soft); }
-html[data-sv2] .sv-btn-ghost:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 3px; }
+  background: #fff; border: var(--sv-bw) solid var(--sv-line); box-shadow: var(--sv-hard); color: var(--sv-ink); font-size: 16px; font-weight: 500; letter-spacing: -0.01em;
+  text-decoration: none; white-space: nowrap; cursor: pointer; transition: var(--sv-states); }
+html[data-sv2] .sv-btn-ghost:hover:not(:disabled) { background: var(--sv-fill-hover); transform: var(--sv-lift); box-shadow: var(--sv-hard-up); }
+html[data-sv2] .sv-btn-ghost:active:not(:disabled) { background: var(--sv-fill-hover); transform: var(--sv-press); box-shadow: var(--sv-hard-down); }
+html[data-sv2] .sv-btn-ghost:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
+html[data-sv2] .sv-btn-ghost:disabled { box-shadow: none; transform: none; }
 /* a text link: underlined, muted, darkens on hover */
 html[data-sv2] .sv-link { color: var(--sv-muted); text-decoration: underline; text-decoration-color: rgba(82, 82, 82, .35); text-underline-offset: 4px; }
 html[data-sv2] .sv-link:hover { color: var(--sv-ink); text-decoration-color: currentColor; }
@@ -70,17 +88,18 @@ html[data-sv2] .sv-go { display: inline-flex; align-items: center; gap: 6px; fon
 html[data-sv2] .sv-go svg { width: 15px; height: 15px; transition: transform .15s ease; }
 
 /* ---------- cards, tiles, chips ---------- */
-html[data-sv2] .sv-card { background: var(--sv-card); border: 1px solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); }
-html[data-sv2] a.sv-card { display: flex; color: inherit; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
-html[data-sv2] a.sv-card:hover { transform: translateY(-2px); box-shadow: var(--sv-soft-up); border-color: rgba(139, 92, 246, .3); }
+html[data-sv2] .sv-card { background: var(--sv-card); border: var(--sv-bw) solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); }
+html[data-sv2] a.sv-card { display: flex; color: inherit; text-decoration: none; transition: var(--sv-states); }
+html[data-sv2] a.sv-card:hover { transform: var(--sv-lift); box-shadow: var(--sv-hard-up); }
+html[data-sv2] a.sv-card:active { transform: var(--sv-press); box-shadow: var(--sv-hard-down); }
 html[data-sv2] a.sv-card:hover .sv-go svg { transform: translateX(2px); }
-html[data-sv2] a.sv-card:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 3px; }
+html[data-sv2] a.sv-card:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
 html[data-sv2] .sv-card-soft { background: linear-gradient(180deg, #f6f2fd, #efeaf7); }
 html[data-sv2] .sv-ico { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: var(--sv-lilac); color: var(--sv-purple-strong); }
 html[data-sv2] .sv-ico svg { width: 18px; height: 18px; }
 html[data-sv2] .sv-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 999px; background: var(--sv-lilac); color: var(--sv-purple-strong);
   font-size: 13.5px; font-weight: 500; white-space: nowrap; }
-html[data-sv2] .sv-chip-q { background: #fff; color: var(--sv-muted); border: 1px solid var(--sv-line); }
+html[data-sv2] .sv-chip-q { background: #fff; color: var(--sv-muted); border: var(--sv-bw) solid var(--sv-line); }
 html[data-sv2] .sv-stu { display: block; flex: none; height: auto; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 
 /* ---------- page frame: a centred column, a page head, sections ---------- */
@@ -112,42 +131,45 @@ html[data-sv2] .sv-prose ul { list-style: disc; }
 html[data-sv2] .sv-prose ol { list-style: decimal; }
 html[data-sv2] .sv-prose li + li { margin-top: .45em; }
 html[data-sv2] .sv-prose li::marker { color: var(--sv-purple); }
-html[data-sv2] .sv-prose blockquote { margin-left: 0; margin-right: 0; padding: 18px 22px; border: 1px solid var(--sv-line); border-left: 3px solid var(--sv-purple); border-radius: 14px; background: #fff; color: var(--sv-ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
-html[data-sv2] .sv-prose img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--sv-line); }
+html[data-sv2] .sv-prose blockquote { margin-left: 0; margin-right: 0; padding: 18px 22px; border: var(--sv-bw) solid var(--sv-line); border-left: 3px solid var(--sv-purple); border-radius: 14px; background: #fff; color: var(--sv-ink); box-shadow: var(--sv-hard); }
+html[data-sv2] .sv-prose img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--sv-line-soft); }
 html[data-sv2] .sv-prose hr { border: 0; border-top: 1px solid var(--sv-hair); margin: 2.4em 0; }
-html[data-sv2] .sv-prose table { width: 100%; border-collapse: collapse; font-size: 15.5px; background: #fff; border: 1px solid var(--sv-line); border-radius: 12px; overflow: hidden; display: block; overflow-x: auto; }
+html[data-sv2] .sv-prose table { width: 100%; border-collapse: collapse; font-size: 15.5px; background: #fff; border: 1px solid var(--sv-line-soft); border-radius: 12px; overflow: hidden; display: block; overflow-x: auto; }
 html[data-sv2] .sv-prose th, html[data-sv2] .sv-prose td { padding: 10px 14px; border-bottom: 1px solid var(--sv-hair); text-align: left; vertical-align: top; }
 html[data-sv2] .sv-prose th { background: var(--sv-lilac-bg); font-weight: 500; color: var(--sv-ink); }
 html[data-sv2] .sv-prose code { font-family: var(--sv-mono); font-size: .88em; padding: 2px 6px; border-radius: 6px; background: var(--sv-lilac); color: #3b2a63; }
 
 /* ---------- header (h1.html .hdr) ---------- */
 html[data-sv2] .sv-hdr { position: sticky; top: 0; z-index: 40; background: rgba(247, 246, 250, .82); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px);
-  border-bottom: 1px solid transparent; transition: border-color .25s ease, box-shadow .25s ease; font-family: var(--sv-sans); }
-html[data-sv2] .sv-hdr.sv-scrolled { border-bottom-color: var(--sv-hair); box-shadow: 0 10px 30px -24px rgba(76, 29, 149, .35); }
+  border-bottom: var(--sv-bw) solid transparent; transition: border-color .25s ease, box-shadow .25s ease; font-family: var(--sv-sans); }
+html[data-sv2] .sv-hdr.sv-scrolled { border-bottom-color: var(--sv-ink-e); box-shadow: none; }
 html[data-sv2] .sv-hdr-in { height: var(--sv-hdr); max-width: 1240px; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; gap: 12px; }
 html[data-sv2] .sv-brand { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; flex: none; color: var(--sv-ink); text-decoration: none; }
 html[data-sv2] .sv-brand img { height: 28px; width: auto; display: block; }
 html[data-sv2] .sv-brand b { font-family: var(--sv-sans); font-weight: 700; font-size: 19px; letter-spacing: -0.035em; color: var(--sv-ink); }
-html[data-sv2] .sv-brand:focus-visible, html[data-sv2] .sv-signin:focus-visible, html[data-sv2] .sv-navlink:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 3px; border-radius: 8px; }
+html[data-sv2] .sv-brand:focus-visible, html[data-sv2] .sv-signin:focus-visible, html[data-sv2] .sv-navlink:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; border-radius: 8px; }
 html[data-sv2] .sv-nav { display: flex; align-items: center; gap: 4px; margin-left: 28px; }
 html[data-sv2] .sv-navlink { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 999px; font-size: 15px; font-weight: 500; color: var(--sv-muted); text-decoration: none; transition: color .15s ease, background .15s ease; }
-html[data-sv2] .sv-navlink:hover { color: var(--sv-ink); background: rgba(255, 255, 255, .7); }
+html[data-sv2] .sv-navlink:hover { color: var(--sv-ink); background: var(--sv-lilac); }
 html[data-sv2] .sv-hdr-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 html[data-sv2] .sv-signin { display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; font-size: 15px; font-weight: 500; color: var(--sv-muted); text-decoration: none; transition: color .15s ease; }
-html[data-sv2] .sv-signin:hover { color: var(--sv-ink); }
-html[data-sv2] .sv-menu-btn { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--sv-line); background: #fff; color: var(--sv-ink); cursor: pointer; padding: 0; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+html[data-sv2] .sv-signin:hover { color: var(--sv-ink); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 5px; }
+html[data-sv2] .sv-menu-btn { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; border: var(--sv-bw) solid var(--sv-line); background: #fff; color: var(--sv-ink); cursor: pointer; padding: 0; box-shadow: var(--sv-hard); transition: var(--sv-states); }
 html[data-sv2] .sv-menu-btn:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
-html[data-sv2] .sv-menu { display: grid; margin: 0 12px 12px; padding: 6px; background: #fff; border: 1px solid var(--sv-line); border-radius: 16px; box-shadow: var(--sv-soft-up); }
+html[data-sv2] .sv-menu { display: grid; margin: 0 12px 12px; padding: 6px; background: #fff; border: var(--sv-bw) solid var(--sv-line); border-radius: 16px; box-shadow: var(--sv-soft-up); }
 html[data-sv2] .sv-menu a, html[data-sv2] .sv-menu button { display: flex; align-items: center; min-height: 46px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 16px; font-weight: 500; color: var(--sv-ink); text-decoration: none;
   background: none; border: 0; text-align: left; cursor: pointer; }
-html[data-sv2] .sv-menu a:hover, html[data-sv2] .sv-menu button:hover { background: var(--sv-lilac-bg); }
+html[data-sv2] .sv-menu a:hover, html[data-sv2] .sv-menu button:hover { background: var(--sv-lilac); }
 html[data-sv2] .sv-acct { position: relative; }
-html[data-sv2] .sv-acct-btn { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--sv-line); background: #fff; color: var(--sv-purple-strong);
-  font: 500 16px/1 var(--sv-sans); cursor: pointer; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
-html[data-sv2] .sv-acct-menu { position: absolute; right: 0; top: calc(100% + 8px); min-width: 170px; display: grid; padding: 6px; background: #fff; border: 1px solid var(--sv-line); border-radius: 14px; box-shadow: var(--sv-soft-up); z-index: 50; }
+html[data-sv2] .sv-acct-btn { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: var(--sv-bw) solid var(--sv-line); background: #fff; color: var(--sv-purple-strong);
+  font: 500 16px/1 var(--sv-sans); cursor: pointer; box-shadow: var(--sv-hard); transition: var(--sv-states); }
+html[data-sv2] .sv-menu-btn:hover, html[data-sv2] .sv-acct-btn:hover { background: var(--sv-fill-hover); transform: var(--sv-lift); box-shadow: var(--sv-hard-up); }
+html[data-sv2] .sv-menu-btn:active, html[data-sv2] .sv-acct-btn:active { background: var(--sv-fill-hover); transform: var(--sv-press); box-shadow: var(--sv-hard-down); }
+html[data-sv2] .sv-acct-btn:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
+html[data-sv2] .sv-acct-menu { position: absolute; right: 0; top: calc(100% + 8px); min-width: 170px; display: grid; padding: 6px; background: #fff; border: var(--sv-bw) solid var(--sv-line); border-radius: 14px; box-shadow: var(--sv-soft-up); z-index: 50; }
 html[data-sv2] .sv-acct-menu a, html[data-sv2] .sv-acct-menu button { display: flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 9px; font: 500 15px/1.2 var(--sv-sans); color: var(--sv-ink);
   text-decoration: none; background: none; border: 0; text-align: left; cursor: pointer; }
-html[data-sv2] .sv-acct-menu a:hover, html[data-sv2] .sv-acct-menu button:hover { background: var(--sv-lilac-bg); }
+html[data-sv2] .sv-acct-menu a:hover, html[data-sv2] .sv-acct-menu button:hover { background: var(--sv-lilac); }
 html[data-sv2] .sv-desk { display: none; }
 html[data-sv2] .sv-phone { display: grid; }
 html[data-sv2] nav.sv-menu.sv-phone { display: grid; }
@@ -174,34 +196,44 @@ html[data-sv2] .sv-legal a:hover { color: var(--sv-muted); }
 /* ---------- the site-wide widgets, in the same look (CSS only, their markup and behaviour unchanged) ----------
    cookie notice and choice (components/legal/cookie-notice.tsx), the policy update dialog (policy-update-notice.tsx),
    the help chat launcher and its panel (components/chat-widget.tsx). Selected by their own role / aria attributes. */
-html[data-sv2] [role="region"][aria-label^="Cookie"] > div { gap: 10px 14px; padding: 12px 12px 12px 18px; border: 1px solid var(--sv-line); border-radius: 18px;
-  background: rgba(255, 255, 255, .96); box-shadow: var(--sv-soft-up); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] > div { gap: 10px 14px; padding: 12px 12px 12px 18px; border: var(--sv-bw) solid var(--sv-line); border-radius: 18px;
+  background: rgba(255, 255, 255, .96); box-shadow: var(--sv-hard); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); }
 html[data-sv2] [role="region"][aria-label^="Cookie"] p { font-family: var(--sv-sans); font-size: 14px; line-height: 1.45; color: var(--sv-muted); }
 html[data-sv2] [role="region"][aria-label^="Cookie"] a { color: var(--sv-purple-strong); text-underline-offset: 3px; }
-html[data-sv2] [role="region"][aria-label^="Cookie"] button { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--sv-line); background: #fff; color: var(--sv-ink);
-  font-family: var(--sv-sans); font-size: 14.5px; font-weight: 500; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); transform: none; }
-html[data-sv2] [role="region"][aria-label^="Cookie"] button:last-child { border-color: #7446ea; color: #fff; background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 0 8px 18px -10px rgba(109, 40, 217, .7); }
-html[data-sv2] [role="region"][aria-label^="Cookie"] button:hover { transform: translateY(-1px); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] button { height: 38px; padding: 0 16px; border-radius: 999px; border: var(--sv-bw) solid var(--sv-line); background: #fff; color: var(--sv-ink);
+  font-family: var(--sv-sans); font-size: 14.5px; font-weight: 500; box-shadow: var(--sv-hard); transform: none; transition: var(--sv-states); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] button:last-child { border-color: var(--sv-ink-e); color: #fff; background: var(--sv-cta-bg); box-shadow: var(--sv-cta-shadow); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] button:hover { transform: var(--sv-lift); background: var(--sv-fill-hover); box-shadow: var(--sv-hard-up); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] button:last-child:hover { background: var(--sv-cta-bg-hover); box-shadow: var(--sv-cta-shadow-up); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] button:active { transform: var(--sv-press); box-shadow: var(--sv-hard-down); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] button:last-child:active { background: var(--sv-cta-bg-hover); box-shadow: var(--sv-cta-shadow-down); }
+html[data-sv2] [role="region"][aria-label^="Cookie"] button:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
 
 html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] { background: rgba(23, 23, 23, .32); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
-html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] > div { border: 1px solid var(--sv-line); border-radius: 22px; box-shadow: var(--sv-soft-up); }
+html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] > div { border: var(--sv-bw) solid var(--sv-line); border-radius: 22px; box-shadow: var(--sv-hard-up); }
 html[data-sv2] #policy-update-title { font-family: var(--sv-sans); font-weight: 500; letter-spacing: -0.025em; }
 html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] p, html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] span { font-family: var(--sv-sans); }
 html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] input[type="checkbox"] { border-width: 1px; }
-html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button { border: 1px solid #7446ea; border-radius: 999px; font-weight: 500;
-  background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 0 12px 24px -12px rgba(109, 40, 217, .7); transform: none; }
+html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button { border: var(--sv-bw) solid var(--sv-ink-e); border-radius: 999px; font-weight: 500;
+  background: var(--sv-cta-bg); box-shadow: var(--sv-cta-shadow); transform: none; transition: var(--sv-states); }
+html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button:hover:not(:disabled) { transform: var(--sv-lift); background: var(--sv-cta-bg-hover); box-shadow: var(--sv-cta-shadow-up); }
+html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button:active:not(:disabled) { transform: var(--sv-press); background: var(--sv-cta-bg-hover); box-shadow: var(--sv-cta-shadow-down); }
+html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button:disabled { box-shadow: none; }
+html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
 
-html[data-sv2] button.fixed[aria-label$=" chat"] { border: 1px solid var(--sv-line); background: #fff; color: var(--sv-purple-strong);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 14px 30px -12px rgba(76, 29, 149, .45); }
+html[data-sv2] button.fixed[aria-label$=" chat"] { border: var(--sv-bw) solid var(--sv-line); background: #fff; color: var(--sv-purple-strong);
+  box-shadow: var(--sv-hard); transition: var(--sv-states); }
+html[data-sv2] button.fixed[aria-label$=" chat"]:hover { background: var(--sv-fill-hover); transform: var(--sv-lift); box-shadow: var(--sv-hard-up); }
+html[data-sv2] button.fixed[aria-label$=" chat"]:active { transform: var(--sv-press); box-shadow: var(--sv-hard-down); }
+html[data-sv2] button.fixed[aria-label$=" chat"]:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
 html[data-sv2] button.fixed[aria-label$=" chat"] > span { border: 2px solid #fff; }
-html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden { border: 1px solid var(--sv-lilac-2); border-radius: 22px; box-shadow: 0 30px 80px -30px rgba(46, 16, 101, .55); font-family: var(--sv-sans); }
+html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden { border: var(--sv-bw) solid var(--sv-ink-e); border-radius: 22px; box-shadow: var(--sv-hard-up); font-family: var(--sv-sans); }
 html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden > div:first-child { background: linear-gradient(180deg, #f6f0ff, #fff); border-bottom: 1px solid var(--sv-lilac-2); }
 html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden > div:first-child p { color: var(--sv-ink); }
 html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden > div:first-child p + p { color: var(--sv-faint); }
 html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden > div:first-child button { background: var(--sv-lilac); color: var(--sv-purple-strong); }
 html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden > div:first-child > div > div:first-child { background: var(--sv-lilac); }
-html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden .border-neutral-900 { border-width: 1px; border-color: var(--sv-line); }
+html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden .border-neutral-900 { border-width: var(--sv-bw); border-color: var(--sv-line); }
 html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden [class*="shadow-["] { box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
 @media (max-width: 400px) {
   html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden { border-radius: 0; border: 0; }
@@ -241,4 +273,9 @@ html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden [class*="shadow-["
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-sv2] .sv-btn, html[data-sv2] a.sv-card, html[data-sv2] .sv-hdr, html[data-sv2] .sv-go svg { transition: none; }
+  html[data-sv2] .sv-btn-ghost, html[data-sv2] .sv-menu-btn, html[data-sv2] .sv-acct-btn, html[data-sv2] [role="region"][aria-label^="Cookie"] button,
+  html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button, html[data-sv2] button.fixed[aria-label$=" chat"] { transition: none; }
+  html[data-sv2] :is(.sv-btn, .sv-btn-ghost, a.sv-card, .sv-menu-btn, .sv-acct-btn, button.fixed[aria-label$=" chat"]):is(:hover, :active),
+  html[data-sv2] [role="region"][aria-label^="Cookie"] button:is(:hover, :active),
+  html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button:is(:hover, :active) { transform: none; }
 }

@@ -8,15 +8,16 @@ html[data-sv2] .sv-blog-main { padding-bottom: 96px; }
 html[data-sv2] .sv-blog-pagehead { padding-bottom: 44px; }
 html[data-sv2] .sv-blog-search { width: 100%; max-width: 520px; margin: 14px 0 0; }
 html[data-sv2] .sv-blog-search-box { display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 6px 0 18px; background: #fff;
-  border: 1px solid var(--sv-line); border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); transition: border-color .15s ease, box-shadow .15s ease; }
-html[data-sv2] .sv-blog-search-box:focus-within { border-color: rgba(139, 92, 246, .45); box-shadow: 0 0 0 4px rgba(139, 92, 246, .12), var(--sv-soft); }
+  border: var(--sv-bw) solid var(--sv-line); border-radius: 999px; box-shadow: var(--sv-hard); outline: 2px solid transparent; outline-offset: 2px; transition: outline-color var(--sv-ease), box-shadow var(--sv-ease); }
+html[data-sv2] .sv-blog-search-box:focus-within { outline-color: var(--sv-purple); }
 html[data-sv2] .sv-blog-search-box > svg { flex: none; width: 18px; height: 18px; color: var(--sv-faint); }
 html[data-sv2] .sv-blog-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; box-shadow: none;
   font-family: var(--sv-sans); font-size: 16px; font-weight: 400; color: var(--sv-ink); }
 html[data-sv2] .sv-blog-search-input::placeholder { color: var(--sv-faint); opacity: 1; }
 html[data-sv2] .sv-blog-search-btn { flex: none; height: 42px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--sv-lilac); color: var(--sv-purple-strong);
-  font-family: var(--sv-sans); font-size: 15px; font-weight: 500; letter-spacing: -0.005em; cursor: pointer; transition: background .15s ease; }
-html[data-sv2] .sv-blog-search-btn:hover { background: var(--sv-lilac-2); }
+  font-family: var(--sv-sans); font-size: 15px; font-weight: 500; letter-spacing: -0.005em; cursor: pointer; transition: background-color var(--sv-ease), transform var(--sv-ease); }
+html[data-sv2] .sv-blog-search-btn:hover { background: var(--sv-soft-fill-hover); }
+html[data-sv2] .sv-blog-search-btn:active { transform: scale(.97); }
 html[data-sv2] .sv-blog-search-btn:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
 
 /* ---------- /blog: the grid of white cards ---------- */
@@ -40,7 +41,7 @@ html[data-sv2] .sv-blog-card .sv-go { margin-top: auto; padding-top: 6px; }
 /* quiet pills: pagination, empty-state actions */
 html[data-sv2] .sv-blog-pill { height: 42px; padding: 0 18px; font-family: var(--sv-sans); font-size: 15px; }
 html[data-sv2] .sv-blog-pill svg { flex: none; }
-html[data-sv2] .sv-blog-pill:disabled { opacity: .45; cursor: default; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); border-color: var(--sv-line); }
+html[data-sv2] .sv-blog-pill:disabled { opacity: .45; cursor: default; box-shadow: none; transform: none; background: #fff; border-color: var(--sv-line); }
 html[data-sv2] .sv-blog-pages { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 48px; }
 html[data-sv2] .sv-blog-page-of { min-width: 96px; text-align: center; }
 
@@ -99,14 +100,16 @@ html[data-sv2] .sv-prose.sv-blog-prose tr:last-child > td { border-bottom: 0; }
 /* tags, back link */
 html[data-sv2] .sv-blog-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--sv-hair); }
 html[data-sv2] .sv-blog-tags .sv-mono { margin-right: 6px; }
-html[data-sv2] .sv-blog-tags a.sv-chip { text-decoration: none; transition: border-color .15s ease, color .15s ease; }
-html[data-sv2] .sv-blog-tags a.sv-chip:hover { border-color: rgba(139, 92, 246, .35); color: var(--sv-purple-strong); }
+html[data-sv2] .sv-blog-tags a.sv-chip { text-decoration: none; transition: var(--sv-states); }
+html[data-sv2] .sv-blog-tags a.sv-chip:hover { background: var(--sv-soft-fill-hover); color: var(--sv-purple-strong); }
+html[data-sv2] .sv-blog-tags a.sv-chip:active { transform: scale(.97); }
+html[data-sv2] .sv-blog-tags a.sv-chip:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
 html[data-sv2] .sv-blog-back { margin-top: 32px; }
 html[data-sv2] .sv-blog-post .sv-blog-tags + .sv-blog-back { margin-top: 24px; }
 
 /* ---------- the quiet Stu card (React in the middle of a post, and the HTML card that replaces CTA placeholders) ---------- */
 html[data-sv2] .sv-blog-stu { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px 18px; margin: 44px 0;
-  padding: 18px 20px 18px 18px; background: #fff; border: 1px solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); font-family: var(--sv-sans); }
+  padding: 18px 20px 18px 18px; background: #fff; border: var(--sv-bw) solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); font-family: var(--sv-sans); }
 html[data-sv2] .sv-prose > .sv-blog-stu { margin: 2.2em 0; }
 html[data-sv2] .sv-blog-stu .sv-blog-stu-head { display: block; width: 52px; height: 52px; margin: 0; border: 0; border-radius: 0; object-fit: contain; }
 html[data-sv2] .sv-blog-stu .sv-blog-stu-line { margin: 0; font-size: 16.5px; font-weight: 500; line-height: 1.45; letter-spacing: -0.01em; color: var(--sv-ink); text-wrap: pretty; }
