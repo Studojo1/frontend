@@ -41,6 +41,8 @@ export default [
   // /creators is the URL to share. Same module with a canonical tag pointing
   // at /creators, so the two paths are not read as duplicates.
   route("ugc", "routes/creators.tsx", { id: "ugc" }),
+  // The Studojo Growth Fellowship: the canonical URL for the same page.
+  route("fellowship-growth", "routes/creators.tsx", { id: "fellowship-growth" }),
 
   // ── /no-one-is-hiring serves the same page as /webinar ─────────────────
   // The webinar is titled "How to Get a Job When No One Is Hiring", so this

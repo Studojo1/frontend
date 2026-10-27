@@ -80,7 +80,7 @@ export async function loader() {
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/cc", priority: "0.7", changefreq: "monthly" },
     { loc: "/campus-ambassador", priority: "0.6", changefreq: "monthly" },
-    { loc: "/creators", priority: "0.6", changefreq: "monthly" },
+    { loc: "/fellowship-growth", priority: "0.6", changefreq: "monthly" },
     { loc: "/webinar", priority: "0.5", changefreq: "weekly" },
     { loc: "/sensei", priority: "0.6", changefreq: "monthly" },
     { loc: "/resume-maker", priority: "0.7", changefreq: "monthly" },
