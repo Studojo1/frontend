@@ -125,29 +125,35 @@
 .hv2 .hv-ticks li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--hv-ink); }
 .hv2 .hv-ticks li span { flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--hv-ink); background: var(--hv-green-bg); }
 .hv2 .hv-ticks li svg { width: 11px; height: 11px; }
-.hv2 .hv-jcard { width: 100%; max-width: 440px; text-align: left; background: #fff; border: 2px solid var(--hv-ink); border-radius: 28px; padding: 24px; box-shadow: 8px 8px 0 var(--hv-ink2); }
-.hv2 .hv-jcard h2 { margin: 0; font-family: "Clash Display", Satoshi, system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15; letter-spacing: -0.02em; color: var(--hv-ink); }
+/* the sign-up card: /b2cnew/join's own card as CALL-V2 drew it (career-agent join.tsx, call-styles.ts .cv-card .cv-btn2
+   .cv-input .cv-btn .cv-chip): white, a light edge, the soft violet depth, a lowercase title, mono kickers, the purple pill */
+.hv2 .hv-jcard { width: 100%; max-width: 440px; text-align: left; background: #fff; border: 1px solid var(--hv-line1); border-radius: 22px; padding: 24px; box-shadow: var(--hv-soft-up); }
+.hv2 .hv-jcard h2 { margin: 0; font-family: Satoshi, system-ui, sans-serif; font-weight: 500; font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; text-transform: lowercase; color: var(--hv-ink); }
 .hv2 .hv-jcard .hv-sub { margin: 4px 0 0; font-size: 15px; color: var(--hv-muted); }
-.hv2 .hv-jcard .hv-g { margin-top: 22px; display: flex; width: 100%; align-items: center; justify-content: center; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--hv-ink); background: #fff; font-size: 16px; font-weight: 700; color: var(--hv-ink); box-shadow: 4px 4px 0 var(--hv-ink2); transition: transform .12s ease, box-shadow .12s ease, background .12s ease; }
-.hv2 .hv-jcard .hv-g:hover { background: #faf8ff; }
-.hv2 .hv-jcard .hv-g:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--hv-ink2); }
+.hv2 .hv-jcard .hv-g { margin-top: 20px; display: flex; width: 100%; height: 52px; align-items: center; justify-content: center; gap: 12px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--hv-line1); background: #fff; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; color: var(--hv-ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 20px -14px rgba(76, 29, 149, .28); transition: border-color .15s ease, background-color .15s ease; }
+.hv2 .hv-jcard .hv-g:hover { border-color: rgba(109, 40, 217, .3); background: #fdfcff; }
 .hv2 .hv-jcard .hv-g svg { width: 20px; height: 20px; flex: none; }
-.hv2 .hv-jcard .hv-or { margin: 20px 0; display: flex; align-items: center; gap: 12px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--hv-muted); }
-.hv2 .hv-jcard .hv-or::before, .hv2 .hv-jcard .hv-or::after { content: ""; flex: 1; height: 2px; background: #e8e5ee; }
-.hv2 .hv-jcard label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--hv-muted); }
-.hv2 .hv-jcard .hv-field { margin-top: 8px; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--hv-ink); background: #fff; box-shadow: inset 3px 3px 0 rgba(23, 23, 23, .08); }
-.hv2 .hv-jcard .hv-field svg { width: 16px; height: 16px; color: var(--hv-muted); flex: none; }
-.hv2 .hv-jcard .hv-field input { min-width: 0; flex: 1; border: 0; background: transparent; font: inherit; font-size: 15px; color: var(--hv-ink); outline: none; }
-.hv2 .hv-jcard .hv-cont { margin-top: 16px; display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--hv-ink); background: var(--hv-purple-strong); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 5px 5px 0 var(--hv-ink2); transition: transform .12s ease, box-shadow .12s ease; }
-.hv2 .hv-jcard .hv-cont:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--hv-ink2); }
-.hv2 .hv-jcard .hv-cont svg { width: 16px; height: 16px; }
-.hv2 .hv-jcard .hv-terms { margin: 18px 0 0; text-align: center; font-size: 12px; color: var(--hv-muted); }
-.hv2 .hv-jcard .hv-backed { margin-top: 22px; padding-top: 16px; border-top: 2px dashed #e8e5ee; text-align: center; }
-.hv2 .hv-jcard .hv-backed p { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--hv-muted); }
+.hv2 .hv-jcard .hv-or { margin: 16px 0; display: flex; align-items: center; gap: 12px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11.5px; font-weight: 500; letter-spacing: .04em; text-transform: lowercase; color: var(--hv-faint); }
+.hv2 .hv-jcard .hv-or::before, .hv2 .hv-jcard .hv-or::after { content: ""; flex: 1; height: 1px; background: var(--hv-line1); }
+.hv2 .hv-jcard label { display: block; font-size: 13.5px; font-weight: 500; color: var(--hv-muted); }
+.hv2 .hv-jcard .hv-field { margin-top: 4px; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--hv-line1); background: #fff; box-shadow: inset 0 1px 2px rgba(23, 23, 23, .04); transition: border-color .15s ease, box-shadow .15s ease; }
+.hv2 .hv-jcard .hv-field svg { width: 16px; height: 16px; color: var(--hv-faint); flex: none; }
+.hv2 .hv-jcard .hv-field input { min-width: 0; flex: 1; border: 0; background: transparent; font: inherit; font-size: 15.5px; color: var(--hv-ink); outline: none; }
+.hv2 .hv-jcard .hv-field input::placeholder { color: var(--hv-faint); }
+.hv2 .hv-jcard .hv-cont { position: relative; overflow: hidden; margin-top: 12px; display: flex; width: 100%; height: 52px; align-items: center; justify-content: center; gap: 8px; padding: 0 28px; border-radius: 999px; border: 1px solid #7446ea; background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%); color: #fff; font: inherit; font-size: 16.5px; font-weight: 500; letter-spacing: -0.01em; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18), 0 1px 2px rgba(0, 0, 0, .06), 0 16px 32px -14px rgba(109, 40, 217, .72); transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease; }
+.hv2 .hv-jcard .hv-cont::before { content: ""; position: absolute; left: 16px; right: 16px; top: 2px; height: 46%; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, 0)); pointer-events: none; }
+.hv2 .hv-jcard .hv-cont:hover:not(:disabled) { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18), 0 1px 2px rgba(0, 0, 0, .06), 0 20px 36px -14px rgba(109, 40, 217, .78); }
+.hv2 .hv-jcard .hv-cont:active:not(:disabled) { transform: translateY(0) scale(.99); }
+.hv2 .hv-jcard .hv-cont:disabled { opacity: .6; cursor: default; }
+.hv2 .hv-jcard .hv-cont svg { width: 18px; height: 18px; flex: none; }
+.hv2 .hv-jcard .hv-terms { margin: 14px 0 0; text-align: center; font-size: 12.5px; line-height: 1.3; color: var(--hv-faint); }
+.hv2 .hv-jcard .hv-backed { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hv-hair); text-align: center; }
+.hv2 .hv-jcard .hv-backed p { margin: 0; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; font-weight: 500; letter-spacing: .04em; text-transform: lowercase; color: var(--hv-faint); }
 .hv2 .hv-jcard .hv-backed ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
-.hv2 .hv-jcard .hv-backed li { padding: 2px 10px; border-radius: 999px; border: 2px solid var(--hv-ink); background: #fff; font-size: 12px; font-weight: 700; }
-.hv2 .hv-jcard .hv-g:focus-visible, .hv2 .hv-jcard .hv-cont:focus-visible, .hv2 .hv-jcard .hv-field:focus-within { outline: 2px solid var(--hv-purple); outline-offset: 3px; }
-@keyframes hv-card-in { 0% { opacity: 0; transform: translateY(80px) rotate(3deg) scale(.94); } 60% { opacity: 1; transform: translateY(-6px) rotate(-.4deg) scale(1.01); } 100% { opacity: 1; transform: none; } }
+.hv2 .hv-jcard .hv-backed li { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(109, 40, 217, .12); background: rgba(255, 255, 255, .78); box-shadow: 0 1px 2px rgba(76, 29, 149, .04); font-size: 12.5px; font-weight: 500; color: var(--hv-muted); white-space: nowrap; }
+.hv2 .hv-jcard .hv-g:focus-visible, .hv2 .hv-jcard .hv-cont:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 3px; }
+.hv2 .hv-jcard .hv-field:focus-within { border-color: rgba(139, 92, 246, .6); box-shadow: 0 0 0 4px rgba(139, 92, 246, .14); }
+@keyframes hv-card-in { 0% { opacity: 0; transform: translateY(40px) scale(.97); } 70% { opacity: 1; transform: translateY(-3px) scale(1.005); } 100% { opacity: 1; transform: none; } }
 @keyframes hv-fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .hv2 .hv-jcard.hv-in { animation: hv-card-in .62s cubic-bezier(.2, .9, .3, 1) both; }
 .hv2 .hv-ticks.hv-in { animation: hv-fade-up .4s ease .35s both; }
@@ -470,7 +476,8 @@
 .hv2 .hv-call-hdr { flex: none; display: flex; align-items: center; height: 52px; padding: 0 16px; background: rgba(247, 246, 250, .92); border-bottom: 1px solid var(--hv-hair); }
 .hv2 .hv-call-hdr .hv-brand img { height: 26px; width: auto; }
 .hv2 .hv-call-hdr .hv-brand b { font-size: 18px; }
-.hv2 .hv-call-x { margin-left: auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--hv-ink); background: #fff; color: var(--hv-ink); cursor: pointer; }
+.hv2 .hv-call-x { margin-left: auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--hv-line1); background: #fff; color: var(--hv-ink); cursor: pointer; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+.hv2 .hv-call-x:hover { border-color: rgba(109, 40, 217, .3); background: #fdfcff; }
 .hv2 .hv-call-x:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 2px; }
 .hv2 .hv-call-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6vh; padding: 1.2vh 16px 1.6vh;
   overflow-y: auto; overscroll-behavior: contain; text-align: center; }
@@ -486,18 +493,19 @@
 .hv2 .hv-call[data-stage="signup"] .hv-call-lead .hv-stu-art { --hv-s: clamp(54px, 9vh, 84px); }
 .hv2 .hv-call[data-stage="signup"] .hv-kicker { margin-top: 0; font-size: 11px; }
 .hv2 .hv-call[data-stage="signup"] .hv-said { margin: 3px 0 0; font-size: clamp(12px, 1.85vh, 16px); line-height: 1.32; }
-.hv2 .hv-call .hv-jcard { margin-top: 1.2vh; max-width: 440px; padding: clamp(13px, 2vh, 26px); border-radius: 22px; box-shadow: 6px 6px 0 var(--hv-ink2); }
+.hv2 .hv-call .hv-jcard { margin-top: 1.2vh; max-width: 440px; padding: clamp(13px, 2vh, 26px); border-radius: 22px; }
 .hv2 .hv-call .hv-jcard h2 { font-size: clamp(19px, 2.7vh, 26px); }
 .hv2 .hv-call .hv-jcard .hv-sub { margin-top: 2px; font-size: clamp(12.5px, 1.8vh, 15px); }
-.hv2 .hv-call .hv-jcard .hv-g { margin-top: clamp(9px, 1.5vh, 20px); padding: clamp(7px, 1.2vh, 13px) 16px; font-size: clamp(14px, 2vh, 16px); }
+.hv2 .hv-call .hv-jcard .hv-g { margin-top: clamp(9px, 1.5vh, 20px); height: clamp(38px, 6vh, 52px); font-size: clamp(14px, 2vh, 16px); }
 .hv2 .hv-call .hv-jcard .hv-or { margin: clamp(7px, 1.25vh, 16px) 0; font-size: 11px; }
-.hv2 .hv-call .hv-jcard label { font-size: 11px; }
-.hv2 .hv-call .hv-jcard .hv-field { margin-top: 4px; padding: clamp(5px, .9vh, 10px) 12px; }
+.hv2 .hv-call .hv-jcard label { font-size: clamp(12px, 1.7vh, 13.5px); }
+.hv2 .hv-call .hv-jcard .hv-field { margin-top: 4px; min-height: clamp(36px, 5.6vh, 48px); }
 .hv2 .hv-call .hv-jcard .hv-field input { font-size: 16px; }
-.hv2 .hv-call .hv-jcard .hv-cont { margin-top: clamp(7px, 1.2vh, 14px); padding: clamp(7px, 1.2vh, 13px) 16px; font-size: clamp(14px, 2vh, 16px); }
+.hv2 .hv-call .hv-jcard .hv-cont { margin-top: clamp(7px, 1.2vh, 14px); height: clamp(38px, 6vh, 52px); font-size: clamp(14px, 2vh, 16.5px); }
 .hv2 .hv-call .hv-jcard .hv-terms { margin-top: clamp(6px, 1.1vh, 14px); font-size: 10.5px; line-height: 1.3; }
 .hv2 .hv-call .hv-jcard .hv-backed { margin-top: clamp(6px, 1.1vh, 16px); padding-top: clamp(5px, .9vh, 12px); }
-.hv2 .hv-call .hv-jcard .hv-backed p { font-size: 10px; letter-spacing: .12em; }
+.hv2 .hv-call .hv-jcard .hv-backed p { font-size: 10.5px; }
+.hv2 .hv-call .hv-jcard .hv-backed li { height: clamp(22px, 3.4vh, 28px); font-size: clamp(11px, 1.6vh, 12.5px); }
 .hv2 .hv-call .hv-jcard .hv-backed ul { margin-top: 4px; gap: 4px; }
 .hv2 .hv-call .hv-jcard .hv-backed li { padding: 0 8px; font-size: 10.5px; line-height: 1.5; }
 /* Pranav's facts (career-agent d596ce92 Lobby.tsx), small tiles in the homepage's soft style */
@@ -545,3 +553,16 @@
 @media (prefers-reduced-motion: reduce) {
   .hv2 .hv-call, .hv2 .hv-call-lead .hv-stu-art { transition: none; }
 }
+
+/* ---------- the site-wide cookie notice on the homepage, in the same look as on every other studojo.pro page
+   (site-b2c/site.css, html[data-sv2]): it is drawn by root.tsx after the homepage, a sibling of .hv2, so it is
+   reached as .hv2 ~ it (CSS only; its markup and behaviour unchanged, components/legal/cookie-notice.tsx). ---------- */
+.hv2 ~ [role="region"][aria-label^="Cookie"] > div { gap: 10px 14px; padding: 12px 12px 12px 18px; border: 1px solid rgba(23, 23, 23, .10); border-radius: 18px;
+  background: rgba(255, 255, 255, .96); box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 20px 40px -18px rgba(76, 29, 149, .26); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); }
+.hv2 ~ [role="region"][aria-label^="Cookie"] p { font-family: Satoshi, ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45; color: #525252; }
+.hv2 ~ [role="region"][aria-label^="Cookie"] a { color: #6d28d9; text-underline-offset: 3px; }
+.hv2 ~ [role="region"][aria-label^="Cookie"] button { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(23, 23, 23, .10); background: #fff; color: #171717;
+  font-family: Satoshi, ui-sans-serif, system-ui, sans-serif; font-size: 14.5px; font-weight: 500; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); transform: none; }
+.hv2 ~ [role="region"][aria-label^="Cookie"] button:last-child { border-color: #7446ea; color: #fff; background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 0 8px 18px -10px rgba(109, 40, 217, .7); }
+.hv2 ~ [role="region"][aria-label^="Cookie"] button:hover { transform: translateY(-1px); }
