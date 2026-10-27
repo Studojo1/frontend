@@ -75,6 +75,12 @@
 .hv2 .hv-signin { display: inline-flex; align-items: center; min-height: 44px; font-size: 15.5px; font-weight: 500; color: var(--hv-muted); padding: 8px 2px; transition: color .15s ease; }
 .hv2 .hv-signin:hover { color: var(--hv-ink); }
 .hv2 .hv-brand:focus-visible, .hv2 .hv-signin:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 3px; border-radius: 8px; }
+/* signed in: "sign out" beside "my jobs", a quiet white pill (owner, 27 Oct: leave this account, start with another) */
+.hv2 .hv-signout { display: inline-flex; align-items: center; height: 40px; padding: 0 15px; border-radius: 999px; border: 1px solid var(--hv-line1); background: rgba(255, 255, 255, .85); box-shadow: 0 1px 2px rgba(0, 0, 0, .04); font-family: Satoshi, system-ui, sans-serif; font-size: 15px; font-weight: 500; letter-spacing: -0.005em; color: var(--hv-ink); white-space: nowrap; cursor: pointer; transition: border-color .15s ease, background .15s ease, box-shadow .15s ease; }
+.hv2 .hv-signout:hover { background: #fff; border-color: rgba(139, 92, 246, .35); box-shadow: var(--hv-soft); }
+.hv2 .hv-signout:disabled { cursor: progress; color: var(--hv-faint); }
+.hv2 .hv-signout:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 3px; }
+@media (max-width: 400px) { .hv2 .hv-hdr-right { gap: 14px; } .hv2 .hv-signout { padding: 0 13px; font-size: 14.5px; } }
 .hv2 .hv-stu-art { position: relative; display: block; width: var(--hv-s, 64px); height: var(--hv-s, 64px); flex: none; }
 .hv2 .hv-stu-art .hv-rig { position: absolute; inset: 0; transform-origin: 50% 80%; will-change: transform; }
 .hv2 .hv-stu-art .hv-faces img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity .45s ease; -webkit-user-drag: none; user-select: none; }

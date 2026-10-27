@@ -192,6 +192,23 @@ const art = code(read("StuArt.tsx"));
 assert.match(art, /`\/stu\/agent\/head-\$\{f\}\.png`/, "the cleaned logo heads");
 for (const f of ["laugh", "sparkle", "curious", "grin", "happy"]) assert.ok(readdirSync(new URL("../../public/stu/agent/", import.meta.url)).includes(`head-${f}.png`), `head-${f}.png`);
 
+// ---------- 6b. signed in, "sign out" beside "my jobs" (owner, 27 Oct) ----------
+// Someone on a shared device leaves this account from the homepage itself, with the site header's clean-up, and the
+// homepage comes back signed out. Signed out there is no "sign out", only "sign in".
+{
+  const hdr = code(read("HomeHeader.tsx"));
+  const signedInPart = hdr.slice(hdr.indexOf("{signedIn ? ("), hdr.indexOf(") : (", hdr.indexOf("{signedIn ? (")));
+  const signedOutPart = hdr.slice(hdr.indexOf(") : (", hdr.indexOf("{signedIn ? (")), hdr.indexOf("</header>"));
+  assert.match(signedInPart, /<a className="hv-signin" href=\{STU_HOME\}>\s*my jobs\s*<\/a>\s*<button type="button" className="hv-signout" onClick=\{signOut\}/, "sign out right after my jobs");
+  assert.match(signedInPart, /\{leaving \? "signing out" : "sign out"\}/);
+  assert.doesNotMatch(signedOutPart, /signOut|sign out/, "signed out: no sign out");
+  assert.match(signedOutPart, /<Link className="hv-signin" to=\{SIGN_IN\}>\s*sign in\s*<\/Link>/);
+  const out = hdr.slice(hdr.indexOf("const signOut = () => {"), hdr.indexOf("return (", hdr.indexOf("const signOut = () => {")));
+  assert.match(out, /authClient\.signOut\(\{[\s\S]*?onSuccess: \(\) => \{\s*useOutreachStore\.getState\(\)\.resetFunnel\(\);\s*clearTokenCache\(\);\s*resetPostHog\(\);[\s\S]*?navigate\("\/"\);/, "the site header's clean-up, then the homepage");
+  assert.match(code(read("../site-b2c/SiteHeader.tsx")), /useOutreachStore\.getState\(\)\.resetFunnel\(\);\s*clearTokenCache\(\);\s*resetPostHog\(\);\s*navigate\("\/"\);/, "the same steps as the site header");
+  assert.match(css, /\.hv2 \.hv-signout \{/);
+}
+
 // ---------- 7. studojo.com cannot change ----------
 // The homepage renders only behind the B2C host gate (b2c-home.test.mjs: never on studojo.com), and its CSS cannot
 // reach any other page: every rule, each comma part, sits under .hv2, which only HomeV2 renders.
