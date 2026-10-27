@@ -67,14 +67,8 @@ for (const f of readdirSync(dir)) {
   const src = readFileSync(new URL(f, dir), "utf8").replace(/export const STU_EMBED_SRC = "[^"]*";/, "");
   assert.doesNotMatch(src, /from "\.\/stu-embed"|<stu-agent|loadStuEmbed|\/b2cnew\/embed\/|STU_EMBED_SRC\b(?! =)/, `${f}: loads Stu's embed`);
 }
-// The hero Stu is our own figure, a plain link to the same place as the button (/b2cnew/join signed out).
-const hero = readFileSync(new URL("HeroB2C.tsx", dir), "utf8");
-assert.match(hero, /const \{ href \} = useStartCta\(\);/);
-assert.match(hero, /<a\s+href=\{href\}\s+className="sjb-hero-stu"/);
-assert.match(hero, /<StartButton place="hero"/);
-
-// The plain button stays as the way in either way: one StartButton component, a plain <a href>, in the hero, the
-// floating start (side pill or phone bar) and the footer only; no per-section and no header buttons (owner, 27 Oct).
+// The plain button stays the way in on the B2C header and footer of the other pages: one StartButton component, a
+// plain <a href>, only in the places it was made for; no per-section and no header buttons (owner, 27 Oct).
 const cta = readFileSync(new URL("cta.tsx", dir), "utf8");
 assert.match(cta, /<a href=\{href\}[^>]*data-start=\{place\}/);
 for (const f of readdirSync(dir)) {
@@ -82,16 +76,10 @@ for (const f of readdirSync(dir)) {
   const uses = readFileSync(new URL(f, dir), "utf8").match(/<StartButton\b[^>]*place="(\w+)"/g) ?? [];
   for (const u of uses) assert.match(u, /place="(hero|side|bar|footer)"/, `${f}: ${u}`);
 }
-const home = readFileSync(new URL("HomeB2C.tsx", dir), "utf8");
-const ORDER = ["HeroB2C", "WhyB2C", "HowB2C", "GetB2C", "ProofB2C", "FaqB2C", "FooterB2C", "StickyCta"];
-const order = ORDER.map((t) => home.indexOf(`<${t} />`));
-assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), `in order: ${ORDER.join(", ")}`);
-// Each section is its own component with its id (nb-sections.html), and none carries a start button.
-const IDS = { WhyB2C: "why", HowB2C: "how", GetB2C: "get", ProofB2C: "proof", FaqB2C: "faq" };
-for (const [c, id] of Object.entries(IDS)) {
-  const src = readFileSync(new URL(`${c}.tsx`, dir), "utf8");
-  assert.match(src, new RegExp(`<section className="nb-sec[^"]*" id="${id}"`), `${c} is #${id}`);
-  assert.doesNotMatch(src, /StartButton|data-start/, `${c}: no per-section button`);
+// The homepage itself is HOMEPAGE V2 (components/home-v2, app/lib/home-v2.test.mjs); the neo-brutalist homepage
+// components (HomeB2C, HeroB2C, WhyB2C, HowB2C, GetB2C, ProofB2C, FaqB2C, StickyCta) are gone.
+for (const gone of ["HomeB2C", "HeroB2C", "WhyB2C", "HowB2C", "GetB2C", "ProofB2C", "FaqB2C", "StickyCta"]) {
+  assert.ok(!readdirSync(dir).includes(`${gone}.tsx`), `${gone}.tsx is the old homepage`);
 }
 // Purple only on the start buttons (owner, 27 Oct): the one purple token is used by .nb-btn rules alone.
 const nbCss = readFileSync(new URL("b2c.css", dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
