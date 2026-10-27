@@ -116,6 +116,20 @@ export async function loader() {
     { loc: "/reports/ai-job-matching-report-2026", publishDate: "2026-10-27" },
     { loc: "/reports/follow-up-job-application-timing-2026", publishDate: "2026-10-27" },
     { loc: "/reports/do-hiring-managers-read-cold-emails-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/how-to-get-a-job-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/how-to-get-a-job-as-a-fresher-india-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/why-am-i-not-getting-a-job-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/how-many-jobs-should-i-apply-to-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/how-long-does-it-take-to-get-a-job-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/how-to-get-a-job-abroad-from-india-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/how-to-get-a-job-in-bangalore-fresher-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/ai-career-agent-report-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/ai-recruiters-screening-job-seekers-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/direct-outreach-job-search-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/linkedin-message-vs-email-hiring-manager-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/job-consultancy-for-freshers-india-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/how-to-get-a-job-at-a-startup-india-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/job-search-tips-2026", publishDate: "2026-10-28" },
   ];
   for (const r of scheduledReports) {
     if (r.publishDate <= istToday) staticPages.push({ loc: r.loc, priority: "0.9", changefreq: "monthly" });
