@@ -66,6 +66,10 @@ export const PUBLIC_FORM_PATHS = new Set([
   "/api/sensei-ticket",
   "/api/campus-ambassador-apply",
   "/api/ugc-apply",
+  // The Growth Fellowship page itself: its form posts here when the page's script doesn't run.
+  "/fellowship-growth",
+  "/creators",
+  "/ugc",
   "/api/webinar-register",
   "/api/webinar-confirm",
   "/api/webinar-ref-code",

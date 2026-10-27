@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
+import { useActionData, useLocation } from "react-router";
 import { FiAlertCircle, FiAward, FiCheck, FiCheckCircle, FiEdit3, FiSend, FiUserCheck, FiX } from "react-icons/fi";
 import { Header, Footer } from "~/components";
+import db from "~/lib/db";
 import { checkEmail } from "~/lib/email-validate";
 import { logFunnelStep } from "~/lib/funnel";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 import { revealResult } from "~/lib/reveal-result";
+import { saveUgcApplication } from "~/lib/ugc-application.server";
 import {
   CAN_COMMIT,
   CONNECTIONS,
@@ -26,6 +30,7 @@ import {
   validateUgcApplication,
   type UgcField,
 } from "~/lib/ugc-application";
+import { systemEvents } from "../../auth-schema";
 
 // The Studojo Growth Fellowship application (the LinkedIn UGC programme),
 // shared on LinkedIn. Served at /fellowship-growth (canonical), and at
@@ -130,6 +135,121 @@ const EMPTY: FormState = {
   referredBy: "",
   consent: false,
 };
+
+// ---------------------------------------------------------------------------
+// The form without its script. Some visitors' browsers show this page but never
+// run its JavaScript, so pressing Next used to reload the page and wipe what
+// they had typed. The form now posts here instead: the first step's answers
+// come back as the whole application on one page with their answers filled
+// in, and that page is checked and saved here, the same way /api/ugc-apply
+// saves the scripted form.
+// ---------------------------------------------------------------------------
+
+type ActionResult =
+  | { mode: "full"; values: FormState; errors: Partial<Record<UgcField, string>>; formError?: string; nojsId: string }
+  | { done: true; shareCode: string | null; alreadyApplied: boolean; firstName: string };
+
+// A real application is a few KB.
+const MAX_POST = 64 * 1024;
+
+function formValues(fd: FormData): FormState {
+  const form = { ...EMPTY };
+  for (const k of Object.keys(EMPTY) as (keyof FormState)[]) {
+    if (k === "topics" || k === "fellowshipGoals") {
+      form[k] = fd
+        .getAll(k)
+        .filter((v): v is string => typeof v === "string")
+        .slice(0, 20)
+        .map((v) => v.slice(0, 200));
+    } else if (k === "noLinkedin" || k === "consent") {
+      form[k] = fd.has(k);
+    } else {
+      const v = fd.get(k);
+      (form as unknown as Record<string, unknown>)[k] = typeof v === "string" ? v.slice(0, 2000) : "";
+    }
+  }
+  return form;
+}
+
+/** Records the scriptless path in the funnel, with the browser, so it can be traced. */
+async function logScriptless(request: Request, nojsId: string, event: "creators_nojs" | "creators_submit", info: string) {
+  try {
+    const url = new URL(request.url);
+    await db.insert(systemEvents).values({
+      eventType: `funnel_${event}`,
+      userId: null,
+      metadata: {
+        anon_id: `nojs-${nojsId}`,
+        path: (url.pathname + url.search).slice(0, 300),
+        in_app: null,
+        info: info.slice(0, 64),
+        no_js: true,
+        ua: (request.headers.get("user-agent") ?? "").slice(0, 200),
+      },
+    });
+  } catch {
+    // Tracking must never stop an application.
+  }
+}
+
+export async function action({ request }: { request: Request }): Promise<ActionResult> {
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_POST) {
+    throw new Response("That's too long to send. Please shorten your answers.", { status: 413 });
+  }
+  const fd = await request.formData();
+  const values = formValues(fd);
+  const url = new URL(request.url);
+  const rawId = fd.get("sj_nojs");
+  const nojsId = typeof rawId === "string" && /^[a-f0-9]{12}$/.test(rawId) ? rawId : crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+  const ref = (url.searchParams.get("ref") ?? "").toLowerCase();
+  const trap = fd.get("sj_trap");
+  const body: Record<string, unknown> = {
+    ...values,
+    sj_trap: typeof trap === "string" ? trap : "",
+    cameFromCode: SHARE_CODE.test(ref) ? ref : "",
+  };
+  const emailError = (email: string) => {
+    const c = checkEmail(email);
+    return c.ok ? null : (c.error ?? "Please enter a valid email address.");
+  };
+
+  // The first step, from a page whose script did not run: show the whole form.
+  if (fd.get("sj_mode") !== "full") {
+    const first = validateUgcApplication(body, emailError);
+    const errors = !first.ok && stepOf(first.field) === 0 ? { [first.field]: first.error } : {};
+    await logScriptless(request, nojsId, "creators_nojs", "continue");
+    return { mode: "full", values, errors, nojsId };
+  }
+
+  // The whole form: the same checks and save as /api/ugc-apply.
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) {
+    if (blocked.status === 200) return { done: true, shareCode: null, alreadyApplied: false, firstName: "" };
+    return { mode: "full", values, errors: {}, formError: "Too many tries from your network just now. Please wait a few minutes and submit again.", nojsId };
+  }
+  const result = validateUgcApplication(body, emailError);
+  if (!result.ok) {
+    await logScriptless(request, nojsId, "creators_nojs", `error:${result.field}`);
+    return { mode: "full", values, errors: { [result.field]: result.error }, nojsId };
+  }
+  let saved: { isNew: boolean; shareCode: string };
+  try {
+    saved = await saveUgcApplication(result.value, {
+      sourcePath: url.pathname.slice(0, 120),
+      utmSource: (url.searchParams.get("utm_source") ?? "").slice(0, 80),
+      utmMedium: (url.searchParams.get("utm_medium") ?? "").slice(0, 80),
+      utmCampaign: (url.searchParams.get("utm_campaign") ?? "").slice(0, 120),
+    });
+  } catch (e) {
+    // Never log the error itself: the driver puts every bound value in its message.
+    const code = (e as { cause?: { code?: string }; code?: string })?.cause?.code ?? (e as { code?: string })?.code;
+    console.error("[creators] scriptless save failed", code ?? (e as Error)?.name ?? "unknown");
+    return { mode: "full", values, errors: {}, formError: "We couldn't save your application just now. Please try again in a minute.", nojsId };
+  }
+  await logScriptless(request, nojsId, "creators_submit", saved.shareCode);
+  await logScriptless(request, nojsId, "creators_nojs", "submit");
+  return { done: true, shareCode: saved.shareCode, alreadyApplied: !saved.isNew, firstName: result.value.fullName.split(/\s+/)[0] ?? "" };
+}
 
 // Answers are kept on the device while someone fills the form, so a closed tab
 // or a LinkedIn in-app browser reload does not throw the work away. Drafts
@@ -271,20 +391,27 @@ const FAQ = [
 ];
 
 export default function Creators() {
-  const [form, setForm] = useState<FormState>(EMPTY);
+  // Set when the form was posted without its script (see action above).
+  const posted = useActionData<typeof action>();
+  const full = posted && "mode" in posted ? posted : null;
+  const sent = posted && "done" in posted ? posted : null;
+  const location = useLocation();
+  const [form, setForm] = useState<FormState>(() => (full ? full.values : sent ? { ...EMPTY, fullName: sent.firstName } : EMPTY));
   const [step, setStep] = useState(0);
-  const [errors, setErrors] = useState<Partial<Record<UgcField, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<UgcField, string>>>(() => full?.errors ?? {});
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(() => full?.formError ?? null);
   const [restored, setRestored] = useState(false);
   const [trap, setTrap] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
-  const [alreadyApplied, setAlreadyApplied] = useState(false);
-  const [copied, setCopied] = useState<"no" | "yes" | "failed">("no");
-  const [shareCode, setShareCode] = useState<string | null>(null);
+  const [done, setDone] = useState(() => Boolean(sent));
+  const [alreadyApplied, setAlreadyApplied] = useState(() => Boolean(sent?.alreadyApplied));
+  // After a scriptless submit the link is shown to copy by hand.
+  const [copied, setCopied] = useState<"no" | "yes" | "failed">(() => (sent ? "failed" : "no"));
+  const [shareCode, setShareCode] = useState<string | null>(() => sent?.shareCode ?? null);
   const [noLinkedinOpen, setNoLinkedinOpen] = useState(false);
   const loaded = useRef(false);
+  const fromPost = useRef(Boolean(posted));
   const started = useRef(false);
   const cameFrom = useRef<string | null>(null);
   const dialogPrimaryRef = useRef<HTMLAnchorElement>(null);
@@ -295,6 +422,8 @@ export default function Creators() {
   // Bring back a half-finished application (client only, after hydration),
   // count the visit, and remember whose share link brought them here.
   useEffect(() => {
+    // A page answering a scriptless post: its answers came with it, and the visit was counted already.
+    if (fromPost.current) return;
     logFunnelStep("creators_view");
     try {
       const ref = (new URLSearchParams(window.location.search).get("ref") ?? "").toLowerCase();
@@ -512,6 +641,7 @@ export default function Creators() {
   const err = (f: UgcField) => errors[f];
   const a11y = (f: UgcField) => ({
     id: `ugc-${f}`,
+    name: f,
     "aria-invalid": err(f) ? true : undefined,
     "aria-describedby": err(f) ? `ugc-${f}-error` : undefined,
   });
@@ -572,6 +702,9 @@ export default function Creators() {
     <div className="min-h-screen bg-[#FAFAF9]">
       <Header landing />
 
+      {/* After a scriptless post the browser opens at the top of the page, so the form comes first. */}
+      {!posted && (
+        <>
       {/* Hero */}
       <section className="border-b-2 border-neutral-900 bg-studojo-purple-bg">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-[1.15fr_1fr] md:px-8 md:py-16">
@@ -680,6 +813,9 @@ export default function Creators() {
         </div>
       </section>
 
+        </>
+      )}
+
       {/* The application */}
       <section id="apply" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-14 md:px-8">
         <div className="mb-6 text-center">
@@ -748,10 +884,15 @@ export default function Creators() {
           </div>
         ) : (
           <form
-            onSubmit={onSubmit}
+            method="post"
+            action={`${location.pathname}${location.search}#apply`}
+            onSubmit={full ? undefined : onSubmit}
             noValidate
             className="ph-no-capture rounded-[32px] border-2 border-neutral-900 bg-white p-5 shadow-brutal-lg md:p-10"
           >
+            {/* Used only when the browser posts the form itself (no script): which form this is, and whose. */}
+            <input type="hidden" name="sj_mode" value={full ? "full" : "step"} />
+            {full && <input type="hidden" name="sj_nojs" value={full.nojsId} />}
             {/* Bots fill every field; people never see this one. */}
             <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
               <label htmlFor="sj_trap">Leave this empty</label>
@@ -766,7 +907,25 @@ export default function Creators() {
               />
             </div>
 
-            {/* Progress */}
+            {full ? (
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-neutral-900 outline-none font-clash">Your application</h3>
+                <p className="mt-2 text-neutral-600 font-satoshi">
+                  All the questions are on this page now. What you already filled in is kept.
+                </p>
+                {Object.keys(errors).length > 0 && (
+                  <p role="alert" className="mt-4 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 font-satoshi">
+                    One answer needs a fix:{" "}
+                    {Object.entries(errors).map(([f, msg]) => (
+                      <a key={f} href={`#ugc-${f}-error`} className="underline underline-offset-2">
+                        {msg}
+                      </a>
+                    ))}
+                  </p>
+                )}
+              </div>
+            ) : (
+            /* Progress */
             <div className="mb-8">
               <div className="flex gap-2" aria-hidden="true">
                 {STEPS.map((s, i) => (
@@ -811,9 +970,11 @@ export default function Creators() {
                 </p>
               )}
             </div>
+            )}
 
-            {step === 0 && (
+            {(full || step === 0) && (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {full && <h4 className="text-xl font-bold text-neutral-900 md:col-span-2 font-clash">{STEPS[0].title}</h4>}
                 <p className="text-neutral-600 md:col-span-2 font-satoshi">The basics, so we can reach you.</p>
                 <div className="md:col-span-2">
                   <label htmlFor="ugc-fullName" className={LABEL}>
@@ -926,6 +1087,7 @@ export default function Creators() {
                   </label>
                   <select
                     id="ugc-graduationYear"
+                    name="graduationYear"
                     className={INPUT}
                     value={form.graduationYear}
                     onChange={(e) => update("graduationYear", e.target.value)}
@@ -955,9 +1117,10 @@ export default function Creators() {
               </div>
             )}
 
-            {step === 1 && (
-              <div className="grid gap-7">
-                {form.noLinkedin ? (
+            {(full || step === 1) && (
+              <div className={`grid gap-7${full ? " mt-12 border-t-2 border-neutral-200 pt-10" : ""}`}>
+                {full && <h4 className="text-xl font-bold text-neutral-900 font-clash">{STEPS[1].title}</h4>}
+                {form.noLinkedin && !full ? (
                   <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 font-satoshi">
                     <p className="font-semibold text-amber-950">You said you don't have LinkedIn.</p>
                     <p className="mt-1 text-amber-950">
@@ -1005,13 +1168,33 @@ export default function Creators() {
                         onChange={(e) => update("linkedinUrl", e.target.value)}
                       />
                       {errorText("linkedinUrl")}
-                      <button
-                        type="button"
-                        onClick={openNoLinkedin}
-                        className="mt-2 min-h-11 text-sm font-semibold text-violet-700 underline underline-offset-2 font-satoshi"
-                      >
-                        I don't have LinkedIn
-                      </button>
+                      {full ? (
+                        <label className="mt-3 flex cursor-pointer items-start gap-3 font-satoshi">
+                          <input
+                            type="checkbox"
+                            name="noLinkedin"
+                            value="yes"
+                            checked={form.noLinkedin}
+                            onChange={(e) => update("noLinkedin", e.target.checked)}
+                            className="mt-1 h-5 w-5 shrink-0 accent-violet-600"
+                          />
+                          <span className="text-neutral-800">
+                            I don't have LinkedIn.{" "}
+                            <span className="text-neutral-600">
+                              The chance of you getting selected for the fellowship drastically decreases without it, but you
+                              can still apply. Leave the LinkedIn questions empty.
+                            </span>
+                          </span>
+                        </label>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={openNoLinkedin}
+                          className="mt-2 min-h-11 text-sm font-semibold text-violet-700 underline underline-offset-2 font-satoshi"
+                        >
+                          I don't have LinkedIn
+                        </button>
+                      )}
                     </div>
                     {choices({ f: "connections", options: CONNECTIONS, legend: "About how many connections do you have?", required: true })}
                     {choices({ f: "postFrequency", options: POST_FREQUENCY, legend: "How often do you post?", required: true })}
@@ -1040,8 +1223,9 @@ export default function Creators() {
               </div>
             )}
 
-            {step === 2 && (
-              <div className="grid gap-7">
+            {(full || step === 2) && (
+              <div className={`grid gap-7${full ? " mt-12 border-t-2 border-neutral-200 pt-10" : ""}`}>
+                {full && <h4 className="text-xl font-bold text-neutral-900 font-clash">{STEPS[2].title}</h4>}
                 <p className="text-neutral-600 font-satoshi">
                   The fellowship helps you learn distribution, opens a path to a growth internship at Studojo, and puts your
                   profile in front of people hiring. Tell us what matters to you.
@@ -1059,6 +1243,8 @@ export default function Creators() {
                           <input
                             type="checkbox"
                             id={`ugc-fellowshipGoals-${i}`}
+                            name="fellowshipGoals"
+                            value={g}
                             checked={on}
                             onChange={() => toggleGoal(g)}
                             className="peer sr-only"
@@ -1123,6 +1309,7 @@ export default function Creators() {
                   </label>
                   <input
                     id="ugc-dreamCompanies"
+                    name="dreamCompanies"
                     className={INPUT}
                     placeholder="e.g. Zepto, Deloitte, Google"
                     maxLength={LIMITS.companies}
@@ -1140,14 +1327,17 @@ export default function Creators() {
                   <div className="flex flex-wrap gap-2">
                     {TOPICS.map((t, i) => {
                       const on = form.topics.includes(t);
-                      const full = !on && form.topics.length >= LIMITS.topicsMax;
+                      // Without a script the limit can't be kept live, so the server checks it instead.
+                      const atMax = !on && form.topics.length >= LIMITS.topicsMax && !full;
                       return (
-                        <label key={t} className={full ? "cursor-not-allowed opacity-40" : "cursor-pointer"}>
+                        <label key={t} className={atMax ? "cursor-not-allowed opacity-40" : "cursor-pointer"}>
                           <input
                             type="checkbox"
                             id={`ugc-topics-${i}`}
+                            name="topics"
+                            value={t}
                             checked={on}
-                            disabled={full}
+                            disabled={atMax}
                             onChange={() => toggleTopic(t)}
                             className="peer sr-only"
                           />
@@ -1167,6 +1357,7 @@ export default function Creators() {
                   </label>
                   <input
                     id="ugc-avoidTopics"
+                    name="avoidTopics"
                     className={INPUT}
                     maxLength={LIMITS.avoid}
                     value={form.avoidTopics}
@@ -1176,8 +1367,9 @@ export default function Creators() {
               </div>
             )}
 
-            {step === 3 && (
-              <div className="grid gap-7">
+            {(full || step === 3) && (
+              <div className={`grid gap-7${full ? " mt-12 border-t-2 border-neutral-200 pt-10" : ""}`}>
+                {full && <h4 className="text-xl font-bold text-neutral-900 font-clash">{STEPS[3].title}</h4>}
                 <p className="text-neutral-600 font-satoshi">Almost done.</p>
                 {choices({ f: "canCommit", options: CAN_COMMIT, legend: "Fellows post 3 times a week. Can you do that for at least 4 weeks?", required: true })}
                 {choices({
@@ -1218,6 +1410,7 @@ export default function Creators() {
                     </label>
                     <select
                       id="ugc-referralSource"
+                      name="referralSource"
                       className={INPUT}
                       value={form.referralSource}
                       onChange={(e) => update("referralSource", e.target.value)}
@@ -1236,6 +1429,7 @@ export default function Creators() {
                     </label>
                     <input
                       id="ugc-referredBy"
+                      name="referredBy"
                       className={INPUT}
                       placeholder="Their name"
                       maxLength={LIMITS.referredBy}
@@ -1249,6 +1443,7 @@ export default function Creators() {
                     <input
                       {...a11y("consent")}
                       type="checkbox"
+                      value="yes"
                       checked={form.consent}
                       onChange={(e) => update("consent", e.target.checked)}
                       className="mt-1 h-5 w-5 shrink-0 accent-violet-600"
@@ -1289,7 +1484,7 @@ export default function Creators() {
                 disabled={submitting}
                 className="min-h-12 rounded-2xl border-2 border-neutral-900 bg-violet-600 px-8 py-3 text-lg font-bold text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-60 font-clash"
               >
-                {step < STEPS.length - 1 ? "Next" : submitting ? "Sending..." : "Submit application"}
+                {full ? "Submit application" : step < STEPS.length - 1 ? "Next" : submitting ? "Sending..." : "Submit application"}
               </button>
             </div>
           </form>
