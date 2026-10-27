@@ -5,6 +5,8 @@ import { Section } from "~/components/common/section";
 import type { Route } from "./+types/contact";
 import { FiMail, FiMessageCircle, FiClock, FiChevronDown } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa6";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { ContactB2C } from "~/components/site-b2c/pages/ContactB2C";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -98,6 +100,7 @@ export default function Contact() {
   const [trap, setTrap] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const b2c = useSiteB2c();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +127,23 @@ export default function Contact() {
       setLoading(false);
     }
   };
+
+  // SITE-V2: B2C hosts get the h1 look (site-b2c/pages/ContactB2C.tsx), the same copy, fields and this handler.
+  if (b2c) {
+    return (
+      <ContactB2C
+        subjects={SUBJECT_OPTIONS}
+        faq={FAQ_ITEMS}
+        formData={formData}
+        setFormData={setFormData}
+        trap={trap}
+        setTrap={setTrap}
+        loading={loading}
+        result={result}
+        onSubmit={handleSubmit}
+      />
+    );
+  }
 
   const inputClass =
     "w-full rounded-2xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-sm text-neutral-900 placeholder:text-neutral-400 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-1 disabled:opacity-60 md:text-base";

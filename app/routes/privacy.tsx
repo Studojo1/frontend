@@ -6,6 +6,8 @@ import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import { CookieChoiceButton } from "~/components/legal/cookie-notice";
 import { EFFECTIVE_DATE, POLICY_VERSIONS, fill } from "~/lib/legal";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { LegalToc } from "~/components/site-b2c/pages/LegalToc";
 import type { Route } from "./+types/privacy";
 
 export function meta({}: Route.MetaArgs) {
@@ -16,6 +18,8 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Privacy() {
+  // SITE-V2: on B2C hosts only, an "on this page" list from the headings below (site-b2c/pages/LegalToc.tsx).
+  const b2c = useSiteB2c();
   return (
     <>
       <Header />
@@ -32,6 +36,7 @@ export default function Privacy() {
           </Section>
         </section>
 
+        {b2c ? <LegalToc /> : null}
         <Section width="narrow" className="py-12 md:py-16">
           <div className="space-y-8">
             {/* In short */}
