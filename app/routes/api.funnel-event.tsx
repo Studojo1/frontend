@@ -21,6 +21,8 @@ const EVENTS = new Set([
   "auth_view", "upload_view",
   "auth_google_click", "auth_email_submit", "auth_oauth_error",
   "auth_in_app_copy_link", "auth_in_app_open_chrome",
+  "creators_view", "creators_start", "creators_step", "creators_submit",
+  "creators_no_linkedin", "creators_no_linkedin_continue", "creators_no_linkedin_create", "creators_share",
 ]);
 const IN_APP = new Set(["instagram", "facebook"]);
 

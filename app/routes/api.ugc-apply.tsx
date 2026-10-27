@@ -58,8 +58,9 @@ export async function action({ request }: Route.ActionArgs) {
 
   // Attribution is client-supplied, so it is a hint, never a reason to reject.
   let isNew: boolean;
+  let shareCode: string;
   try {
-    ({ isNew } = await saveUgcApplication(result.value, {
+    ({ isNew, shareCode } = await saveUgcApplication(result.value, {
       sourcePath: clamp(body.sourcePath, 120),
       utmSource: clamp(body.utmSource, 80),
       utmMedium: clamp(body.utmMedium, 80),
@@ -74,5 +75,6 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ error: "We couldn't save your application just now. Please try again in a minute." }, { status: 503 });
   }
 
-  return Response.json(isNew ? { ok: true } : { ok: true, alreadyApplied: true });
+  // The share code lets the success screen hand out links that credit them.
+  return Response.json(isNew ? { ok: true, shareCode } : { ok: true, alreadyApplied: true, shareCode });
 }
