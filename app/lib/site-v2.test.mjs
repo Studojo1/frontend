@@ -133,7 +133,7 @@ const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);
 const PINNED = {
   "routes/blog._index.tsx": "c56374e058eb2f3f",
   "routes/blog.$slug.tsx": "2a9c438fdd84f1ea",
-  "routes/reports.tsx": "8bc2e922915ee37f", // re-pinned 27 Oct after PR #383 (14 reports): equals staging ab28a6a
+  "routes/reports.tsx": "3be1ca10c6ecb1b2", // re-pinned 28 Oct for the 14 batch-2 reports (REPORTS entries only)
   "routes/terms.tsx": "e565ab6f9433ba94",
   "routes/privacy.tsx": "8288874388100760",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
