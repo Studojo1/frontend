@@ -102,6 +102,20 @@ export async function loader() {
     { loc: "/reports/proof-of-work-report-projects-github-portfolio-2026", publishDate: "2026-10-17" },
     { loc: "/reports/aptitude-coding-test-report-2026", publishDate: "2026-10-18" },
     { loc: "/reports/us-internships-international-students-2026", publishDate: "2026-10-19" },
+    { loc: "/reports/ai-job-agent-report-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/does-auto-apply-work-report-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/ai-that-applies-to-jobs-for-you-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/email-hiring-manager-vs-applying-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/find-hiring-manager-email-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/mail-to-hr-for-job-india-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/hr-email-id-lists-why-they-fail-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/ai-job-search-india-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/best-time-to-email-hr-or-hiring-manager-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/hire-someone-to-apply-for-jobs-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/how-to-bypass-ats-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/ai-job-matching-report-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/follow-up-job-application-timing-2026", publishDate: "2026-10-27" },
+    { loc: "/reports/do-hiring-managers-read-cold-emails-2026", publishDate: "2026-10-27" },
   ];
   for (const r of scheduledReports) {
     if (r.publishDate <= istToday) staticPages.push({ loc: r.loc, priority: "0.9", changefreq: "monthly" });
