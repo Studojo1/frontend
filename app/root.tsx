@@ -39,6 +39,12 @@ import sv2ReportsCss from "./components/site-b2c/site-reports.css?url";
 import sv2PagesCss from "./components/site-b2c/site-pages.css?url";
 import { sv2PageFor } from "./components/site-b2c/site-links";
 import { useSiteB2c } from "./components/site-b2c/host";
+// CLASSIC LOOK (app/lib/look.ts): Studojo's old neo-brutalist look over the same pages, only when ?look=classic or the
+// sj_look cookie asks for it (studojo.pro only). Linked only then, so the default look's pages are unchanged.
+import classicCss from "./components/look/classic.css?url";
+import classicSiteCss from "./components/look/classic-site.css?url";
+import { useLook } from "./components/look/look-context";
+import { LookSwitch } from "./components/look/LookSwitch";
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.png", type: "image/png" },
@@ -54,8 +60,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const b2c = useSiteB2c();
   const routeError = useRouteError();
   const sv2 = b2c ? (routeError ? "error" : sv2PageFor(pathname)) : null;
+  const look = useLook();
   return (
-    <html lang="en" data-sv2={sv2 ?? undefined}>
+    <html lang="en" data-sv2={sv2 ?? undefined} data-look={look ?? undefined}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -78,6 +85,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <link rel="stylesheet" href={sv2BlogCss} />
             <link rel="stylesheet" href={sv2ReportsCss} />
             <link rel="stylesheet" href={sv2PagesCss} />
+          </>
+        ) : null}
+        {look === "classic" ? (
+          <>
+            <link rel="stylesheet" href={classicCss} />
+            <link rel="stylesheet" href={classicSiteCss} />
           </>
         ) : null}
         {/* Suppress third-party warnings immediately, before any scripts load */}
@@ -157,6 +170,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             },
           }}
         />
+        {look ? <LookSwitch look={look} /> : null}
         <ScrollRestoration />
         <Scripts />
       </body>
