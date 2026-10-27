@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { Header } from "~/components";
+import { Footer, Header } from "~/components";
 import { PasswordInput } from "~/components/password-input";
 import { heldTrackingParams } from "~/lib/attribution";
 import { authClient } from "~/lib/auth-client";
@@ -13,8 +13,8 @@ import { ResumeFirstCard } from "~/components/outreach/ResumeFirstCard";
 import { UPLOAD_BEFORE_SIGNUP_FLAG, headedToUpload, isAdVisitor } from "~/lib/outreach/resume-draft";
 import type { Route } from "./+types/auth._index";
 import { ConsentLine } from "~/components/auth/consent-line";
-import { useB2cHost } from "~/components/home-b2c/links";
-import "~/components/home-b2c/b2c.css";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { AuthTop } from "~/components/site-b2c/auth-top";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
@@ -196,12 +196,13 @@ function InAppBrowserPrompt({ app, onDismiss }: { app: "instagram" | "facebook";
 
 export default function Auth() {
   const navigate = useNavigate();
-  // AUTH-B2C (27 Oct 2026): on B2C hosts (studojo.pro, app/lib/b2c-home.ts) the page wears the homepage's look,
-  // visual only. The page root gets "sjb sjb-auth", the floating shapes are not drawn, and a few elements carry a
-  // data-b2c mark that the scoped rules in home-b2c/b2c.css (.sjb.sjb-auth) restyle. Nothing else depends on b2c:
-  // every input, button, link, text and handler is the same on both hosts, and on studojo.com no mark is rendered,
-  // so its HTML is exactly as before (app/lib/auth-b2c.test.mjs).
-  const b2c = useB2cHost();
+  // SITE-V2 (27 Oct 2026): on B2C hosts (studojo.pro, site-b2c/host.tsx) the page wears the site's calm white-card
+  // look, visual only. The page root gets "sv2-auth", the floating shapes are not drawn, Stu's head and a kicker
+  // stand where the second wordmark was, the compact site footer follows, and a few elements carry a data-b2c mark
+  // that the rules in site-b2c/site-pages.css (html[data-sv2="auth"]) restyle. Nothing else depends on b2c: every
+  // input, button, link, text and handler is the same on both hosts, and on studojo.com no mark is rendered, so its
+  // HTML is exactly as before (app/lib/auth-b2c.test.mjs).
+  const b2c = useSiteB2c();
   const b2cMark = (part: string) => (b2c ? { "data-b2c": part } : {});
   const [searchParams, setSearchParams] = useSearchParams();
   // Returning visitors are switched back to Sign In below once their last
@@ -556,7 +557,7 @@ export default function Auth() {
   return (
     <>
       <Header />
-      <main className={b2c ? "sjb sjb-auth relative min-h-screen overflow-hidden" : "relative min-h-screen overflow-hidden bg-purple-50"}>
+      <main className={b2c ? "sv2-auth relative" : "relative min-h-screen overflow-hidden bg-purple-50"}>
         {/* Background decorative shapes - Framer Motion, slow (not on B2C hosts: a flat white page) */}
         {!b2c && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
@@ -568,17 +569,22 @@ export default function Auth() {
 
         <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-[var(--section-max-width)] items-center justify-center px-4 py-12 md:px-8 md:py-20">
           <motion.div
+            {...b2cMark("shell")}
             className="relative w-full max-w-md z-10"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            {/* Studojo Logo */}
+            {/* Studojo Logo (on B2C hosts Stu's head and a kicker instead: the site header already shows the wordmark) */}
+            {b2c ? (
+              <AuthTop kicker="stu, your career agent" />
+            ) : (
             <div className="mb-8 text-center">
-              <h2 {...b2cMark("brand")} className="font-['Satoshi'] text-3xl font-black leading-9 text-neutral-900 md:text-4xl md:leading-7">
+              <h2 className="font-['Satoshi'] text-3xl font-black leading-9 text-neutral-900 md:text-4xl md:leading-7">
                 studojo
               </h2>
             </div>
+            )}
 
             {inApp && !inAppDismissed && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
 
@@ -670,7 +676,7 @@ export default function Auth() {
                     </svg>
                     Continue with Google
                   </button>
-                  <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
+                  <p {...b2cMark("fine")} className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
                     <ConsentLine lead="By continuing" />
                   </p>
                   {mode === "signin" && (
@@ -751,18 +757,18 @@ export default function Auth() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className={`${b2c ? "nb-btn nb-wide " : ""}w-full rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none`}
+                  className={`${b2c ? "sv-btn sv-btn-wide " : ""}w-full rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none`}
                 >
                   {submitting ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
                 </button>
-                <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
+                <p {...b2cMark("fine")} className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
                   <ConsentLine lead={mode === "signup" ? "By signing up" : "By continuing"} />
                 </p>
                 </div>
               </form>
 
               {mode === "signin" && (
-                <p className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
+                <p {...b2cMark("switch")} className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                   Don't have an account?{" "}
                   <button
                     {...b2cMark("link")}
@@ -776,7 +782,7 @@ export default function Auth() {
               )}
 
               {mode === "signup" && (
-                <p className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
+                <p {...b2cMark("switch")} className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                   Already have an account?{" "}
                   <button
                     {...b2cMark("link")}
@@ -794,6 +800,7 @@ export default function Auth() {
           </motion.div>
         </div>
       </main>
+      {b2c && <Footer compact />}
     </>
   );
 }
