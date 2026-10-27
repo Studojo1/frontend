@@ -5,6 +5,8 @@ import { IoBriefcaseOutline } from "react-icons/io5";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import type { Route } from "./+types/about";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { AboutB2C } from "~/components/site-b2c/pages/AboutB2C";
 
 export function meta({}: Route.MetaArgs) {
   const BASE_URL = "https://studojo.com";
@@ -123,6 +125,9 @@ function CheckIcon() {
 }
 
 export default function About() {
+  // SITE-V2: B2C hosts get the h1 look (site-b2c/pages/AboutB2C.tsx) with the same copy and lists.
+  const b2c = useSiteB2c();
+  if (b2c) return <AboutB2C parts={PARTS} principles={PRINCIPLES} markets={MARKETS} />;
   return (
     <>
       <Header />

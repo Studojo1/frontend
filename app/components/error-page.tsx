@@ -1,6 +1,8 @@
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { Header } from "./common/header";
+import { useSiteB2c } from "./site-b2c/host";
+import { ErrorPageB2C } from "./site-b2c/pages/ErrorPageB2C";
 
 interface ErrorPageProps {
   statusCode?: number;
@@ -10,6 +12,9 @@ interface ErrorPageProps {
 }
 
 export function ErrorPage({ statusCode, message, details, stack }: ErrorPageProps) {
+  // SITE-V2: B2C hosts get the h1 look (site-b2c/pages/ErrorPageB2C.tsx); studojo.com keeps this page as it is.
+  const b2c = useSiteB2c();
+  if (b2c) return <ErrorPageB2C statusCode={statusCode} message={message} details={details} stack={stack} />;
   return (
     <div className="min-h-screen bg-white">
       <Header />

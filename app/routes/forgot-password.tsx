@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Header } from "~/components";
+import { Footer, Header } from "~/components";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { AuthTop } from "~/components/site-b2c/auth-top";
 import { requestPasswordReset } from "~/lib/emailer";
 import { toast } from "sonner";
 import type { Route } from "./+types/forgot-password";
@@ -22,6 +24,12 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function ForgotPassword() {
+  // SITE-V2 (27 Oct 2026): on B2C hosts (studojo.pro, site-b2c/host.tsx) the page wears the site's calm white-card
+  // look, visual only: the root gets "sv2-auth", the card and a few boxes a data-b2c mark (site-b2c/site-pages.css,
+  // html[data-sv2="auth"]), Stu's head and a kicker top the card, the buttons gain .sv-btn and the compact site
+  // footer follows. Fields, handlers, links and text are the same on both hosts (app/lib/auth-b2c.test.mjs).
+  const b2c = useSiteB2c();
+  const b2cMark = (part: string) => (b2c ? { "data-b2c": part } : {});
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -47,10 +55,11 @@ export default function ForgotPassword() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className={b2c ? "sv2-auth" : "min-h-screen bg-white"}>
         <Header />
         <div className="mx-auto max-w-md px-4 py-16">
-          <div className="rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+          <div {...b2cMark("shell")} className="rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+            {b2c && <AuthTop kicker="your studojo account" size={56} />}
             <h1 className="mb-4 font-['Clash_Display'] text-2xl font-medium text-neutral-900">
               Check Your Email
             </h1>
@@ -62,35 +71,37 @@ export default function ForgotPassword() {
             </p>
             <Link
               to="/auth"
-              className={BTN_PRIMARY + " block text-center"}
+              className={(b2c ? "sv-btn sv-btn-wide " : "") + BTN_PRIMARY + " block text-center"}
             >
               Back to Sign In
             </Link>
           </div>
         </div>
+        {b2c && <Footer compact />}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={b2c ? "sv2-auth" : "min-h-screen bg-white"}>
       <Header />
       <div className="mx-auto max-w-md px-4 py-16">
-        <div className="rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+        <div {...b2cMark("shell")} className="rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+          {b2c && <AuthTop kicker="your studojo account" size={56} />}
           <h1 className="mb-2 font-['Clash_Display'] text-2xl font-medium text-neutral-900">
             Forgot Password?
           </h1>
           <p className="mb-6 font-['Satoshi'] text-base text-neutral-700">
             Enter your email address and we'll send you a link to reset your password.
           </p>
-          <div className="mb-4 rounded-xl border-2 border-purple-200 bg-purple-50 p-3">
+          <div {...b2cMark("note")} className="mb-4 rounded-xl border-2 border-purple-200 bg-purple-50 p-3">
             <p className="font-['Satoshi'] text-sm text-purple-900">
               <strong>Note:</strong> If you signed up with Google, you can use this to create a password for your account.
             </p>
           </div>
 
           {error && (
-            <div className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 p-3">
+            <div {...b2cMark("error")} className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 p-3">
               <p className="font-['Satoshi'] text-sm text-red-700">{error}</p>
             </div>
           )}
@@ -116,13 +127,13 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={submitting || !email}
-              className={BTN_PRIMARY + " w-full"}
+              className={(b2c ? "sv-btn sv-btn-wide " : "") + BTN_PRIMARY + " w-full"}
             >
               {submitting ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div {...b2cMark("switch")} className="mt-6 text-center">
             <Link
               to="/auth"
               className="font-['Satoshi'] text-sm text-purple-600 hover:underline"
@@ -132,7 +143,7 @@ export default function ForgotPassword() {
           </div>
         </div>
       </div>
+      {b2c && <Footer compact />}
     </div>
   );
 }
-

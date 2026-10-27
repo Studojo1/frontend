@@ -5,6 +5,8 @@ import { BlogCard } from "~/components/blog/blog-card";
 import type { Route } from "./+types/blog._index";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { BlogIndexB2C } from "~/components/site-b2c/blog/BlogIndexB2C";
 
 const BASE_URL = "https://studojo.com";
 const LIMIT = 12;
@@ -112,6 +114,7 @@ export default function Blog() {
   const [totalPages, setTotalPages] = useState(initial.totalPages);
   const [search, setSearch] = useState(initial.search);
   const [searchInput, setSearchInput] = useState(initial.search);
+  const b2c = useSiteB2c();
 
   const loadPosts = async (newPage: number, newSearch: string) => {
     try {
@@ -162,6 +165,23 @@ export default function Blog() {
       datePublished: post.published_at,
     })),
   };
+
+  if (b2c) {
+    return (
+      <BlogIndexB2C
+        posts={posts}
+        loading={loading}
+        page={page}
+        totalPages={totalPages}
+        search={search}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onSearch={handleSearch}
+        loadPosts={loadPosts}
+        jsonLd={blogJsonLd}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">

@@ -7,8 +7,8 @@ import { clearTokenCache } from "~/lib/control-plane";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import { SmoothLink } from "./smooth-link";
-import { HeaderB2C } from "../home-b2c/HeaderB2C";
-import { useB2cHost } from "../home-b2c/links";
+import { useSiteB2c } from "../site-b2c/host";
+import { SiteHeader } from "../site-b2c/SiteHeader";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -54,11 +54,12 @@ const isResourcesPath = (pathname: string) => RESOURCES_LINKS.some((r) => isActi
  * (audit VS-V05: /outreach had 34 competing targets).
  *
  * On B2C hosts (studojo.pro, app/lib/b2c-home.ts) every page but those landing
- * pages gets the job-agent header instead, without the old products.
+ * pages gets the job-agent header instead, without the old products (SITE-V2,
+ * components/site-b2c/SiteHeader.tsx; the B2C homepage draws its own).
  */
 export function Header({ landing = false }: { landing?: boolean } = {}) {
-  const b2c = useB2cHost();
-  if (b2c && !landing) return <HeaderB2C />;
+  const b2c = useSiteB2c();
+  if (b2c && !landing) return <SiteHeader />;
   return <ClassicHeader landing={landing} />;
 }
 

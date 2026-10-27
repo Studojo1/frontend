@@ -1,0 +1,546 @@
+/* SITE-V2 site-reports: see site.css for the shared look. Every rule is under html[data-sv2]. */
+
+/* ==========================================================================================================
+   1. /reports index on B2C hosts (components/site-b2c/reports/ReportsIndexB2C.tsx), html[data-sv2="reports"]
+   ========================================================================================================== */
+html[data-sv2="reports"] .sv-rx { padding-bottom: 24px; }
+html[data-sv2="reports"] .sv-rx .sv-pagehead { padding-bottom: 40px; }
+html[data-sv2="reports"] .sv-rx-block { padding: 8px 0 0; }
+html[data-sv2="reports"] .sv-rx-label { margin: 0 0 16px; }
+html[data-sv2="reports"] .sv-rx-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+
+/* a report card: mono topic and month, the title as written, the summary (clamped), "read the report" */
+html[data-sv2="reports"] .sv-rx-card { flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px 22px 20px; min-height: 230px; }
+html[data-sv2="reports"] .sv-rx-kick { display: block; line-height: 1.4; }
+html[data-sv2="reports"] .sv-rx-title { margin: 0; font-family: var(--sv-sans); font-size: 18.5px; font-weight: 500; line-height: 1.28; letter-spacing: -0.015em; color: var(--sv-ink);
+  overflow-wrap: anywhere; }
+html[data-sv2="reports"] .sv-rx-sum { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--sv-muted);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+html[data-sv2="reports"] .sv-rx-card .sv-go { margin-top: auto; padding-top: 4px; }
+html[data-sv2="reports"] .sv-rx-hide { display: none !important; }
+
+/* the newest three: a little more room, the lilac tile, a longer summary */
+html[data-sv2="reports"] .sv-rx-feat { padding: 24px 24px 22px; min-height: 300px; gap: 14px; }
+html[data-sv2="reports"] .sv-rx-feat .sv-rx-title { font-size: 21px; line-height: 1.24; letter-spacing: -0.02em; }
+html[data-sv2="reports"] .sv-rx-feat .sv-rx-sum { -webkit-line-clamp: 4; line-clamp: 4; font-size: 15px; }
+
+/* one quiet Stu card between the newest and the rest */
+html[data-sv2="reports"] .sv-rx-stu { display: flex; align-items: center; gap: 20px; margin: 40px 0 0; padding: 22px 26px; background: linear-gradient(180deg, #fbf9fe, #f6f2fd); }
+html[data-sv2="reports"] .sv-rx-stu .sv-stu { width: 64px; height: 64px; }
+html[data-sv2="reports"] .sv-rx-stu-copy { display: grid; gap: 4px; flex: 1; min-width: 0; }
+html[data-sv2="reports"] .sv-rx-stu-copy .sv-body { font-size: 15px; line-height: 1.55; max-width: 640px; }
+html[data-sv2="reports"] .sv-rx-stu-link { flex: none; font-size: 15px; font-weight: 500; white-space: nowrap; }
+
+/* browse by topic: the h2, the quiet chips, the grid, "show more" */
+html[data-sv2="reports"] .sv-rx-all { padding-top: 72px; }
+html[data-sv2="reports"] .sv-rx-allhead { display: grid; gap: 18px; margin-bottom: 26px; }
+html[data-sv2="reports"] .sv-rx-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+html[data-sv2="reports"] .sv-rx-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  font-family: var(--sv-sans); font-size: 14.5px; font-weight: 500; color: var(--sv-muted); background: #fff; border: 1px solid var(--sv-line); box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+  transition: border-color .15s ease, color .15s ease, background .15s ease; }
+html[data-sv2="reports"] .sv-rx-chip:hover { color: var(--sv-ink); border-color: rgba(139, 92, 246, .35); }
+html[data-sv2="reports"] .sv-rx-chip:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 2px; }
+html[data-sv2="reports"] .sv-rx-chip.sv-rx-on { background: var(--sv-lilac); border-color: rgba(139, 92, 246, .35); color: var(--sv-purple-strong); }
+html[data-sv2="reports"] .sv-rx-n { font-family: var(--sv-mono); font-size: 11.5px; font-weight: 500; color: var(--sv-faint); }
+html[data-sv2="reports"] .sv-rx-chip.sv-rx-on .sv-rx-n { color: var(--sv-purple); }
+html[data-sv2="reports"] .sv-rx-more { display: flex; justify-content: center; margin-top: 32px; }
+
+@media (max-width: 1000px) {
+  html[data-sv2="reports"] .sv-rx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html[data-sv2="reports"] .sv-rx-grid-feat > :nth-child(3) { grid-column: 1 / -1; min-height: 0; }
+}
+@media (max-width: 640px) {
+  html[data-sv2="reports"] .sv-rx-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  html[data-sv2="reports"] .sv-rx-card, html[data-sv2="reports"] .sv-rx-feat { min-height: 0; padding: 20px 18px 18px; }
+  html[data-sv2="reports"] .sv-rx-feat .sv-rx-title { font-size: 19.5px; }
+  html[data-sv2="reports"] .sv-rx-stu { flex-wrap: wrap; gap: 14px 16px; padding: 20px 18px; margin-top: 32px; }
+  html[data-sv2="reports"] .sv-rx-stu .sv-stu { width: 52px; height: 52px; }
+  html[data-sv2="reports"] .sv-rx-stu-copy { flex-basis: calc(100% - 68px); }
+  html[data-sv2="reports"] .sv-rx-stu-link { margin-left: 68px; }
+  html[data-sv2="reports"] .sv-rx-all { padding-top: 56px; }
+  html[data-sv2="reports"] .sv-rx-chip { min-height: 36px; padding: 0 12px; font-size: 14px; }
+  html[data-sv2="reports"] .sv-rx-more .sv-btn-ghost { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-sv2="reports"] .sv-rx-chip { transition: none; }
+}
+
+/* ==========================================================================================================
+   2. a report page on B2C hosts (app/routes/reports.*.tsx), html[data-sv2="report"]
+   The 72 report routes are left as they are; each ships its own inline <style> (two templates: rpt-hero/rpt-body
+   "A" and rpt-hero/rpt-content/rpt-finding "B", plus the r15-* one). These rules restyle all three by specificity:
+   every selector here is html[data-sv2="report"] + the page's own selector, so it beats the page's (later) inline
+   sheet; !important only where the page sets an inline style="" or its own !important.
+   Chart.js canvases are untouched (their colours come from each page's script).
+   ========================================================================================================== */
+
+/* ---------- type: Satoshi everywhere in the page body (the pages set Clash Display on headings and numbers) ---------- */
+html[data-sv2="report"] main { font-family: var(--sv-sans); }
+html[data-sv2="report"] main :is(.rpt-h1, .rpt-h2, .rpt-val, .rpt-hval, .rpt-inline-cta-title, .rpt-final-cta-title, .rpt-legend-pct, .rpt-mini-total-val,
+  .rpt-pullquote p, .rpt-table, .r15-h1, .r15-h2, .r15-val, .r15-hval, .r15-skill-name, .r15-inline-cta-title, .r15-final-title) { font-family: var(--sv-sans); }
+html[data-sv2="report"] main [style*="Clash"] { font-family: var(--sv-sans) !important; font-weight: 500 !important; }
+html[data-sv2="report"] main :is(.rpt-val, .rpt-legend-pct, .rpt-mini-total-val, .r15-val, .r15-skill-name) { font-weight: 500; }
+html[data-sv2="report"] main { color: var(--sv-ink); }
+html[data-sv2="report"] main strong { font-weight: 700; }
+
+/* ---------- the column: one 860px column for the head and the body, 24px gutters (16px on phones) ---------- */
+html[data-sv2="report"] .rpt-hero-inner,
+html[data-sv2="report"] .r15-hero .r15-inner,
+html[data-sv2="report"] .rpt-body,
+html[data-sv2="report"] .rpt-content,
+html[data-sv2="report"] .r15-content { max-width: 860px; margin-left: auto; margin-right: auto; padding-left: 24px; padding-right: 24px; }
+html[data-sv2="report"] .rpt-body { padding-top: 8px; padding-bottom: 88px; gap: 24px; }
+html[data-sv2="report"] .rpt-content { padding-top: 0; padding-bottom: 88px; }
+html[data-sv2="report"] .r15-content { padding-bottom: 8px; }
+/* the 15k report puts its FAQ, related reports and closing block straight in <main>: keep them in the column */
+html[data-sv2="report"] main > .faq-section,
+html[data-sv2="report"] main > .related,
+html[data-sv2="report"] main > .r15-final-cta { box-sizing: border-box; width: auto; max-width: 812px; margin-left: auto; margin-right: auto; }
+html[data-sv2="report"] main > .faq-section { margin-top: 24px; }
+html[data-sv2="report"] main > .related { margin-top: 24px; }
+html[data-sv2="report"] main > .r15-final-cta { margin-top: 24px; margin-bottom: 88px; }
+
+/* ---------- the near-black hero becomes the light page head ---------- */
+html[data-sv2="report"] .rpt-hero,
+html[data-sv2="report"] .r15-hero { position: relative; overflow: visible; background: transparent !important; color: var(--sv-ink); border: 0; padding: 64px 0 36px; }
+html[data-sv2="report"] .rpt-hero::before, html[data-sv2="report"] .rpt-hero::after { display: none; }
+html[data-sv2="report"] .rpt-hero .rpt-hero-inner,
+html[data-sv2="report"] .r15-hero .r15-inner { display: flex; flex-direction: column; align-items: flex-start; }
+/* breadcrumb first, as a mono crumb line */
+html[data-sv2="report"] .rpt-hero .rpt-breadcrumb,
+html[data-sv2="report"] .r15-hero .r15-breadcrumb { order: -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 22px;
+  font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .03em; color: var(--sv-faint); }
+html[data-sv2="report"] .rpt-hero .rpt-breadcrumb span:last-child, html[data-sv2="report"] .r15-hero .r15-breadcrumb span:last-child { color: var(--sv-faint); }
+html[data-sv2="report"] .rpt-hero .rpt-breadcrumb-link,
+html[data-sv2="report"] .r15-hero .r15-bc-link { color: var(--sv-purple-strong); font-weight: 500; text-decoration: none; }
+html[data-sv2="report"] .rpt-hero .rpt-breadcrumb-link:hover, html[data-sv2="report"] .r15-hero .r15-bc-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+html[data-sv2="report"] .rpt-hero .rpt-breadcrumb-sep, html[data-sv2="report"] .r15-hero .r15-bc-sep { color: var(--sv-faint); opacity: .7; }
+/* the badge becomes the small mono purple kicker */
+html[data-sv2="report"] .rpt-hero .rpt-badge,
+html[data-sv2="report"] .r15-hero .r15-badge { display: inline-block; margin: 0 0 14px; padding: 0; background: none !important; border: 0; border-radius: 0; box-shadow: none;
+  font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .04em; line-height: 1.4; text-transform: lowercase; color: var(--sv-purple-strong); }
+/* the title: Satoshi 500, tight, one ink colour; the second line a quiet purple */
+html[data-sv2="report"] .rpt-hero h1,
+html[data-sv2="report"] .rpt-hero .rpt-h1,
+html[data-sv2="report"] .r15-hero .r15-h1 { margin: 0 0 18px; max-width: 780px; font-family: var(--sv-sans); font-size: clamp(34px, 4.4vw, 54px); font-weight: 500; line-height: 1.06;
+  letter-spacing: -0.032em; color: var(--sv-ink); text-wrap: balance; }
+html[data-sv2="report"] .rpt-hero h1 em,
+html[data-sv2="report"] .rpt-hero .rpt-h1 em,
+html[data-sv2="report"] .r15-hero .r15-h1 em { font-style: normal; color: var(--sv-purple-strong); }
+html[data-sv2="report"] .rpt-hero .rpt-hero-sub,
+html[data-sv2="report"] .r15-hero .r15-sub { margin: 0 0 28px; max-width: 640px; font-size: 18.5px; font-weight: 400; line-height: 1.55; color: var(--sv-muted); opacity: 1; text-wrap: pretty; }
+/* template A meta (scope, published, prepared by): small white pills in a quiet row */
+html[data-sv2="report"] .rpt-hero .rpt-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+html[data-sv2="report"] .rpt-hero .rpt-meta-item { display: inline-flex; flex-direction: row; align-items: baseline; gap: 8px; min-height: 32px; padding: 6px 13px; box-sizing: border-box;
+  background: #fff; border: 1px solid var(--sv-line); border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
+html[data-sv2="report"] .rpt-hero .rpt-meta-label { font-family: var(--sv-mono); font-size: 11px; font-weight: 500; letter-spacing: .03em; text-transform: lowercase; color: var(--sv-faint); }
+html[data-sv2="report"] .rpt-hero .rpt-meta-value { font-size: 13.5px; font-weight: 500; color: var(--sv-ink); }
+/* template B and 15k hero numbers: a row of small white cards */
+html[data-sv2="report"] .rpt-hero .rpt-hero-stats,
+html[data-sv2="report"] .r15-hero .r15-hero-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; width: 100%; padding: 0; border: 0; }
+html[data-sv2="report"] .rpt-hero .rpt-hero-stats > *,
+html[data-sv2="report"] .r15-hero .r15-hero-stats > * { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; background: #fff; border: 1px solid var(--sv-line); border-radius: 14px; box-shadow: var(--sv-soft); }
+html[data-sv2="report"] .rpt-hero .rpt-hval,
+html[data-sv2="report"] .r15-hero .r15-hval { font-family: var(--sv-sans); font-size: 22px; font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; color: var(--sv-ink); }
+html[data-sv2="report"] .rpt-hero .rpt-hlbl,
+html[data-sv2="report"] .r15-hero .r15-hlbl { margin: 0; max-width: none; font-size: 13px; line-height: 1.4; color: var(--sv-muted); opacity: 1; }
+/* flame's data note under the head: a quiet line in the column */
+html[data-sv2="report"] .rpt-method-bar { background: transparent; border: 0; padding: 0 24px 8px; }
+html[data-sv2="report"] .rpt-method-bar .rpt-method-inner { max-width: 812px; font-size: 13px; line-height: 1.6; color: var(--sv-faint); }
+html[data-sv2="report"] .rpt-method-bar .rpt-method-inner strong { color: var(--sv-muted); font-weight: 500; }
+
+/* ---------- sections: white cards (template A) and open findings with hairlines (template B, 15k) ---------- */
+html[data-sv2="report"] .rpt-section,
+html[data-sv2="report"] .faq-section,
+html[data-sv2="report"] .keyfindings { background: #fff; border: 1px solid var(--sv-line); border-radius: 20px; box-shadow: var(--sv-soft); padding: 40px 44px; }
+html[data-sv2="report"] .takeaway-section { background: linear-gradient(180deg, #f8f5fd, #f1ecf9); border: 1px solid rgba(139, 92, 246, .16); border-radius: 20px; box-shadow: var(--sv-soft); padding: 40px 44px; }
+html[data-sv2="report"] .rpt-section p,
+html[data-sv2="report"] .takeaway-section p { font-size: 16px; line-height: 1.72; color: #3f3b45; }
+html[data-sv2="report"] .rpt-section p strong, html[data-sv2="report"] .takeaway-section p strong { color: var(--sv-ink); }
+/* the takeaway sets its text in a dark purple inline: back to the body grey, bold lead-ins in ink */
+html[data-sv2="report"] main [style*="3b0764"]:not(.sec-title),
+html[data-sv2="report"] main [style*="4c1d95"]:not(.sec-title) { color: #3f3b45 !important; }
+html[data-sv2="report"] .takeaway-section strong { color: var(--sv-ink) !important; }
+/* section header: a lilac number tile, the title, the sub line */
+html[data-sv2="report"] .sec-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+html[data-sv2="report"] .sec-header .sec-num,
+html[data-sv2="report"] .faq-section .sec-header .sec-num { display: grid; place-items: center; flex: none; width: 38px; height: 38px; margin-top: 1px; border: 0; border-radius: 11px; box-shadow: none;
+  background: var(--sv-lilac) !important; color: var(--sv-purple-strong); font-family: var(--sv-mono); font-size: 13.5px; font-weight: 500; }
+html[data-sv2="report"] .sec-header .sec-title,
+html[data-sv2="report"] .faq-section .sec-header .sec-title { margin: 0 0 4px; font-size: 24px; font-weight: 500; line-height: 1.2; letter-spacing: -0.022em; color: var(--sv-ink) !important; }
+html[data-sv2="report"] .sec-header .sec-sub,
+html[data-sv2="report"] .faq-section .sec-header .sec-sub { font-size: 14.5px; font-weight: 400; line-height: 1.45; color: var(--sv-muted) !important; }
+
+/* template B findings: open sections, a hairline between them */
+html[data-sv2="report"] .rpt-content .rpt-finding { margin-top: 0; padding: 56px 0 0; border: 0; }
+html[data-sv2="report"] .rpt-content > .rpt-finding ~ .rpt-finding { margin-top: 56px; border-top: 1px solid var(--sv-hair); }
+html[data-sv2="report"] .rpt-content .rpt-finding:last-child { border-bottom: 0; }
+html[data-sv2="report"] .rpt-finding .rpt-finding-header { margin-bottom: 26px; }
+html[data-sv2="report"] .rpt-finding .rpt-finding-num,
+html[data-sv2="report"] .r15-finding .r15-fnum { display: inline-flex; align-items: center; height: 26px; margin: 0 0 14px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--sv-lilac);
+  font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .03em; text-transform: lowercase; color: var(--sv-purple-strong); }
+html[data-sv2="report"] .rpt-content .rpt-h2,
+html[data-sv2="report"] .r15-content .r15-h2 { margin: 0 0 12px; font-family: var(--sv-sans); font-size: clamp(24px, 2.6vw, 31px); font-weight: 500; line-height: 1.16; letter-spacing: -0.026em; color: var(--sv-ink); text-wrap: balance; }
+html[data-sv2="report"] .rpt-content .rpt-lead,
+html[data-sv2="report"] .r15-content .r15-lead { max-width: 680px; font-size: 17px; line-height: 1.6; color: var(--sv-muted); }
+html[data-sv2="report"] .rpt-content .rpt-prose { font-size: 16.5px; line-height: 1.72; color: #3f3b45; }
+html[data-sv2="report"] .rpt-content .rpt-prose strong { color: var(--sv-ink); }
+html[data-sv2="report"] .rpt-content .rpt-source,
+html[data-sv2="report"] .r15-content .r15-source,
+html[data-sv2="report"] .r15-content .r15-map-note { font-size: 12.5px; line-height: 1.55; color: var(--sv-faint); border-left-color: var(--sv-line); }
+/* the 15k findings */
+html[data-sv2="report"] .r15-content .r15-finding { padding: 56px 0; border-bottom: 1px solid var(--sv-hair); }
+html[data-sv2="report"] .r15-content .r15-finding:last-child { border-bottom: 0; }
+
+/* ---------- stat cards ---------- */
+html[data-sv2="report"] .stat-bar { gap: 14px; }
+html[data-sv2="report"] .stat-card,
+html[data-sv2="report"] .rpt-stat-row .rpt-stat,
+html[data-sv2="report"] .r15-stat-row .r15-stat { background: #fff; border: 1px solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); padding: 22px 22px 20px; }
+html[data-sv2="report"] .rpt-stat-row .rpt-stat, html[data-sv2="report"] .r15-stat-row .r15-stat { padding: 18px 18px 16px; border-radius: 16px; }
+html[data-sv2="report"] .stat-card .sc-num { margin-bottom: 8px; font-size: 40px; font-weight: 500; line-height: 1; letter-spacing: -0.035em; color: var(--sv-ink); }
+html[data-sv2="report"] .stat-card .sc-label { margin-bottom: 8px; font-size: 14.5px; font-weight: 500; line-height: 1.42; color: var(--sv-ink); }
+html[data-sv2="report"] .stat-card .sc-source { font-family: var(--sv-mono); font-size: 11px; font-weight: 400; letter-spacing: .02em; color: var(--sv-faint); }
+html[data-sv2="report"] .rpt-stat-row .rpt-val,
+html[data-sv2="report"] .r15-stat-row .r15-val { margin-bottom: 8px; font-size: 28px; font-weight: 500; line-height: 1.05; letter-spacing: -0.03em; color: var(--sv-ink); }
+html[data-sv2="report"] .rpt-stat-row .rpt-lbl,
+html[data-sv2="report"] .r15-stat-row .r15-lbl { font-size: 13.5px; font-weight: 400; line-height: 1.45; color: var(--sv-muted); }
+html[data-sv2="report"] .r15-stat-row .r15-src { font-family: var(--sv-mono); font-size: 11px; color: var(--sv-faint); }
+html[data-sv2="report"] .rpt-delta { border-radius: 999px; font-size: 11.5px; font-weight: 500; }
+html[data-sv2="report"] .rpt-delta.rpt-dn { background: var(--sv-lilac-bg); border: 1px solid var(--sv-line); color: var(--sv-muted); }
+
+/* ---------- chart and content cards (template B, 15k) ---------- */
+html[data-sv2="report"] .rpt-content .rpt-card,
+html[data-sv2="report"] .r15-content .r15-card,
+html[data-sv2="report"] .r15-content .r15-skill-card { background: #fff !important; border: 1px solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); }
+html[data-sv2="report"] .rpt-content .rpt-card { padding: 24px; }
+html[data-sv2="report"] .r15-content .r15-skill-card { border-top: 3px solid; }
+html[data-sv2="report"] .chart-label,
+html[data-sv2="report"] .rpt-card-label,
+html[data-sv2="report"] .rpt-col-head,
+html[data-sv2="report"] .r15-col-head,
+html[data-sv2="report"] .tmpl-label { font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .02em; line-height: 1.45; text-transform: none; color: var(--sv-faint) !important; }
+html[data-sv2="report"] .divider { height: 1px; background: var(--sv-hair); border-radius: 0; }
+
+/* HTML bar charts: purple shades (each bar keeps its own lightness from the page's colour) */
+html[data-sv2="report"] .rpt-bar-track { height: 26px; background: var(--sv-lilac-bg); border: 1px solid var(--sv-hair); border-radius: 8px; }
+html[data-sv2="report"] .rpt-bar-fill { border-radius: 7px 0 0 7px; background-image: linear-gradient(#8b5cf6, #8b5cf6) !important; background-blend-mode: color !important; font-weight: 500; }
+html[data-sv2="report"] .rpt-bar-label { font-size: 13px; font-weight: 500; color: var(--sv-ink); }
+html[data-sv2="report"] .rpt-bar-label small, html[data-sv2="report"] .rpt-bar-value small { color: var(--sv-faint); }
+html[data-sv2="report"] .rpt-bar-value { font-weight: 500; color: var(--sv-ink); }
+html[data-sv2="report"] .rpt-legend-dot { border-width: 0; }
+html[data-sv2="report"] .rpt-legend-text { color: var(--sv-muted); }
+html[data-sv2="report"] .rpt-legend-pct, html[data-sv2="report"] .rpt-mini-total-val { font-weight: 500; letter-spacing: -0.02em; }
+html[data-sv2="report"] .rpt-mini-total { background: var(--sv-lilac-bg) !important; border: 1px solid rgba(139, 92, 246, .16) !important; border-radius: 12px; }
+html[data-sv2="report"] .rpt-mini-total .rpt-mini-total-label { font-family: var(--sv-mono); font-weight: 500; color: var(--sv-purple-strong) !important; }
+
+/* ---------- callouts: lilac cards; warning / good / caution ones are white with a thin coloured edge ---------- */
+html[data-sv2="report"] .highlight { background: var(--sv-lilac-bg); border: 1px solid rgba(139, 92, 246, .2); border-radius: 14px; padding: 18px 22px; font-size: 15.5px; font-weight: 500; line-height: 1.6; color: #2a2730; }
+html[data-sv2="report"] .highlight strong { color: var(--sv-purple-strong); font-weight: 700; }
+html[data-sv2="report"] .callout,
+html[data-sv2="report"] .rpt-callout,
+html[data-sv2="report"] .r15-callout { background: var(--sv-lilac-bg) !important; border: 1px solid rgba(139, 92, 246, .18) !important; border-left: 3px solid var(--sv-purple) !important; border-radius: 14px;
+  padding: 18px 22px; font-size: 15.5px; font-weight: 400; line-height: 1.65; color: #2a2730 !important; box-shadow: none; }
+html[data-sv2="report"] .callout strong { color: var(--sv-purple-strong); }
+html[data-sv2="report"] .callout-amber,
+html[data-sv2="report"] .callout-red,
+html[data-sv2="report"] .callout-green,
+html[data-sv2="report"] .rpt-callout.rpt-co,
+html[data-sv2="report"] .rpt-callout.rpt-cg,
+html[data-sv2="report"] .r15-callout.r15-co,
+html[data-sv2="report"] .r15-callout.r15-cg { background: #fff !important; border: 1px solid var(--sv-line) !important; border-radius: 14px; box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+  padding: 18px 22px; font-size: 15.5px; font-weight: 400; line-height: 1.65; color: #2a2730 !important; }
+html[data-sv2="report"] .callout-amber, html[data-sv2="report"] .rpt-callout.rpt-co, html[data-sv2="report"] .r15-callout.r15-co { border-left: 3px solid #f59e0b !important; }
+html[data-sv2="report"] .callout-red { border-left: 3px solid #ef4444 !important; }
+html[data-sv2="report"] .callout-green, html[data-sv2="report"] .rpt-callout.rpt-cg, html[data-sv2="report"] .r15-callout.r15-cg { border-left: 3px solid var(--sv-green) !important; }
+html[data-sv2="report"] .callout-amber strong { color: #92400e; }
+html[data-sv2="report"] .callout-red strong { color: #b91c1c; }
+html[data-sv2="report"] .callout-green strong { color: #065f46; }
+html[data-sv2="report"] .rpt-callout p,
+html[data-sv2="report"] .r15-callout p { font-size: 15.5px; line-height: 1.65; color: #2a2730 !important; }
+html[data-sv2="report"] .rpt-callout strong, html[data-sv2="report"] .r15-callout strong { color: var(--sv-ink); }
+html[data-sv2="report"] .rpt-callout .rpt-cl,
+html[data-sv2="report"] .r15-callout .r15-cl { margin-bottom: 8px; font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .02em; text-transform: none; color: var(--sv-purple-strong) !important; }
+html[data-sv2="report"] .rpt-callout.rpt-co .rpt-cl, html[data-sv2="report"] .r15-callout.r15-co .r15-cl { color: #92400e !important; }
+html[data-sv2="report"] .rpt-callout.rpt-cg .rpt-cl, html[data-sv2="report"] .r15-callout.r15-cg .r15-cl { color: #047857 !important; }
+/* pull quotes */
+html[data-sv2="report"] .pull-quote,
+html[data-sv2="report"] .rpt-pullquote { margin: 24px 0; padding: 18px 22px; background: #fff; border: 1px solid var(--sv-line); border-left: 3px solid var(--sv-purple); border-radius: 14px; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
+html[data-sv2="report"] .pull-quote p,
+html[data-sv2="report"] .rpt-pullquote p { margin: 0 !important; font-family: var(--sv-sans); font-size: 18.5px !important; font-weight: 500 !important; font-style: normal; line-height: 1.45; letter-spacing: -0.012em; color: var(--sv-ink) !important; }
+html[data-sv2="report"] .pull-quote .pq-source { margin-top: 10px; font-family: var(--sv-mono); font-size: 11.5px; font-weight: 500; color: var(--sv-faint); }
+
+/* key findings box, bullet lists, steps, flags, gates, compare blocks, company blocks, templates */
+html[data-sv2="report"] .keyfindings { background: var(--sv-lilac-bg); border-color: rgba(139, 92, 246, .18); }
+html[data-sv2="report"] .keyfindings h2,
+html[data-sv2="report"] .related h2 { margin: 0 0 18px; font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .04em; text-transform: lowercase; color: var(--sv-purple-strong); }
+html[data-sv2="report"] .keyfindings .kf-item { font-size: 15.5px; font-weight: 400; color: #2a2730; }
+html[data-sv2="report"] .keyfindings .kf-item strong { color: var(--sv-ink); }
+html[data-sv2="report"] .keyfindings .kf-check { width: 22px; height: 22px; border-radius: 7px; background: #fff; border: 1px solid rgba(139, 92, 246, .25); color: var(--sv-purple-strong); font-weight: 500; }
+html[data-sv2="report"] .blist .blist-item { font-size: 15.5px; line-height: 1.62; color: #3f3b45; }
+html[data-sv2="report"] .blist .blist-item strong { color: var(--sv-ink); }
+html[data-sv2="report"] .blist .blist-dot { width: 6px; height: 6px; margin-top: 9px; }
+html[data-sv2="report"] .step-list .step-num { width: 34px; height: 34px; border: 0; border-radius: 10px; background: var(--sv-lilac); color: var(--sv-purple-strong); font-family: var(--sv-mono); font-size: 13px; font-weight: 500; }
+html[data-sv2="report"] .step-list .step-body .step-title { font-size: 16px; font-weight: 500; color: var(--sv-ink); }
+html[data-sv2="report"] .step-list .step-body .step-detail { font-size: 14.5px; color: var(--sv-muted); }
+html[data-sv2="report"] .flag-list .flag-item.red,
+html[data-sv2="report"] .flag-list .flag-item.green,
+html[data-sv2="report"] .gate-grid .gate-card.hard,
+html[data-sv2="report"] .gate-grid .gate-card.soft,
+html[data-sv2="report"] .compare-block .compare-bad,
+html[data-sv2="report"] .compare-block .compare-good,
+html[data-sv2="report"] .co-grid .co-block { background: #fff; border: 1px solid var(--sv-line); border-radius: 14px; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); color: #2a2730; }
+html[data-sv2="report"] .flag-list .flag-item.red, html[data-sv2="report"] .gate-grid .gate-card.hard, html[data-sv2="report"] .compare-block .compare-bad { border-left: 3px solid #ef4444; }
+html[data-sv2="report"] .flag-list .flag-item.green, html[data-sv2="report"] .gate-grid .gate-card.soft, html[data-sv2="report"] .compare-block .compare-good { border-left: 3px solid var(--sv-green); }
+html[data-sv2="report"] .co-grid .co-block { border-left: 3px solid #10b981; }
+html[data-sv2="report"] .co-grid .co-block.violet { border-left-color: var(--sv-purple); }
+html[data-sv2="report"] .co-grid .co-block.amber { border-left-color: #f59e0b; }
+html[data-sv2="report"] .co-grid .co-block.cyan { border-left-color: #06b6d4; }
+html[data-sv2="report"] .gate-grid .gate-card .gate-card-title,
+html[data-sv2="report"] .compare-block .compare-label,
+html[data-sv2="report"] .co-grid .co-block .co-cat { font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .02em; text-transform: none; }
+html[data-sv2="report"] .gate-grid .gate-card .gate-item { color: #3f3b45; }
+html[data-sv2="report"] .compare-block .compare-text,
+html[data-sv2="report"] .co-grid .co-list { font-weight: 500; color: var(--sv-ink); }
+html[data-sv2="report"] .tmpl { background: #fff; border: 1px solid var(--sv-line); border-radius: 16px; box-shadow: var(--sv-soft); }
+html[data-sv2="report"] .tmpl .tmpl-line { font-family: var(--sv-mono); }
+html[data-sv2="report"] .tmpl .tmpl-var { color: var(--sv-purple-strong); font-weight: 500; }
+
+/* pills: same colours, softer edges */
+html[data-sv2="report"] .rpt-pill-row .rpt-pill { border-width: 1px; font-weight: 500; }
+html[data-sv2="report"] .tag-pill { font-weight: 500; }
+
+/* ---------- tables: clean white, hairlines, a lilac header row ---------- */
+html[data-sv2="report"] .data-table,
+html[data-sv2="report"] .vs-table,
+html[data-sv2="report"] .rpt-table { border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--sv-line); border-radius: 14px; overflow: hidden; font-size: 14px; }
+html[data-sv2="report"] .rpt-card .rpt-table { border: 0; border-radius: 0; }
+html[data-sv2="report"] .data-table th,
+html[data-sv2="report"] .vs-table th,
+html[data-sv2="report"] .vs-table th:first-child,
+html[data-sv2="report"] .rpt-table th { background: var(--sv-lilac-bg); color: var(--sv-ink); font-size: 13px; font-weight: 500; letter-spacing: 0; border-bottom: 1px solid var(--sv-line); }
+html[data-sv2="report"] .vs-table th.startup { background: var(--sv-lilac); color: var(--sv-purple-strong); }
+html[data-sv2="report"] .vs-table th.mnc { background: #f1eff5; color: var(--sv-ink); }
+html[data-sv2="report"] .data-table td,
+html[data-sv2="report"] .vs-table td,
+html[data-sv2="report"] .rpt-table td { border-bottom: 1px solid var(--sv-hair); color: #3f3b45; }
+html[data-sv2="report"] .data-table tr:last-child td, html[data-sv2="report"] .vs-table tr:last-child td, html[data-sv2="report"] .rpt-table tr:last-child td { border-bottom: 0; }
+html[data-sv2="report"] .data-table tr:nth-child(even) td { background: #fcfbfe; }
+html[data-sv2="report"] .vs-table td:first-child { background: #fcfbfe; color: var(--sv-ink); font-weight: 500; }
+html[data-sv2="report"] .vs-table td.s { color: var(--sv-purple-strong); font-weight: 500; }
+html[data-sv2="report"] .rpt-table .rpt-tr-hi td { background: var(--sv-lilac-bg); }
+html[data-sv2="report"] .rpt-table tr:hover td { background: #faf7fd; }
+html[data-sv2="report"] .data-table td strong, html[data-sv2="report"] .rpt-table td strong { color: var(--sv-ink); }
+/* the 15k role map */
+html[data-sv2="report"] .r15-matrix { border: 1px solid var(--sv-line); border-radius: 16px; background: #fff; box-shadow: var(--sv-soft); }
+html[data-sv2="report"] .r15-matrix .r15-matrix-header { background: var(--sv-lilac-bg); border-bottom: 1px solid var(--sv-line); }
+html[data-sv2="report"] .r15-matrix .r15-matrix-domain-head,
+html[data-sv2="report"] .r15-matrix .r15-matrix-roles-head span { font-family: var(--sv-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .02em; text-transform: lowercase; color: var(--sv-faint); border-left-color: var(--sv-hair); }
+html[data-sv2="report"] .r15-matrix .r15-matrix-roles-head { border-left-color: var(--sv-hair); }
+html[data-sv2="report"] .r15-matrix .r15-matrix-row { border-top-color: var(--sv-hair); }
+html[data-sv2="report"] .r15-matrix .r15-matrix-domain { background: #fcfbfe; border-right: 1px solid var(--sv-line); font-weight: 500; }
+html[data-sv2="report"] .r15-matrix .r15-matrix-cells { background: var(--sv-hair); gap: 1px; padding: 0; }
+html[data-sv2="report"] .r15-matrix .r15-cell { border-radius: 0; border-width: 0; }
+html[data-sv2="report"] .r15-matrix .r15-cell-title { font-weight: 500; }
+html[data-sv2="report"] .r15-legend .r15-leg-item { font-weight: 500; color: var(--sv-muted); }
+
+/* ---------- FAQ and related reports ---------- */
+html[data-sv2="report"] .rpt-content .faq-section { margin-top: 64px; }
+html[data-sv2="report"] .faq-section .faq-item { padding: 18px 0; border-bottom: 1px solid var(--sv-hair); }
+html[data-sv2="report"] .faq-section .faq-item:last-child { border-bottom: 0; padding-bottom: 0; }
+html[data-sv2="report"] .faq-section .faq-q { margin-bottom: 8px; font-size: 17px; font-weight: 500; line-height: 1.4; letter-spacing: -0.01em; color: var(--sv-ink); }
+html[data-sv2="report"] .faq-section .faq-a { font-size: 15.5px; line-height: 1.65; color: var(--sv-muted); }
+html[data-sv2="report"] .faq-section .faq-a strong { color: var(--sv-ink); }
+html[data-sv2="report"] .related { margin-top: 8px; padding: 8px 0 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+html[data-sv2="report"] .rpt-content .related { margin-top: 40px; }
+html[data-sv2="report"] .related .related-grid { gap: 14px; }
+html[data-sv2="report"] .related .related-card { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; background: #fff; border: 1px solid var(--sv-line); border-radius: 16px; box-shadow: var(--sv-soft);
+  text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+html[data-sv2="report"] .related .related-card:hover { transform: translateY(-2px); box-shadow: var(--sv-soft-up); border-color: rgba(139, 92, 246, .3); }
+html[data-sv2="report"] .related .related-card:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 3px; }
+html[data-sv2="report"] .related .related-card .rc-kicker { margin: 0; font-family: var(--sv-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .03em; text-transform: lowercase; color: var(--sv-faint); }
+html[data-sv2="report"] .related .related-card .rc-title { font-size: 16px; font-weight: 500; line-height: 1.35; letter-spacing: -0.01em; color: var(--sv-ink); }
+
+/* ---------- every CTA block, one look: a white card, the purple pill, a quiet text link ---------- */
+html[data-sv2="report"] .rpt-cta,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-inner,
+html[data-sv2="report"] .rpt-inline-cta,
+html[data-sv2="report"] .rpt-final-cta,
+html[data-sv2="report"] .rpt-cta-block,
+html[data-sv2="report"] .r15-inline-cta,
+html[data-sv2="report"] .r15-final-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 0; text-align: left; padding: 28px 30px; color: var(--sv-ink);
+  background: #fff !important; border: 1px solid var(--sv-line); border-radius: 20px; box-shadow: var(--sv-soft); }
+html[data-sv2="report"] .rpt-cta-mid { margin: 28px 0; }
+html[data-sv2="report"] .rpt-inline-cta, html[data-sv2="report"] .r15-inline-cta { margin: 40px 0; }
+html[data-sv2="report"] .rpt-final-cta, html[data-sv2="report"] .rpt-cta-block { margin-top: 40px; }
+html[data-sv2="report"] .rpt-inline-cta .rpt-inline-cta-inner,
+html[data-sv2="report"] .r15-inline-cta .r15-inline-cta-inner { display: flex; flex-direction: column; align-items: flex-start; gap: 0; width: 100%; }
+html[data-sv2="report"] .rpt-cta .rpt-cta-left { display: block; }
+/* titles */
+html[data-sv2="report"] .rpt-cta .rpt-cta-left h3,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-inner h4,
+html[data-sv2="report"] .rpt-inline-cta .rpt-inline-cta-title,
+html[data-sv2="report"] .rpt-final-cta .rpt-final-cta-title,
+html[data-sv2="report"] .rpt-cta-block .rpt-cta-h,
+html[data-sv2="report"] .r15-inline-cta .r15-inline-cta-title,
+html[data-sv2="report"] .r15-final-cta .r15-final-title { margin: 0 0 6px; font-family: var(--sv-sans); font-size: 21px; font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; color: var(--sv-ink) !important; text-wrap: balance; }
+/* one line of copy */
+html[data-sv2="report"] .rpt-cta .rpt-cta-left p,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-inner p,
+html[data-sv2="report"] .rpt-inline-cta .rpt-inline-cta-sub,
+html[data-sv2="report"] .rpt-final-cta .rpt-final-cta-sub,
+html[data-sv2="report"] .rpt-cta-block .rpt-cta-sub,
+html[data-sv2="report"] .r15-inline-cta .r15-inline-cta-sub,
+html[data-sv2="report"] .r15-final-cta .r15-final-sub { max-width: 600px; margin: 0; font-size: 15.5px; font-weight: 400; line-height: 1.55; color: var(--sv-muted) !important; }
+/* the button row */
+html[data-sv2="report"] .rpt-final-cta .rpt-final-cta-btns,
+html[data-sv2="report"] .rpt-cta-block .rpt-cta-btns,
+html[data-sv2="report"] .r15-final-cta .r15-final-btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 10px 22px; margin-top: 20px; }
+/* THE button: the purple pill (site.css .sv-btn), a little smaller inside a card */
+html[data-sv2="report"] .rpt-cta .rpt-cta-btn,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-btn,
+html[data-sv2="report"] .rpt-cta-strip .rpt-cta-pill,
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-primary,
+html[data-sv2="report"] .rpt-final-cta .rpt-btn-white,
+html[data-sv2="report"] .rpt-cta-block .rpt-btn-purple,
+html[data-sv2="report"] .r15-cta-strip .r15-cta-pill,
+html[data-sv2="report"] .r15-inline-cta .r15-btn-primary,
+html[data-sv2="report"] .r15-final-cta .r15-btn-white { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; margin: 0; padding: 0 24px;
+  border-radius: 999px; overflow: hidden; white-space: nowrap; text-decoration: none; cursor: pointer;
+  font-family: var(--sv-sans); font-size: 16.5px; font-weight: 500; letter-spacing: -0.01em; color: #fff !important;
+  background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%) !important; border: 1px solid #7446ea !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18), 0 1px 2px rgba(0, 0, 0, .06), 0 14px 28px -14px rgba(109, 40, 217, .7);
+  transform: none; transition: transform .18s ease, box-shadow .18s ease; }
+html[data-sv2="report"] .rpt-cta .rpt-cta-btn::before,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-btn::before,
+html[data-sv2="report"] .rpt-cta-strip .rpt-cta-pill::before,
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-primary::before,
+html[data-sv2="report"] .rpt-final-cta .rpt-btn-white::before,
+html[data-sv2="report"] .rpt-cta-block .rpt-btn-purple::before,
+html[data-sv2="report"] .r15-cta-strip .r15-cta-pill::before,
+html[data-sv2="report"] .r15-inline-cta .r15-btn-primary::before,
+html[data-sv2="report"] .r15-final-cta .r15-btn-white::before { content: ""; position: absolute; left: 14px; right: 14px; top: 2px; height: 46%; border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, 0)); pointer-events: none; }
+html[data-sv2="report"] .rpt-cta .rpt-cta-btn:hover,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-btn:hover,
+html[data-sv2="report"] .rpt-cta-strip .rpt-cta-pill:hover,
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-primary:hover,
+html[data-sv2="report"] .rpt-final-cta .rpt-btn-white:hover,
+html[data-sv2="report"] .rpt-cta-block .rpt-btn-purple:hover,
+html[data-sv2="report"] .r15-cta-strip .r15-cta-pill:hover,
+html[data-sv2="report"] .r15-inline-cta .r15-btn-primary:hover,
+html[data-sv2="report"] .r15-final-cta .r15-btn-white:hover { transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18), 0 1px 2px rgba(0, 0, 0, .06), 0 18px 32px -14px rgba(109, 40, 217, .78); }
+html[data-sv2="report"] .rpt-cta .rpt-cta-btn:focus-visible,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-btn:focus-visible,
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-primary:focus-visible,
+html[data-sv2="report"] .rpt-final-cta .rpt-btn-white:focus-visible,
+html[data-sv2="report"] .rpt-cta-block .rpt-btn-purple:focus-visible,
+html[data-sv2="report"] .r15-inline-cta .r15-btn-primary:focus-visible,
+html[data-sv2="report"] .r15-final-cta .r15-btn-white:focus-visible { outline: 2px solid var(--sv-purple); outline-offset: 3px; }
+/* where the pill sits in each block */
+html[data-sv2="report"] .rpt-cta .rpt-cta-btn,
+html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-btn,
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-primary,
+html[data-sv2="report"] .r15-inline-cta .r15-btn-primary { margin-top: 20px; }
+/* the quiet second choice: an underlined text link, never a second loud button */
+html[data-sv2="report"] .rpt-final-cta .rpt-btn-outline,
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-secondary,
+html[data-sv2="report"] .rpt-cta-block .rpt-btn-out-purple,
+html[data-sv2="report"] .r15-final-cta .r15-btn-outline { display: inline-flex; align-items: center; height: auto; min-height: 44px; margin: 0; padding: 0 2px; background: none !important; border: 0 !important;
+  border-radius: 0; box-shadow: none; transform: none; font-family: var(--sv-sans); font-size: 15.5px; font-weight: 500; color: var(--sv-muted) !important;
+  text-decoration: underline; text-decoration-color: rgba(82, 82, 82, .35); text-underline-offset: 4px; white-space: nowrap; }
+html[data-sv2="report"] .rpt-final-cta .rpt-btn-outline:hover,
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-secondary:hover,
+html[data-sv2="report"] .rpt-cta-block .rpt-btn-out-purple:hover,
+html[data-sv2="report"] .r15-final-cta .r15-btn-outline:hover { background: none !important; color: var(--sv-ink) !important; text-decoration-color: currentColor; }
+html[data-sv2="report"] .rpt-inline-cta .rpt-btn-secondary { margin: 20px 0 0 18px; }
+html[data-sv2="report"] .rpt-inline-cta .rpt-inline-cta-inner:has(.rpt-btn-secondary) { flex-direction: row; flex-wrap: wrap; align-items: center; }
+html[data-sv2="report"] .rpt-inline-cta .rpt-inline-cta-inner:has(.rpt-btn-secondary) > div:first-child { flex: 1 0 100%; }
+/* the strip under the head (kept only where a page has no other mid-page block): a slim white card in the column */
+html[data-sv2="report"] .rpt-cta-strip,
+html[data-sv2="report"] .r15-cta-strip { background: transparent !important; border: 0; padding: 0 24px; }
+html[data-sv2="report"] .rpt-cta-strip .rpt-cta-strip-inner,
+html[data-sv2="report"] .r15-cta-strip .r15-cta-strip-inner { box-sizing: border-box; max-width: 812px; margin: 8px auto 0; padding: 14px 16px 14px 22px; display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px 20px; background: #fff; border: 1px solid var(--sv-line); border-radius: 18px; box-shadow: var(--sv-soft); }
+html[data-sv2="report"] .rpt-cta-strip .rpt-cta-strip-text,
+html[data-sv2="report"] .r15-cta-strip .r15-cta-strip-text { font-size: 15.5px; font-weight: 500; color: var(--sv-ink); }
+html[data-sv2="report"] .rpt-cta-strip .rpt-cta-pill,
+html[data-sv2="report"] .r15-cta-strip .r15-cta-pill { height: 42px; padding: 0 18px; font-size: 15px; }
+
+/* fewer CTAs: where a page stacks 3 or more blocks in its body, keep the first mid-page one and the closing one.
+   The hidden blocks keep their links (same hrefs) in the HTML; no report text is hidden. */
+html[data-sv2="report"] main:has(.rpt-inline-cta) .rpt-cta-strip,
+html[data-sv2="report"] main:has(.r15-inline-cta) .r15-cta-strip,
+html[data-sv2="report"] .rpt-content > :is(.rpt-inline-cta, :has(.rpt-inline-cta)) ~ .rpt-inline-cta,
+html[data-sv2="report"] .rpt-content > :is(.rpt-inline-cta, :has(.rpt-inline-cta)) ~ * .rpt-inline-cta,
+html[data-sv2="report"] .rpt-inline-cta ~ .rpt-inline-cta,
+html[data-sv2="report"] .rpt-inline-cta ~ * .rpt-inline-cta,
+html[data-sv2="report"] .rpt-body > :is(.rpt-cta-mid, :has(.rpt-cta-mid)) ~ .rpt-cta-mid,
+html[data-sv2="report"] .rpt-body > :is(.rpt-cta-mid, :has(.rpt-cta-mid)) ~ * .rpt-cta-mid,
+html[data-sv2="report"] .rpt-cta-mid ~ .rpt-cta-mid,
+html[data-sv2="report"] .rpt-cta-mid ~ * .rpt-cta-mid { display: none !important; }
+
+/* ---------- phones ---------- */
+@media (max-width: 640px) {
+  html[data-sv2="report"] .rpt-hero-inner,
+  html[data-sv2="report"] .r15-hero .r15-inner,
+  html[data-sv2="report"] .rpt-body,
+  html[data-sv2="report"] .rpt-content,
+  html[data-sv2="report"] .r15-content { padding-left: 16px; padding-right: 16px; }
+  html[data-sv2="report"] main > .faq-section,
+  html[data-sv2="report"] main > .related,
+  html[data-sv2="report"] main > .r15-final-cta { margin-left: 16px; margin-right: 16px; }
+  html[data-sv2="report"] .rpt-cta-strip, html[data-sv2="report"] .r15-cta-strip, html[data-sv2="report"] .rpt-method-bar { padding-left: 16px; padding-right: 16px; }
+  html[data-sv2="report"] .rpt-hero, html[data-sv2="report"] .r15-hero { padding: 40px 0 24px; }
+  html[data-sv2="report"] .rpt-hero h1, html[data-sv2="report"] .rpt-hero .rpt-h1, html[data-sv2="report"] .r15-hero .r15-h1 { font-size: 33px; line-height: 1.08; letter-spacing: -0.03em; }
+  html[data-sv2="report"] .rpt-hero .rpt-hero-sub, html[data-sv2="report"] .r15-hero .r15-sub { font-size: 17px; margin-bottom: 22px; }
+  html[data-sv2="report"] .rpt-hero .rpt-hero-stats, html[data-sv2="report"] .r15-hero .r15-hero-stats { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  html[data-sv2="report"] .rpt-hero .rpt-hero-stats > *, html[data-sv2="report"] .r15-hero .r15-hero-stats > * { flex-direction: row; align-items: baseline; gap: 12px; padding: 12px 14px; }
+  html[data-sv2="report"] .rpt-hero .rpt-hval, html[data-sv2="report"] .r15-hero .r15-hval { flex: none; font-size: 19px; }
+  /* a row of three stat cards goes two up on phones (the page's own rule): the third one spans the row */
+  html[data-sv2="report"] .rpt-stat-row.rpt-c3 > :nth-child(3):last-child { grid-column: 1 / -1; }
+  html[data-sv2="report"] .rpt-hero .rpt-meta-item { min-height: 30px; padding: 5px 11px; }
+  html[data-sv2="report"] .rpt-body { padding-bottom: 64px; gap: 16px; }
+  html[data-sv2="report"] .rpt-content { padding-bottom: 64px; }
+  html[data-sv2="report"] .rpt-section, html[data-sv2="report"] .faq-section, html[data-sv2="report"] .keyfindings, html[data-sv2="report"] .takeaway-section { padding: 26px 18px; border-radius: 18px; }
+  html[data-sv2="report"] .sec-header .sec-title, html[data-sv2="report"] .faq-section .sec-header .sec-title { font-size: 21px; }
+  html[data-sv2="report"] .sec-header .sec-num, html[data-sv2="report"] .faq-section .sec-header .sec-num { width: 34px; height: 34px; border-radius: 10px; }
+  html[data-sv2="report"] .rpt-content .rpt-finding { padding-top: 44px; }
+  html[data-sv2="report"] .rpt-content > .rpt-finding ~ .rpt-finding { margin-top: 44px; }
+  html[data-sv2="report"] .rpt-content .rpt-card { padding: 18px 16px; }
+  html[data-sv2="report"] .rpt-content .rpt-prose, html[data-sv2="report"] .rpt-section p, html[data-sv2="report"] .takeaway-section p { font-size: 16px; }
+  html[data-sv2="report"] .stat-card .sc-num { font-size: 34px; }
+  html[data-sv2="report"] .data-table, html[data-sv2="report"] .vs-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  html[data-sv2="report"] .rpt-cta, html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-inner, html[data-sv2="report"] .rpt-inline-cta, html[data-sv2="report"] .rpt-final-cta,
+  html[data-sv2="report"] .rpt-cta-block, html[data-sv2="report"] .r15-inline-cta, html[data-sv2="report"] .r15-final-cta { padding: 22px 18px; border-radius: 18px; }
+  html[data-sv2="report"] .rpt-cta .rpt-cta-btn, html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-btn, html[data-sv2="report"] .rpt-inline-cta .rpt-btn-primary,
+  html[data-sv2="report"] .rpt-final-cta .rpt-btn-white, html[data-sv2="report"] .rpt-cta-block .rpt-btn-purple, html[data-sv2="report"] .r15-inline-cta .r15-btn-primary,
+  html[data-sv2="report"] .r15-final-cta .r15-btn-white { width: 100%; white-space: normal; text-align: center; min-height: 50px; height: auto; }
+  html[data-sv2="report"] .rpt-cta-strip .rpt-cta-strip-inner, html[data-sv2="report"] .r15-cta-strip .r15-cta-strip-inner { flex-direction: column; align-items: flex-start; padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-sv2="report"] .related .related-card,
+  html[data-sv2="report"] .rpt-cta .rpt-cta-btn, html[data-sv2="report"] .rpt-cta-mid .rpt-cta-mid-btn, html[data-sv2="report"] .rpt-inline-cta .rpt-btn-primary,
+  html[data-sv2="report"] .rpt-final-cta .rpt-btn-white, html[data-sv2="report"] .rpt-cta-block .rpt-btn-purple, html[data-sv2="report"] .r15-inline-cta .r15-btn-primary,
+  html[data-sv2="report"] .r15-final-cta .r15-btn-white { transition: none; }
+}
+
+/* ===== the "request a report" form at the end of the index (reports.tsx RequestForm, same fields and POST) ===== */
+html[data-sv2="reports"] .sv-rx-request { max-width: 720px; margin: 72px auto 0; }
+html[data-sv2="reports"] .sv-rx-request > form, html[data-sv2="reports"] .sv-rx-request > div { border: 1px solid var(--sv-line); border-radius: 22px; background: #fff; box-shadow: var(--sv-soft); padding: 32px; font-family: var(--sv-sans); }
+html[data-sv2="reports"] .sv-rx-request > form > div:first-child { font-family: var(--sv-mono); font-size: 12px; font-weight: 500; letter-spacing: .04em; text-transform: lowercase; color: var(--sv-purple-strong); }
+html[data-sv2="reports"] .sv-rx-request h3, html[data-sv2="reports"] .sv-rx-request > div > div:nth-child(2) { font-family: var(--sv-sans); font-weight: 500; font-size: 26px; line-height: 1.15; letter-spacing: -0.025em; text-transform: lowercase; color: var(--sv-ink); }
+html[data-sv2="reports"] .sv-rx-request p { font-family: var(--sv-sans); font-size: 15.5px; line-height: 1.55; color: var(--sv-muted); }
+html[data-sv2="reports"] .sv-rx-request label { font-family: var(--sv-sans); font-weight: 500; color: var(--sv-ink); }
+html[data-sv2="reports"] .sv-rx-request textarea, html[data-sv2="reports"] .sv-rx-request input { border: 1px solid rgba(23, 23, 23, .14); border-radius: 14px; background: #fff; font-family: var(--sv-sans); box-shadow: none; }
+html[data-sv2="reports"] .sv-rx-request textarea:focus, html[data-sv2="reports"] .sv-rx-request input:focus { border-color: var(--sv-purple); box-shadow: 0 0 0 4px rgba(139, 92, 246, .18); outline: none; --tw-ring-shadow: 0 0 #0000; --tw-ring-offset-shadow: 0 0 #0000; }
+html[data-sv2="reports"] .sv-rx-request button[type="submit"] { height: 52px; border: 1px solid #7446ea; border-radius: 999px; font-family: var(--sv-sans); font-size: 16px; font-weight: 500; text-transform: lowercase;
+  background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 0 14px 28px -14px rgba(109, 40, 217, .72); transform: none; }
+html[data-sv2="reports"] .sv-rx-request button[type="submit"]:disabled { opacity: 1; background: var(--sv-lilac); border-color: var(--sv-lilac-2); color: #9b8cc0; box-shadow: none; }
+html[data-sv2="reports"] .sv-rx-request > div > div:first-child { border: 0; background: var(--sv-green-bg); }
+html[data-sv2="reports"] .sv-rx-request > div > div:first-child svg { color: #047857; }
+@media (max-width: 640px) {
+  html[data-sv2="reports"] .sv-rx-request { margin-top: 52px; }
+  html[data-sv2="reports"] .sv-rx-request > form, html[data-sv2="reports"] .sv-rx-request > div { padding: 22px 18px; }
+}

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Header } from "~/components";
+import { Footer, Header } from "~/components";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { AuthTop } from "~/components/site-b2c/auth-top";
 import { authClient } from "~/lib/auth-client";
 import type { Route } from "./+types/auth.2fa";
 
@@ -15,6 +17,12 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Auth2FA() {
+  // SITE-V2 (27 Oct 2026): on B2C hosts (studojo.pro, site-b2c/host.tsx) the page wears the site's calm white-card
+  // look, visual only: the root gets "sv2-auth", the card and a few boxes a data-b2c mark (site-b2c/site-pages.css,
+  // html[data-sv2="auth"]), Stu's head and a kicker top the card, the buttons gain .sv-btn and the compact site
+  // footer follows. Fields, handlers, links and text are the same on both hosts (app/lib/auth-b2c.test.mjs).
+  const b2c = useSiteB2c();
+  const b2cMark = (part: string) => (b2c ? { "data-b2c": part } : {});
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [trustDevice, setTrustDevice] = useState(false);
@@ -44,9 +52,10 @@ export default function Auth2FA() {
   return (
     <>
       <Header />
-      <main className="relative min-h-screen overflow-hidden bg-purple-50">
+      <main className={b2c ? "sv2-auth relative" : "relative min-h-screen overflow-hidden bg-purple-50"}>
         <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-[var(--section-max-width)] items-center justify-center px-4 py-12 md:px-8 md:py-20">
-          <div className="relative w-full max-w-md rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+          <div {...b2cMark("shell")} className="relative w-full max-w-md rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+            {b2c && <AuthTop kicker="your studojo account" size={56} />}
             <h1 className="mb-2 font-['Clash_Display'] text-2xl font-medium tracking-tight text-neutral-900">
               Two-factor verification
             </h1>
@@ -100,7 +109,7 @@ export default function Auth2FA() {
               <button
                 type="submit"
                 disabled={submitting || code.length < 6}
-                className="w-full rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
+                className={`${b2c ? "sv-btn sv-btn-wide " : ""}w-full rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none`}
               >
                 {submitting ? "Verifying…" : "Verify"}
               </button>
@@ -108,6 +117,7 @@ export default function Auth2FA() {
           </div>
         </div>
       </main>
+      {b2c && <Footer compact />}
     </>
   );
 }

@@ -6,6 +6,8 @@ import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import { EFFECTIVE_DATE, POLICY_VERSIONS, fill } from "~/lib/legal";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { LegalToc } from "~/components/site-b2c/pages/LegalToc";
 import type { Route } from "./+types/refund-policy";
 
 export function meta({}: Route.MetaArgs) {
@@ -16,6 +18,8 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function RefundPolicy() {
+  // SITE-V2: on B2C hosts only, an "on this page" list from the headings below (site-b2c/pages/LegalToc.tsx).
+  const b2c = useSiteB2c();
   return (
     <>
       <Header />
@@ -32,6 +36,7 @@ export default function RefundPolicy() {
           </Section>
         </section>
 
+        {b2c ? <LegalToc phone={false} /> : null}
         <Section width="wide" className="py-12 md:py-16">
           <div className="space-y-12">
 
