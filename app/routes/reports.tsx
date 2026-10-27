@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { ReportsIndexB2C } from "~/components/site-b2c/reports/ReportsIndexB2C";
 
 const BASE_URL = "https://studojo.com";
 
@@ -1032,6 +1034,7 @@ const collectionJsonLdBase = {
 
 export default function Reports() {
   const [activeFilter, setActiveFilter] = useState<"All" | ReportType>("All");
+  const b2c = useSiteB2c();
   // Scheduled publishing: a report appears in the index only once its publishDate
   // has arrived (compared in IST, so it flips at local midnight). Future-dated
   // reports are staged and stay hidden from the listing until their day.
@@ -1052,6 +1055,9 @@ export default function Reports() {
       "author": { "@type": "Organization", "name": "Studojo" },
     })),
   };
+
+  // SITE-V2: studojo.pro gets the new index (same list, same JSON-LD); studojo.com renders the classic page below.
+  if (b2c) return <ReportsIndexB2C reports={sorted} jsonLd={collectionJsonLd} requestForm={<RequestForm />} />;
 
   return (
     <>
