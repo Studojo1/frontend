@@ -4,6 +4,13 @@
 // that still will not play shows the words in full at once (blocked); the recording scheduled at currentTime + 0.05;
 // the words light up 0.3 s ahead of her voice; her level for the face; done by the audio clock, or by the wall clock
 // 1.5 s after it if the audio clock stalls; no voice (a bad fetch or clip) shows the words in full.
+// AUDIO-FIX (27 Oct 2026, the owner: "the agent's audio doesn't work on phone"), as career-agent's audio-unlock.ts:
+// on an iPhone, sound from Web Audio alone is ambient sound (WebKit MediaSessionManagerCocoa picks AmbientSound when
+// only Web Audio plays), which the ring/silent switch silences, so a phone on silent showed her words and played
+// nothing. While she talks her line is media playback instead: the page's audio session (navigator.audioSession,
+// Safari 17 and later) is "playback", and on an iPhone or iPad a silent <audio> plays beside her (a playing media
+// element makes the session MediaPlayback on any iOS version, in any app's browser). Both stop when she does. The
+// tap also plays one silent sample through the speaker, which older iPhones need to start it.
 // Nothing here runs on the server but the first, silent render.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { JOIN_AUDIO, JOIN_LINE, saidAt } from "./agent";
@@ -19,10 +26,130 @@ function audioContext(): AudioContext {
   return shared;
 }
 
-/** Call inside a click: her line can play. */
-export function unlockAudio(): void {
+interface AudioSessionLike {
+  type: string;
+}
+
+/** The page's audio session (Safari 17 and later); elsewhere nothing happens. */
+export function setAudioSession(type: "auto" | "playback"): void {
   try {
-    void audioContext().resume();
+    const s = (navigator as Navigator & { audioSession?: AudioSessionLike }).audioSession;
+    if (s && s.type !== type) s.type = type;
+  } catch {
+    // refused: the browser's own choice stands
+  }
+}
+
+function sessionType(): string | null {
+  try {
+    return (navigator as Navigator & { audioSession?: AudioSessionLike }).audioSession?.type ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** An iPhone or iPad (an iPad says it is a Mac, but has a touch screen). */
+export function appleTouch(): boolean {
+  try {
+    const ua = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  } catch {
+    return false;
+  }
+}
+
+/** Half a second of silence, as a WAV. */
+function silentWav(): string {
+  const rate = 8000;
+  const n = rate / 2;
+  const v = new DataView(new ArrayBuffer(44 + n * 2));
+  const tag = (at: number, s: string) => {
+    for (let i = 0; i < s.length; i++) v.setUint8(at + i, s.charCodeAt(i));
+  };
+  tag(0, "RIFF");
+  v.setUint32(4, 36 + n * 2, true);
+  tag(8, "WAVE");
+  tag(12, "fmt ");
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true);
+  v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true);
+  tag(36, "data");
+  v.setUint32(40, n * 2, true);
+  const bytes = new Uint8Array(v.buffer);
+  let s = "";
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return `data:audio/wav;base64,${btoa(s)}`;
+}
+
+let keeper: HTMLAudioElement | null = null;
+
+/** iPhone: the silent <audio> beside her (its first play must be in a tap; later ones may start from her line). */
+function keep(): void {
+  if (!appleTouch()) return;
+  try {
+    if (!keeper) {
+      keeper = new Audio(silentWav());
+      keeper.loop = true;
+      keeper.preload = "auto";
+      keeper.setAttribute("playsinline", "");
+      keeper.setAttribute("x-webkit-airplay", "deny");
+      keeper.disableRemotePlayback = true;
+    }
+    void keeper.play().catch(() => undefined);
+  } catch {
+    // no media element here: the session alone
+  }
+}
+
+/** Her line playing now (say runs), and the wait for one after a tap. */
+let talking = 0;
+let idle: ReturnType<typeof setTimeout> | null = null;
+
+function settle(): void {
+  try {
+    keeper?.pause();
+  } catch {
+    // already stopped
+  }
+  if (sessionType() === "playback") setAudioSession("auto");
+}
+
+function lineStarts(): void {
+  talking++;
+  if (idle) {
+    clearTimeout(idle);
+    idle = null;
+  }
+  setAudioSession("playback");
+  keep();
+}
+
+function lineEnds(): void {
+  talking = Math.max(0, talking - 1);
+  if (!talking) settle();
+}
+
+/** Call inside a click: her line can play (past an iPhone's silent switch too). */
+export function unlockAudio(): void {
+  setAudioSession("playback");
+  keep();
+  if (idle) clearTimeout(idle);
+  idle = setTimeout(() => {
+    idle = null;
+    if (!talking) settle();
+  }, 5000);
+  try {
+    const c = audioContext();
+    void c.resume().catch(() => undefined);
+    // one silent sample: older iPhones start the speaker only once something has played through it in a tap
+    const s = c.createBufferSource();
+    s.buffer = c.createBuffer(1, 1, c.sampleRate);
+    s.connect(c.destination);
+    s.start(0);
   } catch {
     // no audio in this browser: the words still show
   }
@@ -94,6 +221,7 @@ export function useSpoken(): Spoken {
     const all = JOIN_LINE.length;
     setAt(0);
     const live = () => run.current === my;
+    lineStarts();
     try {
       const c = audioContext();
       await Promise.race([c.resume().catch(() => undefined), sleep(300)]);
@@ -132,6 +260,7 @@ export function useSpoken(): Spoken {
     } catch {
       if (live()) setAt(all);
     } finally {
+      lineEnds();
       if (live()) {
         cancelAnimationFrame(raf.current);
         level.current.agent = 0;
