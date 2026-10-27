@@ -9,7 +9,8 @@ import { switchHref, type Look } from "../../lib/look";
 const wrap: CSSProperties = {
   position: "fixed",
   left: 10,
-  bottom: 10,
+  // above the phone docks, the homepage's bottom bar and the cookie notice, so it never covers a tab or a button
+  bottom: "calc(92px + env(safe-area-inset-bottom, 0px))",
   zIndex: 2147483000,
   display: "inline-flex",
   alignItems: "center",
