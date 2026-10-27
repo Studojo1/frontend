@@ -26,7 +26,7 @@ function normalizeImageUrl(url: string | undefined): string | undefined {
   return url;
 }
 
-function processBlogContentHtml(html: string): string {
+export function processBlogContentHtml(html: string): string {
   if (!html) return html;
 
   // 1. Fix legacy job.studojo.com links → studojo.com/outreach

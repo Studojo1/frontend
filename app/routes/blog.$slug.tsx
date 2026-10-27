@@ -7,6 +7,8 @@ import { FiClock, FiEye, FiCalendar } from "react-icons/fi";
 import type { Route } from "./+types/blog.$slug";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
+import { useSiteB2c } from "~/components/site-b2c/host";
+import { BlogPostB2C, BlogPostMissingB2C } from "~/components/site-b2c/blog/BlogPostB2C";
 
 const BASE_URL = "https://studojo.com";
 
@@ -240,6 +242,9 @@ export default function BlogPost() {
   const loaderData = useLoaderData() as { post: BlogPost } | undefined;
   const post = loaderData?.post;
   const posterUrl = post ? `/api/blog-og/${post.slug}?v=3` : undefined;
+  const b2c = useSiteB2c();
+
+  if (b2c && !post) return <BlogPostMissingB2C />;
 
   if (!post) {
     return (
@@ -291,6 +296,10 @@ export default function BlogPost() {
 
   // FAQPage schema, emitted only when the post body has real question subheadings.
   const faqJsonLd = buildFaqJsonLd(post.content, canonicalUrl);
+
+  if (b2c) {
+    return <BlogPostB2C post={post} posterUrl={`/api/blog-og/${post.slug}?v=3`} jsonLd={[articleJsonLd, breadcrumbJsonLd, faqJsonLd]} />;
+  }
 
   return (
     <article className="min-h-screen bg-white">
