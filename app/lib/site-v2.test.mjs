@@ -39,7 +39,8 @@ for (const p of ["/", "/outreach", "/dojos/internships", "/resume-maker", "/cc",
 // ---------- 1a. the root: the mark and the stylesheets only on B2C hosts ----------
 const root = read("root.tsx");
 assert.match(root, /\n  const b2c = useSiteB2c\(\);\n  const routeError = useRouteError\(\);\n  const sv2 = b2c \? \(routeError \? "error" : sv2PageFor\(pathname\)\) : null;\n/);
-assert.match(root, /<html lang="en" data-sv2=\{sv2 \?\? undefined\}>/, "no attribute at all off B2C hosts");
+// (CLASSIC LOOK adds data-look beside it, set only when the look switch is on: app/lib/look.test.mjs.)
+assert.match(root, /<html lang="en" data-sv2=\{sv2 \?\? undefined\}( data-look=\{look \?\? undefined\})?>/, "no attribute at all off B2C hosts");
 const links = root.slice(root.indexOf("{sv2 ? ("), root.indexOf(") : null}", root.indexOf("{sv2 ? (")));
 assert.equal((links.match(/<link rel="stylesheet" href=\{sv2[A-Za-z]*Css\} \/>/g) ?? []).length, 4);
 assert.equal((root.match(/sv2[A-Za-z]*Css\b/g) ?? []).length, 8, "each SITE-V2 stylesheet is imported once and linked once, inside the gate");
@@ -49,7 +50,9 @@ const host = read("components/site-b2c/host.tsx");
 assert.match(host, /if \(data && typeof data\.b2cHost === "boolean"\) return data\.b2cHost;/);
 assert.match(host, /if \(typeof window !== "undefined"\) return b2cHomeHost\(window\.location\.host, undefined\);/);
 const entry = read("entry.server.tsx");
-assert.match(entry, /<Sv2HostContext\.Provider value=\{isB2cRequest\(request\)\}>\n\s+<ServerRouter context=\{routerContext\} url=\{request\.url\} \/>\n\s+<\/Sv2HostContext\.Provider>/);
+// (CLASSIC LOOK: the same answer held in b2c, and the look's own provider between it and the router: app/lib/look.test.mjs.)
+assert.match(entry, /\n  const b2c = isB2cRequest\(request\);\n/);
+assert.match(entry, /<Sv2HostContext\.Provider value=\{b2c\}>\n\s+(<LookContext\.Provider value=\{[^}]+\}>\n\s+)?<ServerRouter context=\{routerContext\} url=\{request\.url\} \/>\n\s+(<\/LookContext\.Provider>\n\s+)?<\/Sv2HostContext\.Provider>/);
 const { b2cHomeHost } = await import("./b2c-home.ts");
 assert.equal(b2cHomeHost("studojo.com", undefined), false, "the browser rule never makes studojo.com B2C");
 assert.equal(b2cHomeHost("studojo.pro", undefined), true);

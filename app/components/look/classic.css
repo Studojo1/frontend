@@ -1,0 +1,335 @@
+/* CLASSIC LOOK (27 Oct 2026, the owner: "the same flow we have, in our old UI style with the Clash Display"): the
+   studojo.pro homepage (home-v2/home-v2.css, .hv2), its call takeover and sign-up card, and the cookie notice over it,
+   in Studojo's own neo-brutalist style as studojo.com draws it: white ground, 2px near-black ink edges, hard offset ink
+   shadows with no blur, flat fills (white, stone, mint, sun, lilac), Clash Display headings in sentence case, Satoshi
+   body, uppercase spaced kickers, the flat purple primary with an ink edge and a hard shadow that presses down on click.
+   Stu is unchanged. Same markup, copy and behaviour: this sheet only re-skins.
+
+   Linked by root.tsx only when <html data-look="classic"> (app/lib/look.ts: ?look=classic or the sj_look cookie, on
+   studojo.pro only), after every other sheet. Each rule is the homepage's own selector with html[data-look="classic"]
+   in front, so it always outranks the rule it replaces whatever order the sheets load in. The other SITE-V2 pages are
+   in classic-site.css. The copy is unchanged, so a heading written in lowercase gets only its first letter raised
+   (::first-letter); a second sentence or a name inside it stays as written. */
+
+html[data-look="classic"] .hv2 {
+  --hv-ink: #171717; --hv-ink2: #191a23; --hv-muted: #525252; --hv-faint: #737373;
+  --hv-purple: #6d28d9; --hv-purple-strong: #191a23; --hv-purple-light: #dab2ff;
+  --hv-lilac: #f3edfe; --hv-lilac-2: #e6dcfc; --hv-lilac-bg: #faf5fe;
+  --hv-green: #10b981; --hv-green-bg: #d0fae4;
+  --hv-bg: #ffffff; --hv-dot: transparent; --hv-hair: #191a23; --hv-line1: #191a23; --hv-card: #ffffff;
+  --hv-soft: 4px 4px 0 #191a23; --hv-soft-up: 6px 6px 0 #191a23; --hv-card-shadow: 4px 4px 0 #191a23;
+  --cl-ink: #191a23; --cl-stone: #f5f5f5; --cl-mint: #d0fae4; --cl-sun: #fef3c6; --cl-lilac: #f3edfe;
+  --cl-cta: #6d28d9; --cl-cta-hover: #5b21b6;
+  --cl-display: "Clash Display", Satoshi, ui-sans-serif, system-ui, sans-serif;
+  --cl-sans: Satoshi, ui-sans-serif, system-ui, sans-serif;
+  background-color: #fff;
+  background-image: none;
+}
+
+/* ---------- type: Clash Display headings in sentence case, uppercase Satoshi kickers, no mono ---------- */
+html[data-look="classic"] .hv2 .hv-h-hero,
+html[data-look="classic"] .hv2 .hv-h-sec,
+html[data-look="classic"] .hv2 .hv-st-h3,
+html[data-look="classic"] .hv2 .hv-hero .hv-line {
+  font-family: var(--cl-display); font-weight: 600; letter-spacing: -0.004em; word-spacing: .06em; line-height: 1.05; text-transform: none;
+}
+html[data-look="classic"] .hv2 .hv-hero .hv-line { font-weight: 700; letter-spacing: -0.006em; }
+html[data-look="classic"] .hv2 .hv-h-card,
+html[data-look="classic"] .hv2 .hv-st-jump .hv-h-card,
+html[data-look="classic"] .hv2 .hv-st-tile .hv-h-card,
+html[data-look="classic"] .hv2 .hv-st-rep .hv-h-card,
+html[data-look="classic"] .hv2 .hv-st-plain .hv-h-card,
+html[data-look="classic"] .hv2 .hv-st-steps .hv-h-card {
+  font-family: var(--cl-display); font-weight: 600; letter-spacing: 0; word-spacing: .06em; text-transform: none;
+}
+html[data-look="classic"] .hv2 .hv-h-hero::first-letter,
+html[data-look="classic"] .hv2 .hv-h-sec::first-letter,
+html[data-look="classic"] .hv2 .hv-h-card::first-letter,
+html[data-look="classic"] .hv2 .hv-st-h3::first-letter,
+html[data-look="classic"] .hv2 .hv-hero .hv-line::first-letter,
+html[data-look="classic"] .hv2 .hv-st-new p::first-letter,
+html[data-look="classic"] .hv2 .hv-st-seq b::first-letter,
+html[data-look="classic"] .hv2 .hv-jcard h2::first-letter { text-transform: uppercase; }
+/* Stu's own words on screen stay Satoshi (they read as speech, and are already in sentence case), a touch heavier */
+html[data-look="classic"] .hv2 .hv-said { font-weight: 500; letter-spacing: -0.015em; color: #171717; }
+html[data-look="classic"] .hv2 .hv-said .hv-w.hv-ahead { color: rgba(25, 26, 35, .28); }
+html[data-look="classic"] .hv2 .hv-st-new p,
+html[data-look="classic"] .hv2 .hv-st-num b { font-family: var(--cl-display); font-weight: 600; letter-spacing: 0; word-spacing: .06em; }
+html[data-look="classic"] .hv2 .hv-st-seq b,
+html[data-look="classic"] .hv2 .hv-st-q summary,
+html[data-look="classic"] .hv2 .hv-st-talk-h b { font-weight: 700; letter-spacing: -0.01em; }
+html[data-look="classic"] .hv2 .hv-lead,
+html[data-look="classic"] .hv2 .hv-body { color: var(--hv-muted); }
+
+html[data-look="classic"] .hv2 .hv-kicker,
+html[data-look="classic"] .hv2 .hv-hero .hv-kicker,
+html[data-look="classic"] .hv2 .hv-call .hv-kicker,
+html[data-look="classic"] .hv2 .hv-call[data-stage="signup"] .hv-kicker {
+  font-family: var(--cl-sans); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #171717; opacity: 1;
+}
+html[data-look="classic"] .hv2 .hv-st-mono,
+html[data-look="classic"] .hv2 .hv-st-ph .hv-st-mono,
+html[data-look="classic"] .hv2 .hv-st-new .hv-st-mono,
+html[data-look="classic"] .hv2 .hv-st-msg .hv-st-who,
+html[data-look="classic"] .hv2 .hv-st-msg.hv-me .hv-st-who,
+html[data-look="classic"] .hv2 .hv-jcard .hv-or,
+html[data-look="classic"] .hv2 .hv-jcard .hv-backed p {
+  font-family: var(--cl-sans); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #525252;
+}
+html[data-look="classic"] .hv2 .hv-st-new .hv-st-mono { color: #171717; }
+html[data-look="classic"] .hv2 .hv-capt,
+html[data-look="classic"] .hv2 .hv-win .hv-bar span { font-family: var(--cl-sans); font-weight: 500; letter-spacing: 0; color: #737373; }
+
+/* ---------- THE button: flat purple, an ink edge, a hard shadow that presses down ---------- */
+html[data-look="classic"] .hv2 .hv-btn-start,
+html[data-look="classic"] .hv2 .hv-hero .hv-btn-start.hv-go-btn,
+html[data-look="classic"] .hv2 .hv-bar-m .hv-btn-start,
+html[data-look="classic"] .hv2 .hv-foot-cta .hv-btn-start,
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont {
+  border: 2.5px solid #191a23; border-radius: 16px; background: #6d28d9; color: #fff;
+  font-family: var(--cl-display); font-weight: 600; letter-spacing: 0;
+  box-shadow: 6px 6px 0 #191a23; overflow: visible;
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+html[data-look="classic"] .hv2 .hv-btn-start::before,
+html[data-look="classic"] .hv2 .hv-hero .hv-btn-start.hv-go-btn::before,
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont::before { display: none; }
+html[data-look="classic"] .hv2 .hv-btn-start:hover,
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont:hover:not(:disabled) {
+  background: #5b21b6; transform: translate(-1px, -1px); box-shadow: 7px 7px 0 #191a23;
+}
+html[data-look="classic"] .hv2 .hv-btn-start:active,
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont:active:not(:disabled) {
+  transform: translate(4px, 4px); box-shadow: 2px 2px 0 #191a23;
+}
+html[data-look="classic"] .hv2 .hv-btn-start:focus-visible,
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont:focus-visible { outline: 3px solid #6d28d9; outline-offset: 4px; }
+html[data-look="classic"] .hv2 .hv-btn-start.hv-sm { border-width: 2px; border-radius: 12px; box-shadow: 4px 4px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-btn-start.hv-sm:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #191a23; }
+/* the sign-up card's Continue: the card's own size, a 4px shadow */
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont { border-width: 2px; border-radius: 14px; box-shadow: 4px 4px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont:hover:not(:disabled) { box-shadow: 5px 5px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-cont:disabled { opacity: .5; transform: none; }
+
+/* the floating agent (desktop): the same flat block; its own show and hide motion is kept, only the press is added */
+html[data-look="classic"] .hv2 .hv-side { border-radius: 18px; box-shadow: 6px 6px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-side.hv-show:hover { transform: translate(-1px, -1px); box-shadow: 7px 7px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-side.hv-show:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-side .hv-stu-cell { box-shadow: 3px 3px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-side .hv-stu-cell::after { border-color: #191a23; }
+html[data-look="classic"] .hv2 .hv-side .hv-who small { opacity: .9; font-family: var(--cl-sans); }
+
+/* the quiet second choices: white, an ink edge, a small hard shadow */
+html[data-look="classic"] .hv2 .hv-signout,
+html[data-look="classic"] .hv2 .hv-jcard .hv-g,
+html[data-look="classic"] .hv2 .hv-call-x {
+  border: 2px solid #191a23; background: #fff; color: #171717; box-shadow: 3px 3px 0 #191a23;
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+html[data-look="classic"] .hv2 .hv-signout { border-radius: 12px; font-weight: 700; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-g { border-radius: 14px; font-weight: 700; }
+html[data-look="classic"] .hv2 .hv-signout:hover,
+html[data-look="classic"] .hv2 .hv-jcard .hv-g:hover,
+html[data-look="classic"] .hv2 .hv-call-x:hover { background: #f5f5f5; border-color: #191a23; transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-signout:active,
+html[data-look="classic"] .hv2 .hv-jcard .hv-g:active,
+html[data-look="classic"] .hv2 .hv-call-x:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-signout:focus-visible,
+html[data-look="classic"] .hv2 .hv-jcard .hv-g:focus-visible,
+html[data-look="classic"] .hv2 .hv-call-x:focus-visible { outline: 3px solid #6d28d9; outline-offset: 3px; }
+html[data-look="classic"] .hv2 .hv-signin { color: #171717; font-weight: 600; }
+html[data-look="classic"] .hv2 .hv-link-type { color: #171717; font-weight: 600; text-decoration-color: #191a23; text-decoration-thickness: 1.5px; }
+html[data-look="classic"] .hv2 .hv-brand:focus-visible,
+html[data-look="classic"] .hv2 .hv-signin:focus-visible { outline: 3px solid #6d28d9; outline-offset: 3px; }
+
+/* ---------- header and the phone's bottom bar: solid white, an ink rule, no blur ---------- */
+html[data-look="classic"] .hv2 .hv-hdr,
+html[data-look="classic"] .hv2 .hv-hdr.hv-scrolled {
+  background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 2px solid #191a23; box-shadow: none;
+}
+html[data-look="classic"] .hv2 .hv-bar-m { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; border-top: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-bar-m .hv-btn-start { box-shadow: 4px 4px 0 #191a23; border-width: 2px; border-radius: 14px; }
+html[data-look="classic"] .hv2 .hv-bar-m .hv-btn-start:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-bar-m .hv-stu-cell { box-shadow: 2px 2px 0 #191a23; }
+
+/* ---------- the hero ---------- */
+html[data-look="classic"] .hv2 .hv-hero::before { background: #fff; }
+html[data-look="classic"] .hv2 .hv-hint li {
+  height: 30px; padding: 0 11px 0 9px; border: 2px solid #191a23; border-radius: 999px; background: #fff; box-shadow: 2px 2px 0 #191a23;
+  font-weight: 700; color: #171717;
+}
+html[data-look="classic"] .hv2 .hv-hint li:nth-child(1) { background: var(--cl-lilac); }
+html[data-look="classic"] .hv2 .hv-hint li:nth-child(2) { background: var(--cl-mint); }
+html[data-look="classic"] .hv2 .hv-hint li:nth-child(3) { background: var(--cl-sun); }
+html[data-look="classic"] .hv2 .hv-hint svg { color: #191a23; opacity: 1; }
+html[data-look="classic"] .hv2 .hv-micro,
+html[data-look="classic"] .hv2 .hv-facts { color: #525252; font-weight: 500; }
+html[data-look="classic"] .hv2 .hv-talking { color: #525252; }
+html[data-look="classic"] .hv2 .hv-talking .hv-bars i { background: #191a23; }
+html[data-look="classic"] .hv2 .hv-ticks li span { border-color: #191a23; }
+@media (max-width: 640px) {
+  html[data-look="classic"] .hv2 .hv-hint { gap: 5px; }
+  html[data-look="classic"] .hv2 .hv-hint li { height: 28px; padding: 0 8px 0 6px; border-width: 1.5px; box-shadow: none; font-size: 11.5px; }
+}
+@media (min-width: 641px) {
+  html[data-look="classic"] .hv2 .hv-hint li { height: 32px; padding: 0 13px 0 11px; }
+}
+
+/* ---------- sections: one idea each, an ink rule between them, flat stone bands taking turns ---------- */
+html[data-look="classic"] .hv2 .hv-sec + .hv-sec { border-top: 2px solid #191a23; }
+html[data-look="classic"] .hv2 #main > .hv-sec:nth-of-type(odd) { background: #f5f5f5; }
+html[data-look="classic"] .hv2 #main > .hv-hero + .hv-sec { border-top: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-card { background: #fff; border: 2px solid #191a23; border-radius: 16px; box-shadow: 4px 4px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-chip { border: 2px solid #191a23; background: var(--cl-lilac); color: #171717; font-weight: 700; }
+html[data-look="classic"] .hv2 .hv-st-chip-q { background: #fff; color: #171717; border: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-st-ico,
+html[data-look="classic"] .hv2 .hv-st-pts .hv-st-ico { background: #fff; border: 2px solid #191a23; color: #191a23; border-radius: 10px; }
+html[data-look="classic"] .hv2 .hv-st-three .hv-st-jump:nth-child(1) .hv-st-ico { background: var(--cl-lilac); }
+html[data-look="classic"] .hv2 .hv-st-three .hv-st-jump:nth-child(2) .hv-st-ico { background: var(--cl-mint); }
+html[data-look="classic"] .hv2 .hv-st-three .hv-st-jump:nth-child(3) .hv-st-ico { background: var(--cl-sun); }
+html[data-look="classic"] .hv2 .hv-st-jump:hover,
+html[data-look="classic"] .hv2 .hv-st-rep:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #191a23; border-color: #191a23; }
+html[data-look="classic"] .hv2 .hv-st-jump:active,
+html[data-look="classic"] .hv2 .hv-st-rep:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-st-jump:focus-visible,
+html[data-look="classic"] .hv2 .hv-st-rep:focus-visible { outline: 3px solid #6d28d9; outline-offset: 3px; }
+html[data-look="classic"] .hv2 .hv-st-jump .hv-st-go,
+html[data-look="classic"] .hv2 .hv-st-rep .hv-st-go { color: #171717; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+html[data-look="classic"] .hv2 .hv-st-pts li,
+html[data-look="classic"] .hv2 .hv-st-pts li:last-child { border-color: #191a23; }
+html[data-look="classic"] .hv2 .hv-st-for { color: #525252; }
+
+/* product pictures: an ink frame on a flat stone stage, no glow or dots */
+html[data-look="classic"] .hv2 .hv-st-stage { border: 2px solid #191a23; border-radius: 20px; background: #fff; box-shadow: 6px 6px 0 #191a23; }
+html[data-look="classic"] .hv2 #main > .hv-sec:nth-of-type(odd) .hv-st-stage { background: #fff; }
+html[data-look="classic"] .hv2 #main > .hv-sec:nth-of-type(even) .hv-st-stage { background: var(--cl-lilac); }
+html[data-look="classic"] .hv2 .hv-st-stage::before { display: none; }
+html[data-look="classic"] .hv2 .hv-st-phone { border: 2.5px solid #191a23; border-radius: 34px; box-shadow: 6px 6px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-st-screen { border: 2px solid #191a23; border-radius: 27px; background: #fff; }
+html[data-look="classic"] .hv2 .hv-st-wscreen,
+html[data-look="classic"] .hv2 .hv-st-peek { background: #fff; }
+html[data-look="classic"] .hv2 .hv-win { border: 2px solid #191a23; border-radius: 14px; box-shadow: 6px 6px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-win .hv-bar { background: #f5f5f5; border-bottom: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-win .hv-bar i { box-shadow: inset 0 0 0 1.5px #191a23; }
+html[data-look="classic"] .hv2 .hv-st-peek { border: 2px solid #191a23; border-bottom: 0; }
+html[data-look="classic"] .hv2 .hv-st-ghost i,
+html[data-look="classic"] .hv2 .hv-st-ghost i:nth-child(1) { background: #e5e5e5; }
+html[data-look="classic"] .hv2 .hv-st-ghost b { border: 2px solid #191a23; background: #fff; }
+html[data-look="classic"] .hv2 .hv-st-ph svg { color: #a3a3a3; }
+
+/* the call, as a chat: Stu's lines white, the student's lilac, ink edges */
+html[data-look="classic"] .hv2 .hv-st-talk-h { border-bottom: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-st-live i { background: #191a23; opacity: 1; }
+html[data-look="classic"] .hv2 .hv-st-msg { border: 2px solid #191a23; box-shadow: 2px 2px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-st-msg.hv-me { background: var(--cl-lilac); border-color: #191a23; color: #171717; }
+
+/* the job, the old way and the new: stone for the old, sun for Stu's way */
+html[data-look="classic"] .hv2 .hv-st-old { background: #f5f5f5; box-shadow: none; }
+html[data-look="classic"] .hv2 .hv-st-old li { color: #525252; }
+html[data-look="classic"] .hv2 .hv-st-old li svg { color: #737373; }
+html[data-look="classic"] .hv2 .hv-st-new { background: var(--cl-sun); border-color: #191a23; box-shadow: 6px 6px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-st-then { border: 2px solid #191a23; background: #fff; color: #191a23; box-shadow: 2px 2px 0 #191a23; }
+
+/* numbered steps: ink circles in flat fills, the key step purple */
+html[data-look="classic"] .hv2 .hv-st-seq li::before,
+html[data-look="classic"] .hv2 .hv-st-steps li::before {
+  border: 2px solid #191a23; border-radius: 50%; background: var(--cl-lilac); color: #171717;
+  font-family: var(--cl-display); font-weight: 600; font-size: 13px;
+}
+html[data-look="classic"] .hv2 .hv-st-seq li:nth-child(3n+2)::before,
+html[data-look="classic"] .hv2 .hv-st-steps li:nth-child(3n+2)::before { background: var(--cl-mint); }
+html[data-look="classic"] .hv2 .hv-st-seq li:nth-child(3n)::before,
+html[data-look="classic"] .hv2 .hv-st-steps li:nth-child(3n)::before { background: var(--cl-sun); }
+html[data-look="classic"] .hv2 .hv-st-seq li.hv-st-key::before,
+html[data-look="classic"] .hv2 .hv-st-steps li.hv-st-key::before { background: #6d28d9; border-color: #191a23; color: #fff; }
+html[data-look="classic"] .hv2 .hv-st-seq li:not(:last-child)::after,
+html[data-look="classic"] .hv2 .hv-st-steps li:not(:last-child)::after { border-left: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-st-steps li { border-bottom: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-st-steps li:last-child { border-bottom: 0; }
+html[data-look="classic"] .hv2 .hv-st-steps .hv-chip { background: var(--cl-sun); }
+html[data-look="classic"] .hv2 .hv-st-end li svg { color: #047857; }
+
+/* proof: the counts in Clash Display, the employer names as ink-edged pills */
+html[data-look="classic"] .hv2 .hv-st-nums .hv-st-num:nth-child(1) { background: var(--cl-lilac); }
+html[data-look="classic"] .hv2 .hv-st-nums .hv-st-num:nth-child(2) { background: var(--cl-mint); }
+html[data-look="classic"] .hv2 .hv-st-nums .hv-st-num:nth-child(3) { background: var(--cl-sun); }
+html[data-look="classic"] .hv2 .hv-st-num b { font-weight: 700; color: #171717; }
+html[data-look="classic"] .hv2 .hv-st-strip { border-top: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-st-strip li { border: 2px solid #191a23; background: #fff; color: #171717; font-weight: 700; }
+
+/* questions: ink-edged rows, the plus in an ink circle */
+html[data-look="classic"] .hv2 .hv-st-q { border: 2px solid #191a23; border-radius: 14px; box-shadow: 3px 3px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-st-q[open] { box-shadow: 5px 5px 0 #191a23; border-color: #191a23; }
+html[data-look="classic"] .hv2 .hv-st-q .hv-st-plus { border: 2px solid #191a23; background: #fff; color: #191a23; }
+html[data-look="classic"] .hv2 .hv-st-q[open] .hv-st-plus { background: var(--cl-sun); }
+html[data-look="classic"] .hv2 .hv-st-q summary:focus-visible { outline: 3px solid #6d28d9; outline-offset: 2px; }
+
+/* reading: report cards, the blog card in stone */
+html[data-look="classic"] .hv2 .hv-st-rep.hv-st-blog { background: var(--cl-lilac); }
+
+/* ---------- the footer ---------- */
+html[data-look="classic"] .hv2 .hv-foot { border-top: 2px solid #191a23; background: #fff; }
+html[data-look="classic"] .hv2 .hv-foot-row { border-top: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-foot-row .hv-line,
+html[data-look="classic"] .hv2 .hv-foot-links { color: #525252; }
+html[data-look="classic"] .hv2 .hv-foot-links a:hover { color: #171717; text-decoration: underline; text-underline-offset: 4px; }
+html[data-look="classic"] .hv2 .hv-legal,
+html[data-look="classic"] .hv2 .hv-legal a { color: #737373; }
+
+/* ---------- the call takeover: a white screen, an ink rule under its header, ink-edged tiles and card ---------- */
+html[data-look="classic"] .hv2 .hv-call { background-color: #fff; background-image: none; }
+html[data-look="classic"] .hv2 .hv-call-hdr { background: #fff; border-bottom: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-call-x { border-radius: 12px; }
+html[data-look="classic"] .hv2 .hv-cfact { border: 2px solid #191a23; border-radius: 12px; box-shadow: 3px 3px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-cfact-ico { border: 2px solid #191a23; background: var(--cl-lilac); color: #191a23; }
+html[data-look="classic"] .hv2 .hv-cfacts-below li:nth-child(2) .hv-cfact-ico,
+html[data-look="classic"] .hv2 .hv-cfacts-left li:nth-child(2) .hv-cfact-ico { background: var(--cl-mint); }
+html[data-look="classic"] .hv2 .hv-cfacts-below li:nth-child(3) .hv-cfact-ico,
+html[data-look="classic"] .hv2 .hv-cfacts-right li:nth-child(1) .hv-cfact-ico { background: var(--cl-sun); }
+html[data-look="classic"] .hv2 .hv-cfacts-below li:nth-child(4) .hv-cfact-ico,
+html[data-look="classic"] .hv2 .hv-cfacts-right li:nth-child(2) .hv-cfact-ico { background: #f5f5f5; }
+html[data-look="classic"] .hv2 .hv-cfact b { font-weight: 700; color: #171717; }
+html[data-look="classic"] .hv2 .hv-cfact small { color: #525252; }
+@media (max-width: 1023px) and (max-height: 760px) {
+  html[data-look="classic"] .hv2 .hv-cfact { box-shadow: 2px 2px 0 #191a23; }
+  html[data-look="classic"] .hv2 .hv-cfact-ico { border-width: 1.5px; }
+}
+
+/* the sign-up card (/b2cnew/join's own card): ink edge, a hard shadow, Clash title, ink fields */
+html[data-look="classic"] .hv2 .hv-jcard,
+html[data-look="classic"] .hv2 .hv-call .hv-jcard { border: 2px solid #191a23; border-radius: 18px; box-shadow: 6px 6px 0 #191a23; }
+html[data-look="classic"] .hv2 .hv-jcard h2,
+html[data-look="classic"] .hv2 .hv-call .hv-jcard h2 { font-family: var(--cl-display); font-weight: 600; letter-spacing: 0; word-spacing: .06em; text-transform: none; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-sub { color: #525252; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-or::before,
+html[data-look="classic"] .hv2 .hv-jcard .hv-or::after { height: 2px; background: #191a23; }
+html[data-look="classic"] .hv2 .hv-jcard label { color: #171717; font-weight: 700; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-field { border: 2px solid #191a23; border-radius: 12px; box-shadow: none; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-field svg { color: #525252; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-field:focus-within { border-color: #191a23; box-shadow: 3px 3px 0 #6d28d9; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-terms { color: #737373; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-backed { border-top: 2px solid #191a23; }
+html[data-look="classic"] .hv2 .hv-jcard .hv-backed li { border: 1.5px solid #191a23; background: #f5f5f5; box-shadow: none; color: #171717; font-weight: 600; }
+
+/* ---------- the site-wide cookie notice over the homepage, in the same ink (its markup unchanged) ---------- */
+html[data-look="classic"] .hv2 ~ [role="region"][aria-label^="Cookie"] > div {
+  border: 2px solid #191a23; border-radius: 16px; background: #fff; box-shadow: 4px 4px 0 #191a23; -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+html[data-look="classic"] .hv2 ~ [role="region"][aria-label^="Cookie"] p { color: #171717; }
+html[data-look="classic"] .hv2 ~ [role="region"][aria-label^="Cookie"] a { color: #6d28d9; }
+html[data-look="classic"] .hv2 ~ [role="region"][aria-label^="Cookie"] button {
+  border: 2px solid #191a23; border-radius: 12px; background: #fff; color: #171717; font-weight: 700; box-shadow: 3px 3px 0 #191a23; transform: none;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+html[data-look="classic"] .hv2 ~ [role="region"][aria-label^="Cookie"] button:last-child { border-color: #191a23; background: #6d28d9; color: #fff; box-shadow: 3px 3px 0 #191a23; }
+html[data-look="classic"] .hv2 ~ [role="region"][aria-label^="Cookie"] button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #191a23; }
+html[data-look="classic"] .hv2 ~ [role="region"][aria-label^="Cookie"] button:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #191a23; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-look="classic"] .hv2 .hv-btn-start,
+  html[data-look="classic"] .hv2 .hv-jcard .hv-cont,
+  html[data-look="classic"] .hv2 .hv-jcard .hv-g,
+  html[data-look="classic"] .hv2 .hv-signout,
+  html[data-look="classic"] .hv2 .hv-call-x { transition: none; }
+}

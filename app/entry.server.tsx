@@ -9,6 +9,8 @@ import { renderToPipeableStream } from "react-dom/server";
 import { markStaging } from "./lib/staging-host";
 import { isB2cRequest } from "./lib/b2c-home";
 import { Sv2HostContext } from "./components/site-b2c/host";
+import { lookCookieSecure, lookForRequest, lookSetCookie } from "./lib/look";
+import { LookContext } from "./components/look/look-context";
 
 export const streamTimeout = 5_000;
 
@@ -67,6 +69,11 @@ export default function handleRequest(
     });
   }
 
+  // CLASSIC LOOK (app/lib/look.ts): ?look= stores the look in sj_look; the page is drawn in it from the first paint.
+  const b2c = isB2cRequest(request);
+  const look = lookForRequest(request, b2c);
+  if (look?.store) responseHeaders.append("Set-Cookie", lookSetCookie(look.store, lookCookieSecure(request.headers.get("host"))));
+
   return new Promise((resolve, reject) => {
     let shellRendered = false;
     let userAgent = request.headers.get("user-agent");
@@ -87,8 +94,10 @@ export default function handleRequest(
 
     const { pipe, abort } = renderToPipeableStream(
       // SITE-V2: the request's B2C answer for pages that run no root loader (a 404); renders nothing itself.
-      <Sv2HostContext.Provider value={isB2cRequest(request)}>
-        <ServerRouter context={routerContext} url={request.url} />
+      <Sv2HostContext.Provider value={b2c}>
+        <LookContext.Provider value={look?.switchable ? look.look : null}>
+          <ServerRouter context={routerContext} url={request.url} />
+        </LookContext.Provider>
       </Sv2HostContext.Provider>,
       {
         [readyOption]() {
