@@ -24,24 +24,25 @@ import {
   type UgcField,
 } from "~/lib/ugc-application";
 
-// The Creator Program (LinkedIn UGC) application, shared on LinkedIn.
-// Served at /creators and at /ugc (same module, canonical tag on /creators).
+// The Studojo Growth Fellowship application (the LinkedIn UGC programme),
+// shared on LinkedIn. Served at /fellowship-growth (canonical), and at
+// /creators and /ugc so earlier links keep working (same module).
 
-const CANONICAL = "https://studojo.com/creators";
-const SHARE_IMAGE = "https://studojo.com/og-creators.png";
+const CANONICAL = "https://studojo.com/fellowship-growth";
+const SHARE_IMAGE = "https://studojo.com/og-fellowship.png";
 
 export function meta() {
   return [
-    { title: "Studojo Creator Program | Grow on LinkedIn" },
+    { title: "Studojo Growth Fellowship | Build a LinkedIn that brings opportunities" },
     {
       name: "description",
       content:
-        "Turn your internships, projects and setbacks into LinkedIn posts that get you noticed. Apply to the Studojo Creator Program in about 5 minutes.",
+        "A fellowship for students: learn LinkedIn distribution, build a profile recruiters notice, and get a shot at a Studojo growth internship. Apply in about 5 minutes.",
     },
-    { property: "og:title", content: "Grow on LinkedIn with the Studojo Creator Program" },
+    { property: "og:title", content: "Studojo Growth Fellowship" },
     {
       property: "og:description",
-      content: "Your stories, turned into 3 LinkedIn posts a week, written with you. Apply in about 5 minutes.",
+      content: "Learn LinkedIn distribution, build a profile that brings opportunities, and get a shot at a Studojo growth internship.",
     },
     { property: "og:type", content: "website" },
     { property: "og:url", content: CANONICAL },
@@ -194,38 +195,38 @@ const REQUIRED = <span className="text-red-500" aria-hidden="true"> *</span>;
 const PERKS = [
   {
     icon: FiEdit3,
-    title: "Posts written with you, every week",
-    body: "Each week you get 3 ready-to-post drafts built from your own experiences: 2 about your journey and 1 about how you use Studojo. Change anything you like before you post.",
-  },
-  {
-    icon: FiUserCheck,
-    title: "A LinkedIn profile makeover",
-    body: "Post your first week and we review your headline, About section and experience, then rewrite them for the roles you want next.",
-  },
-  {
-    icon: FiSend,
-    title: "Free Studojo outreach access",
-    body: "From your second week, use Studojo's outreach tool free to reach hiring managers directly, for as long as you keep posting.",
+    title: "Learn distribution on LinkedIn",
+    body: "Learn what makes a post travel and how an audience grows. We help you write every post from your own experiences, so you learn by doing.",
   },
   {
     icon: FiAward,
-    title: "A certificate for showing up",
-    body: "Post consistently for 4 weeks and you get a Studojo Creator Program certificate.",
+    title: "A path to a growth internship at Studojo",
+    body: "Studojo hires its growth interns from the fellowship. Fellows who show up and do really well get first preference.",
+  },
+  {
+    icon: FiSend,
+    title: "Opportunities beyond Studojo",
+    body: "If Studojo isn't the right fit, we share strong fellows' profiles with people in our network who are hiring.",
+  },
+  {
+    icon: FiUserCheck,
+    title: "A LinkedIn profile that keeps working",
+    body: "Recruiters love a strong LinkedIn profile. Whatever happens next, you leave with one, and an audience you can keep growing.",
   },
 ];
 
 const HOW = [
   { title: "Apply", body: "Tell us about you, your LinkedIn and where you're headed. About 5 minutes." },
-  { title: "Get shortlisted", body: "We read every application. If you're shortlisted, we message you on WhatsApp." },
-  { title: "Share your stories", body: "You tell us a few of your experiences, and we write your posts from them." },
-  { title: "Post and grow", body: "Every week, 3 drafts ready to copy. Post them, share the links with us, and see what's working." },
+  { title: "Join the fellowship", body: "We read every application. If you're selected, we message you on WhatsApp." },
+  { title: "Write and post with us", body: "Share your experiences. We help you shape them into posts and show you what works." },
+  { title: "Get noticed", body: "Grow your profile. The best fellows become Studojo growth interns or get referred in our network." },
 ];
 
 const FOR_YOU = [
   "You're in college or graduated recently",
-  "You can post 3 times a week for at least 4 weeks",
-  "You're happy for 1 in 3 posts to be about how you use Studojo, labelled as a partnership",
-  "You have stories: internships, projects, setbacks, lessons",
+  "You want to learn how distribution works on LinkedIn",
+  "You can post 3 times a week",
+  "You're happy for some posts to be about how you use Studojo, labelled as a partnership",
 ];
 
 const FAQ = [
@@ -235,7 +236,15 @@ const FAQ = [
   },
   {
     q: "Who writes the posts?",
-    a: "We write the drafts from the stories you share with us. You read them, change anything you want, and post them from your own account. Nothing goes out without you.",
+    a: "You and us, together. You share your experiences, we help you shape them into posts, and you post from your own account. Nothing goes out without you.",
+  },
+  {
+    q: "How do I get a growth internship at Studojo?",
+    a: "Studojo hires its growth interns from the fellowship. Fellows who post consistently and do really well get first preference.",
+  },
+  {
+    q: "What if I don't get an internship at Studojo?",
+    a: "We share strong fellows' profiles with people in our network who are hiring. And either way, you leave with a LinkedIn profile that keeps bringing you opportunities.",
   },
   {
     q: "What does a Studojo post look like?",
@@ -247,7 +256,7 @@ const FAQ = [
   },
   {
     q: "What happens to my answers?",
-    a: "We use them only to select creators and to write your posts.",
+    a: "We use them only to select fellows and to help write your posts.",
   },
 ];
 
@@ -462,10 +471,10 @@ export default function Creators() {
   // Every share link carries the applicant's code, so visits and applications
   // that come through it are credited to them in the admin panel.
   const shareLink = (source: string) =>
-    `https://studojo.com/creators?${shareCode ? `ref=${shareCode}&` : ""}utm_source=${source}&utm_medium=share&utm_campaign=creator_program`;
+    `https://studojo.com/fellowship-growth?${shareCode ? `ref=${shareCode}&` : ""}utm_source=${source}&utm_medium=share&utm_campaign=growth_fellowship`;
   const trackShare = (channel: "linkedin" | "whatsapp" | "copy") =>
     logFunnelStep("creators_share", { info: `${channel}:${shareCode ?? ""}` });
-  const whatsappText = `I just applied to the Studojo Creator Program. They help you turn your own stories into LinkedIn posts. Apply here: ${shareLink("whatsapp")}`;
+  const whatsappText = `I just applied to the Studojo Growth Fellowship. They help students build a LinkedIn that brings opportunities. Apply here: ${shareLink("whatsapp")}`;
   async function copyLink() {
     trackShare("copy");
     const url = shareLink("copy");
@@ -553,37 +562,38 @@ export default function Creators() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-[1.15fr_1fr] md:px-8 md:py-16">
           <div>
             <span className="inline-block rounded-full border-2 border-neutral-900 bg-white px-3 py-1 text-xs font-bold tracking-wide text-violet-700 shadow-brutal font-satoshi">
-              STUDOJO CREATOR PROGRAM
+              STUDOJO GROWTH FELLOWSHIP
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-[1.08] text-neutral-900 md:text-5xl font-clash">
-              Turn your story into LinkedIn posts that get you noticed
+              Build a LinkedIn that brings opportunities to you
             </h1>
             <p className="mt-5 max-w-xl text-lg text-neutral-700 font-satoshi">
-              Your internships, projects and even your rejections are worth posting about. Tell us your stories. We turn
-              them into 3 posts a week, written with you, and you build a LinkedIn presence that works for you.
+              Recruiters notice people who show up well on LinkedIn. In the fellowship we help you write your posts, learn how
+              distribution works, and build a profile that attracts opportunities. Studojo hires its growth interns from the
+              fellows.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-4">
               <a
                 href="#apply"
                 className="inline-flex min-h-12 items-center rounded-2xl border-2 border-neutral-900 bg-violet-600 px-7 py-3 text-lg font-bold text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none font-clash"
               >
-                Apply now
+                Apply to the fellowship
               </a>
               <p className="text-neutral-600 font-satoshi">About 5 minutes. Free to join.</p>
             </div>
             <p className="mt-4 text-sm text-neutral-600 font-satoshi">For college students and recent graduates.</p>
           </div>
 
-          {/* What a week looks like: an illustration of the routine, not data. */}
+          {/* What the fellowship gives you: an illustration, not data. */}
           <div aria-hidden="true" className="rounded-[28px] border-2 border-neutral-900 bg-white p-6 shadow-brutal-lg">
-            <p className="text-xs font-bold tracking-widest text-neutral-500 font-satoshi">WHAT A WEEK LOOKS LIKE</p>
+            <p className="text-xs font-bold tracking-widest text-neutral-500 font-satoshi">WHAT THE FELLOWSHIP GIVES YOU</p>
             <ul className="mt-4 space-y-3">
               {[
-                { day: "Mon", text: "Your 3 drafts arrive", tag: "From your stories", color: "bg-violet-100 text-violet-800" },
-                { day: "Tue", text: "Post about your internship", tag: "Your story", color: "bg-violet-100 text-violet-800" },
-                { day: "Thu", text: "Post about a lesson you learned", tag: "Your story", color: "bg-violet-100 text-violet-800" },
-                { day: "Sat", text: "Post how you used Studojo", tag: "Studojo", color: "bg-amber-100 text-amber-800" },
-                { day: "Sun", text: "See what worked this week", tag: "Your growth", color: "bg-emerald-100 text-emerald-800" },
+                { day: "01", text: "How distribution works on LinkedIn", tag: "Skill", color: "bg-violet-100 text-violet-800" },
+                { day: "02", text: "Posts you're proud of, written with us", tag: "Your story", color: "bg-violet-100 text-violet-800" },
+                { day: "03", text: "A profile recruiters notice", tag: "Profile", color: "bg-emerald-100 text-emerald-800" },
+                { day: "04", text: "A shot at a Studojo growth internship", tag: "Studojo", color: "bg-amber-100 text-amber-800" },
+                { day: "05", text: "Your profile shared with people hiring", tag: "Network", color: "bg-emerald-100 text-emerald-800" },
               ].map((r) => (
                 <li key={r.day} className="flex items-center gap-3 rounded-2xl border-2 border-neutral-900 px-3 py-3">
                   <span className="grid h-10 w-12 shrink-0 place-items-center rounded-xl bg-neutral-900 text-sm font-bold text-white font-satoshi">
@@ -658,9 +668,9 @@ export default function Creators() {
       {/* The application */}
       <section id="apply" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-14 md:px-8">
         <div className="mb-6 text-center">
-          <h2 className="text-3xl font-bold text-neutral-900 md:text-4xl font-clash">Apply to the Creator Program</h2>
+          <h2 className="text-3xl font-bold text-neutral-900 md:text-4xl font-clash">Apply to the Growth Fellowship</h2>
           <p className="mt-2 text-neutral-600 font-satoshi">
-            Tell us where you're starting from and where you're headed. If you're shortlisted, we'll ask for your stories next.
+            Tell us where you're starting from and where you're headed. If you're selected, we'll ask for your stories next.
           </p>
         </div>
 
@@ -1184,7 +1194,7 @@ export default function Creators() {
                       className="mt-1 h-5 w-5 shrink-0 accent-violet-600"
                     />
                     <span className="text-neutral-800">
-                      Studojo can contact me on WhatsApp and email about the Creator Program, and I agree to the{" "}
+                      Studojo can contact me on WhatsApp and email about the Growth Fellowship, and I agree to the{" "}
                       <a href="/privacy" target="_blank" rel="noopener" className="font-semibold text-violet-700 underline underline-offset-2">
                         Privacy Policy
                       </a>
@@ -1289,7 +1299,7 @@ export default function Creators() {
               Oops!
             </h3>
             <p id="ugc-no-linkedin-body" className="mt-2 text-neutral-700 font-satoshi">
-              The chance of you getting selected for the Creator Program drastically decreases if you don't have LinkedIn.
+              The chance of you getting selected for the fellowship drastically decreases if you don't have LinkedIn.
               Everything in the program happens there.
             </p>
             <p className="mt-2 text-neutral-700 font-satoshi">
