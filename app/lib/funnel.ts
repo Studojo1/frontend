@@ -23,7 +23,18 @@ export type FunnelEvent =
   | "auth_email_submit"
   | "auth_oauth_error"
   | "auth_in_app_copy_link"
-  | "auth_in_app_open_chrome";
+  | "auth_in_app_open_chrome"
+  // The Creator Program application (/creators): page view, first touch, each
+  // step reached ("2".."4"), submit (info: share code), the no-LinkedIn
+  // warning and what they chose, and share clicks (info: "channel:code").
+  | "creators_view"
+  | "creators_start"
+  | "creators_step"
+  | "creators_submit"
+  | "creators_no_linkedin"
+  | "creators_no_linkedin_continue"
+  | "creators_no_linkedin_create"
+  | "creators_share";
 
 export function logFunnelStep(event: FunnelEvent, extra?: { in_app?: string | null; info?: string }): void {
   if (typeof window === "undefined") return;

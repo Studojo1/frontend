@@ -3,19 +3,19 @@
 // and /api/ugc-apply (the authority). No server imports, so the page can use
 // it too.
 //
-// The form asks for far more than contact details on purpose: the team writes
-// each creator's posts from these answers, and picks creators by what they
-// already do on LinkedIn rather than by what they promise.
+// The form asks for far more than contact details on purpose: the team picks
+// creators by what they already do on LinkedIn and where they are headed, not
+// by what they promise. Stories are asked for after shortlisting, not here.
 
 export const YEARS_OF_STUDY = ["1st year", "2nd year", "3rd year", "4th year", "5th year", "Final year", "Graduated"] as const;
 
-export const FOLLOWERS = ["Under 100", "100-300", "300-500", "500-1,000", "1,000-5,000", "5,000+"] as const;
+export const CONNECTIONS = ["Under 100", "100-300", "300-500", "500-1,000", "1,000+"] as const;
 
 export const POST_FREQUENCY = ["I haven't posted yet", "A few times ever", "About once a month", "Every week or more"] as const;
 
 export const LAST_POSTED = ["In the last week", "In the last month", "1-6 months ago", "More than 6 months ago", "Never"] as const;
 
-export const CROSSED_1K = ["Yes", "No", "Not sure"] as const;
+export const CROSSED_1K = ["Yes", "No"] as const;
 
 export const FIELDS = [
   "Computer Science / IT",
@@ -50,8 +50,6 @@ export const TOPICS = [
   "Leadership and clubs",
 ] as const;
 
-export const TONES = ["Honest and reflective", "Light and funny", "Sharp and professional", "Storyteller"] as const;
-
 export const CAN_COMMIT = ["Yes, 3 posts a week for 4 weeks", "I can do 1-2 posts a week", "Not right now"] as const;
 
 export const STUDOJO_OK = ["Yes, that's fine", "I'd like to know more first"] as const;
@@ -65,29 +63,6 @@ export const REFERRAL_SOURCES = [
   "Other",
 ] as const;
 
-export const STORY_PROMPTS = [
-  {
-    key: "storyWork",
-    title: "An internship, job or project you've done",
-    hint: "What did you actually do, and what surprised you?",
-    placeholder:
-      "e.g. I interned at a small fintech for two months. I thought I'd build models, but most of it was cleaning data for the ops team. What surprised me was...",
-  },
-  {
-    key: "storySetback",
-    title: "A rejection, or a time something didn't go to plan",
-    hint: "What happened, and what did you do next?",
-    placeholder:
-      "e.g. I got through four rounds at a consulting firm and was rejected in the last one. The feedback was that I took too long to structure my answer, so I...",
-  },
-  {
-    key: "storyLesson",
-    title: "Something you learned the hard way",
-    hint: "What do you wish someone had told you earlier?",
-    placeholder: "e.g. Applying to 200 jobs on portals got me nothing. Two messages to real people got me an interview...",
-  },
-] as const;
-
 export const LIMITS = {
   name: 120,
   email: 200,
@@ -99,13 +74,14 @@ export const LIMITS = {
   roles: 200,
   companies: 200,
   avoid: 300,
-  story: 1500,
-  storyMin: 60,
   why: 600,
   whyMin: 10,
   referredBy: 120,
   topicsMax: 5,
 } as const;
+
+/** Share codes: 8 lowercase letters and digits, one per applicant. */
+export const SHARE_CODE = /^[a-z0-9]{8}$/;
 
 export interface UgcApplication {
   fullName: string;
@@ -115,11 +91,13 @@ export interface UgcApplication {
   course: string;
   yearOfStudy: string;
   graduationYear: string | null;
-  city: string | null;
-  linkedinUrl: string;
-  followers: string;
-  postFrequency: string;
-  lastPosted: string;
+  city: string;
+  /** False when they said they don't have LinkedIn; every LinkedIn answer is then null. */
+  hasLinkedin: boolean;
+  linkedinUrl: string | null;
+  connections: string | null;
+  postFrequency: string | null;
+  lastPosted: string | null;
   bestPostUrl: string | null;
   crossed1k: string | null;
   field: string;
@@ -128,20 +106,17 @@ export interface UgcApplication {
   lookingFor: string;
   topics: string[];
   avoidTopics: string | null;
-  storyWork: string | null;
-  storySetback: string | null;
-  storyLesson: string | null;
-  tone: string | null;
   canCommit: string;
   studojoOk: string;
   whyJoin: string;
   referralSource: string | null;
   referredBy: string | null;
+  /** The share code of the applicant whose link brought them here, if any. */
+  cameFromCode: string | null;
 }
 
-/** A field the form can point at when something is wrong. "stories" means the
- * three story boxes as a group. */
-export type UgcField = keyof UgcApplication | "stories" | "consent";
+/** A field the form can point at when something is wrong. */
+export type UgcField = Exclude<keyof UgcApplication, "hasLinkedin" | "cameFromCode"> | "consent";
 
 export type UgcValidation =
   | { ok: true; value: UgcApplication }
@@ -150,9 +125,8 @@ export type UgcValidation =
 /** The form's steps, in order, and which answers live on each. */
 export const STEPS: { title: string; fields: UgcField[] }[] = [
   { title: "About you", fields: ["fullName", "email", "whatsapp", "college", "course", "yearOfStudy", "graduationYear", "city"] },
-  { title: "Your LinkedIn", fields: ["linkedinUrl", "followers", "postFrequency", "lastPosted", "bestPostUrl", "crossed1k"] },
+  { title: "Your LinkedIn", fields: ["linkedinUrl", "connections", "postFrequency", "lastPosted", "bestPostUrl", "crossed1k"] },
   { title: "Where you're headed", fields: ["field", "targetRoles", "lookingFor", "dreamCompanies", "topics", "avoidTopics"] },
-  { title: "Your stories", fields: ["stories", "storyWork", "storySetback", "storyLesson", "tone"] },
   { title: "Last bit", fields: ["canCommit", "studojoOk", "whyJoin", "referralSource", "referredBy", "consent"] },
 ];
 
@@ -235,6 +209,9 @@ const BASIC_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
  * form's steps, so the first error is always on the earliest step that needs
  * attention. `checkEmail` lets the caller plug in the stricter typo check
  * (gmail.cok and friends); it returns an error message or null.
+ *
+ * `noLinkedin: true` means the applicant said they have no LinkedIn profile:
+ * the LinkedIn questions are then skipped and stored as null.
  */
 export function validateUgcApplication(
   body: Record<string, unknown>,
@@ -259,24 +236,34 @@ export function validateUgcApplication(
   const yearOfStudy = oneOf(YEARS_OF_STUDY, body.yearOfStudy);
   if (!yearOfStudy) return fail("yearOfStudy", "Please pick your year of study.");
   const graduationYear = /^\d{4}$/.test(str(body.graduationYear)) ? str(body.graduationYear) : null;
-  const city = line(body.city, LIMITS.city) || null;
+  const city = line(body.city, LIMITS.city);
+  if (city.length < 2) return fail("city", "Please tell us which city you're in.");
 
-  // Step 2: LinkedIn
-  if (!line(body.linkedinUrl, LIMITS.url)) return fail("linkedinUrl", "Please paste your LinkedIn profile link.");
-  const linkedinUrl = normalizeLinkedInProfile(body.linkedinUrl);
-  if (!linkedinUrl) return fail("linkedinUrl", "Paste your profile link. It looks like linkedin.com/in/your-name.");
-  const followers = oneOf(FOLLOWERS, body.followers);
-  if (!followers) return fail("followers", "Please pick roughly how many followers you have.");
-  const postFrequency = oneOf(POST_FREQUENCY, body.postFrequency);
-  if (!postFrequency) return fail("postFrequency", "Please tell us how often you post.");
-  const lastPosted = oneOf(LAST_POSTED, body.lastPosted);
-  if (!lastPosted) return fail("lastPosted", "Please tell us when you last posted.");
+  // Step 2: LinkedIn (skipped entirely when they have none)
+  const hasLinkedin = body.noLinkedin !== true;
+  let linkedinUrl: string | null = null;
+  let connections: string | null = null;
+  let postFrequency: string | null = null;
+  let lastPosted: string | null = null;
   let bestPostUrl: string | null = null;
-  if (line(body.bestPostUrl, LIMITS.url)) {
-    bestPostUrl = normalizeLinkedInPost(body.bestPostUrl);
-    if (!bestPostUrl) return fail("bestPostUrl", "That isn't a LinkedIn post link. Leave it empty if you don't have one.");
+  let crossed1k: string | null = null;
+  if (hasLinkedin) {
+    if (!line(body.linkedinUrl, LIMITS.url)) return fail("linkedinUrl", "Please paste your LinkedIn profile link.");
+    linkedinUrl = normalizeLinkedInProfile(body.linkedinUrl);
+    if (!linkedinUrl) return fail("linkedinUrl", "Paste your profile link. It looks like linkedin.com/in/your-name.");
+    connections = oneOf(CONNECTIONS, body.connections);
+    if (!connections) return fail("connections", "Please pick roughly how many connections you have.");
+    postFrequency = oneOf(POST_FREQUENCY, body.postFrequency);
+    if (!postFrequency) return fail("postFrequency", "Please tell us how often you post.");
+    lastPosted = oneOf(LAST_POSTED, body.lastPosted);
+    if (!lastPosted) return fail("lastPosted", "Please tell us when you last posted.");
+    if (line(body.bestPostUrl, LIMITS.url)) {
+      bestPostUrl = normalizeLinkedInPost(body.bestPostUrl);
+      if (!bestPostUrl) return fail("bestPostUrl", "That isn't a LinkedIn post link. Leave it empty if you don't have one.");
+    }
+    crossed1k = oneOf(CROSSED_1K, body.crossed1k);
+    if (!crossed1k) return fail("crossed1k", "Please answer yes or no.");
   }
-  const crossed1k = oneOf(CROSSED_1K, body.crossed1k);
 
   // Step 3: direction
   const field = oneOf(FIELDS, body.field);
@@ -294,17 +281,7 @@ export function validateUgcApplication(
   if (topics.length > LIMITS.topicsMax) return fail("topics", `Pick up to ${LIMITS.topicsMax} topics.`);
   const avoidTopics = line(body.avoidTopics, LIMITS.avoid) || null;
 
-  // Step 4: stories. At least one real story; the rest are welcome.
-  const storyWork = para(body.storyWork, LIMITS.story) || null;
-  const storySetback = para(body.storySetback, LIMITS.story) || null;
-  const storyLesson = para(body.storyLesson, LIMITS.story) || null;
-  const stories = [storyWork, storySetback, storyLesson].filter(Boolean) as string[];
-  if (!stories.length) return fail("stories", "Tell us at least one story. A few lines is enough.");
-  if (!stories.some((s) => s.length >= LIMITS.storyMin))
-    return fail("stories", `Give us a little more in one of your stories (at least ${LIMITS.storyMin} characters) so we can write from it.`);
-  const tone = oneOf(TONES, body.tone);
-
-  // Step 5: commitment and consent
+  // Step 4: commitment and consent
   const canCommit = oneOf(CAN_COMMIT, body.canCommit);
   if (!canCommit) return fail("canCommit", "Please tell us how much you can post.");
   const studojoOk = oneOf(STUDOJO_OK, body.studojoOk);
@@ -316,14 +293,17 @@ export function validateUgcApplication(
   const referredBy = line(body.referredBy, LIMITS.referredBy) || null;
   if (body.consent !== true) return fail("consent", "Please tick the box so we can contact you about the program.");
 
+  // Attribution from a share link; a malformed code is ignored, never an error.
+  const code = str(body.cameFromCode).trim().toLowerCase();
+  const cameFromCode = SHARE_CODE.test(code) ? code : null;
+
   return {
     ok: true,
     value: {
       fullName, email, whatsapp, college, course, yearOfStudy, graduationYear, city,
-      linkedinUrl, followers, postFrequency, lastPosted, bestPostUrl, crossed1k,
+      hasLinkedin, linkedinUrl, connections, postFrequency, lastPosted, bestPostUrl, crossed1k,
       field, targetRoles, dreamCompanies, lookingFor, topics, avoidTopics,
-      storyWork, storySetback, storyLesson, tone,
-      canCommit, studojoOk, whyJoin, referralSource, referredBy,
+      canCommit, studojoOk, whyJoin, referralSource, referredBy, cameFromCode,
     },
   };
 }

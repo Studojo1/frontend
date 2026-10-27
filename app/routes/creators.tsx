@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-import { FiAward, FiCheck, FiCheckCircle, FiEdit3, FiSend, FiUserCheck } from "react-icons/fi";
+import { FiAlertCircle, FiAward, FiCheck, FiCheckCircle, FiEdit3, FiSend, FiUserCheck, FiX } from "react-icons/fi";
 import { Header, Footer } from "~/components";
 import { checkEmail } from "~/lib/email-validate";
+import { logFunnelStep } from "~/lib/funnel";
 import { revealResult } from "~/lib/reveal-result";
 import {
   CAN_COMMIT,
+  CONNECTIONS,
   CROSSED_1K,
   FIELDS,
-  FOLLOWERS,
   LAST_POSTED,
   LIMITS,
   LOOKING_FOR,
   POST_FREQUENCY,
   REFERRAL_SOURCES,
+  SHARE_CODE,
   STEPS,
-  STORY_PROMPTS,
   STUDOJO_OK,
-  TONES,
   TOPICS,
   YEARS_OF_STUDY,
   stepOf,
@@ -36,12 +36,12 @@ export function meta() {
     {
       name: "description",
       content:
-        "Turn your internships, projects and setbacks into LinkedIn posts that get you noticed. Apply to the Studojo Creator Program in about 10 minutes.",
+        "Turn your internships, projects and setbacks into LinkedIn posts that get you noticed. Apply to the Studojo Creator Program in about 5 minutes.",
     },
     { property: "og:title", content: "Grow on LinkedIn with the Studojo Creator Program" },
     {
       property: "og:description",
-      content: "Your stories, turned into 3 LinkedIn posts a week, written with you. Apply in about 10 minutes.",
+      content: "Your stories, turned into 3 LinkedIn posts a week, written with you. Apply in about 5 minutes.",
     },
     { property: "og:type", content: "website" },
     { property: "og:url", content: CANONICAL },
@@ -70,8 +70,9 @@ interface FormState {
   yearOfStudy: string;
   graduationYear: string;
   city: string;
+  noLinkedin: boolean;
   linkedinUrl: string;
-  followers: string;
+  connections: string;
   postFrequency: string;
   lastPosted: string;
   bestPostUrl: string;
@@ -82,10 +83,6 @@ interface FormState {
   lookingFor: string;
   topics: string[];
   avoidTopics: string;
-  storyWork: string;
-  storySetback: string;
-  storyLesson: string;
-  tone: string;
   canCommit: string;
   studojoOk: string;
   whyJoin: string;
@@ -103,8 +100,9 @@ const EMPTY: FormState = {
   yearOfStudy: "",
   graduationYear: "",
   city: "",
+  noLinkedin: false,
   linkedinUrl: "",
-  followers: "",
+  connections: "",
   postFrequency: "",
   lastPosted: "",
   bestPostUrl: "",
@@ -115,10 +113,6 @@ const EMPTY: FormState = {
   lookingFor: "",
   topics: [],
   avoidTopics: "",
-  storyWork: "",
-  storySetback: "",
-  storyLesson: "",
-  tone: "",
   canCommit: "",
   studojoOk: "",
   whyJoin: "",
@@ -131,7 +125,9 @@ const EMPTY: FormState = {
 // or a LinkedIn in-app browser reload does not throw the work away. Drafts
 // expire after a day (shared and lab computers), and the consent tick is never
 // kept: whoever submits must tick it themselves.
-const DRAFT_KEY = "studojo.creators.draft.v1";
+const DRAFT_KEY = "studojo.creators.draft.v2";
+// The share code of whoever's link brought this visitor here, for this session.
+const REF_KEY = "studojo.creators.ref";
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 function loadDraft(): { form: FormState; step: number } | null {
@@ -149,6 +145,7 @@ function loadDraft(): { form: FormState; step: number } | null {
       const v = saved.form[k];
       if (k === "topics") form.topics = Array.isArray(v) ? v.map(String) : [];
       else if (k === "consent") form.consent = false;
+      else if (k === "noLinkedin") form.noLinkedin = v === true;
       else if (typeof v === "string") (form as unknown as Record<string, unknown>)[k] = v;
     }
     const step = Number.isInteger(saved.step) ? Math.min(Math.max(saved.step, 0), STEPS.length - 1) : 0;
@@ -178,14 +175,9 @@ function clearDraft() {
   }
 }
 
-/** The story box that should carry a "stories" error: the one they wrote most in, else the first. */
-function storyTarget(form: FormState): (typeof STORY_PROMPTS)[number]["key"] {
-  return [...STORY_PROMPTS].sort((a, b) => form[b.key].trim().length - form[a.key].trim().length)[0].key;
-}
-
 /** The element to focus when an answer needs attention. */
-function focusField(field: UgcField, form: FormState) {
-  const id = field === "stories" ? `ugc-${storyTarget(form)}` : `ugc-${field}`;
+function focusField(field: UgcField) {
+  const id = `ugc-${field}`;
   const el = document.getElementById(id) ?? document.getElementById(`${id}-0`);
   if (!el) return;
   el.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -223,10 +215,10 @@ const PERKS = [
 ];
 
 const HOW = [
-  { title: "Apply", body: "Tell us about you, your LinkedIn and one or two of your stories. About 10 minutes." },
-  { title: "Hear from us", body: "We read every application. If you're selected, we message you on WhatsApp." },
-  { title: "Get your posts", body: "Every week, 3 drafts written from your stories, ready to copy." },
-  { title: "Post and grow", body: "Post them, share the links with us, and see what's working for you." },
+  { title: "Apply", body: "Tell us about you, your LinkedIn and where you're headed. About 5 minutes." },
+  { title: "Get shortlisted", body: "We read every application. If you're shortlisted, we message you on WhatsApp." },
+  { title: "Share your stories", body: "You tell us a few of your experiences, and we write your posts from them." },
+  { title: "Post and grow", body: "Every week, 3 drafts ready to copy. Post them, share the links with us, and see what's working." },
 ];
 
 const FOR_YOU = [
@@ -271,13 +263,28 @@ export default function Creators() {
   const [done, setDone] = useState(false);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
   const [copied, setCopied] = useState<"no" | "yes" | "failed">("no");
+  const [shareCode, setShareCode] = useState<string | null>(null);
+  const [noLinkedinOpen, setNoLinkedinOpen] = useState(false);
   const loaded = useRef(false);
+  const started = useRef(false);
+  const cameFrom = useRef<string | null>(null);
+  const dialogPrimaryRef = useRef<HTMLAnchorElement>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const pendingFocus = useRef<UgcField | null>(null);
 
-  // Bring back a half-finished application (client only, after hydration).
+  // Bring back a half-finished application (client only, after hydration),
+  // count the visit, and remember whose share link brought them here.
   useEffect(() => {
+    logFunnelStep("creators_view");
+    try {
+      const ref = (new URLSearchParams(window.location.search).get("ref") ?? "").toLowerCase();
+      if (SHARE_CODE.test(ref)) window.sessionStorage.setItem(REF_KEY, ref);
+      const kept = window.sessionStorage.getItem(REF_KEY);
+      cameFrom.current = kept && SHARE_CODE.test(kept) ? kept : null;
+    } catch {
+      // Storage blocked: attribution is best effort.
+    }
     const draft = loadDraft();
     if (draft) {
       setForm(draft.form);
@@ -296,7 +303,7 @@ export default function Creators() {
   // After a step change, focus the field that needs attention, or the step title.
   useEffect(() => {
     if (pendingFocus.current) {
-      focusField(pendingFocus.current, form);
+      focusField(pendingFocus.current);
       pendingFocus.current = null;
     }
   }, [step, errors]);
@@ -305,13 +312,27 @@ export default function Creators() {
     if (done) revealResult(resultRef.current);
   }, [done]);
 
+  // The no-LinkedIn warning: focus its main action, Escape closes it.
+  useEffect(() => {
+    if (!noLinkedinOpen) return;
+    dialogPrimaryRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeNoLinkedin();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [noLinkedinOpen]);
+
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+    if (!started.current) {
+      started.current = true;
+      logFunnelStep("creators_start");
+    }
     setForm((f) => ({ ...f, [key]: value }));
     setErrors((e) => {
-      if (!e[key as UgcField] && !(key.startsWith("story") && e.stories)) return e;
+      if (!e[key as UgcField]) return e;
       const next = { ...e };
       delete next[key as UgcField];
-      if (key.startsWith("story")) delete next.stories;
       return next;
     });
     if (key === "email") setEmailSuggestion(null);
@@ -346,6 +367,7 @@ export default function Creators() {
   }
 
   function goTo(s: number) {
+    if (s > step) logFunnelStep("creators_step", { info: String(s + 1) });
     setRestored(false);
     setErrors({});
     setFormError(null);
@@ -360,6 +382,29 @@ export default function Creators() {
     const p = firstProblem(step);
     if (p) return showProblem(p);
     goTo(step + 1);
+  }
+
+  function openNoLinkedin() {
+    setNoLinkedinOpen(true);
+    logFunnelStep("creators_no_linkedin");
+  }
+
+  function closeNoLinkedin() {
+    setNoLinkedinOpen(false);
+    window.requestAnimationFrame(() => document.getElementById("ugc-linkedinUrl")?.focus());
+  }
+
+  function continueWithoutLinkedin() {
+    setNoLinkedinOpen(false);
+    // Clear the LinkedIn answers so nothing half-filled goes with the application.
+    setForm((f) => ({ ...f, noLinkedin: true, linkedinUrl: "", connections: "", postFrequency: "", lastPosted: "", bestPostUrl: "", crossed1k: "" }));
+    setErrors({});
+    logFunnelStep("creators_no_linkedin_continue");
+  }
+
+  function addLinkedinAfterAll() {
+    update("noLinkedin", false);
+    window.requestAnimationFrame(() => document.getElementById("ugc-linkedinUrl")?.focus());
   }
 
   function startOver() {
@@ -387,6 +432,7 @@ export default function Creators() {
         body: JSON.stringify({
           ...form,
           sj_trap: trap,
+          cameFromCode: cameFrom.current ?? "",
           sourcePath: window.location.pathname,
           utmSource: qs.get("utm_source") || "",
           utmMedium: qs.get("utm_medium") || "",
@@ -402,6 +448,9 @@ export default function Creators() {
         return;
       }
       clearDraft();
+      const code = typeof data.shareCode === "string" && SHARE_CODE.test(data.shareCode) ? data.shareCode : null;
+      setShareCode(code);
+      logFunnelStep("creators_submit", { info: code ?? "" });
       setAlreadyApplied(Boolean(data.alreadyApplied));
       setDone(true);
     } catch {
@@ -410,10 +459,15 @@ export default function Creators() {
     }
   }
 
+  // Every share link carries the applicant's code, so visits and applications
+  // that come through it are credited to them in the admin panel.
   const shareLink = (source: string) =>
-    `https://studojo.com/creators?utm_source=${source}&utm_medium=share&utm_campaign=creator_program`;
+    `https://studojo.com/creators?${shareCode ? `ref=${shareCode}&` : ""}utm_source=${source}&utm_medium=share&utm_campaign=creator_program`;
+  const trackShare = (channel: "linkedin" | "whatsapp" | "copy") =>
+    logFunnelStep("creators_share", { info: `${channel}:${shareCode ?? ""}` });
   const whatsappText = `I just applied to the Studojo Creator Program. They help you turn your own stories into LinkedIn posts. Apply here: ${shareLink("whatsapp")}`;
   async function copyLink() {
+    trackShare("copy");
     const url = shareLink("copy");
     let ok = false;
     try {
@@ -489,7 +543,6 @@ export default function Creators() {
   );
 
   const firstName = form.fullName.trim().split(/\s+/)[0] || "";
-  const storyCount = STORY_PROMPTS.filter((p) => form[p.key].trim()).length;
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
@@ -516,7 +569,7 @@ export default function Creators() {
               >
                 Apply now
               </a>
-              <p className="text-neutral-600 font-satoshi">About 10 minutes. Free to join.</p>
+              <p className="text-neutral-600 font-satoshi">About 5 minutes. Free to join.</p>
             </div>
             <p className="mt-4 text-sm text-neutral-600 font-satoshi">For college students and recent graduates.</p>
           </div>
@@ -607,7 +660,7 @@ export default function Creators() {
         <div className="mb-6 text-center">
           <h2 className="text-3xl font-bold text-neutral-900 md:text-4xl font-clash">Apply to the Creator Program</h2>
           <p className="mt-2 text-neutral-600 font-satoshi">
-            We write your posts from your answers, so the more real detail you share, the better your posts will be.
+            Tell us where you're starting from and where you're headed. If you're shortlisted, we'll ask for your stories next.
           </p>
         </div>
 
@@ -635,6 +688,7 @@ export default function Creators() {
                   href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareLink("linkedin"))}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackShare("linkedin")}
                   className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-violet-600 px-5 py-2 font-bold text-white font-satoshi"
                 >
                   Share on LinkedIn
@@ -650,6 +704,7 @@ export default function Creators() {
                   href={`https://wa.me/?text=${encodeURIComponent(whatsappText)}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackShare("whatsapp")}
                   className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-white px-5 py-2 font-bold text-neutral-900 font-satoshi"
                 >
                   Share on WhatsApp
@@ -860,65 +915,103 @@ export default function Creators() {
                 </div>
                 <div>
                   <label htmlFor="ugc-city" className={LABEL}>
-                    City{OPTIONAL}
+                    City{REQUIRED}
                   </label>
                   <input
-                    id="ugc-city"
+                    {...a11y("city")}
                     className={INPUT}
                     autoComplete="address-level2"
                     maxLength={LIMITS.city}
                     value={form.city}
                     onChange={(e) => update("city", e.target.value)}
                   />
+                  {errorText("city")}
                 </div>
               </div>
             )}
 
             {step === 1 && (
               <div className="grid gap-7">
-                <p className="text-neutral-600 font-satoshi">
-                  This tells us where you're starting from. Small numbers are completely fine.
-                </p>
-                <div>
-                  <label htmlFor="ugc-linkedinUrl" className={LABEL}>
-                    Your LinkedIn profile link{REQUIRED}
-                  </label>
-                  <p className={HINT}>On LinkedIn, open your profile, tap the three dots or Share, and copy the link.</p>
-                  <input
-                    {...a11y("linkedinUrl")}
-                    type="url"
-                    inputMode="url"
-                    autoCapitalize="none"
-                    className={INPUT}
-                    placeholder="linkedin.com/in/your-name"
-                    maxLength={LIMITS.url}
-                    value={form.linkedinUrl}
-                    onChange={(e) => update("linkedinUrl", e.target.value)}
-                  />
-                  {errorText("linkedinUrl")}
-                </div>
-                {choices({ f: "followers", options: FOLLOWERS, legend: "About how many followers do you have?", required: true })}
-                {choices({ f: "postFrequency", options: POST_FREQUENCY, legend: "How often do you post?", required: true })}
-                {choices({ f: "lastPosted", options: LAST_POSTED, legend: "When did you last post?", required: true })}
-                <div>
-                  <label htmlFor="ugc-bestPostUrl" className={LABEL}>
-                    A post of yours you're proud of{OPTIONAL}
-                  </label>
-                  <p className={HINT}>Paste the link to the post. It helps us see how you write.</p>
-                  <input
-                    {...a11y("bestPostUrl")}
-                    type="url"
-                    inputMode="url"
-                    autoCapitalize="none"
-                    className={INPUT}
-                    placeholder="linkedin.com/posts/..."
-                    maxLength={LIMITS.url}
-                    value={form.bestPostUrl}
-                    onChange={(e) => update("bestPostUrl", e.target.value)}
-                  />
-                  {errorText("bestPostUrl")}
-                </div>
-                {choices({ f: "crossed1k", options: CROSSED_1K, legend: "Has any of your posts crossed 1,000 impressions?" })}
+                {form.noLinkedin ? (
+                  <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 font-satoshi">
+                    <p className="font-semibold text-amber-950">You said you don't have LinkedIn.</p>
+                    <p className="mt-1 text-amber-950">
+                      Your chances of being selected are much lower without it, because everything in the program happens on
+                      LinkedIn. You can still apply.
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <a
+                        href="https://www.linkedin.com/signup"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => logFunnelStep("creators_no_linkedin_create")}
+                        className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-violet-600 px-4 py-2 font-bold text-white"
+                      >
+                        Create a LinkedIn profile
+                      </a>
+                      <button
+                        type="button"
+                        onClick={addLinkedinAfterAll}
+                        className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-white px-4 py-2 font-bold text-neutral-900"
+                      >
+                        I have LinkedIn after all
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-neutral-600 font-satoshi">
+                      This tells us where you're starting from. Small numbers are completely fine.
+                    </p>
+                    <div>
+                      <label htmlFor="ugc-linkedinUrl" className={LABEL}>
+                        Your LinkedIn profile link{REQUIRED}
+                      </label>
+                      <p className={HINT}>On LinkedIn, open your profile, tap the three dots or Share, and copy the link.</p>
+                      <input
+                        {...a11y("linkedinUrl")}
+                        type="url"
+                        inputMode="url"
+                        autoCapitalize="none"
+                        className={INPUT}
+                        placeholder="linkedin.com/in/your-name"
+                        maxLength={LIMITS.url}
+                        value={form.linkedinUrl}
+                        onChange={(e) => update("linkedinUrl", e.target.value)}
+                      />
+                      {errorText("linkedinUrl")}
+                      <button
+                        type="button"
+                        onClick={openNoLinkedin}
+                        className="mt-2 min-h-11 text-sm font-semibold text-violet-700 underline underline-offset-2 font-satoshi"
+                      >
+                        I don't have LinkedIn
+                      </button>
+                    </div>
+                    {choices({ f: "connections", options: CONNECTIONS, legend: "About how many connections do you have?", required: true })}
+                    {choices({ f: "postFrequency", options: POST_FREQUENCY, legend: "How often do you post?", required: true })}
+                    {choices({ f: "lastPosted", options: LAST_POSTED, legend: "When did you last post?", required: true })}
+                    <div>
+                      <label htmlFor="ugc-bestPostUrl" className={LABEL}>
+                        A post of yours you're proud of{OPTIONAL}
+                      </label>
+                      <p className={HINT}>Paste the link to the post. It helps us see how you write.</p>
+                      <input
+                        {...a11y("bestPostUrl")}
+                        type="url"
+                        inputMode="url"
+                        autoCapitalize="none"
+                        className={INPUT}
+                        placeholder="linkedin.com/posts/..."
+                        maxLength={LIMITS.url}
+                        value={form.bestPostUrl}
+                        onChange={(e) => update("bestPostUrl", e.target.value)}
+                      />
+                      {errorText("bestPostUrl")}
+                    </div>
+                    {choices({ f: "crossed1k", options: CROSSED_1K, legend: "Has any of your posts crossed 1,000 impressions?", required: true })}
+                  </>
+                )}
               </div>
             )}
 
@@ -1014,56 +1107,6 @@ export default function Creators() {
             )}
 
             {step === 3 && (
-              <div className="grid gap-7">
-                <div className="rounded-2xl bg-violet-50 p-4 text-violet-950 font-satoshi">
-                  <p className="font-semibold">This is the most important part. Answer at least one.</p>
-                  <p className="mt-1">
-                    We write your posts from these. A few honest lines are enough, and more stories means better posts.
-                  </p>
-                </div>
-                {STORY_PROMPTS.map((p) => {
-                  const value = form[p.key];
-                  const ready = value.trim().length >= LIMITS.storyMin;
-                  const invalid = Boolean(err("stories")) && storyTarget(form) === p.key;
-                  return (
-                    <div key={p.key}>
-                      <label htmlFor={`ugc-${p.key}`} className={LABEL}>
-                        {p.title}
-                      </label>
-                      <p className={HINT}>{p.hint}</p>
-                      <textarea
-                        id={`ugc-${p.key}`}
-                        aria-invalid={invalid ? true : undefined}
-                        aria-describedby={invalid ? "ugc-stories-error" : undefined}
-                        className={`${INPUT} min-h-[140px] resize-y`}
-                        placeholder={p.placeholder}
-                        maxLength={LIMITS.story}
-                        value={value}
-                        onChange={(e) => update(p.key, e.target.value)}
-                      />
-                      <div className="mt-1 flex justify-between text-sm font-satoshi">
-                        <span className={`inline-flex items-center gap-1 ${ready ? "font-semibold text-emerald-700" : "text-neutral-500"}`}>
-                          {ready && <FiCheck aria-hidden="true" className="h-4 w-4" />}
-                          {ready ? "Enough for us to write from" : value.trim() ? "Keep going, a little more detail helps" : ""}
-                        </span>
-                        <span className="text-neutral-500">
-                          {value.length}/{LIMITS.story}
-                        </span>
-                      </div>
-                      {invalid && errorText("stories")}
-                    </div>
-                  );
-                })}
-                <p className="text-sm text-neutral-500 font-satoshi">
-                  {storyCount === 0
-                    ? "Tip: the first one is usually the easiest."
-                    : `${storyCount} ${storyCount === 1 ? "story" : "stories"} so far.`}
-                </p>
-                {choices({ f: "tone", options: TONES, legend: "How do you want to sound?" })}
-              </div>
-            )}
-
-            {step === 4 && (
               <div className="grid gap-7">
                 <p className="text-neutral-600 font-satoshi">Almost done.</p>
                 {choices({ f: "canCommit", options: CAN_COMMIT, legend: "Can you post 3 times a week for 4 weeks?", required: true })}
@@ -1211,6 +1254,79 @@ export default function Creators() {
           ))}
         </div>
       </section>
+
+      {noLinkedinOpen && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-neutral-900/50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeNoLinkedin();
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ugc-no-linkedin-title"
+            aria-describedby="ugc-no-linkedin-body"
+            className="w-full max-w-md rounded-[28px] border-2 border-neutral-900 bg-white p-6 shadow-brutal-lg"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span
+                aria-hidden="true"
+                className="grid h-12 w-12 place-items-center rounded-2xl border-2 border-neutral-900 bg-amber-100 text-amber-700"
+              >
+                <FiAlertCircle className="h-6 w-6" />
+              </span>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={closeNoLinkedin}
+                className="grid h-11 w-11 place-items-center rounded-full text-neutral-700 hover:bg-neutral-100"
+              >
+                <FiX aria-hidden="true" className="h-5 w-5" />
+              </button>
+            </div>
+            <h3 id="ugc-no-linkedin-title" className="mt-4 text-2xl font-bold text-neutral-900 font-clash">
+              Oops!
+            </h3>
+            <p id="ugc-no-linkedin-body" className="mt-2 text-neutral-700 font-satoshi">
+              The chance of you getting selected for the Creator Program drastically decreases if you don't have LinkedIn.
+              Everything in the program happens there.
+            </p>
+            <p className="mt-2 text-neutral-700 font-satoshi">
+              You can set up a profile now and come back. Your answers stay saved on this device for a day.
+            </p>
+            <div className="mt-6 grid gap-3">
+              <a
+                ref={dialogPrimaryRef}
+                href="https://www.linkedin.com/signup"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  logFunnelStep("creators_no_linkedin_create");
+                  setNoLinkedinOpen(false);
+                }}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-600 px-5 py-3 text-lg font-bold text-white shadow-brutal font-clash"
+              >
+                Create a LinkedIn profile
+              </a>
+              <button
+                type="button"
+                onClick={closeNoLinkedin}
+                className="min-h-12 rounded-2xl border-2 border-neutral-900 bg-white px-5 py-3 text-lg font-bold text-neutral-900 font-clash"
+              >
+                I have LinkedIn, go back
+              </button>
+              <button
+                type="button"
+                onClick={continueWithoutLinkedin}
+                className="min-h-11 font-semibold text-neutral-600 underline underline-offset-2 font-satoshi"
+              >
+                Continue without LinkedIn
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
