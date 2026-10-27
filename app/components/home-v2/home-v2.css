@@ -151,7 +151,7 @@
 @keyframes hv-fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .hv2 .hv-jcard.hv-in { animation: hv-card-in .62s cubic-bezier(.2, .9, .3, 1) both; }
 .hv2 .hv-ticks.hv-in { animation: hv-fade-up .4s ease .35s both; }
-.hv2 .hv-hero [hidden], .hv2 .hv-sheet [hidden] { display: none !important; }
+.hv2 .hv-hero [hidden], .hv2 .hv-call [hidden] { display: none !important; }
 .hv2 .hv-hero:not([data-stage="idle"]) .hv-hero-stu { animation: none; }
 .hv2 .hv-hero[data-stage="signup"] { grid-template-rows: auto auto; align-content: start; gap: 28px; padding-top: 20px; }
 .hv2 .hv-hero[data-stage="signup"] .hv-hero-stu { --hv-s: 150px; }
@@ -185,23 +185,6 @@
 .hv2 .hv-bar-m .hv-stu-cell { --hv-c: 52px; padding: 0; cursor: pointer; }
 .hv2 .hv-bar-m .hv-btn-start { flex: 1; height: 52px; font-size: 17.5px; font-family: inherit; cursor: pointer; }
 .hv2 button.hv-btn-start { font-family: inherit; }
-.hv2 .hv-sheet-back { position: fixed; inset: 0; z-index: 70; background: rgba(23, 23, 23, .28); opacity: 0; transition: opacity .25s ease; }
-.hv2 .hv-sheet-back.hv-open { opacity: 1; }
-.hv2 .hv-sheet { position: fixed; z-index: 71; left: 0; right: 0; bottom: 0; max-height: 92svh; overflow-y: auto; overscroll-behavior: contain; background: #f7f6fa; border: 2px solid var(--hv-ink); border-bottom: 0; border-radius: 26px 26px 0 0; padding: 14px 18px calc(24px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .34s cubic-bezier(.2, .9, .3, 1); text-align: center; }
-.hv2 .hv-sheet.hv-open { transform: none; }
-.hv2 .hv-sheet[hidden], .hv2 .hv-sheet-back[hidden] { display: none; }
-.hv2 .hv-sheet-top { position: sticky; top: -14px; z-index: 2; display: flex; align-items: center; gap: 10px; text-align: left; margin: -14px -18px 0; padding: 14px 18px 8px; background: #f7f6fa; }
-.hv2 .hv-sheet-top .hv-kicker { font-size: 11.5px; }
-.hv2 .hv-sheet-x { margin-left: auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--hv-ink); background: #fff; cursor: pointer; color: var(--hv-ink); }
-.hv2 .hv-sheet-x:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 2px; }
-.hv2 .hv-sheet .hv-stu-art { --hv-s: 132px; margin: 6px auto 0; }
-.hv2 .hv-sheet .hv-said { font-size: 20px; margin: 10px auto 0; }
-.hv2 .hv-sheet .hv-talking { margin-top: 14px; }
-.hv2 .hv-sheet .hv-ticks { max-width: 440px; margin: 18px auto 0; }
-.hv2 .hv-sheet .hv-jcard { margin: 22px auto 6px; padding: 20px; }
-.hv2 .hv-sheet[data-stage="signup"] .hv-stu-art { --hv-s: 88px; }
-.hv2 .hv-sheet[data-stage="signup"] .hv-said { font-size: 17px; }
-.hv2 .hv-sheet[data-stage="signup"] .hv-ticks li { font-size: 14px; }
 @media (max-width: 374px) {
   .hv2 .hv-hero .hv-line { font-size: 29px; }
   .hv2 .hv-hint { flex-wrap: wrap; }
@@ -232,11 +215,6 @@
   .hv2 .hv-bar-m { display: none; }
   .hv2 .hv-side { display: inline-flex; }
   .hv2 .hv-jcard { padding: 32px; }
-  .hv2 .hv-sheet { left: auto; right: 24px; bottom: 24px; width: 440px; max-height: calc(100vh - 48px); border-bottom: 2px solid var(--hv-ink); border-radius: 26px; padding: 16px 20px 22px; box-shadow: 8px 8px 0 var(--hv-ink2); transform: translateY(24px) scale(.96); opacity: 0; transform-origin: bottom right; transition: transform .3s cubic-bezier(.2, .9, .3, 1.1), opacity .2s ease; }
-  .hv2 .hv-sheet.hv-open { transform: none; opacity: 1; }
-  .hv2 .hv-sheet-back { background: rgba(23, 23, 23, .12); }
-  .hv2 .hv-sheet .hv-jcard { box-shadow: 5px 5px 0 var(--hv-ink2); }
-  .hv2 .hv-sheet-top { top: -16px; margin: -16px -20px 0; padding: 16px 20px 8px; }
 }
 @media (min-width: 1024px) {
   .hv2 .hv-hero[data-stage="signup"] { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); grid-template-rows: auto; align-content: center; align-items: center; gap: 56px; max-width: 1120px; margin: 0 auto; padding: 24px 28px 72px; text-align: left; }
@@ -247,7 +225,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hv2 .hv-hero-stu, .hv2 .hv-talking .hv-bars i { animation: none !important; }
-  .hv2 .hv-stu-art .hv-faces img, .hv2 .hv-side, .hv2 .hv-bar-m, .hv2 .hv-hdr, .hv2 .hv-sheet, .hv2 .hv-sheet-back { transition: none !important; }
+  .hv2 .hv-stu-art .hv-faces img, .hv2 .hv-side, .hv2 .hv-bar-m, .hv2 .hv-hdr, .hv2 .hv-call { transition: none !important; }
   .hv2 .hv-jcard.hv-in, .hv2 .hv-ticks.hv-in { animation: hv-fade-up .01s both; }
 }
 
@@ -470,9 +448,98 @@
 /* ---------- port only (not in the prototype): the cookie notice ----------
    The site's cookie notice sets --sj-notice-h to the height it takes (app.css [data-floating-cta]); the floating
    agent and the sheet sit above it rather than under it. */
-.hv2 .hv-side, .hv2 .hv-bar-m, .hv2 .hv-sheet { margin-bottom: var(--sj-notice-h, 0px); }
+.hv2 .hv-side, .hv2 .hv-bar-m { margin-bottom: var(--sj-notice-h, 0px); }
 /* On a phone the notice would cover the hero's "free · about 10 minutes" on a first visit: the hero's foot rises by
    the notice's height while it shows. */
 @media (max-width: 640px) {
   .hv2 .hv-hero { padding-bottom: calc(max(28px, 9svh) + var(--sj-notice-h, 0px)); }
+}
+
+/* ---------- the call takeover (port, owner 27 Oct): every start opens a focused call screen ----------
+   A full-screen layer over the locked page (start.tsx locks it; Takeover.tsx draws this): a slim header with the
+   logo and a close x; Stu big while she says her line, then small beside her words with /join's card under them;
+   Pranav's four lobby facts as small tiles from the first moment (a 2 by 2 grid under her words or the card on a
+   phone, two each side of Stu on a desktop). Every size follows the screen's height, so it all fits one screen with
+   no scrolling from 375 by 667 up; a shorter screen scrolls inside the layer, never the page. */
+.hv2 .hv-call { position: fixed; inset: 0; z-index: 90; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain;
+  background-color: var(--hv-bg); background-image: radial-gradient(circle, var(--hv-dot) 1px, transparent 1.4px); background-size: 28px 28px; background-position: 14px 6px;
+  opacity: 0; transition: opacity .2s ease; }
+.hv2 .hv-call.hv-open { opacity: 1; }
+.hv2 .hv-call-hdr { flex: none; display: flex; align-items: center; height: 52px; padding: 0 16px; background: rgba(247, 246, 250, .92); border-bottom: 1px solid var(--hv-hair); }
+.hv2 .hv-call-hdr .hv-brand img { height: 26px; width: auto; }
+.hv2 .hv-call-hdr .hv-brand b { font-size: 18px; }
+.hv2 .hv-call-x { margin-left: auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--hv-ink); background: #fff; color: var(--hv-ink); cursor: pointer; }
+.hv2 .hv-call-x:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 2px; }
+.hv2 .hv-call-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6vh; padding: 1.2vh 16px 1.6vh;
+  overflow-y: auto; overscroll-behavior: contain; text-align: center; }
+.hv2 .hv-call-main { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; }
+.hv2 .hv-call-lead { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.hv2 .hv-call-lead .hv-stu-art { --hv-s: clamp(120px, 24vh, 210px); transition: width .4s cubic-bezier(.2, .9, .3, 1), height .4s cubic-bezier(.2, .9, .3, 1); }
+.hv2 .hv-call-words { width: 100%; min-width: 0; }
+.hv2 .hv-call .hv-kicker { margin: 1.5vh 0 0; font-size: 12px; letter-spacing: .06em; color: var(--hv-purple-strong); }
+.hv2 .hv-call .hv-said { margin: .9vh auto 0; max-width: 560px; font-size: clamp(17px, 2.7vh, 24px); line-height: 1.3; }
+.hv2 .hv-call .hv-talking { margin-top: 1.6vh; }
+/* the card is in: Stu small beside her words, the card under them */
+.hv2 .hv-call[data-stage="signup"] .hv-call-lead { flex-direction: row; gap: 12px; text-align: left; }
+.hv2 .hv-call[data-stage="signup"] .hv-call-lead .hv-stu-art { --hv-s: clamp(54px, 9vh, 84px); }
+.hv2 .hv-call[data-stage="signup"] .hv-kicker { margin-top: 0; font-size: 11px; }
+.hv2 .hv-call[data-stage="signup"] .hv-said { margin: 3px 0 0; font-size: clamp(12px, 1.85vh, 16px); line-height: 1.32; }
+.hv2 .hv-call .hv-jcard { margin-top: 1.2vh; max-width: 440px; padding: clamp(13px, 2vh, 26px); border-radius: 22px; box-shadow: 6px 6px 0 var(--hv-ink2); }
+.hv2 .hv-call .hv-jcard h2 { font-size: clamp(19px, 2.7vh, 26px); }
+.hv2 .hv-call .hv-jcard .hv-sub { margin-top: 2px; font-size: clamp(12.5px, 1.8vh, 15px); }
+.hv2 .hv-call .hv-jcard .hv-g { margin-top: clamp(9px, 1.5vh, 20px); padding: clamp(7px, 1.2vh, 13px) 16px; font-size: clamp(14px, 2vh, 16px); }
+.hv2 .hv-call .hv-jcard .hv-or { margin: clamp(7px, 1.25vh, 16px) 0; font-size: 11px; }
+.hv2 .hv-call .hv-jcard label { font-size: 11px; }
+.hv2 .hv-call .hv-jcard .hv-field { margin-top: 4px; padding: clamp(5px, .9vh, 10px) 12px; }
+.hv2 .hv-call .hv-jcard .hv-field input { font-size: 16px; }
+.hv2 .hv-call .hv-jcard .hv-cont { margin-top: clamp(7px, 1.2vh, 14px); padding: clamp(7px, 1.2vh, 13px) 16px; font-size: clamp(14px, 2vh, 16px); }
+.hv2 .hv-call .hv-jcard .hv-terms { margin-top: clamp(6px, 1.1vh, 14px); font-size: 10.5px; line-height: 1.3; }
+.hv2 .hv-call .hv-jcard .hv-backed { margin-top: clamp(6px, 1.1vh, 16px); padding-top: clamp(5px, .9vh, 12px); }
+.hv2 .hv-call .hv-jcard .hv-backed p { font-size: 10px; letter-spacing: .12em; }
+.hv2 .hv-call .hv-jcard .hv-backed ul { margin-top: 4px; gap: 4px; }
+.hv2 .hv-call .hv-jcard .hv-backed li { padding: 0 8px; font-size: 10.5px; line-height: 1.5; }
+/* Pranav's facts (career-agent d596ce92 Lobby.tsx), small tiles in the homepage's soft style */
+.hv2 .hv-cfacts { list-style: none; margin: 0; padding: 0; }
+.hv2 .hv-cfacts-left, .hv2 .hv-cfacts-right { display: none; }
+.hv2 .hv-cfacts-below { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; max-width: 520px; }
+.hv2 .hv-cfact { display: flex; align-items: center; gap: 9px; min-width: 0; padding: 8px 10px; background: #fff; border: 1px solid var(--hv-line1); border-radius: 12px; box-shadow: var(--hv-soft); text-align: left; }
+.hv2 .hv-cfact-ico { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--hv-lilac); color: var(--hv-purple-strong); }
+.hv2 .hv-cfact-ico svg { width: 15px; height: 15px; }
+.hv2 .hv-cfact-txt { min-width: 0; }
+.hv2 .hv-cfact b { display: block; font-size: 14px; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; color: var(--hv-ink); }
+.hv2 .hv-cfact small { display: block; margin-top: 2px; font-size: 12px; line-height: 1.25; color: var(--hv-muted); }
+@media (max-width: 1023px) and (max-height: 760px) {
+  .hv2 .hv-call-hdr { height: 44px; }
+  .hv2 .hv-call-hdr .hv-brand img { height: 22px; }
+  .hv2 .hv-call-x { width: 34px; height: 34px; }
+  .hv2 .hv-call-body { gap: 1.4vh; padding: 1vh 16px 1.4vh; }
+  .hv2 .hv-cfacts-below { gap: 6px; }
+  .hv2 .hv-cfact { gap: 7px; padding: 5px 8px; }
+  .hv2 .hv-cfact-ico { width: 24px; height: 24px; border-radius: 7px; }
+  .hv2 .hv-cfact-ico svg { width: 13px; height: 13px; }
+  .hv2 .hv-cfact b { font-size: 13px; line-height: 1.15; }
+  .hv2 .hv-cfact small { margin-top: 1px; font-size: 11px; line-height: 1.2; }
+}
+/* a desktop: two facts each side of Stu, as Pranav's lobby has them */
+@media (min-width: 1024px) {
+  .hv2 .hv-call-hdr { height: 56px; padding: 0 28px; }
+  .hv2 .hv-call-body { display: grid; grid-template-columns: minmax(200px, 270px) minmax(0, 600px) minmax(200px, 270px); justify-content: center; align-items: center;
+    column-gap: clamp(28px, 4vw, 64px); padding: 2vh 28px; }
+  .hv2 .hv-call-main { max-width: 600px; }
+  .hv2 .hv-cfacts-below { display: none; }
+  .hv2 .hv-cfacts-left, .hv2 .hv-cfacts-right { display: grid; gap: 14px; }
+  .hv2 .hv-cfacts-left .hv-cfact { flex-direction: row-reverse; text-align: right; }
+  .hv2 .hv-cfact { padding: 11px 13px; gap: 11px; }
+  .hv2 .hv-call[data-stage="signup"] .hv-call-lead { flex-direction: column; text-align: center; }
+  .hv2 .hv-call[data-stage="signup"] .hv-call-lead .hv-stu-art { --hv-s: clamp(84px, 12vh, 120px); }
+  .hv2 .hv-call[data-stage="signup"] .hv-kicker { margin-top: 1vh; font-size: 12px; }
+  .hv2 .hv-call[data-stage="signup"] .hv-said { margin: .6vh auto 0; font-size: clamp(15px, 2vh, 19px); }
+  .hv2 .hv-call .hv-said { font-size: clamp(20px, 3vh, 30px); }
+  .hv2 .hv-call-lead .hv-stu-art { --hv-s: clamp(170px, 31vh, 290px); }
+  .hv2 .hv-call .hv-jcard { margin-top: 1.4vh; padding: clamp(16px, 2.3vh, 26px); }
+  .hv2 .hv-call .hv-jcard .hv-g, .hv2 .hv-call .hv-jcard .hv-cont { padding: clamp(9px, 1.4vh, 13px) 16px; }
+  .hv2 .hv-call .hv-jcard .hv-or { margin: clamp(8px, 1.5vh, 16px) 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hv2 .hv-call, .hv2 .hv-call-lead .hv-stu-art { transition: none; }
 }

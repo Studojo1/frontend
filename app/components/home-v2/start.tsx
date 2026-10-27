@@ -1,19 +1,24 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
-import { useLocation } from "react-router";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { useSignedIn } from "../home-b2c/cta";
 import { DESK, homeSignIn, JOIN_LINE, joinHref, type Stage } from "./agent";
 import { Arrow, Mic } from "./icons";
+import { CALL_HASH, lockScroll, unlockScroll, type ScrollLock } from "./call-lock";
 import { fetchLine, unlockAudio, useSpoken } from "./useSpoken";
 
-// HOMEPAGE V2: the homepage's one agent, Stu, shared by the hero, the floating agent (side pill, phone bar), the
-// sheet it opens and the footer's "ready when you are" button.
+// HOMEPAGE V2: the homepage's one agent, Stu, shared by every start: the hero (Stu and its button), the floating
+// agent (side pill, phone bar) and the footer's "ready when you are" button.
 //
-// Signed out, a tap on any of them is the first step of the owner's flow, here instead of on /b2cnew/join and in the
+// Signed out, a tap on any of them opens the call takeover (Takeover.tsx: a full-screen call screen over the locked
+// page, owner 27 Oct) and starts the first step of the owner's flow there, instead of on /b2cnew/join and in the
 // same order: Stu says /join's line (useSpoken), then /join's sign-up card (JoinCard), whose Google and email
-// buttons go where /join's do (agent.ts homeSignIn: /auth, then /b2cnew/start?fresh with the visit's keys). The
-// hero comes alive in place; the floating agent and the footer open the sheet. One stage for all of them
-// (idle, speaking, signup), so the line plays once. Never a resume before sign-up: the resume is asked for in the call.
-// Signed in, every one of them is a plain link to /b2cnew (their desk), never a new onboarding.
+// buttons go where /join's do (agent.ts homeSignIn: /auth, then /b2cnew/start?fresh with the visit's keys). One
+// stage for the visit (idle, speaking, signup), so the line plays once; opened again, the takeover shows the card.
+// Never a resume before sign-up: the resume is asked for in the call.
+// The takeover gets a history entry of its own (#stu, navigated before the page is locked so the router keeps the
+// scroll position for the page's own entry): Back closes it, and so do its x and Escape (which also step back off
+// that entry); either way the page is unlocked at the same scroll position.
+// Signed in, every start is a plain link to /b2cnew (their desk), never a new onboarding.
 // Every StartLink is a real <a href> to /b2cnew/join (signed out), so a visitor without the script, or one opening a
 // new tab, still gets the same first step there.
 
@@ -30,14 +35,12 @@ type Agent = {
   stage: Stage;
   speaking: boolean;
   level: { agent: number };
-  /** Where the visitor started her: the hero in place, or the sheet. */
-  from: "hero" | "sheet";
-  begin: (where: "hero" | "sheet") => void;
-  /** Stop her (the sign-up buttons, closing the sheet). */
+  /** Stop her (the sign-up buttons). */
   hush: () => void;
-  sheetOpen: boolean;
-  openSheet: (opener: HTMLElement | null) => void;
-  closeSheet: () => void;
+  /** The call takeover is open. */
+  callOpen: boolean;
+  openCall: (opener: HTMLElement | null) => void;
+  closeCall: () => void;
 };
 
 const AgentCtx = createContext<Agent | null>(null);
@@ -57,9 +60,13 @@ export function AgentProvider({ children }: { children: ReactNode }) {
   const spoken = useSpoken();
   const [stage, setStage] = useState<Stage>("idle");
   const stageRef = useRef<Stage>("idle");
-  const [from, setFrom] = useState<"hero" | "sheet">("hero");
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [callOpen, setCallOpen] = useState(false);
+  const open = useRef(false);
+  const lock = useRef<ScrollLock | null>(null);
+  const pushed = useRef(false);
   const opener = useRef<HTMLElement | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
   const href = signedIn ? DESK : joinHref(search);
   const signIn = useMemo(() => homeSignIn(search), [search]);
 
@@ -70,47 +77,92 @@ export function AgentProvider({ children }: { children: ReactNode }) {
 
   // join.tsx begin(): the click lets her speak; she says her line; then the card.
   const { say, stop } = spoken;
-  const begin = useCallback(
-    (where: "hero" | "sheet") => {
-      if (stageRef.current !== "idle") return;
-      setFrom(where);
-      unlockAudio();
-      go("speaking");
-      void say().then(() => {
-        if (stageRef.current === "speaking") go("signup");
-      });
-    },
-    [go, say],
-  );
+  const begin = useCallback(() => {
+    if (stageRef.current !== "idle") return;
+    unlockAudio();
+    go("speaking");
+    void say().then(() => {
+      if (stageRef.current === "speaking") go("signup");
+    });
+  }, [go, say]);
 
   const hush = useCallback(() => {
     stop();
   }, [stop]);
 
-  const openSheet = useCallback(
-    (el: HTMLElement | null) => {
-      opener.current = el;
-      setSheetOpen(true);
-      begin("sheet");
-    },
-    [begin],
-  );
-
-  // Closing the sheet while she talks stops her; the card is what comes next, wherever she is opened again.
-  const closeSheet = useCallback(() => {
-    setSheetOpen(false);
+  // Off the takeover: the page unlocked where it was, her line stopped if she was mid-way (the card is what comes
+  // next, wherever she is opened again), and focus back on the button that opened it.
+  const shut = useCallback(() => {
+    if (!open.current) return;
+    open.current = false;
+    if (lock.current) unlockScroll(window, lock.current);
+    lock.current = null;
+    setCallOpen(false);
     if (stageRef.current === "speaking") {
       stop();
       go("signup");
     }
-    // back to the button that opened it, once the floating agent shows again
     const back = opener.current;
     window.setTimeout(() => back?.focus?.({ preventScroll: true }), 60);
   }, [go, stop]);
 
+  const openCall = useCallback(
+    (el: HTMLElement | null) => {
+      opener.current = el;
+      if (!open.current) {
+        open.current = true;
+        // the history entry first (the router keeps this scroll position for the page's entry), then the lock
+        pushed.current = location.hash !== CALL_HASH;
+        if (pushed.current) navigate({ pathname: location.pathname, search: location.search, hash: CALL_HASH }, { preventScrollReset: true });
+        lock.current = lockScroll(window);
+        setCallOpen(true);
+      }
+      begin();
+    },
+    [begin, location.hash, location.pathname, location.search, navigate],
+  );
+
+  // The x and Escape: close, and step back off the takeover's own entry.
+  const closeCall = useCallback(() => {
+    const was = pushed.current;
+    pushed.current = false;
+    shut();
+    if (was) navigate(-1);
+  }, [navigate, shut]);
+
+  // Back (or anything else that leaves #stu) closes it.
+  useEffect(() => {
+    if (!callOpen) return;
+    const onPop = () => {
+      pushed.current = false;
+      shut();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [callOpen, shut]);
+  useEffect(() => {
+    if (callOpen && location.hash !== CALL_HASH && !pushed.current) shut();
+  }, [callOpen, location.hash, shut]);
+
+  // A visit that lands on #stu (a reload, a shared link) starts on the page itself: the entry is dropped.
+  const landed = useRef(location.hash === CALL_HASH);
+  useEffect(() => {
+    if (!landed.current) return;
+    landed.current = false;
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true, preventScrollReset: true });
+  }, [location.pathname, location.search, navigate]);
+
+  // Never leave the page locked behind (a navigation away while it is open).
+  useEffect(
+    () => () => {
+      if (lock.current) unlockScroll(window, lock.current);
+    },
+    [],
+  );
+
   const agent = useMemo<Agent>(
-    () => ({ signedIn, href, signIn, stage, speaking: spoken.speaking, level: spoken.level, from, begin, hush, sheetOpen, openSheet, closeSheet }),
-    [signedIn, href, signIn, stage, spoken.speaking, spoken.level, from, begin, hush, sheetOpen, openSheet, closeSheet],
+    () => ({ signedIn, href, signIn, stage, speaking: spoken.speaking, level: spoken.level, hush, callOpen, openCall, closeCall }),
+    [signedIn, href, signIn, stage, spoken.speaking, spoken.level, hush, callOpen, openCall, closeCall],
   );
   return (
     <AgentCtx.Provider value={agent}>
@@ -140,9 +192,9 @@ export function useStartLabel(): string {
 }
 
 /**
- * Every "start the call" on the homepage. A plain <a href> (/b2cnew is another app). Signed out, a plain click starts
- * Stu here (the hero in place; anywhere else, the sheet); a click with a modifier key opens /b2cnew/join in a new
- * tab as before. Signed in, it is "open my jobs" to /b2cnew.
+ * Every "start the call" on the homepage. A plain <a href> (/b2cnew is another app). Signed out, a plain click opens
+ * the call takeover and starts Stu there; a click with a modifier key opens /b2cnew/join in a new tab as before.
+ * Signed in, it is "open my jobs" to /b2cnew.
  */
 export function StartLink({ place, className, id, tabIndex, children, onPointerEnter, onPointerLeave, onFocus, onBlur, ...aria }: StartLinkProps) {
   const a = useAgent();
@@ -167,8 +219,7 @@ export function StartLink({ place, className, id, tabIndex, children, onPointerE
           : (e) => {
               if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
               e.preventDefault();
-              if (place === "hero" || place === "hero-stu") a.begin("hero");
-              else a.openSheet(e.currentTarget);
+              a.openCall(e.currentTarget);
             }
       }
     >

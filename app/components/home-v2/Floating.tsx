@@ -5,8 +5,8 @@ import { StuArt } from "./StuArt";
 // HOMEPAGE V2: the floating agent (hp/v2.html). On a desktop a big side pill with Stu's head (in a white ink-ringed
 // cell, so Stu never sits on purple) and "start the call / Stu, your career agent"; on a phone a bar pinned to the
 // bottom, Stu's head and the same button. On once the hero has gone up under the header, off while the footer's
-// button is on screen or passed, and while the sheet is open, so there is never a second start on screen. Signed
-// out a tap opens the sheet (Sheet.tsx: Stu, live, in place); signed in it is "open my jobs" to /b2cnew. Hidden from
+// button is on screen or passed, and while the call takeover is open, so there is never a second start on screen.
+// Signed out a tap opens the takeover (Takeover.tsx); signed in it is "open my jobs" to /b2cnew. Hidden from
 // assistive tech and the tab order while hidden. Both rise above the cookie notice (--sj-notice-h, app.css).
 
 export function Floating() {
@@ -33,7 +33,7 @@ export function Floating() {
     return () => obs.forEach((o) => o.disconnect());
   }, []);
 
-  const on = vis.heroOut && !vis.footIn && !a.sheetOpen;
+  const on = vis.heroOut && !vis.footIn && !a.callOpen;
   return (
     <>
       <StartLink place="side" className={`hv-btn-start hv-side${on ? " hv-show" : ""}`} tabIndex={on ? 0 : -1} aria-hidden={!on}>

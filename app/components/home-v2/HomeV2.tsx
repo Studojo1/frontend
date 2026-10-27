@@ -13,8 +13,8 @@ import { Matches } from "./Matches";
 import { More } from "./More";
 import { Proof } from "./Proof";
 import { Read } from "./Read";
-import { Sheet } from "./Sheet";
-import { AgentProvider } from "./start";
+import { AgentProvider, useAgent } from "./start";
+import { CallTakeover } from "./Takeover";
 import { What } from "./What";
 
 // HOMEPAGE V2 (27 Oct 2026): the B2C homepage (studojo.pro), the design the owner picked (localhost h1.html, now
@@ -23,8 +23,9 @@ import { What } from "./What";
 // under .hv2.
 // In page order: the header; the hero (Stu, live in place); what, the call, the brief, the matches, getting the
 // job, more, proof, what to expect, questions, reading; the footer with "ready when you are"; the floating agent
-// and the sheet it opens. The only ways to start are the hero, the floating agent and the footer's button
-// (start.tsx); no section has a button of its own.
+// and the call takeover every start opens (Takeover.tsx), over the page, which is inert and locked under it. The
+// only ways to start are the hero, the floating agent and the footer's button (start.tsx); no section has a button
+// of its own.
 // ?stu=circle puts Stu back on the h1 purple disc, for the owner to compare (hv-stu-circle); the default has none.
 // Its stylesheet is linked here, by this component (React hoists it into <head>, also in the server's HTML), not
 // imported into the route: so studojo.com's homepage, which never renders HomeV2, links no new stylesheet at all.
@@ -36,24 +37,34 @@ export function HomeV2() {
     <AgentProvider>
       <link rel="stylesheet" href={homeCss} precedence="default" />
       <div className={`hv2 hv-page${circle ? " hv-stu-circle" : ""}`}>
-        <HomeHeader />
-        <main id="main">
-          <Hero />
-          <What />
-          <Call />
-          <Brief />
-          <Matches />
-          <GetJob />
-          <More />
-          <Proof />
-          <Expect />
-          <Faq />
-          <Read />
-        </main>
-        <HomeFooter />
-        <Floating />
-        <Sheet />
+        <Page />
+        <CallTakeover />
       </div>
     </AgentProvider>
+  );
+}
+
+/** The page itself: inert (no focus, no clicks) while the call takeover is over it. */
+function Page() {
+  const { callOpen } = useAgent();
+  return (
+    <div className="hv-pagewrap" inert={callOpen || undefined}>
+      <HomeHeader />
+      <main id="main">
+        <Hero />
+        <What />
+        <Call />
+        <Brief />
+        <Matches />
+        <GetJob />
+        <More />
+        <Proof />
+        <Expect />
+        <Faq />
+        <Read />
+      </main>
+      <HomeFooter />
+      <Floating />
+    </div>
   );
 }

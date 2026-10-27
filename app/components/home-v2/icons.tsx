@@ -188,3 +188,36 @@ export const Plus = (p: IconProps) => (
     <path d="M12 5v14M5 12h14" />
   </Svg>
 );
+
+// The call takeover's facts: Pranav's lobby icons (career-agent d596ce92 Lobby.tsx: react-icons/lu LuClock,
+// LuTarget, LuFileText, LuVolume2), drawn here from the same lucide shapes so the homepage does not pull the icon
+// pack into the route studojo.com shares.
+export const LuClockIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </Svg>
+);
+export const LuTargetIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </Svg>
+);
+export const LuFileTextIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+    <path d="M10 9H8" />
+    <path d="M16 13H8" />
+    <path d="M16 17H8" />
+  </Svg>
+);
+export const LuVolume2Icon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+    <path d="M16 9a5 5 0 0 1 0 6" />
+    <path d="M19.364 18.364a9 9 0 0 0 0-12.728" />
+  </Svg>
+);

@@ -13,10 +13,11 @@ const code = (src) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/
 
 // ---------- 1. the page, in order ----------
 const home = read("HomeV2.tsx");
-const ORDER = ["HomeHeader", "Hero", "What", "Call", "Brief", "Matches", "GetJob", "More", "Proof", "Expect", "Faq", "Read", "HomeFooter", "Floating", "Sheet"];
+const css = code(read("home-v2.css"));
+const ORDER = ["Page", "CallTakeover", "HomeHeader", "Hero", "What", "Call", "Brief", "Matches", "GetJob", "More", "Proof", "Expect", "Faq", "Read", "HomeFooter", "Floating"];
 const at = ORDER.map((t) => home.indexOf(`<${t} />`));
 assert.ok(at.every((i, k) => i > 0 && (k === 0 || i > at[k - 1])), `in order: ${ORDER.join(", ")}`);
-assert.ok(home.indexOf("<AgentProvider>") < home.indexOf("<HomeHeader />"), "one agent for the whole page");
+assert.ok(home.indexOf("<AgentProvider>") < home.indexOf("<Page />"), "one agent for the whole page");
 const SECTIONS = { What: "what", Call: "call", Brief: "brief", Matches: "matches", GetJob: "getjob", More: "more", Proof: "proof", Expect: "expect", Faq: "faq", Read: "read" };
 for (const [c, id] of Object.entries(SECTIONS)) {
   const src = read(`${c}.tsx`);
@@ -116,7 +117,7 @@ const card = code(read("JoinCard.tsx"));
 assert.match(card, /<a className="hv-g" href=\{signIn\}/, "Continue with Google: the sign-in link");
 assert.match(card, /window\.location\.href = signIn;/, "or with email: the same link, as /join");
 for (const s of ["Create your account", "Free to start. Takes ten seconds.", "Continue with Google", "or with email", "Email address", "By continuing you agree to Studojo&apos;s Terms of Service and Privacy Policy.", "Backed by"]) assert.ok(card.includes(s), `card: ${s}`);
-assert.match(code(read("Sheet.tsx")), /if \(!mounted \|\| a\.signedIn\) return null;/, "no sheet for a signed-in visitor");
+assert.match(code(read("Takeover.tsx")), /if \(!callOpen \|\| a\.signedIn\) return null;/, "no takeover for a signed-in visitor");
 
 // ---------- 5. never a resume before sign-up ----------
 // Nothing on the homepage takes a file or asks for the resume; the resume is asked for inside the call, after sign-up.
@@ -124,7 +125,7 @@ for (const f of files.filter((f) => f.endsWith(".tsx") || f.endsWith(".ts"))) {
   const src = code(read(f));
   assert.doesNotMatch(src, /type="file"|<input[^>]*accept=|FormData|upload/i, `${f}: takes a file`);
 }
-for (const f of ["start.tsx", "JoinCard.tsx", "Hero.tsx", "Sheet.tsx", "Floating.tsx", "useSpoken.ts"]) {
+for (const f of ["start.tsx", "JoinCard.tsx", "Hero.tsx", "Takeover.tsx", "Floating.tsx", "useSpoken.ts"]) {
   assert.doesNotMatch(code(read(f)).replace(/"[^"]*not just your resume"/g, ""), /(?<!\.)\bresume\b(?!\s*\()/i, `${f}: mentions a resume in the agent's steps`);
 }
 // the only places in /b2cnew the agent leads: /join (no script), the call after sign-up, the desk, the recording
@@ -132,10 +133,54 @@ const b2cnew = new Set();
 for (const f of files.filter((f) => /\.tsx?$/.test(f))) for (const m of code(read(f)).matchAll(/\/b2cnew(?:\/[\w-]+)*(?:\?[\w=&-]*)?/g)) b2cnew.add(m[0]);
 for (const p of b2cnew) assert.match(p, /^\/b2cnew(\/join|\/start\?fresh|\/voice\/say\/join\?v=|\/start|)$/, `leads to ${p}`);
 
+// ---------- 5b. the call takeover (owner, 27 Oct): every start opens it; the page locked under it ----------
+// Every start opens the takeover, the history entry comes before the lock, Back, the x and Escape close it.
+assert.match(start, /onClick=\{\s*a\.signedIn\s*\?\s*undefined\s*:\s*\(e\) => \{[\s\S]*?e\.preventDefault\(\);\s*a\.openCall\(e\.currentTarget\);/, "every start opens the takeover");
+const openCall = start.slice(start.indexOf("const openCall = useCallback("), start.indexOf("const closeCall"));
+assert.ok(openCall.indexOf("navigate({ pathname: location.pathname, search: location.search, hash: CALL_HASH }, { preventScrollReset: true })") > 0, "its own history entry, the page's scroll kept");
+assert.ok(openCall.indexOf("navigate(") < openCall.indexOf("lockScroll(window)") && openCall.indexOf("lockScroll(window)") < openCall.indexOf("begin()"), "entry, lock, then Stu");
+assert.match(start, /window\.addEventListener\("popstate", onPop\)/, "Back closes it");
+assert.match(start, /const closeCall = useCallback\(\(\) => \{[\s\S]*?shut\(\);\s*if \(was\) navigate\(-1\);/, "the x steps back off its entry");
+const takeover = code(read("Takeover.tsx"));
+assert.match(takeover, /if \(e\.key === "Escape"\) closeCall\(\);/, "Escape closes it");
+assert.match(takeover, /className="hv-call-x" aria-label="close" onClick=\{closeCall\}/, "the x closes it");
+assert.match(takeover, /role="dialog" aria-modal="true"/);
+assert.match(code(home), /inert=\{callOpen \|\| undefined\}/, "nothing behind it reachable");
+// The same order and the same links inside: Stu's line, then the card (start.tsx begin, JoinCard as tested above).
+assert.ok(takeover.indexOf("<Said />") < takeover.indexOf('{stage === "signup" && <JoinCard idPrefix="call" />}'), "her words, then the card");
+// The scroll lock, run against a stand-in window: locked where it is, the body's own styles back, the same place.
+{
+  const { lockScroll, unlockScroll, CALL_HASH, CALL_FACTS_LEFT, CALL_FACTS_RIGHT } = await import("../components/home-v2/call-lock.ts");
+  assert.equal(CALL_HASH, "#stu");
+  const style = () => ({ position: "", top: "", left: "", right: "", width: "", overflow: "" });
+  const win = { scrollY: 1234, scrolled: null, scrollTo(o) { this.scrolled = o; }, document: { body: { style: { ...style(), position: "relative" } }, documentElement: { style: style() } } };
+  const lock = lockScroll(win);
+  const b = win.document.body.style;
+  assert.deepEqual([b.position, b.top, b.width, b.overflow, win.document.documentElement.style.overflow], ["fixed", "-1234px", "100%", "hidden", "hidden"], "locked: pinned where it was, nothing scrolls");
+  win.scrollY = 0;
+  unlockScroll(win, lock);
+  assert.deepEqual([b.position, b.top, b.width, b.overflow, win.document.documentElement.style.overflow], ["relative", "", "", "", ""], "unlocked: the body's own styles back");
+  assert.deepEqual(win.scrolled, { top: 1234, left: 0, behavior: "instant" }, "back at the same scroll position, at once");
+  // Pranav's lobby facts (career-agent d596ce92 app/components/voice/Lobby.tsx), word for word, his icons
+  assert.deepEqual(CALL_FACTS_LEFT.map((f) => [f.title, f.sub]), [["About 10 minutes", "One conversation with Stu"], ["Mostly about the role you want", "What you're after, and why"]]);
+  assert.deepEqual(CALL_FACTS_RIGHT.map((f) => [f.title, f.sub]), [["Your resume handy", "As a PDF, you'll drop it in"], ["A quiet spot", "Headphones help"]]);
+}
+assert.match(takeover, /clock: LuClockIcon,\s*target: LuTargetIcon,\s*file: LuFileTextIcon,\s*volume: LuVolume2Icon,/, "his icons (lucide clock, target, file-text, volume-2)");
+const icons = read("icons.tsx");
+assert.match(icons, /export const LuClockIcon[\s\S]*?<circle cx="12" cy="12" r="10" \/>\s*<polyline points="12 6 12 12 16 14" \/>/);
+assert.match(icons, /export const LuVolume2Icon[\s\S]*?<path d="M16 9a5 5 0 0 1 0 6" \/>/);
+// no icon pack on the homepage: it would land in the route studojo.com shares
+for (const f of files) assert.doesNotMatch(read(f), /from "react-icons/, `${f}: imports react-icons`);
+// The tiles show from the first moment (outside the stage's conditions): two each side on a desktop, 2 by 2 below on a phone.
+const body = takeover.slice(takeover.indexOf('<div className="hv-call-body">'));
+for (const side of ["left", "right", "below"]) assert.match(body, new RegExp(`^        <CallFacts side="${side}" />$`, "m"), `the ${side} tiles, always`);
+assert.match(css, /\.hv2 \.hv-cfacts-below \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/, "a 2 by 2 grid on a phone");
+assert.match(css, /@media \(min-width: 1024px\) \{[\s\S]*?\.hv2 \.hv-cfacts-below \{ display: none; \}[\s\S]*?\.hv2 \.hv-cfacts-left, \.hv2 \.hv-cfacts-right \{ display: grid;/, "either side of Stu on a desktop");
+assert.match(css, /\.hv2 \.hv-call \{ position: fixed; inset: 0; z-index: 90; height: 100vh; height: 100dvh;[^}]*overflow: hidden;/, "a full-screen layer");
+
 // ---------- 6. Stu: the logo's head, the purple disc only behind ?stu=circle ----------
 assert.match(home, /new URLSearchParams\(search\)\.get\("stu"\) === "circle"/);
 assert.match(home, /className=\{`hv2 hv-page\$\{circle \? " hv-stu-circle" : ""\}`\}/);
-const css = code(read("home-v2.css"));
 assert.match(css, /\.hv2 \.hv-stu-art \.hv-disc, \.hv2 \.hv-stu-art \.hv-glow \{ display: none; \}/, "no disc, no glow by default");
 for (const rule of css.match(/[^{}]+\{[^{}]*\}/g) ?? []) {
   const [sel, body] = [rule.slice(0, rule.indexOf("{")).trim(), rule.slice(rule.indexOf("{"))];

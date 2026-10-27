@@ -8,7 +8,7 @@
 //   JOIN_LINE, lineVersion   app/lib/voice/lines.ts (LINES.join, lineVersion)
 //   JOIN_AUDIO               app/lib/voice/spoken.ts clip(): `${BASE}voice/say/join?v=...`, BASE "/b2cnew/"
 //   CARRY, carried, signInLink  app/lib/voice/sign-in-link.ts (the /join loader's signIn)
-//   PROOF, BACKED            app/routes/join.tsx (beside the card, and the card's "Backed by")
+//   BACKED                   app/routes/join.tsx (the card's "Backed by")
 import { STU_HOME, startHref } from "../home-b2c/links";
 
 /** Stu's line on /b2cnew/join, word for word (career-agent lines.ts LINES.join). */
@@ -75,13 +75,6 @@ export function homeSignIn(landingSearch: string | null | undefined): string {
 
 /** Signed in: their desk, never a new onboarding. */
 export const DESK = STU_HOME;
-
-/** /join's three lines beside the card. */
-export const PROOF = [
-  "Matches you to roles that fit what you want, not just your resume",
-  "Finds the people who hire, and writes to them for you",
-  "4,000+ students have already found their hiring managers",
-] as const;
 
 /** /join's card: "Backed by". */
 export const BACKED = ["Microsoft for Startups", "Google for Startups", "Startup Grind", "Mesa"] as const;
