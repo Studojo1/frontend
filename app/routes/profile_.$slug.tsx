@@ -1,5 +1,7 @@
 import { data } from "react-router";
 import StudentPage from "~/components/student-page/page";
+import { StudentPageB2c } from "~/components/student-page/b2c/page";
+import { useSiteB2c } from "~/components/site-b2c/host";
 import { profileView } from "~/components/student-page/profile-view";
 import { clean } from "~/lib/student-page-text";
 import { findStudentPage, studentEmail, toProfile } from "~/lib/student-page.server";
@@ -86,5 +88,8 @@ export function meta({ data: d }: Route.MetaArgs) {
 }
 
 export default function Page({ loaderData: d }: Route.ComponentProps) {
+  // SITE-V2: studojo.pro draws the page in the site's look (components/student-page/b2c); studojo.com keeps this one.
+  const b2c = useSiteB2c();
+  if (b2c) return <StudentPageB2c p={d.profile} />;
   return <StudentPage p={d.profile} />;
 }

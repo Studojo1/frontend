@@ -50,7 +50,7 @@ export function siteStartHref(search: string | null | undefined, held?: URLSearc
   return `${STU_JOIN}?${out}`;
 }
 
-export type Sv2Page = "blog" | "reports" | "report" | "legal" | "contact" | "about" | "auth" | "error";
+export type Sv2Page = "blog" | "reports" | "report" | "legal" | "contact" | "about" | "auth" | "profile" | "error";
 
 /**
  * Which SITE-V2 page a path is, or null for a path that keeps its own look (the homepage, the retired products, the
@@ -65,5 +65,7 @@ export function sv2PageFor(pathname: string): Sv2Page | null {
   if (p === "/contact") return "contact";
   if (p === "/about") return "about";
   if (p === "/auth" || p.startsWith("/auth/") || p === "/forgot-password" || p === "/reset-password") return "auth";
+  // A student's public page (/profile/:slug; components/student-page/b2c). Not /profile itself, the old account page.
+  if (/^\/profile\/[^/]+$/.test(p)) return "profile";
   return null;
 }

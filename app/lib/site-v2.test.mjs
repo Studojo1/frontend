@@ -29,9 +29,10 @@ for (const [p, kind] of [
   ["/blog", "blog"], ["/blog/", "blog"], ["/blog/some-post", "blog"], ["/reports", "reports"], ["/reports/ghost-jobs-2026", "report"],
   ["/terms", "legal"], ["/privacy", "legal"], ["/refund-policy", "legal"], ["/contact", "contact"], ["/about", "about"],
   ["/auth", "auth"], ["/auth/2fa", "auth"], ["/forgot-password", "auth"], ["/reset-password", "auth"],
+  ["/profile/riya-menon", "profile"], ["/profile/x/", "profile"],
 ]) assert.equal(sv2PageFor(p), kind, p);
 // the homepage (its own look), the retired products and the apps keep what they have
-for (const p of ["/", "/outreach", "/dojos/internships", "/resume-maker", "/cc", "/webinar", "/settings", "/b2cnew", "/profile/x", "/blogger", "/reportsx"]) {
+for (const p of ["/", "/outreach", "/dojos/internships", "/resume-maker", "/cc", "/webinar", "/settings", "/b2cnew", "/profile", "/profile/x/photo", "/blogger", "/reportsx"]) {
   assert.equal(sv2PageFor(p), null, p);
 }
 
