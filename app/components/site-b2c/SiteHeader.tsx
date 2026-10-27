@@ -80,6 +80,18 @@ export function SiteHeader() {
 
   const initial = (session?.user?.name || session?.user?.email || "").trim().charAt(0).toLowerCase() || "s";
 
+  // The sign-in and password pages are a step of the call (start the call, Stu's line, sign up): the visitor is
+  // already in the call, so the header is the wordmark alone, with no links and no "start the call" (owner, 27 Oct).
+  if (onAuthPage) {
+    return (
+      <header ref={hdrRef} className={`sv-hdr${scrolled ? " sv-scrolled" : ""}`}>
+        <div className="sv-hdr-in">
+          <Brand />
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header ref={hdrRef} className={`sv-hdr${scrolled ? " sv-scrolled" : ""}`}>
       <div className="sv-hdr-in">
