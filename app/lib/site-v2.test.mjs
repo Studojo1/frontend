@@ -163,7 +163,7 @@ assert.deepEqual([...new Set(linkTargets(siteHeader))].sort(), ["BLOG", "HOW_IT_
 assert.match(siteHeader, /<StartPill size="sm" place="header" \/>/, "every page: start the call in the header");
 assert.match(siteHeader, /const signIn = authUrl\("signin", STU_HOME\);/);
 assert.deepEqual(linkTargets(siteFooter), ["HOW_IT_WORKS", "BLOG", "REPORTS", "TERMS", "PRIVACY", "CONTACT", "REFUNDS"]);
-assert.match(siteFooter, /stu is studojo's ai job agent\./);
+assert.match(siteFooter, /Stu, your career agent at Studojo\./, "the homepage footer's line (home-v2/HomeFooter.tsx)");
 assert.match(siteFooter, /Studojo Labs Private Limited/);
 const ui = read("components/site-b2c/ui.tsx");
 assert.match(ui, /<a href=\{href\} className=\{cls\} data-start=\{place\}>/, "the start pill is a plain <a> (another app)");

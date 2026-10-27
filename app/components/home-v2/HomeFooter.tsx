@@ -27,10 +27,12 @@ export function HomeFooter() {
           <Link to="/reports">reports</Link>
           <Link to="/terms">terms</Link>
           <Link to="/privacy">privacy</Link>
-          <a href="mailto:admin@studojo.com">contact</a>
+          <Link to="/contact">contact</Link>
         </nav>
       </div>
-      <p className="hv-legal">Studojo Labs Private Limited</p>
+      <p className="hv-legal">
+        Studojo Labs Private Limited <span aria-hidden="true">·</span> <Link to="/refund-policy">refund policy</Link>
+      </p>
     </footer>
   );
 }

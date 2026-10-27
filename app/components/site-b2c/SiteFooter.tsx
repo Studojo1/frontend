@@ -20,7 +20,7 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
       )}
       <div className="sv-foot-row">
         <Brand />
-        <span className="sv-foot-line">stu is studojo's ai job agent.</span>
+        <span className="sv-foot-line">Stu, your career agent at Studojo.</span>
         <nav className="sv-foot-links" aria-label="footer">
           <a href={HOW_IT_WORKS}>how it works</a>
           <Link to={BLOG}>blog</Link>
