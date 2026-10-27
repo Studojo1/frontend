@@ -74,6 +74,10 @@ async function ensureTable() {
   await db.execute(sql`ALTER TABLE ugc_applications ALTER COLUMN linkedin_url DROP NOT NULL`);
   await db.execute(sql`ALTER TABLE ugc_applications ALTER COLUMN post_frequency DROP NOT NULL`);
   await db.execute(sql`ALTER TABLE ugc_applications ALTER COLUMN last_posted DROP NOT NULL`);
+  // The Growth Fellowship questions (Oct 2026).
+  await db.execute(sql`ALTER TABLE ugc_applications ADD COLUMN IF NOT EXISTS fellowship_goals JSONB`);
+  await db.execute(sql`ALTER TABLE ugc_applications ADD COLUMN IF NOT EXISTS intern_interest TEXT`);
+  await db.execute(sql`ALTER TABLE ugc_applications ADD COLUMN IF NOT EXISTS network_share TEXT`);
   await db.execute(sql`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_ugc_applications_share_code
     ON ugc_applications (share_code) WHERE share_code IS NOT NULL
@@ -127,6 +131,7 @@ export async function saveUgcApplication(
         INSERT INTO ugc_applications (
           full_name, email, whatsapp, college, course, year_of_study, graduation_year, city,
           has_linkedin, linkedin_url, connections, post_frequency, last_posted, best_post_url, crossed_1k,
+          fellowship_goals, intern_interest, network_share,
           field, target_roles, dream_companies, looking_for, topics, avoid_topics,
           can_commit, studojo_ok, why_join, referral_source, referred_by, consent_at,
           share_code, came_from_code,
@@ -135,6 +140,7 @@ export async function saveUgcApplication(
         VALUES (
           ${a.fullName}, ${a.email}, ${a.whatsapp}, ${a.college}, ${a.course}, ${a.yearOfStudy}, ${a.graduationYear}, ${a.city},
           ${a.hasLinkedin}, ${a.linkedinUrl}, ${a.connections}, ${a.postFrequency}, ${a.lastPosted}, ${a.bestPostUrl}, ${a.crossed1k},
+          ${JSON.stringify(a.fellowshipGoals)}::jsonb, ${a.internInterest}, ${a.networkShare},
           ${a.field}, ${a.targetRoles}, ${a.dreamCompanies}, ${a.lookingFor}, ${JSON.stringify(a.topics)}::jsonb, ${a.avoidTopics},
           ${a.canCommit}, ${a.studojoOk}, ${a.whyJoin}, ${a.referralSource}, ${a.referredBy}, NOW(),
           ${shareCode}, ${a.cameFromCode},
