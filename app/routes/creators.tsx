@@ -32,20 +32,20 @@ import {
 // /creators and /ugc so earlier links keep working (same module).
 
 const CANONICAL = "https://studojo.com/fellowship-growth";
-const SHARE_IMAGE = "https://studojo.com/og-fellowship.png";
+const SHARE_IMAGE = "https://studojo.com/og-growth-fellowship.png";
 
 export function meta() {
   return [
-    { title: "Studojo Growth Fellowship | Build a LinkedIn that brings opportunities" },
+    { title: "Studojo Growth Fellowship | Learn growth by doing it, get hired for it" },
     {
       name: "description",
       content:
-        "A fellowship for students: learn LinkedIn distribution, build a profile recruiters notice, and get a shot at a Studojo growth internship. Apply in about 5 minutes.",
+        "A fellowship for students who want to work in growth: learn distribution hands-on, get a shot at a Studojo growth internship, and get referred to people hiring. Apply in about 5 minutes.",
     },
-    { property: "og:title", content: "Studojo Growth Fellowship" },
+    { property: "og:title", content: "Studojo Growth Fellowship: learn growth by doing it, get hired for it" },
     {
       property: "og:description",
-      content: "Learn LinkedIn distribution, build a profile that brings opportunities, and get a shot at a Studojo growth internship.",
+      content: "Learn distribution hands-on, get a shot at a Studojo growth internship, and get referred to people in our network who are hiring.",
     },
     { property: "og:type", content: "website" },
     { property: "og:url", content: CANONICAL },
@@ -204,11 +204,6 @@ const REQUIRED = <span className="text-red-500" aria-hidden="true"> *</span>;
 
 const PERKS = [
   {
-    icon: FiEdit3,
-    title: "Learn distribution on LinkedIn",
-    body: "Learn what makes a post travel and how an audience grows. We help you write every post from your own experiences, so you learn by doing.",
-  },
-  {
     icon: FiAward,
     title: "A path to a growth internship at Studojo",
     body: "Studojo hires its growth interns from the fellowship. Fellows who show up and do really well get first preference.",
@@ -217,6 +212,11 @@ const PERKS = [
     icon: FiSend,
     title: "Opportunities beyond Studojo",
     body: "If Studojo isn't the right fit, we share strong fellows' profiles with people in our network who are hiring.",
+  },
+  {
+    icon: FiEdit3,
+    title: "Learn distribution by doing it",
+    body: "Learn what makes content travel and how an audience grows, hands-on, on your own LinkedIn. We help you write every post.",
   },
   {
     icon: FiUserCheck,
@@ -229,12 +229,12 @@ const HOW = [
   { title: "Apply", body: "Tell us about you, your LinkedIn and where you're headed. About 5 minutes." },
   { title: "Join the fellowship", body: "We read every application. If you're selected, we message you on WhatsApp." },
   { title: "Write and post with us", body: "Share your experiences. We help you shape them into posts and show you what works." },
-  { title: "Get noticed", body: "Grow your profile. The best fellows become Studojo growth interns or get referred in our network." },
+  { title: "Get hired", body: "The best fellows become Studojo growth interns or get referred to people hiring in our network." },
 ];
 
 const FOR_YOU = [
   "You're in college or graduated recently",
-  "You want to learn how distribution works on LinkedIn",
+  "You want to work in growth, or learn how distribution works",
   "You can post 3 times a week",
   "You're happy for some posts to be about how you use Studojo, labelled as a partnership",
 ];
@@ -580,12 +580,12 @@ export default function Creators() {
               STUDOJO GROWTH FELLOWSHIP
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-[1.08] text-neutral-900 md:text-5xl font-clash">
-              Build a LinkedIn that brings opportunities to you
+              Learn growth by doing it. Get hired for it.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-neutral-700 font-satoshi">
-              Recruiters notice people who show up well on LinkedIn. In the fellowship we help you write your posts, learn how
-              distribution works, and build a profile that attracts opportunities. Studojo hires its growth interns from the
-              fellows.
+              A fellowship for students who want to work in growth. You learn distribution hands-on by growing your own
+              presence with us. Studojo hires its growth interns from the fellows, and we refer strong fellows to people in
+              our network who are hiring.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-4">
               <a
@@ -604,11 +604,11 @@ export default function Creators() {
             <p className="text-xs font-bold tracking-widest text-neutral-500 font-satoshi">WHAT THE FELLOWSHIP GIVES YOU</p>
             <ul className="mt-4 space-y-3">
               {[
-                { day: "01", text: "How distribution works on LinkedIn", tag: "Skill", color: "bg-violet-100 text-violet-800" },
-                { day: "02", text: "Posts you're proud of, written with us", tag: "Your story", color: "bg-violet-100 text-violet-800" },
-                { day: "03", text: "A profile recruiters notice", tag: "Profile", color: "bg-emerald-100 text-emerald-800" },
-                { day: "04", text: "A shot at a Studojo growth internship", tag: "Studojo", color: "bg-amber-100 text-amber-800" },
-                { day: "05", text: "Your profile shared with people hiring", tag: "Network", color: "bg-emerald-100 text-emerald-800" },
+                { day: "01", text: "A shot at a growth internship at Studojo", tag: "Studojo", color: "bg-amber-100 text-amber-800" },
+                { day: "02", text: "Referrals to people hiring in our network", tag: "Network", color: "bg-emerald-100 text-emerald-800" },
+                { day: "03", text: "Hands-on distribution skills", tag: "Skill", color: "bg-violet-100 text-violet-800" },
+                { day: "04", text: "Posts you're proud of, written with us", tag: "Your work", color: "bg-violet-100 text-violet-800" },
+                { day: "05", text: "A profile recruiters notice", tag: "Profile", color: "bg-emerald-100 text-emerald-800" },
               ].map((r) => (
                 <li key={r.day} className="flex items-center gap-3 rounded-2xl border-2 border-neutral-900 px-3 py-3">
                   <span className="grid h-10 w-12 shrink-0 place-items-center rounded-xl bg-neutral-900 text-sm font-bold text-white font-satoshi">
