@@ -12,6 +12,8 @@ import { Plus } from "./icons";
 // send gate writes to one person per company at a time and never to someone already emailed or on the do not contact
 // list (mail/send-gate.ts, do-not-contact.server.ts); replies are checked every 5 minutes (mail/sequence.ts); avoided
 // companies are never shown (profile avoid_companies). The counts are Proof.tsx's. No price: none on the homepage.
+// 29 Oct 2026: the cost answer follows the owner's pricing of 28 Oct (your top matches each day are free; seeing every
+// match and emailing the people hiring are paid), still with no price and no amount.
 
 const QA: { q: string; a: string }[] = [
   {
@@ -47,8 +49,8 @@ const QA: { q: string; a: string }[] = [
     a: "No. Studojo only reads the replies to emails you send through it. Stu checks for them every few minutes and stops following up as soon as someone answers.",
   },
   {
-    q: "What's free, and what uses credits?",
-    a: "Everything up to the email is free: talking to Stu, your brief and every job match. One credit is one verified email of the right person. No email found, no credit used.",
+    q: "What's free, and what do I pay for?",
+    a: "Talking to Stu is free, and so are your top matches every day. You pay to see every match Stu finds, and emailing the people who are hiring uses credits. One credit is one verified email of the right person. No email found, no credit used.",
   },
   {
     q: "Am I guaranteed a job?",

@@ -50,6 +50,8 @@ for (const must of [
   "It goes out from your own inbox, and Stu follows up if they don't reply.",
   "Popular postings get hundreds of applicants.",
   "Replies are never guaranteed.",
+  "Talking to Stu is free, and so are your top matches every day.",
+  "You pay to see every match Stu finds, and emailing the people who are hiring uses credits.",
   "One credit is one verified email of the right person. No email found, no credit used.",
   "Stu, your career agent",
 ]) assert.ok(text.includes(must), `copy: ${must}`);
@@ -69,6 +71,10 @@ for (const [n, label] of [["1,800,000+", "job postings in our data"], ["7,700+",
 }
 assert.doesNotMatch(code(read("Proof.tsx")), /signed up|as of September|not guaranteed/i, "proof: no sign-ups, no footnotes");
 assert.doesNotMatch(text, /linkedin/i, "LinkedIn is not named as a source");
+// The owner's pricing (28 Oct 2026): the top matches each day are free; every match and emailing are paid. The
+// homepage says so without a price or an amount.
+assert.doesNotMatch(text, /every job match|everything up to the email is free/i, "not every match is free");
+assert.doesNotMatch(text, /\u20b9|\$\s?\d|\bRs\.?\s?\d|\b(INR|USD)\b|per month|\/mo\b/i, "no price on the homepage");
 assert.doesNotMatch(text, /testimonial|<blockquote|<q>|&ldquo;|\u201c/i, "no quotes or testimonials");
 assert.doesNotMatch(text, /ai job agent/i, "Stu is \"Stu, your career agent\"");
 // Anyone can use Stu, not only students (owner 28 Oct): the copy never speaks to or about students.
