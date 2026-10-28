@@ -46,6 +46,17 @@ import classicSiteCss from "./components/look/classic-site.css?url";
 import { useLook } from "./components/look/look-context";
 import { LookSwitch } from "./components/look/LookSwitch";
 
+// Site-wide Organization node (AEO): one canonical entity for studojo.com. sameAs lists only the
+// profile links that already appear in the site footer (app/components/common/footer.tsx).
+const ORGANIZATION_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Studojo",
+  url: "https://studojo.com",
+  logo: "https://studojo.com/logo.png",
+  sameAs: ["https://www.linkedin.com/company/studojo/", "https://instagram.com/studojo"],
+};
+
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.png", type: "image/png" },
   // Warm the fallback host (the .woff2 CDN) in case a self-hosted file ever misses.
@@ -78,6 +89,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:image" content="https://studojo.com/og-default.png" />
+        {/* Canonical Organization entity for AEO; sameAs = the footer's profile links only. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSONLD) }}
+        />
         <Links />
         {sv2 ? (
           <>
