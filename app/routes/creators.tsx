@@ -152,6 +152,26 @@ type ActionResult =
 // A real application is a few KB.
 const MAX_POST = 64 * 1024;
 
+// Why the page's code didn't run. A plain inline script (it runs even when the
+// app's modules fail) notes load and runtime errors, and when the browser posts
+// the form itself it writes them, with what did and didn't start, into
+// sj_diag. Nothing is sent unless the form is posted without the app.
+// Written as old-style JavaScript on purpose, so the oldest browsers run it.
+const DIAG_SCRIPT = `(function(){try{
+var d={e:[],r:[]};
+addEventListener("error",function(ev){try{var t=ev.target,m;
+if(t&&t!==window&&t.tagName){m="el:"+t.tagName+":"+String(t.src||t.href||"inline").split("/").pop();}
+else{m=String(ev.message||"error")+"@"+String(ev.filename||"").split("/").pop()+":"+(ev.lineno||0);}
+if(d.e.length<6)d.e.push(m.slice(0,160));}catch(x){}},true);
+addEventListener("unhandledrejection",function(ev){try{var r=ev.reason;if(d.r.length<3)d.r.push(String(r&&(r.message||r)).slice(0,160));}catch(x){}});
+document.addEventListener("submit",function(ev){try{var f=ev.target,i=f&&f.querySelector&&f.querySelector('input[name="sj_diag"]');if(!i)return;
+var js=0,bad=[];try{performance.getEntriesByType("resource").forEach(function(p){if(/\\/assets\\/[^?]*\\.js/.test(p.name)){js++;
+if((p.responseStatus&&p.responseStatus!==200)||(p.transferSize===0&&p.decodedBodySize===0))bad.push(p.name.split("/").pop());}});}catch(x){}
+var h=false;for(var k in f){if(k.indexOf("__react")===0){h=true;break;}}
+i.value=JSON.stringify({h:h,m:!!window.__reactRouterRouteModules,c:!!window.__reactRouterContext,t:Math.round(performance.now()),js:js,bad:bad.slice(0,5),e:d.e,r:d.r,
+lang:document.documentElement.lang,tr:/translated/.test(document.documentElement.className),w:innerWidth}).slice(0,1000);}catch(x){}},true);
+}catch(x){}})();`;
+
 function formValues(fd: FormData): FormState {
   const form = { ...EMPTY };
   for (const k of Object.keys(EMPTY) as (keyof FormState)[]) {
@@ -172,7 +192,7 @@ function formValues(fd: FormData): FormState {
 }
 
 /** Records the scriptless path in the funnel, with the browser, so it can be traced. */
-async function logScriptless(request: Request, nojsId: string, event: "creators_nojs" | "creators_submit", info: string) {
+async function logScriptless(request: Request, nojsId: string, event: "creators_nojs" | "creators_submit", info: string, diag = "") {
   try {
     const url = new URL(request.url);
     await db.insert(systemEvents).values({
@@ -185,6 +205,8 @@ async function logScriptless(request: Request, nojsId: string, event: "creators_
         info: info.slice(0, 64),
         no_js: true,
         ua: (request.headers.get("user-agent") ?? "").slice(0, 200),
+        // Empty when the browser ran no script at all.
+        diag: diag.slice(0, 1000) || null,
       },
     });
   } catch {
@@ -208,6 +230,8 @@ export async function action({ request }: { request: Request }): Promise<ActionR
     sj_trap: typeof trap === "string" ? trap : "",
     cameFromCode: SHARE_CODE.test(ref) ? ref : "",
   };
+  const rawDiag = fd.get("sj_diag");
+  const diag = typeof rawDiag === "string" ? rawDiag : "";
   const emailError = (email: string) => {
     const c = checkEmail(email);
     return c.ok ? null : (c.error ?? "Please enter a valid email address.");
@@ -217,7 +241,7 @@ export async function action({ request }: { request: Request }): Promise<ActionR
   if (fd.get("sj_mode") !== "full") {
     const first = validateUgcApplication(body, emailError);
     const errors = !first.ok && stepOf(first.field) === 0 ? { [first.field]: first.error } : {};
-    await logScriptless(request, nojsId, "creators_nojs", "continue");
+    await logScriptless(request, nojsId, "creators_nojs", "continue", diag);
     return { mode: "full", values, errors, nojsId };
   }
 
@@ -229,7 +253,7 @@ export async function action({ request }: { request: Request }): Promise<ActionR
   }
   const result = validateUgcApplication(body, emailError);
   if (!result.ok) {
-    await logScriptless(request, nojsId, "creators_nojs", `error:${result.field}`);
+    await logScriptless(request, nojsId, "creators_nojs", `error:${result.field}`, diag);
     return { mode: "full", values, errors: { [result.field]: result.error }, nojsId };
   }
   let saved: { isNew: boolean; shareCode: string };
@@ -247,7 +271,7 @@ export async function action({ request }: { request: Request }): Promise<ActionR
     return { mode: "full", values, errors: {}, formError: "We couldn't save your application just now. Please try again in a minute.", nojsId };
   }
   await logScriptless(request, nojsId, "creators_submit", saved.shareCode);
-  await logScriptless(request, nojsId, "creators_nojs", "submit");
+  await logScriptless(request, nojsId, "creators_nojs", "submit", diag);
   return { done: true, shareCode: saved.shareCode, alreadyApplied: !saved.isNew, firstName: result.value.fullName.split(/\s+/)[0] ?? "" };
 }
 
@@ -701,6 +725,8 @@ export default function Creators() {
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
       <Header landing />
+      {/* Runs during page load, before the app's modules (see DIAG_SCRIPT). */}
+      <script dangerouslySetInnerHTML={{ __html: DIAG_SCRIPT }} />
 
       {/* After a scriptless post the browser opens at the top of the page, so the form comes first. */}
       {!posted && (
@@ -892,6 +918,7 @@ export default function Creators() {
           >
             {/* Used only when the browser posts the form itself (no script): which form this is, and whose. */}
             <input type="hidden" name="sj_mode" value={full ? "full" : "step"} />
+            <input type="hidden" name="sj_diag" defaultValue="" />
             {full && <input type="hidden" name="sj_nojs" value={full.nojsId} />}
             {/* Bots fill every field; people never see this one. */}
             <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
