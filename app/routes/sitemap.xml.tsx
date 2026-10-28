@@ -131,9 +131,6 @@ export async function loader() {
     { loc: "/reports/how-to-get-a-job-at-a-startup-india-2026", publishDate: "2026-10-28" },
     { loc: "/reports/job-search-tips-2026", publishDate: "2026-10-28" },
   ];
-  for (const r of scheduledReports) {
-    if (r.publishDate <= istToday) staticPages.push({ loc: r.loc, priority: "0.9", changefreq: "monthly" });
-  }
 
   // Dynamic blog posts
   let blogPosts: Array<{ slug: string; updated_at: string | null; published_at: string | null }> = [];
@@ -162,8 +159,14 @@ export async function loader() {
   // every static page told crawlers everything changed daily (audit HP-N15).
   const lastmodTag = (d: string | null | undefined) => (d ? `\n    <lastmod>${d}</lastmod>` : "");
 
-  // Report pages: accurate publish dates so Google sees correct lastmod
+  // Report pages: accurate publish dates so Google sees correct lastmod. Each date is the
+  // report's own datePublished (the four below from their .tsx datePublished, the rest from
+  // the publishDate carried in staticPages / scheduledReports). Never "today".
   const reportLastmod: Record<string, string> = {
+    "/reports/ats-resume-report-2026": "2026-10-12",
+    "/reports/amazon-internship-report-2026-27": "2026-10-12",
+    "/reports/fake-job-internship-scams-2026": "2026-10-12",
+    "/reports/ai-job-search-tools-2026": "2026-10-12",
     "/reports/ops-india-2026": "2026-04-12",
     "/reports/internships-ai-india-2026": "2026-04-08",
     "/reports/cs-india-2026": "2026-04-01",
@@ -225,6 +228,15 @@ export async function loader() {
     "/reports/remote-jobs-report-who-hires-remote-freshers-2026": "2026-10-17",
     "/reports/job-scam-report-fake-internships-task-scams-students-2026": "2026-10-18",
   };
+
+  // Scheduled reports enter the sitemap on their publishDate (IST), using that same date as
+  // their lastmod. Future-dated reports stay out until their day.
+  for (const r of scheduledReports) {
+    if (r.publishDate <= istToday) {
+      staticPages.push({ loc: r.loc, priority: "0.9", changefreq: "monthly" });
+      reportLastmod[r.loc] = r.publishDate;
+    }
+  }
 
   const urls = [
     ...staticPages.map(
