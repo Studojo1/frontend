@@ -299,6 +299,16 @@ jobs:
           kubectl set env deployment/${{ env.APP_NAME }} -c ${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             EMAILER_SERVICE_URL="http://emailer-service:8087"
 
+      - name: Homepage v3 switch (HOME_V3)
+        run: |
+          # studojo.pro shows HOMEPAGE V3 when HOME_V3 is 1 (app/routes/_index.tsx) and HOMEPAGE V2, the page
+          # before it, otherwise. The repository variable HOME_V3 sets it, 1 when unset. Undo with no commit:
+          #   gh variable set HOME_V3 --body 0 -R Studojo1/frontend
+          #   gh workflow run deploy-staging.yml --ref staging -R Studojo1/frontend
+          # Idempotent: no-op once already set. deploy.yml (studojo.com) never sets it.
+          kubectl set env deployment/${{ env.APP_NAME }} -c ${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            HOME_V3="${{ vars.HOME_V3 || '1' }}"
+
       - name: Secrets as secretKeyRef (audit ST-N07)
         env:
           BOB_MCP_SECRET: ${{ secrets.BOB_MCP_SECRET }}

@@ -15,6 +15,7 @@ import {
 } from "~/components";
 import { useLoaderData } from "react-router";
 import { HomeV2 } from "~/components/home-v2/HomeV2";
+import { HomeV3 } from "~/components/home-v3/HomeV3";
 import { isB2cRequest } from "~/lib/b2c-home";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { senseiUi } from "~/lib/sensei-ui";
@@ -58,7 +59,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   // (signed in: "my jobs" in the header, "open my jobs" on every button); a failed read is "signed out".
   if (isB2cRequest(request)) {
     const signedIn = !!(await getSessionFromRequest(request).catch(() => null));
-    return { bobApp: false, dashboardApp: false, b2cHome: true, signedIn, senseiUi: "old" as const };
+    // HOMEPAGE V3 when the server's HOME_V3 is "1" (deploy-staging.yml sets it from the repository variable HOME_V3,
+    // 1 when unset); anything else keeps HOMEPAGE V2, the page before it. The undo needs no commit: set the variable
+    // to 0 and run the staging deploy again.
+    return { bobApp: false, dashboardApp: false, b2cHome: true, signedIn, homeV3: process.env.HOME_V3 === "1", senseiUi: "old" as const };
   }
   const session = await getSessionFromRequest(request);
   if (session) {
@@ -258,11 +262,15 @@ function InternshipPopup() {
 }
 
 export default function Home() {
-  const { bobApp, dashboardApp, b2cHome, senseiUi: ui } = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
+  const { bobApp, dashboardApp, b2cHome, senseiUi: ui } = data;
+  const homeV3 = "homeV3" in data && data.homeV3;
   // dashboard.studojo.* -> manager portal; app.studojo.* -> Bob workspace at root
   if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage ui={ui} /></Suspense>;
   if (bobApp) return <Suspense fallback={senseiFallback}><BobPage ui={ui} /></Suspense>;
-  // studojo.pro: the B2C homepage (app/components/home-b2c).
+  // studojo.pro: the B2C homepage, HOMEPAGE V3 (app/components/home-v3) when HOME_V3 is on, else HOMEPAGE V2
+  // (app/components/home-v2), kept unchanged as the undo.
+  if (b2cHome && homeV3) return <HomeV3 />;
   if (b2cHome) return <HomeV2 />;
   return (
     <>
