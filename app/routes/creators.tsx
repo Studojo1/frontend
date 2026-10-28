@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useActionData, useLocation } from "react-router";
-import { FiAlertCircle, FiAward, FiCheck, FiCheckCircle, FiEdit3, FiSend, FiUserCheck, FiX } from "react-icons/fi";
+import { FiAlertCircle, FiAward, FiCheck, FiCheckCircle, FiEdit3, FiMail, FiSend, FiUserCheck, FiX } from "react-icons/fi";
 import { Header, Footer } from "~/components";
 import db from "~/lib/db";
 import { checkEmail } from "~/lib/email-validate";
@@ -147,7 +147,7 @@ const EMPTY: FormState = {
 
 type ActionResult =
   | { mode: "full"; values: FormState; errors: Partial<Record<UgcField, string>>; formError?: string; nojsId: string }
-  | { done: true; shareCode: string | null; alreadyApplied: boolean; firstName: string };
+  | { done: true; shareCode: string | null; alreadyApplied: boolean; firstName: string; email: string };
 
 // A real application is a few KB.
 const MAX_POST = 64 * 1024;
@@ -248,7 +248,7 @@ export async function action({ request }: { request: Request }): Promise<ActionR
   // The whole form: the same checks and save as /api/ugc-apply.
   const blocked = await guardPublicForm(request, body);
   if (blocked) {
-    if (blocked.status === 200) return { done: true, shareCode: null, alreadyApplied: false, firstName: "" };
+    if (blocked.status === 200) return { done: true, shareCode: null, alreadyApplied: false, firstName: "", email: "" };
     return { mode: "full", values, errors: {}, formError: "Too many tries from your network just now. Please wait a few minutes and submit again.", nojsId };
   }
   const result = validateUgcApplication(body, emailError);
@@ -272,7 +272,13 @@ export async function action({ request }: { request: Request }): Promise<ActionR
   }
   await logScriptless(request, nojsId, "creators_submit", saved.shareCode);
   await logScriptless(request, nojsId, "creators_nojs", "submit", diag);
-  return { done: true, shareCode: saved.shareCode, alreadyApplied: !saved.isNew, firstName: result.value.fullName.split(/\s+/)[0] ?? "" };
+  return {
+    done: true,
+    shareCode: saved.shareCode,
+    alreadyApplied: !saved.isNew,
+    firstName: result.value.fullName.split(/\s+/)[0] ?? "",
+    email: result.value.email,
+  };
 }
 
 // Answers are kept on the device while someone fills the form, so a closed tab
@@ -420,7 +426,7 @@ export default function Creators() {
   const full = posted && "mode" in posted ? posted : null;
   const sent = posted && "done" in posted ? posted : null;
   const location = useLocation();
-  const [form, setForm] = useState<FormState>(() => (full ? full.values : sent ? { ...EMPTY, fullName: sent.firstName } : EMPTY));
+  const [form, setForm] = useState<FormState>(() => (full ? full.values : sent ? { ...EMPTY, fullName: sent.firstName, email: sent.email } : EMPTY));
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Partial<Record<UgcField, string>>>(() => full?.errors ?? {});
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
@@ -865,9 +871,25 @@ export default function Creators() {
             </h3>
             <p className="mx-auto mt-3 max-w-lg text-neutral-600 font-satoshi">
               {alreadyApplied
-                ? "We already have an application with this email, so you're all set. We'll message you on WhatsApp if you're selected. Need to change something? Write to us through the Contact page and we'll update it."
-                : "We read every application ourselves. If you're selected for the fellowship, we'll message you on WhatsApp with what happens next. Fellows who do well get first preference when Studojo hires growth interns."}
+                ? "We already have an application with this email, so you're all set. Need to change something? Write to us through the Contact page and we'll update it."
+                : "We read every application ourselves. Fellows who do well get first preference when Studojo hires growth interns."}
             </p>
+            {/* The meeting is arranged by email, so this is the one thing they must not miss. */}
+            <div className="mx-auto mt-6 flex max-w-lg items-start gap-3 rounded-2xl border-2 border-neutral-900 bg-amber-50 p-4 text-left font-satoshi">
+              <FiMail aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-violet-700" />
+              <p className="text-neutral-900">
+                <span className="font-bold">Keep checking your email.</span>{" "}
+                {form.email.trim() ? (
+                  <>
+                    We'll write to <span className="font-semibold [overflow-wrap:anywhere]">{form.email.trim().toLowerCase()}</span> when
+                    your meeting is scheduled.
+                  </>
+                ) : (
+                  "We'll write to you there when your meeting is scheduled."
+                )}{" "}
+                Check your spam folder too.
+              </p>
+            </div>
             <div className="mx-auto mt-8 max-w-md rounded-2xl bg-studojo-purple-bg p-5">
               <p className="font-semibold text-neutral-900 font-satoshi">Know someone with great stories?</p>
               <div className="mt-4 flex flex-wrap justify-center gap-3">
