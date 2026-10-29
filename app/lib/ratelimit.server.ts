@@ -86,6 +86,12 @@ export function normalizePath(raw: string): string {
 }
 
 function getEndpointType(path: string): string {
+  // A Growth Fellowship fellow's page and its API. The address ends in the
+  // fellow's first name, so the substring checks below would put "payal-..."
+  // in the payment bucket and "authora-..." in the (disabled) auth one.
+  if (path.startsWith("/fellowship-growth/") || path.startsWith("/api/fellowship-growth/")) {
+    return "default";
+  }
   if (path === "/api/funnel-event" || path === "/api/meta-event") {
     return "tracking";
   }

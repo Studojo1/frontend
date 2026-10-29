@@ -1,5 +1,6 @@
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
+import { checkRateLimit } from "~/lib/ratelimit.server";
 import {
   buildFellowView,
   cleanPostUrl,
@@ -28,6 +29,24 @@ import {
 
 type Row = Record<string, unknown>;
 const rows = <T>(r: { rows: unknown[] }) => r.rows as T[];
+
+/**
+ * The site's rate limiter, waited on for 1.5 s at most: the address is the only
+ * key, so the limiter stays on, but a slow or unreachable Redis must not hang the page.
+ */
+export async function fellowRateLimit(request: Request) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      checkRateLimit(request),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), 1500);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /** The fellow at this address, or null (unknown, or removed from the programme). */
 export async function findFellow(slug: string): Promise<FellowRow | null> {
@@ -60,10 +79,15 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
       ORDER BY created_at DESC
       LIMIT 50
     `).then((r) => rows<StoryRow>(r)),
+    // The latest readings only (one a day is kept), so an old or busy history can't slow the page.
     db.execute(sql`
-      SELECT connections, recorded_at
-      FROM ugc_creator_connections
-      WHERE creator_id = ${fellow.id}
+      SELECT connections, recorded_at FROM (
+        SELECT connections, recorded_at
+        FROM ugc_creator_connections
+        WHERE creator_id = ${fellow.id}
+        ORDER BY recorded_at DESC
+        LIMIT 400
+      ) latest
       ORDER BY recorded_at
     `).then((r) => rows<ConnectionRow>(r)),
     db.execute(sql`SELECT rules FROM ugc_programme WHERE id = 1`)
@@ -102,19 +126,32 @@ export class FellowInputError extends Error {
 }
 
 const postId = (v: unknown) => {
-  const n = typeof v === "number" ? v : typeof v === "string" && /^\d{1,9}$/.test(v) ? Number(v) : NaN;
-  if (!Number.isInteger(n) || n <= 0) throw new FellowInputError("That post isn't on your page.", 404);
+  const n = typeof v === "number" ? v : typeof v === "string" && /^\d{1,10}$/.test(v) ? Number(v) : NaN;
+  // Post ids are Postgres integers: anything larger can't be one of this fellow's posts.
+  if (!Number.isInteger(n) || n <= 0 || n > 2147483647) throw new FellowInputError("That post isn't on your page.", 404);
   return n;
 };
 
 const updated = (r: { rowCount?: number | null }) => (r.rowCount ?? 0) > 0;
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Runs fn in a transaction that holds this fellow's write lock, so a burst of requests can't race past a check. */
+function withFellowLock<T>(fellow: FellowRow, fn: (tx: Tx) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('fellow-page'), ${fellow.id})`);
+    return fn(tx);
+  });
+}
+
+const STORY_MAX = 8000;
 
 /**
  * One change from the page. Throws FellowInputError with a message the page can
  * show. The fellow comes from the address, never from the request body.
  */
 export async function applyFellowChange(fellow: FellowRow, body: Record<string, unknown>): Promise<void> {
-  // Posts can only be acted on up to the end of this week (the page shows no later ones).
+  // Posts can be acted on up to the end of this week (the page shows no later ones), earlier weeks included.
   const weekEnd = addDays(weekOf(istDate()), 6);
 
   switch (body.intent) {
@@ -137,14 +174,24 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       return;
     }
     case "posted": {
+      // A post from an earlier week can still be marked, late; the page lists those in Your activity.
       const id = postId(body.postId);
       const url = cleanPostUrl(body.url);
       if (!url) throw new FellowInputError("That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/");
-      const r = await db.execute(sql`
-        UPDATE ugc_creator_posts SET status = 'posted', post_url = ${url}, posted_at = now(), updated_at = now()
-        WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
-      `);
-      if (!updated(r)) throw new FellowInputError("This post is already marked as posted.", 409);
+      await withFellowLock(fellow, async (tx) => {
+        // One link, one post: a link already saved for another post can't complete this one as well.
+        const used = await tx.execute(sql`
+          SELECT 1 FROM ugc_creator_posts WHERE lower(post_url) = lower(${url}) AND id <> ${id} LIMIT 1
+        `);
+        if (used.rows.length) {
+          throw new FellowInputError("That link is already saved for another post. Open this post on LinkedIn and copy its own link.", 409);
+        }
+        const r = await tx.execute(sql`
+          UPDATE ugc_creator_posts SET status = 'posted', post_url = ${url}, posted_at = now(), updated_at = now()
+          WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
+        `);
+        if (!updated(r)) throw new FellowInputError("This post is already marked as posted.", 409);
+      });
       return;
     }
     case "numbers": {
@@ -166,21 +213,32 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
     case "connections": {
       const n = wholeNumber(body.connections, 30_000);
       if (n == null) throw new FellowInputError("Enter your connections as a whole number, up to 30,000.");
-      await db.execute(sql`INSERT INTO ugc_creator_connections (creator_id, connections) VALUES (${fellow.id}, ${n})`);
+      // One reading a day, India time: saving again the same day replaces it, so the history stays small.
+      await withFellowLock(fellow, async (tx) => {
+        const r = await tx.execute(sql`
+          UPDATE ugc_creator_connections SET connections = ${n}, recorded_at = now()
+          WHERE creator_id = ${fellow.id}
+            AND (recorded_at AT TIME ZONE 'Asia/Kolkata')::date = (now() AT TIME ZONE 'Asia/Kolkata')::date
+        `);
+        if (!updated(r)) await tx.execute(sql`INSERT INTO ugc_creator_connections (creator_id, connections) VALUES (${fellow.id}, ${n})`);
+      });
       return;
     }
     case "story": {
-      const text = cleanText(body.text, 8000);
+      const text = cleanText(body.text, STORY_MAX + 1);
       if (text.length < 10) throw new FellowInputError("Write a few more words first.");
+      if (text.length > STORY_MAX) throw new FellowInputError("That's longer than one story can be (8,000 characters). Please share it in two parts.");
       const prompt = STORY_PROMPTS.includes(String(body.prompt)) ? String(body.prompt) : null;
-      // A page can't flood the team's queue: at most 30 stories a day.
-      const today = await db.execute(sql`
-        SELECT count(*)::int AS n FROM ugc_creator_stories WHERE creator_id = ${fellow.id} AND created_at >= now() - interval '1 day'
-      `);
-      if (Number(rows<Row>(today)[0]?.n ?? 0) >= 30) throw new FellowInputError("That's a lot of stories for one day. Try again tomorrow.", 429);
-      await db.execute(sql`
-        INSERT INTO ugc_creator_stories (creator_id, prompt, text, spoken) VALUES (${fellow.id}, ${prompt}, ${text}, false)
-      `);
+      // A page can't flood the team's queue: at most 30 stories a day, counted under the fellow's lock.
+      await withFellowLock(fellow, async (tx) => {
+        const today = await tx.execute(sql`
+          SELECT count(*)::int AS n FROM ugc_creator_stories WHERE creator_id = ${fellow.id} AND created_at >= now() - interval '1 day'
+        `);
+        if (Number(rows<Row>(today)[0]?.n ?? 0) >= 30) throw new FellowInputError("That's a lot of stories for one day. Try again tomorrow.", 429);
+        await tx.execute(sql`
+          INSERT INTO ugc_creator_stories (creator_id, prompt, text, spoken) VALUES (${fellow.id}, ${prompt}, ${text}, false)
+        `);
+      });
       return;
     }
     default:

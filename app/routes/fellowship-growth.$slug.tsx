@@ -1,16 +1,19 @@
 import type { Route } from "./+types/fellowship-growth.$slug";
 import { normaliseSlug } from "~/lib/fellow-view";
-import { findFellow } from "~/lib/fellow-page.server";
+import { fellowRateLimit, findFellow } from "~/lib/fellow-page.server";
 import { fellowPageHtml, PAGE_HEADERS } from "~/lib/fellow-page-html.server";
-import { checkRateLimit } from "~/lib/ratelimit.server";
 
 // A Growth Fellowship fellow's own page: studojo.com/fellowship-growth/<slug>.
 // A resource route (no component), so it renders outside root.tsx and its
 // analytics. The slug is the only key, so the response is never cached,
 // indexed or sent on as a referrer.
 
+// The ".data" spelling of this address runs the same loader: send it the same privacy headers.
+const { "Content-Type": _html, ...DATA_HEADERS } = PAGE_HEADERS;
+export const headers: Route.HeadersFunction = () => DATA_HEADERS;
+
 export async function loader({ params, request }: Route.LoaderArgs) {
-  const limit = await checkRateLimit(request);
+  const limit = await fellowRateLimit(request);
   if (limit && !limit.allowed) {
     return new Response("Too many requests. Please wait a minute and try again.", {
       status: 429,

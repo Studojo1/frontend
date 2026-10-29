@@ -490,8 +490,6 @@ ul, ol { padding: 0; list-style: none; }
 .news-hi .ic { color: var(--accent-ink); margin-top: 1px; }
 .news-hi b { font-size: 14px; font-weight: 600; line-height: 1.35; display: block; }
 .news-hi span { font-size: 12px; color: var(--ink-2); display: block; margin-top: 2px; }
-.info-btn { width: 32px; height: 32px; border-radius: 50%; border: 0; background: none; color: var(--ink-2); display: grid; place-items: center; }
-.info-btn:hover { background: var(--hover); }
 
 /* ---------- activity (past posts) */
 .act-week { margin-top: 16px; }
@@ -566,7 +564,6 @@ ul, ol { padding: 0; list-style: none; }
   .act-nums { margin-top: 4px; gap: 16px; }
   .act-nums .n-imp, .act-nums .n-small { min-width: 0; justify-content: flex-start; }
   .toasts { left: var(--gutter-l); right: var(--gutter-r); max-width: none; }
-  .info-btn { width: 44px; height: 44px; margin: -6px -10px -6px 0; }
   .week-pill { min-height: 44px; }
   .brand { min-height: 44px; }
   .stat-btn { min-height: 64px; }
@@ -578,8 +575,28 @@ ul, ol { padding: 0; list-style: none; }
 
 /* ---------- the live page (studojo.com/fellowship-growth/<slug>) */
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
-.notice { margin: 0 0 12px; padding: 12px 14px; border-radius: var(--r-card); background: var(--warn-soft); color: var(--ink); box-shadow: var(--shadow-card); }
+.notice { margin: 0; padding: 12px 14px; border-radius: var(--r-card); background: var(--warn-soft); color: var(--ink); box-shadow: var(--shadow-card); }
 .page-message { display: block; max-width: 560px; margin: 48px auto; padding: 0 var(--gutter-r) 0 var(--gutter-l); }
 .message-card .card-sub { margin-top: 8px; }
 .act-item .hist-panel { grid-column: 1 / -1; }
-
+/* Until the script has drawn the page, its empty cards stay hidden ("Loading your posts." shows). */
+.page:not(.is-ready) .card:empty { display: none; }
+#posts { scroll-margin-top: 72px; }
+/* A story keeps its paragraphs, and a long link in it wraps instead of widening the page. */
+.st-text { overflow-wrap: anywhere; white-space: pre-line; }
+.ed-in.ed-empty { padding-bottom: 16px; }
+@container (min-width: 500px) {
+  .ed-in.ed-empty { padding-bottom: 24px; }
+}
+.share-actions [data-act="story-save"] { margin-left: auto; }
+/* The profile card clips overflow, so the Connections button's ring sits inside it. */
+.stat-btn:focus-visible { outline-offset: -3px; }
+.post:focus-visible { box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
+.toast.is-error .ic { color: var(--bad); }
+.act-missed { font-size: 12px; font-weight: 600; color: var(--warn); margin-top: 2px; }
+.act-nums .btn .ic { width: 16px; height: 16px; }
+@media (max-width: 759px) {
+  /* Matches the base rule's weight, so phones get 16px text (no zoom on focus) and 44px targets. */
+  .panel input[type="url"], .panel input[type="text"] { font-size: 16px; min-height: 44px; }
+  .act-nums { flex-wrap: wrap; white-space: normal; }
+}

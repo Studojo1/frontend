@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when public/fellowship/feed.css or feed.js changes, so browsers fetch the new files. */
-export const ASSET_VERSION = "20261029a";
+export const ASSET_VERSION = "20261029b";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -48,7 +48,7 @@ const ICONS = `<svg class="sprite" width="0" height="0" aria-hidden="true" focus
   </defs>
 </svg>`;
 
-const HEAD = `<!doctype html>
+const head = (top: string) => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -64,13 +64,23 @@ const HEAD = `<!doctype html>
 ${ICONS}
 <header class="topbar">
   <div class="topbar-in">
-    <a class="brand" href="#posts" aria-label="Studojo Growth Fellowship, this week's posts">
-      <span class="mark" aria-hidden="true">S</span>
-      <span class="brand-text"><span class="brand-name">Studojo</span><span class="brand-sub">Growth Fellowship</span></span>
-    </a>
-    <button class="week-pill" id="week-pill" type="button" data-act="goto-next" hidden></button>
+    ${top}
   </div>
 </header>`;
+
+const LOGO = `<span class="mark" aria-hidden="true">S</span>
+      <span class="brand-text"><span class="brand-name">Studojo</span><span class="brand-sub">Growth Fellowship</span></span>`;
+
+// The fellow's page: the logo jumps to this week's posts; the script fills in the week pill.
+const PAGE_TOP = `<a class="brand" href="#posts" aria-label="Studojo Growth Fellowship, this week's posts">
+      ${LOGO}
+    </a>
+    <button class="week-pill" id="week-pill" type="button" data-act="goto-next" hidden></button>`;
+
+// A message page has nothing to jump to, so its logo is not a link.
+const MESSAGE_TOP = `<span class="brand">
+      ${LOGO}
+    </span>`;
 
 const PAGE = `
 <div class="page" id="page">
@@ -78,7 +88,7 @@ const PAGE = `
     <section class="card profile" id="profile"></section>
   </aside>
 
-  <main class="feed" id="main">
+  <main class="feed" id="main" aria-busy="true">
     <div class="notice" id="notice" hidden></div>
     <section class="card ed-cover" id="ed-cover" aria-labelledby="ed-title"></section>
     <div class="feed-head">
@@ -113,9 +123,9 @@ const message = (title: string, text: string) => `
 </html>`;
 
 export function fellowPageHtml(state: "ok" | "missing" | "error"): string {
-  if (state === "ok") return HEAD + PAGE;
+  if (state === "ok") return head(PAGE_TOP) + PAGE;
   if (state === "missing") {
-    return HEAD + message("This link isn't working", "Check you opened the whole link from your message. If it still doesn't open, ask the Studojo team on WhatsApp for your link.");
+    return head(MESSAGE_TOP) + message("This link isn't working", "Check you opened the whole link from your message. If it still doesn't open, ask the Studojo team on WhatsApp for your link.");
   }
-  return HEAD + message("We couldn't load your page", "Something went wrong on our side. Please try again in a minute.");
+  return head(MESSAGE_TOP) + message("We couldn't load your page", "Something went wrong on our side. Please try again in a minute.");
 }

@@ -2,9 +2,11 @@
 // Weeks and runs must match the admin panel's creatorStats, and nothing the
 // team keeps private may reach a fellow's page.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   buildFellowView,
   cleanPostUrl,
+  LINKEDIN_POST,
   normaliseSlug,
   toMs,
   istDate,
@@ -22,12 +24,14 @@ assert.equal(istDate(Date.parse("2026-10-28T18:30:00Z")), "2026-10-29", "IST mid
 assert.equal(toMs("2026-10-27 14:10:00+00"), Date.parse("2026-10-27T14:10:00Z"), "Postgres text with a bare hour offset");
 assert.equal(toMs("2026-10-27 19:40:00+05:30"), Date.parse("2026-10-27T14:10:00Z"), "Postgres text with an IST offset");
 assert.equal(toMs(new Date("2026-10-27T14:10:00Z")), Date.parse("2026-10-27T14:10:00Z"), "Date objects");
+assert.equal(toMs("2026-10-29 13:53:39.668614+00"), Date.parse("2026-10-29T13:53:39.668Z"), "Postgres text with microseconds");
 assert.ok(Number.isNaN(toMs(null)), "null is not a time");
 
 // ---------------------------------------------------------------- input checks
 assert.equal(normaliseSlug("riya-k3m9x2qa"), "riya-k3m9x2qa");
 assert.equal(normaliseSlug("Riya-K3M9X2QA"), "riya-k3m9x2qa", "addresses are case-insensitive");
 assert.equal(normaliseSlug("fellow-3f9a0c1d"), "fellow-3f9a0c1d", "older hex codes still open");
+assert.equal(normaliseSlug("venkataramanasubramaniam-3f9a0c1d"), "venkataramanasubramaniam-3f9a0c1d", "the admin's backfill doesn't cap long first names");
 for (const bad of ["riya", "riya-k3m9", "riya-k3m9x2qa1", "../etc-passwd12", "riya-k3m9x2q!", "", undefined]) {
   assert.equal(normaliseSlug(bad), null, `rejects ${bad}`);
 }
@@ -38,7 +42,8 @@ assert.equal(
   "tracking parameters are dropped",
 );
 assert.equal(cleanPostUrl("https://in.linkedin.com/posts/x-1"), "https://www.linkedin.com/posts/x-1", "country subdomains");
-for (const bad of ["https://linkedin.com/in/riya", "https://evil.com/linkedin.com/posts/x", "javascript:alert(1)//linkedin.com/posts/x", "https://linkedin.com.evil.com/posts/x", "linkedin.com/posts/"]) {
+assert.equal(cleanPostUrl("https://www.linkedin.com/feed/update/urn:li:activity:7254/"), "https://www.linkedin.com/feed/update/urn:li:activity:7254", "a trailing slash is the same link");
+for (const bad of ["https://linkedin.com/in/riya", "https://evil.com/linkedin.com/posts/x", "javascript:alert(1)//linkedin.com/posts/x", "https://linkedin.com.evil.com/posts/x", "linkedin.com/posts/", "linkedin.com/posts/?x=1", "linkedin.com/feed/update//"]) {
   assert.equal(cleanPostUrl(bad), null, `rejects ${bad}`);
 }
 assert.equal(wholeNumber("1,240", 1e6), 1240);
@@ -47,6 +52,11 @@ assert.equal(wholeNumber("-3", 1e6), null);
 assert.equal(wholeNumber("12.5", 1e6), null);
 assert.equal(wholeNumber("40000", 30000), null, "above the cap");
 assert.equal(cleanText("  one\n two\u0000 ", 100, true), "one two");
+// The page checks links with the server's pattern, so it never turns away a link the server takes.
+const feedJs = readFileSync(new URL("../../public/fellowship/feed.js", import.meta.url), "utf8");
+const linkOk = /const LINK_OK = \/(.+)\/i;\n/.exec(feedJs);
+assert.ok(linkOk, "feed.js defines LINK_OK");
+assert.equal(linkOk[1], LINKEDIN_POST.source, "feed.js LINK_OK matches the server's LINKEDIN_POST");
 
 // ---------------------------------------------------------------- the view
 const NOW = Date.parse("2026-10-29T08:00:00Z"); // Thu 29 Oct, 1:30 pm IST
@@ -122,7 +132,7 @@ assert.equal(ms.month.status, "next");
 assert.equal(ms.month.weeksToGo, 2);
 assert.equal(ms.pipeline.weeks, null, "the hiring pipeline has no week count");
 
-assert.deepEqual(v.me.history.map((w) => [w.week, w.complete, w.due, w.posts.length]), [["2026-10-19", true, 2, 2], ["2026-10-12", true, 2, 2]]);
+assert.deepEqual(v.me.history.map((w) => [w.week, w.complete, w.due, w.posts.length, w.missed.length]), [["2026-10-19", true, 2, 2, 0], ["2026-10-12", true, 2, 2, 0]]);
 assert.deepEqual(v.me.history[1].posts[0].metrics, { impressions: 900, reactions: 20, comments: 3 });
 
 assert.deepEqual(v.me.connections, {
@@ -146,6 +156,34 @@ assert.deepEqual(named.me.cohortFeed.map((e) => e.text), ["Kiran's post crossed 
 const small = buildFellowView({ ...input, cohortFellows: [{ id: 8, first_name: "Kiran" }] }, NOW);
 assert.equal(small.me.cohortPosition, null);
 
+// "Top 5" is only said in a cohort of 10 or more.
+const busyWeek = (n) => Array.from({ length: n }, (_, i) => ({ creator_id: 100 + i, status: "posted", due_date: "2026-10-27", posted_at: at("2026-10-27"), impressions: null, metrics_at: null }));
+const twice = { creator_id: 100, status: "posted", due_date: "2026-10-28", posted_at: at("2026-10-28"), impressions: null, metrics_at: null };
+const cohortOf = (n) => Array.from({ length: n }, (_, i) => ({ id: 100 + i, first_name: `F${i}` }));
+const four = buildFellowView({ ...input, cohortFellows: cohortOf(3), cohortPosts: [...busyWeek(3), twice, input.cohortPosts[2]] }, NOW);
+assert.equal(four.me.cohortSize, 4);
+assert.equal(four.me.cohortPosition, null, "no 'top 5' in a cohort of 4");
+const ten = buildFellowView({ ...input, cohortFellows: cohortOf(9), cohortPosts: [...busyWeek(9), twice, input.cohortPosts[2]] }, NOW);
+assert.equal(ten.me.cohortPosition, "You're in the top 5 of your cohort this week");
+
+// The headline leaves out what isn't known instead of guessing.
+const headlineOf = (college, course) => buildFellowView({ ...input, fellow: { ...fellow, college, field: null }, application: course ? { course, year_of_study: null, city: null } : null }, NOW).me.headline;
+assert.equal(headlineOf(null, "BBA"), "BBA student | Growth Fellow at Studojo", "no college: not 'Student at BBA'");
+assert.equal(headlineOf("Test College", null), "Student at Test College | Growth Fellow at Studojo");
+assert.equal(headlineOf(null, null), "Student | Growth Fellow at Studojo");
+
+// Milestones the team saved in the wrong shape are skipped, never fatal.
+for (const bad of [{ trial: { weeks: 2, name: "x" } }, "2 weeks", 7, null]) {
+  const view = buildFellowView({ ...input, rules: { ...rules, milestones: bad } }, NOW);
+  assert.deepEqual(view.me.milestones.map((m) => m.id), ["pipeline"], `milestones: ${JSON.stringify(bad)}`);
+}
+const odd = buildFellowView({ ...input, rules: { ...rules, milestones: [{ id: "a", weeks: 2.5, name: "Half" }, { id: "b", weeks: 400, name: "Far" }, { id: "c", weeks: 0, name: "None" }, { id: "d", weeks: "4", name: "Text" }, { id: "ok", weeks: 3, name: "Fine" }] } }, NOW);
+assert.deepEqual(odd.me.milestones.map((m) => m.id), ["ok", "pipeline"], "only whole weeks from 1 to 52");
+
+// A milestone's date is when that many weeks were done, even when a late post finished an earlier week last.
+const late = buildFellowView({ ...input, posts: posts.map((p) => (p.id === 2 ? post(2, "2026-10-15", "posted", { posted_at: at("2026-10-25") }) : p)) }, NOW);
+assert.equal(late.me.milestones.find((m) => m.id === "trial").earnedOn, "2026-10-25", "the second week was done on 25 Oct, not 22 Oct");
+
 // A fellow who joined mid-week, with nothing yet.
 const fresh = buildFellowView({
   ...input, fellow: { ...fellow, joined_at: "2026-10-29 10:00:00+05:30", connections_at_join: null },
@@ -156,7 +194,11 @@ assert.equal(fresh.me.thisWeek.due, 0);
 assert.equal(fresh.me.weeklyRun, 0);
 assert.equal(fresh.me.completedWeeks, 0);
 assert.equal(fresh.me.milestones.find((m) => m.status === "next")?.id, "trial");
-assert.deepEqual(fresh.me.connections, { now: 0, atJoin: 0, history: [{ date: "2026-10-29", n: 0 }] });
+assert.deepEqual(fresh.me.connections, { now: null, atJoin: null, history: [] }, "an unknown count stays unknown, not 0");
+const firstCount = buildFellowView({
+  ...input, fellow: { ...fellow, connections_at_join: null }, connections: [{ connections: 610, recorded_at: "2026-10-28 09:00:00+05:30" }],
+}, NOW);
+assert.deepEqual(firstCount.me.connections, { now: 610, atJoin: null, history: [{ date: "2026-10-28", n: 610 }] }, "a first count isn't backdated to the join date");
 assert.equal(fresh.me.cohortSize, 1);
 
 // A missed post breaks the run but not the completed count of other weeks.
@@ -165,5 +207,6 @@ assert.equal(missed.me.weeklyRun, 0, "last week isn't complete, so no run");
 assert.equal(missed.me.completedWeeks, 1);
 assert.equal(missed.me.history[0].complete, false);
 assert.equal(missed.me.history[0].posts.length, 1, "only posted posts are listed");
+assert.deepEqual(missed.me.history[0].missed.map((m) => [m.id, m.day, m.date, m.body]), [["3", "Tue", "2026-10-20", "Body 3"]], "the missed post can still be copied and marked");
 
 console.log("fellow-view: ok");

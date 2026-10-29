@@ -173,24 +173,28 @@ const dowShort = (day: string) => DOW[new Date(day + "T00:00:00Z").getUTCDay()];
 
 // ---------------------------------------------------------------- input checks
 
-/** The page address: first name and 8 random characters (admin-panel newCreatorSlug), or the older 8 hex characters. */
-export const SLUG_RE = /^[a-z]{1,20}-[a-z0-9]{8}$/;
+/**
+ * The page address: first name and 8 random characters (admin-panel newCreatorSlug), or the older 8 hex
+ * characters. The admin's backfill doesn't cap the name, so neither does this; lookups match exactly anyway.
+ */
+export const SLUG_RE = /^[a-z]{1,64}-[a-z0-9]{8}$/;
 
 export function normaliseSlug(raw: string | undefined): string | null {
   const s = String(raw ?? "").trim().toLowerCase();
   return SLUG_RE.test(s) ? s : null;
 }
 
-const LINKEDIN_POST = /^(?:https?:\/\/)?(?:[a-z]{2,3}\.|www\.)?linkedin\.com\/(?:posts|feed\/update)\/[^\s<>"']+$/i;
+// public/fellowship/feed.js checks links with the same pattern (LINK_OK): keep the two identical.
+export const LINKEDIN_POST = /^(?:https?:\/\/)?(?:[a-z]{2,3}\.|www\.)?linkedin\.com\/(?:posts|feed\/update)\/[^\s<>"'?#/][^\s<>"']*$/i;
 
 /**
  * A link to a LinkedIn post, as https://www.linkedin.com/..., or null. Tracking
- * parameters after "?" are dropped; the post id is in the path.
+ * parameters after "?" and trailing slashes are dropped; the post id is in the path.
  */
 export function cleanPostUrl(raw: unknown): string | null {
   const s = String(raw ?? "").trim();
   if (!s || s.length > 600 || !LINKEDIN_POST.test(s)) return null;
-  const path = s.replace(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.|www\.)?linkedin\.com\//i, "").split(/[?#]/)[0];
+  const path = s.replace(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.|www\.)?linkedin\.com\//i, "").split(/[?#]/)[0].replace(/\/+$/, "");
   return `https://www.linkedin.com/${path}`;
 }
 
@@ -226,9 +230,12 @@ export const STORY_PROMPTS = [
 const textOf = (v: unknown, fallback = ""): string => (typeof v === "string" ? v : typeof v === "number" ? `${v}` : fallback);
 
 function milestonesOf(rules: ProgrammeRules | null): Milestone[] {
-  const list: Milestone[] = (rules?.milestones ?? [])
-    .filter((m) => m && typeof m.weeks === "number" && textOf(m.name))
-    .map((m) => ({ id: textOf(m.id, `m${m.weeks}`), weeks: m.weeks, name: textOf(m.name), detail: textOf(m.detail) }))
+  // A list of whole-week milestones; anything else the row might hold is skipped, never fatal.
+  const raw: unknown[] = Array.isArray(rules?.milestones) ? (rules?.milestones as unknown[]) : [];
+  const list: Milestone[] = raw
+    .map((x) => (x && typeof x === "object" ? (x as Record<string, unknown>) : {}))
+    .filter((m) => Number.isInteger(m.weeks) && (m.weeks as number) >= 1 && (m.weeks as number) <= 52 && textOf(m.name))
+    .map((m) => ({ id: textOf(m.id, `m${m.weeks}`), weeks: m.weeks as number, name: textOf(m.name), detail: textOf(m.detail) }))
     .sort((a, b) => (a.weeks ?? 0) - (b.weeks ?? 0));
   const hp = rules?.hiringPipeline;
   if (hp && textOf(hp.name)) list.push({ id: textOf(hp.id, "pipeline"), weeks: null, name: textOf(hp.name), detail: textOf(hp.detail) });
@@ -287,14 +294,17 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
   const pastComplete = [...byWeek.keys()].filter((w) => w < thisWeek && complete(w)).sort();
   const completedWeeks = pastComplete.length;
 
-  // When each week-count milestone was reached: the day that week's last post went up.
-  const finishedOn = pastComplete.map((w) => {
-    const last = Math.max(...byWeek.get(w)!.map((p) => toMs(p.posted_at)).filter(Number.isFinite));
-    return Number.isFinite(last) ? istDate(last) : addDays(w, 6);
-  });
+  // When each week-count milestone was reached: the day the m-th week was completed, in the order
+  // weeks were completed (a late post can finish an earlier week after a later one).
+  const reachedOn = pastComplete
+    .map((w) => {
+      const last = Math.max(...byWeek.get(w)!.map((p) => toMs(p.posted_at)).filter(Number.isFinite));
+      return Number.isFinite(last) ? istDate(last) : addDays(w, 6);
+    })
+    .sort();
   const milestones = milestonesOf(rules).map((m) => {
     if (m.weeks == null) return { ...m, status: "later" as const, weeksToGo: null };
-    if (completedWeeks >= m.weeks) return { ...m, status: "earned" as const, earnedOn: finishedOn[m.weeks - 1] ?? null };
+    if (completedWeeks >= m.weeks) return { ...m, status: "earned" as const, earnedOn: reachedOn[m.weeks - 1] ?? null };
     return { ...m, status: "later" as const, weeksToGo: m.weeks - completedWeeks };
   });
   const firstOpen = milestones.find((m) => m.status === "later" && m.weeks != null);
@@ -333,6 +343,14 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
         week: w,
         complete: complete(w),
         due: ps.length,
+        // Posts that week that never went up: they can still be marked posted, late.
+        missed: ps
+          .filter((p) => !isPosted(p))
+          .sort((a, b) => dayOf(a.due_date).localeCompare(dayOf(b.due_date)) || a.id - b.id)
+          .map((p) => {
+            const v = postView(p);
+            return { id: v.id, day: v.day, date: v.date, title: v.title, kind: v.kind, body: v.body, ownLine: v.ownLine };
+          }),
         posts: ps
           .filter((p) => isPosted(p) && Number.isFinite(toMs(p.posted_at)))
           .sort((a, b) => toMs(a.posted_at) - toMs(b.posted_at))
@@ -343,17 +361,18 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       };
     });
 
-  // Connections: the count at joining, then each update (one per day, the last that day).
+  // Connections: the count at joining (if they gave one), then each update (one a day, the last that day).
+  // An unknown count stays unknown: never shown as 0, and never backdated to the join date.
   const joinedMs = toMs(fellow.joined_at);
   const joinedDay = Number.isFinite(joinedMs) ? istDate(joinedMs) : today;
-  const atJoin = fellow.connections_at_join ?? input.connections[0]?.connections ?? 0;
-  const hist: { date: string; n: number }[] = [{ date: joinedDay, n: atJoin }];
+  const atJoin = fellow.connections_at_join ?? null;
+  const hist: { date: string; n: number }[] = atJoin != null ? [{ date: joinedDay, n: atJoin }] : [];
   for (const c of input.connections.slice().sort((a, b) => toMs(a.recorded_at) - toMs(b.recorded_at))) {
     const ms = toMs(c.recorded_at);
     if (!Number.isFinite(ms)) continue;
     const d = istDate(ms);
     const last = hist[hist.length - 1];
-    if (last.date === d) last.n = c.connections;
+    if (last && last.date === d) last.n = c.connections;
     else hist.push({ date: d, n: c.connections });
   }
 
@@ -375,7 +394,8 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
   if (cohortSize >= 4) {
     if (cohortPostedThisWeek === 0) cohortPosition = "No one in your cohort has posted yet this week";
     else if (mine > 0 && ahead === 0) cohortPosition = "You're among the most active in your cohort this week";
-    else if (mine > 0 && ahead < 5) cohortPosition = "You're in the top 5 of your cohort this week";
+    // "Top 5" only means something in a cohort well above 5.
+    else if (cohortSize >= 10 && mine > 0 && ahead < 5) cohortPosition = "You're in the top 5 of your cohort this week";
   }
   const weekAgo = nowMs - 7 * DAY;
   const news: { t: number; text: string }[] = [];
@@ -391,13 +411,14 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
   }
   news.sort((a, b) => b.t - a.t);
 
-  const course = [application?.course?.trim(), application?.year_of_study?.trim()].filter(Boolean).join(", ");
-  const studentOf = [application?.course?.trim(), fellow.college?.trim()].filter(Boolean);
-  const headline = [
-    studentOf.length === 2 ? `${studentOf[0]} student at ${studentOf[1]}` : studentOf[0] ? `Student at ${studentOf[0]}` : "Student",
-    "Growth Fellow at Studojo",
-    fellow.field?.trim(),
-  ].filter(Boolean).join(" | ");
+  const courseName = application?.course?.trim() ?? "";
+  const collegeName = fellow.college?.trim() ?? "";
+  const course = [courseName, application?.year_of_study?.trim()].filter(Boolean).join(", ");
+  const studying = courseName && collegeName ? `${courseName} student at ${collegeName}`
+    : courseName ? `${courseName} student`
+    : collegeName ? `Student at ${collegeName}`
+    : "Student";
+  const headline = [studying, "Growth Fellow at Studojo", fellow.field?.trim()].filter(Boolean).join(" | ");
 
   return {
     program: {
@@ -425,7 +446,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       weekNo: Math.max(1, Math.floor(diffDays(weekOf(joinedDay), thisWeek) / 7) + 1),
       cohort: cohortLabel(fellow.cohort),
       paused: fellow.status === "paused",
-      connections: { now: hist[hist.length - 1].n, atJoin, history: hist },
+      connections: { now: hist.length ? hist[hist.length - 1].n : null, atJoin, history: hist },
       weeklyRun,
       completedWeeks,
       milestones,

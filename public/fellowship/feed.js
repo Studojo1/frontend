@@ -27,11 +27,21 @@
     page.innerHTML = '<section class="card card-pad message-card"><h1 class="card-title"></h1><p class="card-sub"></p></section>';
     page.querySelector("h1").textContent = title;
     page.querySelector("p").textContent = text;
+    // Nothing left on the page to jump to: the logo stops being a link and the week pill goes.
+    const brand = document.querySelector("a.brand");
+    if (brand) { brand.removeAttribute("href"); brand.removeAttribute("aria-label"); }
+    const pill = document.getElementById("week-pill");
+    if (pill) pill.hidden = true;
   }
 
-  call().then(boot, (e) => {
-    if (e && e.status === 404) showProblem("This link isn't working", "Check you opened the whole link from your message. If it still doesn't open, ask the Studojo team on WhatsApp for your link.");
-    else showProblem("We couldn't load your page", e && e.message ? e.message : "Please refresh the page in a minute.");
+  const LOAD_FAILED = "We couldn't load your page";
+  call().then((D) => {
+    try { boot(D); } catch (e) { showProblem(LOAD_FAILED, "Something went wrong on our side. Please refresh the page in a minute."); }
+  }, (e) => {
+    if (e && e.status === 404) { showProblem("This link isn't working", "Check you opened the whole link from your message. If it still doesn't open, ask the Studojo team on WhatsApp for your link."); return; }
+    // The server's message can repeat the title; then the plain next step reads better.
+    const msg = e && e.message ? e.message : "";
+    showProblem(LOAD_FAILED, msg && !msg.startsWith(LOAD_FAILED) ? msg : "Something went wrong on our side. Please try again in a minute.");
   });
 
   function boot(D) {
@@ -57,7 +67,9 @@
   const relDay = (s) => { const n = diffDays(s, TODAY); return n === 0 ? "today" : n === 1 ? "yesterday" : "on " + fmt(s); };
   const plural = (n, one, many) => n + " " + (n === 1 ? one : (many || one + "s"));
   const shortUrl = (u) => String(u || "").replace(/^https?:\/\//i, "").replace(/^www\./i, "");
-  const LINK_OK = /^(https:\/\/)?(www\.)?linkedin\.com\/(posts|feed\/update)\/\S+$/i;
+  const allPosts = (n, word) => (n === 1 ? "Your post is " : "All " + n + " posts are ") + word;
+  // The server's LINKEDIN_POST (app/lib/fellow-view.ts): keep the two identical.
+  const LINK_OK = /^(?:https?:\/\/)?(?:[a-z]{2,3}\.|www\.)?linkedin\.com\/(?:posts|feed\/update)\/[^\s<>"'?#/][^\s<>"']*$/i;
 
   /* ---------- state (local only, nothing is sent anywhere) */
   const S = {
@@ -65,7 +77,7 @@
       id: p.id, day: p.day, date: p.date, kind: p.kind, title: p.title, body: p.body,
       status: p.status, copied: !!p.copiedAt, ownLine: p.ownLine || "", postedAt: p.postedAt,
       url: p.url, metrics: p.metrics, numbersDue: p.numbersDue || null,
-      panel: null, expanded: false, err: "", fileName: "", draft: null,
+      panel: null, expanded: false, err: "", draft: null, lineDraft: null,
     })),
     conn: { now: ME.connections.now, atJoin: ME.connections.atJoin, history: ME.connections.history.slice(), editing: false, err: "" },
     stories: ME.stories.slice(),
@@ -73,11 +85,18 @@
     howto: false,
   };
   const byId = (id) => S.posts.find((p) => p.id === id);
-  S.histOpen = null; S.histErr = ""; S.histDraft = null;
+  // Your activity: the one earlier post with a panel open ("numbers" or "posted"), and what's typed in it.
+  S.histOpen = null; S.histKind = null; S.histErr = ""; S.histDraft = null; S.histUrl = "";
+  const missedById = (id) => ME.history.flatMap((w) => w.missed || []).find((m) => m.id === id);
 
   // The server's answer to every change is the whole fresh view: fold it into the page's state.
+  // If the day or this week's posts changed since the page loaded (a new week, or the team added
+  // or removed a post), the page's layout no longer fits: it reloads, and this returns false so
+  // the caller stops. The change itself is already saved.
   function applyView(v) {
     const M = v.me;
+    const ids = (list) => list.map((p) => p.id).sort().join();
+    if (v.program.today !== TODAY || ids(M.thisWeek.posts) !== ids(S.posts)) { location.reload(); return false; }
     for (const sp of M.thisWeek.posts) {
       const p = byId(sp.id);
       if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null });
@@ -89,6 +108,7 @@
     });
     S.conn.now = M.connections.now; S.conn.atJoin = M.connections.atJoin; S.conn.history = M.connections.history.slice();
     S.stories = M.stories.slice();
+    return true;
   }
   const postedCount = () => S.posts.filter((p) => p.status === "posted").length;
   const weekDone = () => ME.thisWeek.due > 0 && postedCount() >= ME.thisWeek.due;
@@ -123,13 +143,14 @@
   }
 
   /* ---------- top bar + week range */
+  const NO_POSTS = ME.paused ? "No posts while your fellowship is paused." : "No posts for you this week yet.";
   function renderTop() {
     const n = postedCount(), due = ME.thisWeek.due;
     if (!due) {
-      $("#week-pill").innerHTML = `<span>This week: posts on the way</span>`;
-      $("#week-pill").setAttribute("aria-label", "This week's posts are on their way");
+      $("#week-pill").innerHTML = `<span>${ME.paused ? "Paused" : "This week: no posts yet"}</span>`;
+      $("#week-pill").setAttribute("aria-label", NO_POSTS);
       $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
-      $("#feed-help").textContent = "Your posts for this week are being written. Check back soon.";
+      $("#feed-help").textContent = ME.paused ? NO_POSTS : NO_POSTS + " They'll show here when they're ready.";
       return;
     }
     const dots = S.posts.slice().sort((a, b) => a.date.localeCompare(b.date)).map((p) => `<i class="${p.status === "posted" ? "on" : ""}"></i>`).join("");
@@ -137,14 +158,20 @@
     $("#week-pill").setAttribute("aria-label", `This week: ${n} of ${due} posted. ${n < due ? "Go to your next post" : "All posts done"}`);
     $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
     $("#feed-help").textContent = n >= due
-      ? `All ${due} posts are out this week. Add your numbers a week after each one.`
+      ? `${allPosts(due, "out")} this week. Add your numbers a week after each one.`
       : "As they will look on LinkedIn. Copy a post, share it, then tap I posted it.";
   }
 
   /* ---------- profile card */
   function renderProfile() {
-    const c = S.conn, growth = c.now - c.atJoin;
-    const growthTxt = growth >= 0 ? `+${nf(growth)} since you joined` : `${nf(-growth)} fewer than when you joined`;
+    // A count nobody has given yet is shown as missing, never as 0.
+    const c = S.conn, known = c.now != null;
+    const growth = known && c.atJoin != null ? c.now - c.atJoin : null;
+    const growthTxt = growth == null ? "" : growth >= 0 ? `+${nf(growth)} since you joined` : `${nf(-growth)} fewer than when you joined`;
+    const meta = [ME.city, ME.course].filter(Boolean).join(", ");
+    const later = (c.atJoin != null ? c.history.slice(1) : c.history).map((h) => `${nf(h.n)} on ${fmt(h.date, false)}`);
+    const histTxt = (c.atJoin != null ? `You joined with ${nf(c.atJoin)} on ${fmt(ME.joined, false)}.` : "")
+      + (later.length ? (c.atJoin != null ? " Since then: " : "Your counts so far: ") + later.join(", ") + "." : "");
     $("#profile").innerHTML = `
       <div class="cover" aria-hidden="true"></div>
       <div class="profile-body">
@@ -155,27 +182,27 @@
             <p class="p-headline">${esc(ME.headline)}</p>
           </div>
         </div>
-        <p class="p-meta">${esc(ME.city)}, ${esc(ME.course)}</p>
+        ${meta ? `<p class="p-meta">${esc(meta)}</p>` : ""}
         <p class="p-org"><span class="mark mark-sm" aria-hidden="true">S</span>${esc(P.name)}, ${esc(ME.cohort)}</p>
       </div>
       <dl class="stats">
         <div>
-          <button class="stat stat-btn" type="button" data-act="conn-edit" aria-expanded="${c.editing}" aria-label="Connections: ${nf(c.now)}, ${growthTxt}. Update your count.">
-            <span class="st-label"><span>Connections</span><span class="st-growth">${growthTxt.replace(" since you joined", " since joining")}</span></span>
-            <span class="st-val">${nf(c.now)}${ic("edit-sm")}</span>
+          <button class="stat stat-btn" type="button" data-act="conn-edit" aria-expanded="${c.editing}" aria-controls="conn-edit" aria-label="${known ? `Connections: ${nf(c.now)}${growthTxt ? ", " + growthTxt : ""}. Update your count.` : "Connections: not added yet. Add your count."}">
+            <span class="st-label"><span>Connections</span>${growthTxt ? `<span class="st-growth">${growthTxt.replace(" since you joined", " since joining")}</span>` : ""}</span>
+            <span class="st-val">${known ? nf(c.now) : "Add your count"}${ic("edit-sm")}</span>
           </button>
         </div>
       </dl>
       ${c.editing ? `
-      <div class="conn-edit">
+      <div class="conn-edit" id="conn-edit">
         <label for="conn-input">How many connections do you have today?</label>
         <div class="conn-row ${c.err ? "has-err" : ""}">
-          <input id="conn-input" type="number" inputmode="numeric" min="0" max="30000" value="${c.now}" aria-describedby="conn-err conn-hist">
+          <input id="conn-input" type="number" inputmode="numeric" min="0" max="30000" value="${known ? c.now : ""}" aria-describedby="conn-err conn-hist">
           <button class="btn btn-primary btn-sm" type="button" data-act="conn-save">Save</button>
           <button class="btn btn-ghost btn-sm" type="button" data-act="conn-cancel">Cancel</button>
         </div>
         <p class="err" id="conn-err">${c.err ? ic("alert") + esc(c.err) : ""}</p>
-        <p class="conn-hist" id="conn-hist">You joined with ${nf(c.atJoin)} on ${fmt(ME.joined, false)}. ${c.history.slice(1).map((h) => `${nf(h.n)} on ${fmt(h.date, false)}`).join(", ")}.</p>
+        <p class="conn-hist" id="conn-hist">${histTxt}</p>
       </div>` : ""}`;
   }
 
@@ -185,7 +212,7 @@
     const n = postedCount(), next = nextPost(), total = S.posts.length;
     const away = (d) => diffDays(TODAY, d);
     if (!total) {
-      $("#ed-cover").innerHTML = `<div class="ed-in">
+      $("#ed-cover").innerHTML = `<div class="ed-in ed-empty">
         <div class="ed-top">
           <div class="ed-issue" aria-hidden="true"><span class="ed-issue-cap">NO.</span><span class="ed-issue-no">${WEEK_NO}</span></div>
           <div>
@@ -194,15 +221,18 @@
             <p class="ed-meta">${fmt(ME.thisWeek.start, false)} to ${fmt(addDays(ME.thisWeek.start, 6), false)} · Made for ${esc(ME.first)}</p>
           </div>
         </div>
-        <p class="ed-dek">Your posts for this week are on their way. They'll show up here as soon as they're ready.</p>
+        <p class="ed-dek">${ME.paused ? NO_POSTS : NO_POSTS + " They'll show up here as soon as they're ready."}</p>
       </div>`;
       return;
     }
     const when = (d) => (away(d) === 0 ? "today" : away(d) === 1 ? "tomorrow" : dowLong(d));
     let dek;
-    if (!next) dek = `All ${total} posts are up. <b>That's week ${WEEK_NO} done.</b>`;
+    if (!next) dek = `${allPosts(total, "up")}. <b>That's this week done.</b>`;
     else if (next.copied) dek = `${dowLong(next.date)}'s post is copied. Paste it on LinkedIn, then tap <b>I posted it</b>.`;
-    else {
+    else if (away(next.date) < 0) {
+      const ago = -away(next.date);
+      dek = `<b>${dowLong(next.date)}'s post was due ${ago === 1 ? "yesterday" : ago + " days ago"}.</b> Copy it and post it when you can.`;
+    } else {
       const left = total - n;
       dek = `<b>${dowLong(next.date)}'s post is ready to copy</b> for ${when(next.date)}. ${left === 1 ? "That's the last one" : left + " left"} this week.`;
     }
@@ -282,7 +312,8 @@
       panel = `<div class="panel" id="panel-${p.id}">
         <label class="panel-label" for="line-${p.id}">Your own line <span class="opt">(optional)</span></label>
         <p class="panel-help" id="line-help-${p.id}">One line in your own words. It goes at the top of the post${p.kind === "studojo" ? ", under the partnership line" : ""}.</p>
-        <textarea id="line-${p.id}" rows="2" maxlength="220" aria-describedby="line-help-${p.id}" placeholder="Something only you would say about this">${esc(p.ownLine)}</textarea>
+        <textarea id="line-${p.id}" rows="2" maxlength="220" aria-describedby="line-help-${p.id} line-err-${p.id}" aria-invalid="${!!p.err}" placeholder="Something only you would say about this">${esc(p.lineDraft != null ? p.lineDraft : p.ownLine)}</textarea>
+        <p class="err" id="line-err-${p.id}">${p.err ? ic("alert") + esc(p.err) : ""}</p>
         <div class="panel-actions">
           <button class="btn btn-ghost" type="button" data-act="close" data-id="${p.id}">Cancel</button>
           ${p.ownLine ? `<button class="btn btn-ghost" type="button" data-act="line-remove" data-id="${p.id}">Remove line</button>` : ""}
@@ -420,7 +451,7 @@
     const text = keepText && ta ? ta.value : "";
     const prompts = ME.storyPrompts;
     const pr = prompts[S.promptIdx];
-    const stories = S.stories.map((s) => `<li class="story">
+    const stories = S.stories.map((s) => `<li class="story" tabindex="-1">
         <p class="st-prompt">${esc(s.prompt)}</p>
         <p class="st-text">${esc(s.text)}</p>
         <p class="st-meta">${ic(s.spoken ? "mic" : "keyboard")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
@@ -459,10 +490,8 @@
       ? ME.cohortFeed.map((e) => `<li><b>${esc(e.text)}</b><span>${esc(e.ago)}</span></li>`).join("")
       : `<li><span>Nothing new in the last 7 days.</span></li>`;
     $("#news").innerHTML = `
-      <div class="card-head">
-        <h2 class="card-title" id="news-title">Fellowship news</h2>
-        <button class="info-btn" type="button" aria-label="About fellowship news" title="What's happening in ${esc(ME.cohort)} over the last 7 days">${ic("info")}</button>
-      </div>
+      <div class="card-head"><h2 class="card-title" id="news-title">Fellowship news</h2></div>
+      <p class="card-sub">What's happened in ${esc(ME.cohort)} over the last 7 days.</p>
       <div class="news-hi">${ic("trend")}<div>${ME.cohortPosition ? `<b>${esc(ME.cohortPosition)}</b>` : ""}<span>${ME.cohortPostedThisWeek} of ${ME.cohortSize} ${ME.cohortSize === 1 ? "fellow has" : "fellows have"} posted this week</span></div></div>
       <div class="news-group">
         <p class="kicker">Latest in ${esc(ME.cohort)}</p>
@@ -475,16 +504,30 @@
     const weeks = ME.history;
     if (!weeks.length) {
       $("#activity").innerHTML = `<h2 class="card-title" id="act-title">Your activity</h2>
-        <p class="card-sub">Your earlier weeks will show here once your first week is done.</p>`;
+        <p class="card-sub">Your earlier weeks will show here.</p>`;
       return;
     }
     const all = weeks.flatMap((w) => w.posts);
     const imp = all.reduce((s, p) => s + (p.metrics ? p.metrics.impressions : 0), 0);
+    const open = (id, kind) => S.histOpen === id && S.histKind === kind;
     const blocks = weeks.map((w) => {
+      // Posts that never went up come first: they can still be posted and marked, late.
+      const missed = (w.missed || []).map((m) => `<li class="act-item is-missed" id="act-${m.id}" tabindex="-1">
+          <p class="act-when"><b>${m.day}</b>${fmt(m.date, false)}</p>
+          <div>
+            <p class="act-title">${esc(m.title)}</p>
+            <p class="act-missed">Not marked as posted</p>
+          </div>
+          <p class="act-nums">
+            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}">${ic("copy")}Copy</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}">I posted it</button>
+          </p>
+          ${S.histOpen === m.id ? histPanel(m) : ""}
+        </li>`).join("");
       const rows = w.posts.map((p) => {
         const m = p.metrics;
-        return `<li class="act-item">
-          <p class="act-when"><b>${p.day}</b>${fmt(p.postedAt.slice(0, 10), false)}</p>
+        return `<li class="act-item" id="act-${p.id}" tabindex="-1">
+          <p class="act-when"><b>${DOW[parseD(p.postedAt).getUTCDay()]}</b>${fmt(p.postedAt.slice(0, 10), false)}</p>
           <div>
             <p class="act-title">${esc(p.title)}</p>
             ${p.kind === "studojo" ? `<p class="sj-tag"><span class="mark" aria-hidden="true">S</span>${esc(LABEL)}</p>` : ""}
@@ -494,24 +537,40 @@
             <span class="n-small" title="Reactions">${ic("thumb", "ic-solid")}<span class="sr-only">Reactions:</span>${nf(m.reactions)}</span>
             <span class="n-small" title="Comments">${ic("comment")}<span class="sr-only">Comments:</span>${nf(m.comments)}</span>
           </p>` : p.numbersDue && p.numbersDue <= TODAY
-            ? `<p class="act-nums"><button class="btn btn-secondary btn-sm" type="button" data-act="hist-numbers" data-id="${p.id}" aria-expanded="${S.histOpen === p.id}" aria-controls="hpanel-${p.id}">Add your numbers</button></p>`
+            ? `<p class="act-nums"><button class="btn btn-secondary btn-sm" type="button" data-act="hist-numbers" data-id="${p.id}" aria-expanded="${open(p.id, "numbers")}" aria-controls="hpanel-${p.id}" aria-label="Add your numbers for ${esc(p.title)}">Add your numbers</button></p>`
             : `<p class="act-nums">Numbers due ${p.numbersDue ? fmt(p.numbersDue, false) : ""}</p>`}
           ${S.histOpen === p.id ? histPanel(p) : ""}
         </li>`;
       }).join("");
       const posted = w.posts.length;
       return `<div class="act-week">
-        <div class="act-week-head"><h3>${fmt(w.week, false)} to ${fmt(addDays(w.week, 6), false)}</h3>${w.complete ? `<span class="chip chip-good">${ic("check", "ic-xs")}All ${posted} posted</span>` : `<span class="chip">${posted} of ${w.due} posted</span>`}</div>
-        <ul>${rows}</ul>
+        <div class="act-week-head"><h3>${fmt(w.week, false)} to ${fmt(addDays(w.week, 6), false)}</h3>${w.complete ? `<span class="chip chip-good">${ic("check", "ic-xs")}${w.due === 1 ? "Posted" : `All ${w.due} posted`}</span>` : `<span class="chip">${posted} of ${w.due} posted</span>`}</div>
+        <ul>${missed}${rows}</ul>
       </div>`;
     }).join("");
+    const span = weeks.length === 1 ? "in your first week" : `in your first ${weeks.length} weeks`;
+    const sub = all.length
+      ? `${plural(all.length, "post")} ${span}${all.some((p) => p.metrics) ? `, ${nf(imp)} impressions so far` : ""}.`
+      : "Nothing marked as posted yet.";
     $("#activity").innerHTML = `
       <h2 class="card-title" id="act-title">Your activity</h2>
-      <p class="card-sub">${plural(all.length, "post")} in your first ${plural(weeks.length, "week")}, ${nf(imp)} impressions so far.</p>
+      <p class="card-sub">${sub}</p>
       ${blocks}`;
   }
 
   function histPanel(p) {
+    if (S.histKind === "posted") {
+      return `<div class="panel hist-panel" id="hpanel-${p.id}">
+        <label class="panel-label" for="hurl-${p.id}">Paste the link to your LinkedIn post</label>
+        <p class="panel-help" id="hurl-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post.</p>
+        <div class="${S.histErr ? "has-err" : ""}"><input id="hurl-${p.id}" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="linkedin.com/posts/..." value="${esc(S.histUrl || "")}" aria-describedby="hurl-help-${p.id} hurl-err-${p.id}" aria-invalid="${!!S.histErr}"></div>
+        <p class="err" id="hurl-err-${p.id}">${S.histErr ? ic("alert") + esc(S.histErr) : ""}</p>
+        <div class="panel-actions">
+          <button class="btn btn-ghost" type="button" data-act="hist-close" data-id="${p.id}">Cancel</button>
+          <button class="btn btn-primary" type="button" data-act="hist-posted-save" data-id="${p.id}">Mark as posted</button>
+        </div>
+      </div>`;
+    }
     const d = S.histDraft || {};
     const bad = (v) => !!S.histErr && !/^\d[\d,\s]*$/.test(String(v == null ? "" : v).trim());
     return `<div class="panel hist-panel" id="hpanel-${p.id}">
@@ -531,11 +590,11 @@
   }
 
   /* ---------- toasts */
-  function toast(msg) {
+  function toast(msg, kind) {
     $("#toasts").innerHTML = "";
     const t = document.createElement("div");
-    t.className = "toast";
-    t.innerHTML = ic("check-circle") + `<span>${esc(msg)}</span>`;
+    t.className = kind === "error" ? "toast is-error" : "toast";
+    t.innerHTML = ic(kind === "error" ? "alert" : "check-circle") + `<span>${esc(msg)}</span>`;
     $("#toasts").appendChild(t);
     setTimeout(() => t.remove(), 3600);
   }
@@ -558,6 +617,13 @@
     el.focus({ preventScroll: true });
   }
   const toInt = (v) => { const s = String(v).replace(/[,\s]/g, ""); return /^\d+$/.test(s) ? parseInt(s, 10) : NaN; };
+  const focusEl = (sel) => { const el = $(sel); if (el) el.focus(); };
+  function closeHist() {
+    const id = S.histOpen, kind = S.histKind;
+    S.histOpen = null; S.histKind = null; S.histErr = ""; S.histDraft = null; S.histUrl = "";
+    renderActivity();
+    focusEl(`[data-act="hist-${kind}"][data-id="${id}"]`);
+  }
 
   /* ---------- events */
   document.addEventListener("click", async (ev) => {
@@ -565,29 +631,29 @@
     if (!b || b.tagName === "INPUT") return;
     const act = b.dataset.act, id = b.dataset.id, p = id ? byId(id) : null;
 
-    if (act === "goto-next") { const n = nextPost(); if (n) goTo(n.id); else toast(ME.thisWeek.due ? "All " + ME.thisWeek.due + " posts are done this week." : "Your posts for this week are on their way."); return; }
+    if (act === "goto-next") { const n = nextPost(); if (n) goTo(n.id); else toast(ME.thisWeek.due ? allPosts(ME.thisWeek.due, "done") + " this week." : NO_POSTS); return; }
     if (act === "goto") { goTo(id); return; }
     if (act === "more") { p.expanded = true; rerenderPost(id); const body = $("#body-" + id); if (body) { body.setAttribute("tabindex", "-1"); body.focus(); } return; }
     if (act === "copy") {
       const ok = await copyText(postText(p));
-      if (!ok) { toast("Couldn't copy. Tap see more, then select the text."); return; }
+      if (!ok) { toast("Couldn't copy. Tap see more, then select the text.", "error"); return; }
       p.copied = true; rerenderPost(id, '[data-act="posted"]'); renderCover();
       call({ intent: "copied", postId: id }).catch(() => {});
       toast(p.kind === "studojo" ? "Copied, with the partnership line. Paste it into a new post on LinkedIn." : "Copied. Paste it into a new post on LinkedIn.");
       return;
     }
     if (act === "line" || act === "posted" || act === "numbers") {
-      p.panel = p.panel === act ? null : act; p.err = ""; p.draft = null;
+      p.panel = p.panel === act ? null : act; p.err = ""; p.draft = null; p.lineDraft = null;
       rerenderPost(id, p.panel ? (act === "line" ? "textarea" : "input") : `[data-act="${act}"]`);
       return;
     }
-    if (act === "close") { const was = p.panel; p.panel = null; p.err = ""; rerenderPost(id, `[data-act="${was}"]`); return; }
+    if (act === "close") { const was = p.panel; p.panel = null; p.err = ""; p.lineDraft = null; rerenderPost(id, `[data-act="${was}"]`); return; }
     if (act === "line-save" || act === "line-remove") {
       const v = act === "line-remove" ? "" : $("#line-" + id).value.trim().replace(/\s+/g, " ");
       b.disabled = true;
-      try { applyView(await call({ intent: "line", postId: id, line: v })); }
-      catch (e) { b.disabled = false; toast(e.message); return; }
-      p.panel = null; if (v) p.expanded = true;
+      try { if (!applyView(await call({ intent: "line", postId: id, line: v }))) return; }
+      catch (e) { p.err = e.message; p.lineDraft = act === "line-remove" ? null : v; rerenderPost(id, "textarea"); return; }
+      p.panel = null; p.err = ""; p.lineDraft = null; if (v) p.expanded = true;
       rerenderPost(id, '[data-act="line"]');
       toast(act === "line-remove" ? "Your line is removed." : v ? "Your line is added at the top of the post." : "No line added. The post stays as it is.");
       return;
@@ -597,14 +663,16 @@
       if (!raw) { p.err = "Paste the link to your post first."; rerenderPost(id, "input"); return; }
       if (!LINK_OK.test(raw)) { p.err = "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/"; p.urlDraft = raw; rerenderPost(id, "input"); return; }
       b.disabled = true;
-      try { applyView(await call({ intent: "posted", postId: id, url: raw })); }
+      try { if (!applyView(await call({ intent: "posted", postId: id, url: raw }))) return; }
       catch (e) { p.err = e.message; p.urlDraft = raw; rerenderPost(id, "input"); return; }
       p.panel = null; p.err = ""; p.urlDraft = "";
       rerenderPost(id); refreshProgress(); renderNews();
+      // The next post is now "Up next". A card with a panel open keeps what's typed and catches up when it closes.
+      const nx = nextPost(); if (nx && !nx.panel) rerenderPost(nx.id);
       const el = $("#post-" + id); if (el) el.focus();
       toast(weekDone()
-        ? `That's all ${ME.thisWeek.due} posts this week. Your weekly run is now ${plural(run(), "week")}.`
-        : `${dowLong(p.date)}'s post is marked as posted. Add your numbers on ${fmt(p.numbersDue)}.`);
+        ? `${ME.thisWeek.due === 1 ? "That's your post for this week." : `That's all ${ME.thisWeek.due} posts this week.`} Your weekly run is now ${plural(run(), "week")}.`
+        : `${dowLong(p.date)}'s post is marked as posted. Add your numbers on ${p.numbersDue ? fmt(p.numbersDue) : "in a week"}.`);
       return;
     }
     if (act === "numbers-save") {
@@ -616,7 +684,7 @@
         rerenderPost(id, firstBad + id); return;
       }
       b.disabled = true;
-      try { applyView(await call({ intent: "numbers", postId: id, impressions: imp, reactions: rea, comments: com })); }
+      try { if (!applyView(await call({ intent: "numbers", postId: id, impressions: imp, reactions: rea, comments: com }))) return; }
       catch (e) { p.draft = raw; p.err = e.message; rerenderPost(id, "#imp-" + id); return; }
       p.panel = null; p.err = ""; p.draft = null;
       rerenderPost(id, '[data-act="numbers"]'); renderActivity();
@@ -631,32 +699,54 @@
       if (n > 30000) { S.conn.err = "LinkedIn allows up to 30,000 connections. Check the number and try again."; renderProfile(); $("#conn-input").focus(); return; }
       const before = S.conn.now;
       b.disabled = true;
-      try { applyView(await call({ intent: "connections", connections: n })); }
+      try { if (!applyView(await call({ intent: "connections", connections: n }))) return; }
       catch (e) { S.conn.err = e.message; renderProfile(); $("#conn-input").focus(); return; }
       S.conn.editing = false; S.conn.err = "";
       renderProfile(); $('[data-act="conn-edit"]').focus();
-      toast(n === before ? "Connections checked. No change." : `Connections updated from ${nf(before)} to ${nf(n)}.`);
+      toast(before == null ? `Connections saved: ${nf(n)}.` : n === before ? "Connections checked. No change." : `Connections updated from ${nf(before)} to ${nf(n)}.`);
       return;
     }
-    if (act === "hist-numbers") {
-      S.histOpen = S.histOpen === id ? null : id; S.histErr = ""; S.histDraft = null; renderActivity();
-      const f = S.histOpen ? $("#himp-" + id) : $(`[data-act="hist-numbers"][data-id="${id}"]`); if (f) f.focus();
+    if (act === "hist-numbers" || act === "hist-posted") {
+      const kind = act.slice(5), same = S.histOpen === id && S.histKind === kind;
+      S.histOpen = same ? null : id; S.histKind = same ? null : kind; S.histErr = ""; S.histDraft = null; S.histUrl = "";
+      renderActivity();
+      focusEl(S.histOpen ? (kind === "numbers" ? "#himp-" : "#hurl-") + id : `[data-act="${act}"][data-id="${id}"]`);
       return;
     }
-    if (act === "hist-close") { S.histOpen = null; S.histErr = ""; S.histDraft = null; renderActivity(); const f = $(`[data-act="hist-numbers"][data-id="${id}"]`); if (f) f.focus(); return; }
+    if (act === "hist-close") { closeHist(); return; }
     if (act === "hist-numbers-save") {
       const raw = { impressions: $("#himp-" + id).value.trim(), reactions: $("#hrea-" + id).value.trim(), comments: $("#hcom-" + id).value.trim() };
       const imp = toInt(raw.impressions), rea = toInt(raw.reactions), com = toInt(raw.comments);
       if ([imp, rea, com].some((n) => isNaN(n))) {
         S.histDraft = raw; S.histErr = "Add impressions, reactions and comments as whole numbers. Use 0 if there were none.";
-        renderActivity(); const f = $((isNaN(imp) ? "#himp-" : isNaN(rea) ? "#hrea-" : "#hcom-") + id); if (f) f.focus(); return;
+        renderActivity(); focusEl((isNaN(imp) ? "#himp-" : isNaN(rea) ? "#hrea-" : "#hcom-") + id); return;
       }
       b.disabled = true;
-      try { applyView(await call({ intent: "numbers", postId: id, impressions: imp, reactions: rea, comments: com })); }
-      catch (e) { S.histDraft = raw; S.histErr = e.message; renderActivity(); const f = $("#himp-" + id); if (f) f.focus(); return; }
-      S.histOpen = null; S.histErr = ""; S.histDraft = null;
-      renderActivity(); renderNews();
+      try { if (!applyView(await call({ intent: "numbers", postId: id, impressions: imp, reactions: rea, comments: com }))) return; }
+      catch (e) { S.histDraft = raw; S.histErr = e.message; renderActivity(); focusEl("#himp-" + id); return; }
+      S.histOpen = null; S.histKind = null; S.histErr = ""; S.histDraft = null;
+      renderActivity(); renderNews(); focusEl("#act-" + id);
       toast("Numbers saved. Thank you.");
+      return;
+    }
+    if (act === "hist-copy") {
+      const m = missedById(id);
+      if (!m) return;
+      if (!(await copyText(postText(m)))) { toast("Couldn't copy. Please try again.", "error"); return; }
+      call({ intent: "copied", postId: id }).catch(() => {});
+      toast("Copied. Post it on LinkedIn, then tap I posted it.");
+      return;
+    }
+    if (act === "hist-posted-save") {
+      const raw = $("#hurl-" + id).value.trim();
+      const bad = !raw ? "Paste the link to your post first." : !LINK_OK.test(raw) ? "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/" : "";
+      if (bad) { S.histErr = bad; S.histUrl = raw; renderActivity(); focusEl("#hurl-" + id); return; }
+      b.disabled = true;
+      try { if (!applyView(await call({ intent: "posted", postId: id, url: raw }))) return; }
+      catch (e) { S.histErr = e.message; S.histUrl = raw; renderActivity(); focusEl("#hurl-" + id); return; }
+      S.histOpen = null; S.histKind = null; S.histErr = ""; S.histUrl = "";
+      refreshProgress(); renderActivity(); renderNews(); focusEl("#act-" + id);
+      toast(`Marked as posted. Add your numbers on ${fmt(addDays(TODAY, 7))}.`);
       return;
     }
     if (act === "howto") { S.howto = !S.howto; renderMilestones(); const h = $('[data-act="howto"]'); if (h) h.focus(); return; }
@@ -670,33 +760,32 @@
       const text = $("#story-text").value.trim();
       if (text.length < 10) { S.storyErr = !text && S.listening ? "We didn't catch anything yet. Keep talking, or type it instead." : text ? "Write a few more words first." : "Write a few words first."; renderShare(true); $("#story-text").focus(); return; }
       b.disabled = true;
-      try { applyView(await call({ intent: "story", prompt: ME.storyPrompts[S.promptIdx], text })); }
+      try { if (!applyView(await call({ intent: "story", prompt: ME.storyPrompts[S.promptIdx], text }))) return; }
       catch (e) { S.storyErr = e.message; renderShare(true); $("#story-text").focus(); return; }
       S.listening = false; S.spoke = false; S.storyErr = "";
-      renderShare(false);
+      renderShare(false); focusEl("#share .story");
       toast("Story shared. Thank you, " + ME.first + ".");
       return;
     }
   });
 
-  document.addEventListener("change", (ev) => {
-    const el = ev.target;
-    if (el.matches('input[type="file"][data-act="shot"]')) {
-      const p = byId(el.dataset.id);
-      p.fileName = el.files && el.files[0] ? el.files[0].name : "";
-      p.draft = { impressions: $("#imp-" + p.id).value, reactions: $("#rea-" + p.id).value, comments: $("#com-" + p.id).value };
-      rerenderPost(p.id);
-      const fb = $(`label[for="shot-${p.id}"]`); if (fb) fb.focus();
-    }
-  });
-
+  // Enter in a field saves its panel; Escape closes the panel the focus is in, and only that one.
+  const SAVE_FOR = { url: "posted-save", imp: "numbers-save", rea: "numbers-save", com: "numbers-save", hurl: "hist-posted-save", himp: "hist-numbers-save", hrea: "hist-numbers-save", hcom: "hist-numbers-save" };
   document.addEventListener("keydown", (ev) => {
-    if (ev.key === "Enter" && ev.target.matches('input[id^="url-"]')) { ev.preventDefault(); const id = ev.target.id.slice(4); const b = $(`[data-act="posted-save"][data-id="${id}"]`); if (b) b.click(); }
-    if (ev.key === "Enter" && ev.target.id === "conn-input") { ev.preventDefault(); $('[data-act="conn-save"]').click(); }
-    if (ev.key === "Escape") {
-      const open = S.posts.find((p) => p.panel);
-      if (open) { const was = open.panel; open.panel = null; open.err = ""; rerenderPost(open.id, `[data-act="${was}"]`); }
+    const t = ev.target;
+    if (!t || !t.closest) return;
+    if (ev.key === "Enter" && t.tagName === "INPUT") {
+      if (t.id === "conn-input") { ev.preventDefault(); $('[data-act="conn-save"]').click(); return; }
+      const m = /^([a-z]+)-(\d+)$/.exec(t.id), save = m && SAVE_FOR[m[1]];
+      if (save) { ev.preventDefault(); const b = $(`[data-act="${save}"][data-id="${m[2]}"]`); if (b) b.click(); }
+      return;
     }
+    if (ev.key !== "Escape") return;
+    const art = t.closest("article.post"), open = art ? byId(art.id.slice(5)) : null;
+    if (open && open.panel) { const was = open.panel; open.panel = null; open.err = ""; open.lineDraft = null; rerenderPost(open.id, `[data-act="${was}"]`); return; }
+    if (S.conn.editing && t.closest(".profile")) { S.conn.editing = false; S.conn.err = ""; renderProfile(); $('[data-act="conn-edit"]').focus(); return; }
+    const row = t.closest(".act-item");
+    if (S.histOpen && row && row.id === "act-" + S.histOpen) closeHist();
   });
 
   let rz;
@@ -706,5 +795,7 @@
   $("#week-pill").hidden = false;
   if (ME.paused) { const n = $("#notice"); n.textContent = "Your fellowship is paused for now. Message the Studojo team on WhatsApp to pick it back up."; n.hidden = false; }
   renderTop(); renderProfile(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
+  $("#page").classList.add("is-ready");
+  $("#main").removeAttribute("aria-busy");
   }
 })();

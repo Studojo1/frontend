@@ -1,7 +1,6 @@
 import type { Route } from "./+types/api.fellowship-growth.$slug";
 import { normaliseSlug } from "~/lib/fellow-view";
-import { applyFellowChange, findFellow, FellowInputError, loadFellowView } from "~/lib/fellow-page.server";
-import { checkRateLimit } from "~/lib/ratelimit.server";
+import { applyFellowChange, fellowRateLimit, findFellow, FellowInputError, loadFellowView } from "~/lib/fellow-page.server";
 
 // The Growth Fellowship student page's data: GET returns the fellow's view,
 // POST applies one change (copied, own line, posted, numbers, connections, a
@@ -15,7 +14,11 @@ const HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
 };
 
-const MAX_BODY = 16 * 1024;
+// The ".data" spelling of this address runs the same loader and action: send it the same headers.
+export const headers: Route.HeadersFunction = () => HEADERS;
+
+// A story is up to 8,000 characters, and one character can take up to 4 bytes.
+const MAX_BODY = 40 * 1024;
 
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: HEADERS });
 
@@ -25,18 +28,43 @@ function logFailure(where: string, e: unknown) {
   console.error(`[fellow-api] ${where} failed`, err?.cause?.code ?? err?.code ?? err?.name ?? "unknown");
 }
 
-async function fellowFor(request: Request, rawSlug: string | undefined) {
-  const limit = await checkRateLimit(request);
-  if (limit && !limit.allowed) return json({ error: "Too many requests. Please wait a minute and try again." }, 429);
+async function tooMany(request: Request) {
+  const limit = await fellowRateLimit(request);
+  return limit && !limit.allowed ? json({ error: "Too many requests. Please wait a minute and try again." }, 429) : null;
+}
+
+async function fellowAt(rawSlug: string | undefined) {
   const slug = normaliseSlug(rawSlug);
   const fellow = slug ? await findFellow(slug) : null;
-  if (!fellow) return json({ error: "This link isn't working. Ask the Studojo team for your link." }, 404);
-  return fellow;
+  return fellow ?? json({ error: "This link isn't working. Ask the Studojo team for your link." }, 404);
+}
+
+/** The body as text, or null once it passes MAX_BODY: reading stops there, whatever the sender claims. */
+async function readCapped(request: Request): Promise<string | null> {
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY) return null;
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let size = 0;
+  let text = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  return text + decoder.decode();
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   try {
-    const fellow = await fellowFor(request, params.slug);
+    const limited = await tooMany(request);
+    if (limited) return limited;
+    const fellow = await fellowAt(params.slug);
     if (fellow instanceof Response) return fellow;
     return json(await loadFellowView(fellow));
   } catch (e) {
@@ -53,8 +81,10 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
   let body: Record<string, unknown>;
   try {
-    const text = await request.text();
-    if (text.length > MAX_BODY) return json({ error: "That's too long to send." }, 413);
+    const limited = await tooMany(request);
+    if (limited) return limited;
+    const text = await readCapped(request);
+    if (text === null) return json({ error: "That's too long to send." }, 413);
     const parsed = JSON.parse(text);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("not an object");
     body = parsed as Record<string, unknown>;
@@ -63,7 +93,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   try {
-    const fellow = await fellowFor(request, params.slug);
+    const fellow = await fellowAt(params.slug);
     if (fellow instanceof Response) return fellow;
     try {
       await applyFellowChange(fellow, body);
