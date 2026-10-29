@@ -126,6 +126,10 @@ interface InternshipApplicationNotification {
 export async function sendInternshipApplicationNotification(
   data: InternshipApplicationNotification
 ): Promise<void> {
+  if (emailsPaused()) {
+    console.info("[email-pause] held: internship application notification");
+    return;
+  }
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
     console.warn("RESEND_API_KEY not set, skipping internship application notification");

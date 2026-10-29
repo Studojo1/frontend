@@ -1,7 +1,8 @@
 // EMAIL-PAUSE (29 Oct 2026): the owner ordered every email this app sends by
 // itself switched off, user and internal team mail alike. The helper must hold
-// by default, and each held sender must ask it before sending. The internship
-// application notification (to the hiring side) is deliberately not held.
+// by default, and each held sender must ask it before sending. That includes
+// the internship application notification: it goes to the team inbox
+// (INTERNSHIP_APPLICATIONS_NOTIFY_EMAIL), so it is internal team mail.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { emailsPaused } from "./email-pause.server.ts";
@@ -33,6 +34,7 @@ function body(file, signature) {
 const HELD = [
   ["./gmail-direct.server.ts", "export async function sendDirectGmail("],
   ["./notifications.server.ts", "export async function sendLinkedInConnectEmail("],
+  ["./notifications.server.ts", "export async function sendInternshipApplicationNotification("],
   ["./mcp/errors.server.ts", "async function alertOnce("],
 ];
 for (const [file, sig] of HELD) {
@@ -44,8 +46,5 @@ for (const [file, sig] of HELD) {
     if (at >= 0) assert.ok(gate < at, `${file}: the pause check must come before ${send}`);
   }
 }
-
-const kept = body("./notifications.server.ts", "export async function sendInternshipApplicationNotification(");
-assert.ok(!kept.includes("emailsPaused"), "the internship application notification is not held");
 
 console.log("email-pause: ok");
