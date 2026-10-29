@@ -1,3 +1,5 @@
+import { emailsPaused } from "./email-pause.server";
+
 const RESEND_API_URL = "https://api.resend.com/emails";
 
 export async function sendLinkedInConnectEmail({
@@ -9,6 +11,10 @@ export async function sendLinkedInConnectEmail({
   connectUrl: string;
   firstName?: string;
 }) {
+  if (emailsPaused()) {
+    console.info("[email-pause] held: LinkedIn connect email");
+    return;
+  }
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
     console.warn("RESEND_API_KEY not set, skipping LinkedIn connect email");

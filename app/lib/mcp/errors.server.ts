@@ -14,6 +14,7 @@
 import { randomBytes } from "crypto";
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
+import { emailsPaused } from "~/lib/email-pause.server";
 
 export const CODE = {
   INVALID_INPUT: "invalid_input",
@@ -131,6 +132,10 @@ function rowsOf(r: any): any[] {
 
 /** Email ops at most once per code per hour, so a sustained outage is one message. */
 async function alertOnce(code: Code, ref: string, detail: string, tool?: string): Promise<void> {
+  if (emailsPaused()) {
+    console.info("[email-pause] held: MCP ops alert");
+    return;
+  }
   const key = process.env.RESEND_API_KEY?.trim();
   if (!key) return;
   const recent = rowsOf(
