@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   FiUsers, FiPhone, FiZap, FiExternalLink, FiUserPlus, FiActivity,
-  FiMessageSquare, FiAlertTriangle, FiHome, FiMail, FiCpu, FiCopy, FiTrash2,
+  FiMessageSquare, FiAlertTriangle, FiHome, FiMail, FiCpu, FiCopy, FiTrash2, FiLink,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,13 +33,22 @@ function authHeaders(): Record<string, string> {
   return h;
 }
 
+// An Error that keeps the HTTP status, so a caller can tell "not offered here" (404) from a failure.
+class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function api<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     ...options,
     headers: { "Content-Type": "application/json", ...authHeaders(), ...(options.headers as any) },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.detail || `Request failed (${res.status})`);
+  if (!res.ok) throw new ApiError(data?.detail || `Request failed (${res.status})`, res.status);
   return data as T;
 }
 
@@ -79,6 +88,12 @@ interface ChatMsg { id: number; role: string; content: string }
 interface ChatRow { id: number; cells: Record<string, any>; status?: string }
 interface ChatTable { id: number; name: string; rows: ChatRow[] }
 interface ChatDetail { messages: ChatMsg[]; tables: ChatTable[] }
+// bob-svc GET/PUT/DELETE /org/integrations/lemlist. key_hint is the end of the saved key ("...a1b2"); the key itself
+// never comes back. webhook is whether Lemlist is sending us opens and replies: "active", "missing" or "error".
+interface LemlistState {
+  available?: boolean; enabled: boolean; connected: boolean; team_name: string | null; key_hint: string | null;
+  webhook: string; connected_at: string | null; error: string | null;
+}
 
 // ── Two looks, one dashboard ─────────────────────────────────────────────────
 // Same arrangement as the workspace (app/routes/bob.tsx): this file draws the
@@ -628,6 +643,19 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   }, [onSignOut]);
   useEffect(() => { load(); }, [load]);
 
+  // Lemlist: the Integrations tab exists only where bob-svc offers it. A 404 (not offered on this environment),
+  // or any failure to read it, leaves the dashboard exactly as it was.
+  const [lemlist, setLemlist] = useState<LemlistState | null>(null);
+  useEffect(() => {
+    if (me?.role !== "admin") return;
+    let stop = false;
+    api<LemlistState>("/org/integrations/lemlist")
+      .then((s) => { if (!stop) setLemlist(s); })
+      .catch((e) => { if (!(e instanceof ApiError && e.status === 404)) console.error(e); });
+    return () => { stop = true; };
+  }, [me?.role]);
+  const lemlistOffered = !!lemlist && lemlist.available !== false;
+
   const signOut = () => {
     api("/auth/logout", { method: "POST" }).catch(() => {});
     localStorage.removeItem(SESSION_STORAGE);
@@ -659,7 +687,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     } catch (e: any) { setErr(e.message || "Could not assign chat"); load(); }
   };
 
-  const [tab, setTab] = useState<"overview" | "team" | "credits" | "chats" | "activity" | "agent">("overview");
+  const [tab, setTab] = useState<"overview" | "team" | "credits" | "chats" | "activity" | "agent" | "integrations">("overview");
   const card = "bg-white border-2 border-neutral-900 rounded-2xl shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
   const str = (v: any) => (v == null || v === "" ? "" : String(v));
 
@@ -694,6 +722,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     { id: "chats", label: "Chats", icon: FiMessageSquare },
     { id: "activity", label: "Activity log", icon: FiActivity },
     { id: "agent", label: "AI agent", icon: FiCpu },
+    { id: "integrations", label: "Integrations", icon: FiLink },
   ] as const;
 
   const StatCard = ({ icon, label, value, sub, warn }: { icon: any; label: string; value: any; sub?: string; warn?: boolean }) => (
@@ -728,7 +757,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
           </div>
         </div>
         <nav className="flex-1 p-2 space-y-1">
-          {NAV.map((n) => (
+          {NAV.filter((n) => n.id !== "integrations" || lemlistOffered).map((n) => (
             <button key={n.id} onClick={() => setTab(n.id)}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 tab === n.id ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}>
@@ -949,6 +978,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 
           {/* AI AGENT (MCP) */}
           {tab === "agent" && <AgentPanel card={card} orgName={data?.org?.name || "your workspace"} />}
+
+          {/* INTEGRATIONS (Lemlist) */}
+          {tab === "integrations" && lemlist && <LemlistPanel card={card} state={lemlist} onState={setLemlist} />}
         </div>
       </main>
     </div>
@@ -1088,6 +1120,132 @@ function AgentPanel({ card, orgName }: { card: string; orgName: string }) {
         </p>
       </div>
     </>
+  );
+}
+
+// ── Integrations: Lemlist ────────────────────────────────────────────────────
+// The workspace admin connects the team's Lemlist account with an API key, then switches it on. While it is on,
+// everyone in the workspace gets "Send to Lemlist" on a results table in Sensei, and each contact's Lemlist status
+// (sent, opened, replied...) on its row. bob-svc checks the key with Lemlist and sets up the updates itself; the key
+// never comes back, only its last characters.
+function LemlistPanel({ card, state, onState }: { card: string; state: LemlistState; onState: (s: LemlistState) => void }) {
+  const [key, setKey] = useState("");
+  const [busy, setBusy] = useState<"" | "connect" | "switch" | "disconnect">("");
+  const [err, setErr] = useState("");
+  const [newKey, setNewKey] = useState(false);   // already connected, pasting a different key
+
+  const call = async (what: "connect" | "switch" | "disconnect", init: RequestInit, failed: string) => {
+    if (busy) return;
+    setBusy(what); setErr("");
+    try {
+      onState(await api<LemlistState>("/org/integrations/lemlist", init));
+      if (what !== "switch") { setKey(""); setNewKey(false); }
+    } catch (e: any) { setErr(e?.message || failed); }
+    finally { setBusy(""); }
+  };
+  const connect = () => {
+    const k = key.trim();
+    if (!k) return;
+    // A first connection starts switched off, so the admin sees which Lemlist team the key belongs to before the
+    // whole workspace gets it. A replacement key leaves the switch where it was.
+    call("connect", { method: "PUT", body: JSON.stringify({ api_key: k, enabled: state.connected ? state.enabled : false }) },
+      "Could not connect that key");
+  };
+  const flip = () => call("switch", { method: "PUT", body: JSON.stringify({ enabled: !state.enabled }) }, "Could not save that");
+  const disconnect = () => {
+    if (!confirm("Disconnect Lemlist? Your team stops seeing Lemlist in Sensei. Contacts already sent stay in your Lemlist campaigns.")) return;
+    call("disconnect", { method: "DELETE" }, "Could not disconnect Lemlist");
+  };
+
+  const on = state.connected && state.enabled;
+  // a saved key that stopped working opens the field straight away: a new key is the fix
+  const showKey = !state.connected || newKey || !!state.error;
+  const updates = state.webhook === "active";
+
+  return (
+    <div className={`${card} p-5 max-w-2xl`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-['Clash_Display'] text-lg font-bold">Lemlist</h2>
+          <p className="text-sm text-neutral-600 mt-0.5">Send Sensei contacts to your Lemlist campaigns and see replies here.</p>
+        </div>
+        <span className={`shrink-0 text-[11px] font-bold rounded-full px-2 py-0.5 border-2 ${
+          on ? "border-green-300 text-green-700 bg-green-50" : "border-neutral-300 text-neutral-500"}`}>
+          {on ? "On" : state.connected ? "Off" : "Not connected"}
+        </span>
+      </div>
+
+      {state.connected && (
+        <div className="mt-4 space-y-1.5 text-sm">
+          <div>Connected to <b>{state.team_name || "your Lemlist team"}</b></div>
+          {(state.key_hint || state.connected_at) && (
+            <div className="text-xs text-neutral-400">
+              {[state.key_hint ? `Key ${state.key_hint}` : "", state.connected_at ? `since ${fmtDate(state.connected_at)}` : ""].filter(Boolean).join(" · ")}
+            </div>
+          )}
+          <div className="flex items-start gap-2 text-xs">
+            <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${updates ? "bg-green-500" : "bg-amber-500"}`} />
+            {updates
+              ? <span className="text-neutral-600">Updates from Lemlist are active: opens, clicks and replies show in Sensei.</span>
+              : <span className="text-amber-700">Not receiving updates from Lemlist. Sending still works, but opens and replies will not show in Sensei.</span>}
+          </div>
+        </div>
+      )}
+
+      {state.error && <p className="text-sm text-red-600 mt-3">{state.error}</p>}
+
+      {showKey && (
+        <div className="mt-4">
+          <div className="flex items-center gap-2">
+            <input type="password" value={key} onChange={(e) => setKey(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && connect()}
+              placeholder="Paste your Lemlist API key" aria-label="Lemlist API key"
+              autoComplete="off" spellCheck={false} data-1p-ignore data-lpignore="true"
+              className="flex-1 min-w-0 border-2 border-neutral-900 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            <button onClick={connect} disabled={!!busy || !key.trim()}
+              className="shrink-0 bg-violet-600 text-white font-bold px-4 py-2 rounded-xl border-2 border-neutral-900 text-sm disabled:opacity-60">
+              {busy === "connect" ? "Connecting…" : state.connected ? "Save key" : "Connect"}
+            </button>
+          </div>
+          <p className="text-xs text-neutral-400 mt-2">{"Lemlist > Settings > Integrations > Generate a new API key"}</p>
+        </div>
+      )}
+
+      {state.connected && (
+        <>
+          <div className="mt-5 pt-4 border-t border-neutral-100 flex items-start gap-3">
+            <button type="button" role="switch" aria-checked={state.enabled} aria-label="Show Lemlist in Sensei"
+              onClick={flip} disabled={!!busy} className="shrink-0 mt-0.5 rounded-full disabled:opacity-60">
+              <span className={`flex items-center w-11 h-6 p-0.5 rounded-full border-2 border-neutral-900 transition-colors ${state.enabled ? "bg-violet-500" : "bg-neutral-200"}`}>
+                <span className={`w-4 h-4 rounded-full bg-white border-2 border-neutral-900 transition-transform ${state.enabled ? "translate-x-5" : ""}`} />
+              </span>
+            </button>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">Show Lemlist in Sensei</div>
+              <div className="text-xs text-neutral-400 mt-0.5">
+                {state.enabled
+                  ? "Everyone in your workspace can send contacts to your Lemlist campaigns and see how each one is doing."
+                  : "Off. Nobody in your workspace sees Lemlist in Sensei until you switch it on."}
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-neutral-100 flex items-center justify-between gap-3">
+            {!state.error ? (
+              <button onClick={() => { setNewKey(!newKey); setKey(""); setErr(""); }}
+                className="text-xs font-semibold text-neutral-500 hover:text-violet-700">
+                {newKey ? "Keep the current key" : "Use a different key"}
+              </button>
+            ) : <span />}
+            <button onClick={disconnect} disabled={!!busy}
+              className="shrink-0 flex items-center gap-1 text-xs font-bold text-red-600 px-2.5 py-1.5 rounded-lg border-2 border-red-300 hover:bg-red-50 disabled:opacity-60">
+              {busy === "disconnect" ? "Disconnecting…" : "Disconnect"}
+            </button>
+          </div>
+        </>
+      )}
+
+      {err && <p className="text-sm text-red-600 mt-3">{err}</p>}
+    </div>
   );
 }
 
