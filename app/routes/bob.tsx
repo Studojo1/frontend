@@ -2374,7 +2374,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         </div>
       )}
       {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
-      {lemlistTable && <LemlistModal table={lemlistTable} onClose={() => setLemlistFor(null)} onSent={refreshTables} />}
+      {lemlistTable && <LemlistModal table={lemlistTable} myEmail={me?.email || ""} onClose={() => setLemlistFor(null)} onSent={refreshTables} />}
       {nameDialog?.kind === "new-project" && (
         <NameDialog title="New project" placeholder="e.g. Software development" initial="" submitLabel="Create project"
           maxLength={60} onClose={() => setNameDialog(null)}
@@ -4386,28 +4386,68 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
 // capabilities.lemlist) can send a results table's contacts to a Lemlist campaign. A sent row then carries
 // cells._lemlist (its status in that campaign, kept current by Lemlist's updates); an underscore cell is never a
 // column, so it shows as a small pill on the row. With the capability off none of this renders.
-type LemlistCampaign = { id: string; name: string; status?: string };
+type LemlistCampaign = { id: string; name: string; status?: string; senders?: string[] };
 type LemlistPush = {
   added?: number;
-  skipped?: { no_contact?: number; already_in_campaign?: number; in_other_campaign?: number; error?: number };
-  results?: { row_id: number; status: string; reason?: string }[];
+  skipped?: {
+    no_contact?: number; already_in_campaign?: number; in_other_campaign?: number; do_not_contact?: number;
+    contact_conflict?: number; error?: number;
+  };
+  results?: { row_id: number; status: string; reason?: string; linkedin_only?: boolean }[];
   campaign_name?: string;
-  remaining?: number;
+  linkedin_only?: number;
+  tracking?: string;
 };
-type LemlistMark = { status: string; reason: string; campaign: string };
+// One contact as the review found it (bob-svc POST /tables/{id}/lemlist/preview, which only reads Lemlist).
+type LemlistCheck = {
+  row_id: number;
+  state: string;                    // ready | no_contact | sent | do_not_contact | in_lemlist | check_failed
+  lead?: Record<string, string>;    // exactly what a send would put on the Lemlist lead
+  linkedin_only?: boolean;
+  campaign?: string;
+  campaign_status?: string;
+  same_campaign?: boolean;
+  dnc?: string;                     // which value is on the do-not-contact list: email | domain | linkedin | phone
+  reason?: string;
+};
+type LemlistMark = { status: string; reason: string; campaign: string; linkedinOnly: boolean };
 
 const LEMLIST_LABEL: Record<string, string> = {
   added: "Added", sent: "Sent", opened: "Opened", clicked: "Clicked", replied: "Replied", interested: "Interested",
   not_interested: "Not interested", bounced: "Bounced", unsubscribed: "Unsubscribed", failed: "Failed", skipped: "Skipped",
 };
 // A row already in a campaign: the server skips it on the next send, to that campaign or another one. A failed or
-// skipped row is not in one, so it goes again.
+// skipped row is not in one, so it can go again.
 const LEMLIST_IN_CAMPAIGN = new Set(["added", "sent", "opened", "clicked", "replied", "interested", "not_interested", "bounced", "unsubscribed"]);
-const LEMLIST_BATCH = 50;                       // row ids per request (the server takes up to 100)
+const LEMLIST_BATCH = 20;                       // contacts per request: each is up to 5 Lemlist calls (the server takes 50)
 const LEMLIST_LAST = "bob_lemlist_campaign";    // the campaign this browser sent to last, chosen again next time
+const LEMLIST_SENDER = "bob_lemlist_sender";    // whose campaigns this browser showed last ("*" = everyone's)
+// Campaigns a contact can still be added to, in the order the picker lists them. Archived and ended ones refuse
+// new leads, so they are not offered.
+const LEMLIST_OPEN: Record<string, number> = { draft: 0, paused: 1, "": 2, running: 3 };
+
+const LEMLIST_REASON: Record<string, string> = {
+  no_contact: "No work email or LinkedIn profile yet",
+  already_in_campaign: "Already in this campaign",
+  in_other_campaign: "Already in another Lemlist campaign",
+  do_not_contact: "On your Lemlist do-not-contact list",
+  contact_conflict: "Its email and LinkedIn profile belong to two different contacts in your Lemlist",
+};
+const LEMLIST_DNC: Record<string, string> = {
+  email: "their email", domain: "their company's email domain", linkedin: "their LinkedIn profile", phone: "their phone number",
+};
+// The fields a send puts on the Lemlist lead, in the order the review lists them. The ones marked true are not
+// Lemlist's own fields: they arrive as the campaign's custom variables, named the way a template uses them.
+const LEMLIST_FIELDS: [string, string, boolean][] = [
+  ["firstName", "First name", false], ["lastName", "Last name", false], ["jobTitle", "Title", false],
+  ["companyName", "Company", false], ["companyDomain", "Company domain", false], ["email", "Work email", false],
+  ["linkedinUrl", "LinkedIn", false], ["phone", "Phone", false], ["openRole", "Open role", true],
+  ["jobLink", "Job link", true], ["postedDate", "Posted", true], ["jobCity", "City", true], ["whyNow", "Why now", true],
+];
 
 // The server's reasons may come as codes ("no_contact"): those read as words.
 function lemlistReason(r: string): string {
+  if (LEMLIST_REASON[r]) return LEMLIST_REASON[r];
   return /^[a-z]+(_[a-z]+)*$/.test(r) ? sentence(r) : r;
 }
 
@@ -4420,14 +4460,22 @@ function lemlistOf(cells: Record<string, unknown>): LemlistMark | null {
   const o = v as Record<string, unknown>;
   const status = str(o.status).toLowerCase();
   if (!status) return null;
-  return { status, reason: lemlistReason(str(o.reason)), campaign: str(o.campaign_name) };
+  const dnc = str(o.dnc);
+  const reason = str(o.reason) === "do_not_contact" && dnc
+    ? `${LEMLIST_REASON.do_not_contact} (${LEMLIST_DNC[dnc] || dnc})`
+    : lemlistReason(str(o.reason));
+  return { status, reason, campaign: str(o.campaign_name), linkedinOnly: str(o.channel) === "linkedin" };
 }
 
 // Lemlist needs a way to reach the person: a work email, or a LinkedIn profile. A company row keeps them in contact_*,
 // a person row (bulk enrichment, lookups) in email and linkedin_url. A company's own LinkedIn page does not count.
 function lemlistReachable(cells: Record<string, unknown>): boolean {
-  if (str(cells.contact_email) || str(cells.email)) return true;
+  if (lemlistHasEmail(cells)) return true;
   return extractUrls(`${str(cells.contact_linkedin_url)} ${str(cells.linkedin_url)}`).some((u) => /linkedin\.com\/in\//i.test(u));
+}
+
+function lemlistHasEmail(cells: Record<string, unknown>): boolean {
+  return !!(str(cells.contact_email) || str(cells.email));
 }
 
 function lemlistTone(status: string): string {
@@ -4440,12 +4488,14 @@ function lemlistTone(status: string): string {
 function LemlistPill({ cells, className = "" }: { cells: Record<string, unknown>; className?: string }) {
   const m = lemlistOf(cells);
   if (!m) return null;
-  const title = [m.campaign ? `Lemlist campaign: ${m.campaign}` : "Lemlist", m.reason].filter(Boolean).join("\n");
+  const title = [m.campaign ? `Lemlist campaign: ${m.campaign}` : "Lemlist", m.linkedinOnly ? "LinkedIn only (no work email)" : "", m.reason]
+    .filter(Boolean).join("\n");
   return (
     <span title={title}
       className={`shrink-0 inline-flex items-center gap-1 align-middle whitespace-nowrap text-[10px] font-bold rounded-md border px-1.5 py-0.5 ${lemlistTone(m.status)} ${className}`}>
       <FiSend size={9} className="shrink-0" aria-hidden="true" />
       <span className="sr-only">Lemlist: </span>{LEMLIST_LABEL[m.status] || sentence(m.status)}
+      {m.linkedinOnly && <FiLinkedin size={9} className="shrink-0" aria-label="LinkedIn only" />}
     </span>
   );
 }
@@ -4454,7 +4504,7 @@ function LemlistPill({ cells, className = "" }: { cells: Record<string, unknown>
 function LemlistLine({ cells, className = "" }: { cells: Record<string, unknown>; className?: string }) {
   const m = lemlistOf(cells);
   if (!m) return null;
-  const words = [m.campaign, m.reason].filter(Boolean).join(" · ");
+  const words = [m.campaign, m.linkedinOnly ? "LinkedIn only" : "", m.reason].filter(Boolean).join(" · ");
   return (
     <div className={`flex items-center gap-1.5 min-w-0 text-[11px] text-neutral-500 ${className}`}>
       <LemlistPill cells={cells} />
@@ -4463,29 +4513,101 @@ function LemlistLine({ cells, className = "" }: { cells: Record<string, unknown>
   );
 }
 
-type LemlistTally = { added: number; noContact: number; already: number; failed: number; left: number; reason: string; campaign: string };
+type LemlistTally = {
+  added: number; linkedinOnly: number; dnc: number; already: number; conflict: number; noContact: number;
+  failed: number; reason: string; campaign: string; tracking: string; running: boolean;
+};
 
-// "Added 12 to Q4 founders. Skipped 3 with no contact yet, 2 already in a Lemlist campaign."
+// "Added 12 to Q4 founders (2 LinkedIn only). Held back: 1 on your do-not-contact list. They wait in the campaign's
+// Launch step until you launch them in Lemlist."
 function lemlistSummary(t: LemlistTally): string {
-  const out = [t.added > 0 ? `Added ${t.added} to ${t.campaign}.` : `Nothing new was added to ${t.campaign}.`];
-  const skipped = [
-    t.noContact > 0 ? `${t.noContact} with no contact yet` : "",
+  const out = [t.added > 0
+    ? `Added ${t.added} to ${t.campaign}${t.linkedinOnly > 0 ? ` (${t.linkedinOnly} LinkedIn only)` : ""}.`
+    : `Nothing was added to ${t.campaign}.`];
+  const held = [
+    t.dnc > 0 ? `${t.dnc} on your do-not-contact list` : "",
     t.already > 0 ? `${t.already} already in a Lemlist campaign` : "",
+    t.conflict > 0 ? `${t.conflict} matching two different contacts in your Lemlist` : "",
+    t.noContact > 0 ? `${t.noContact} with no work email or LinkedIn` : "",
   ].filter(Boolean);
-  if (skipped.length) out.push(`Skipped ${skipped.join(", ")}.`);
-  if (t.failed > 0) out.push(`${t.failed} could not be added${t.reason ? ` (${t.reason})` : ""}.`);
-  if (t.left > 0) out.push(`${t.left} ${t.left === 1 ? "was" : "were"} not sent this time. Send again to add ${t.left === 1 ? "it" : "them"}.`);
+  if (held.length) out.push(`Held back: ${held.join(", ")}.`);
+  if (t.failed > 0) out.push(`${t.failed} could not be added${t.reason ? ` (${t.reason})` : ""}. Send again to retry.`);
+  if (t.added > 0) {
+    out.push(t.running
+      ? "This campaign is running: if Auto-launch is on in Lemlist, they start on its schedule."
+      : "They wait in the campaign's Launch step until you launch them in Lemlist.");
+  }
+  if (t.tracking) out.push(`Opens and replies will not show for this campaign (${t.tracking}).`);
   return out.join(" ");
 }
 
-// Send to Lemlist: pick a campaign, see how many rows can go, send. Every row of the table is sent, 50 ids a request;
-// the server adds the ones it can reach and says why it skipped the rest, and those counts make the summary.
-function LemlistModal({ table, onClose, onSent }: { table: BobTable; onClose: () => void; onSent: () => void }) {
+// What the review found for one contact, as a short chip, and in words when it will not be sent.
+const LEMLIST_CHECK_CHIP: Record<string, [string, string]> = {
+  ready: ["Ready", "bg-green-50 text-green-700 border-green-300"],
+  do_not_contact: ["Do not contact", "bg-red-50 text-red-700 border-red-300"],
+  in_lemlist: ["Already in Lemlist", "bg-amber-50 text-amber-800 border-amber-300"],
+  sent: ["Sent", "bg-violet-50 text-violet-700 border-violet-200"],
+  no_contact: ["No contact", "bg-neutral-100 text-neutral-500 border-neutral-300"],
+  check_failed: ["Not checked", "bg-red-50 text-red-700 border-red-300"],
+};
+
+// Why picked contacts are held back, as the review's closing line counts them.
+const LEMLIST_HELD: Record<string, string> = {
+  do_not_contact: "on your do-not-contact list", in_lemlist: "already in a Lemlist campaign", sent: "already sent",
+  no_contact: "with no work email or LinkedIn", check_failed: "not checked",
+};
+
+function lemlistCheckWords(c: LemlistCheck): string {
+  switch (c.state) {
+    case "do_not_contact":
+      return `${LEMLIST_REASON.do_not_contact} (${LEMLIST_DNC[str(c.dnc)] || str(c.dnc) || "a matching value"}). It will not be sent.`;
+    case "in_lemlist":
+      return c.same_campaign
+        ? "Already in this campaign. It will not be sent again."
+        : `Already in your campaign “${str(c.campaign) || "another campaign"}”${c.campaign_status ? ` (${c.campaign_status})` : ""}, so Lemlist would refuse it and it will not be sent. Review it in Lemlist.`;
+    case "sent":
+      return `Sent from Sensei to ${str(c.campaign) || "a Lemlist campaign"} already.`;
+    case "no_contact":
+      return "No work email or LinkedIn profile. A personal email is never sent.";
+    case "check_failed":
+      return `Could not be checked with Lemlist${c.reason ? ` (${c.reason})` : ""}, so it will not be sent. Review again.`;
+    default:
+      return "";
+  }
+}
+
+function LemlistFields({ lead }: { lead: Record<string, string> }) {
+  const shown = LEMLIST_FIELDS.filter(([k]) => str(lead[k]));
+  return (
+    <dl className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-[11.5px] bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-2">
+      {shown.map(([k, label, custom]) => (
+        <Fragment key={k}>
+          <dt className="text-neutral-500 whitespace-nowrap">
+            {label}{custom && <span className="font-mono text-[10.5px] text-neutral-400">{` {{${k}}}`}</span>}
+          </dt>
+          <dd className="text-neutral-800 break-words min-w-0">{str(lead[k])}</dd>
+        </Fragment>
+      ))}
+    </dl>
+  );
+}
+
+// Send to Lemlist. Tiernan (Marcy Lab School, 2026-10-29): he picks each contact, nothing starts until he approves,
+// and LinkedIn-only contacts are flagged apart. So: pick a campaign (his own, by sender), tick contacts, Review, Send.
+// Review only reads Lemlist: bob-svc checks just those people (do-not-contact list, already in a campaign) and
+// returns the exact fields a send would put there. Send adds only the contacts the review cleared, and the server
+// checks the do-not-contact list again before each one.
+function LemlistModal({ table, myEmail, onClose, onSent }: { table: BobTable; myEmail: string; onClose: () => void; onSent: () => void }) {
   const ui = useContext(UiContext);
   const [campaigns, setCampaigns] = useState<LemlistCampaign[] | null>(null);
   const [loadErr, setLoadErr] = useState("");
+  const [sender, setSender] = useState("");                 // "" = everyone's campaigns
   const [campaignId, setCampaignId] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [picked, setPicked] = useState<Set<number>>(() => new Set());
+  const [checks, setChecks] = useState<Map<number, LemlistCheck> | null>(null);   // the review of `picked`
+  const [open, setOpen] = useState<number | null>(null);    // the contact whose fields are shown
+  const [confirmRunning, setConfirmRunning] = useState(false);
+  const [busy, setBusy] = useState<"" | "review" | "send">("");
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [summary, setSummary] = useState("");
   const [err, setErr] = useState("");
@@ -4497,11 +4619,22 @@ function LemlistModal({ table, onClose, onSent }: { table: BobTable; onClose: ()
         if (stop) return;
         // ids as text, whatever the server sends: they are compared with the select's value
         const list = (d?.campaigns || []).filter((c) => c && c.id != null && c.id !== "")
-          .map((c) => ({ id: String(c.id), name: str(c.name) || String(c.id), status: str(c.status) }));
+          .map((c) => ({
+            id: String(c.id), name: str(c.name) || String(c.id), status: str(c.status).toLowerCase(),
+            senders: (Array.isArray(c.senders) ? c.senders : []).map((e) => str(e).toLowerCase()).filter(Boolean),
+          }));
         setCampaigns(list);
+        // whose campaigns to show: the last choice here, else the signed-in person's own, else everyone's
+        const emails = new Set(list.flatMap((c) => c.senders));
+        let stored: string | null = null;
+        try { stored = localStorage.getItem(LEMLIST_SENDER); } catch { /* storage blocked */ }
+        const me = myEmail.trim().toLowerCase();
+        const who = stored === "*" ? "" : stored && emails.has(stored) ? stored : emails.has(me) ? me : "";
+        setSender(who);
         let last = "";
         try { last = localStorage.getItem(LEMLIST_LAST) || ""; } catch { /* storage blocked: nothing remembered */ }
-        const pick = list.find((c) => c.id === last) || (list.length === 1 ? list[0] : undefined);
+        const shown = list.filter((c) => (c.status || "") in LEMLIST_OPEN && (!who || c.senders.includes(who)));
+        const pick = shown.find((c) => c.id === last) || (shown.length === 1 ? shown[0] : undefined);
         if (pick) setCampaignId(pick.id);
       })
       .catch((e: any) => {
@@ -4510,114 +4643,250 @@ function LemlistModal({ table, onClose, onSent }: { table: BobTable; onClose: ()
         setLoadErr(e?.message || "Could not load your Lemlist campaigns");
       });
     return () => { stop = true; };
-  }, []);
+  }, [myEmail]);
+
+  const senders = useMemo(() => Array.from(new Set((campaigns || []).flatMap((c) => c.senders || []))).sort(), [campaigns]);
+  const shown = useMemo(() => (campaigns || [])
+    .filter((c) => (c.status || "") in LEMLIST_OPEN && (!sender || (c.senders || []).includes(sender)))
+    .sort((a, b) => LEMLIST_OPEN[a.status || ""] - LEMLIST_OPEN[b.status || ""] || a.name.localeCompare(b.name)),
+  [campaigns, sender]);
+  const chosen = shown.find((c) => c.id === campaignId);
+  const running = chosen?.status === "running";
 
   const rows = table.rows.filter((r) => r.id >= 0);
-  let ready = 0, noContact = 0, inCampaign = 0;
-  for (const r of rows) {
-    if (LEMLIST_IN_CAMPAIGN.has(lemlistOf(r.cells)?.status || "")) inCampaign++;
-    else if (lemlistReachable(r.cells)) ready++;
-    else noContact++;
-  }
-  const chosen = campaigns?.find((c) => c.id === campaignId);
+  const canPick = (r: BobRow) => lemlistReachable(r.cells) && !LEMLIST_IN_CAMPAIGN.has(lemlistOf(r.cells)?.status || "");
+  const pickable = rows.filter(canPick);
+  const ready = checks ? rows.filter((r) => picked.has(r.id) && checks.get(r.id)?.state === "ready") : [];
+  const readyLinkedin = ready.filter((r) => checks?.get(r.id)?.linkedin_only).length;
+  const locked = !!busy || !!summary;
 
-  const send = async () => {
-    if (!chosen || busy || ready === 0) return;
-    try { localStorage.setItem(LEMLIST_LAST, chosen.id); } catch { /* storage blocked */ }
-    const queue = rows.map((r) => r.id);
-    const total = queue.length;
-    const retried = new Set<number>();
-    const t: LemlistTally = { added: 0, noContact: 0, already: 0, failed: 0, left: 0, reason: "", campaign: chosen.name };
-    let answered = false;
-    let batch: number[] = [];
-    setBusy(true); setErr(""); setSummary(""); setProgress({ done: 0, total });
+  // Any change to the campaign or the selection means the review no longer describes what Send would do.
+  const unreview = () => { setChecks(null); setOpen(null); };
+  const choose = (id: string) => { setCampaignId(id); setConfirmRunning(false); unreview(); };
+  const chooseSender = (who: string) => {
+    setSender(who);
+    try { localStorage.setItem(LEMLIST_SENDER, who || "*"); } catch { /* storage blocked */ }
+    const c = (campaigns || []).find((x) => x.id === campaignId);
+    if (c && who && !(c.senders || []).includes(who)) choose("");
+  };
+  const toggle = (id: number) => {
+    setPicked((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+    unreview();
+  };
+  const pickAll = (on: boolean) => { setPicked(on ? new Set(pickable.map((r) => r.id)) : new Set()); unreview(); };
+
+  const review = async () => {
+    if (!chosen || busy || picked.size === 0) return;
+    const ids = rows.filter((r) => picked.has(r.id)).map((r) => r.id);
+    const got = new Map<number, LemlistCheck>();
+    setBusy("review"); setErr(""); setProgress({ done: 0, total: ids.length });
     try {
-      while (queue.length) {
-        batch = queue.splice(0, LEMLIST_BATCH);
-        const r = await bobFetch<LemlistPush>(`/tables/${table.id}/lemlist/push`, {
+      for (let i = 0; i < ids.length; i += LEMLIST_BATCH) {
+        const batch = ids.slice(i, i + LEMLIST_BATCH);
+        const r = await bobFetch<{ rows?: LemlistCheck[] }>(`/tables/${table.id}/lemlist/preview`, {
           method: "POST",
           body: JSON.stringify({ campaign_id: chosen.id, row_ids: batch }),
         });
+        for (const c of Array.isArray(r?.rows) ? r.rows : []) got.set(Number(c.row_id), c);
+        setProgress({ done: Math.min(ids.length, i + batch.length), total: ids.length });
+      }
+      setChecks(got);
+    } catch (e: any) {
+      setErr(e?.message || "Could not check these contacts with Lemlist");
+    } finally {
+      setBusy("");
+      setProgress(null);
+    }
+  };
+
+  const send = async () => {
+    if (!chosen || busy || !checks || ready.length === 0 || (running && !confirmRunning)) return;
+    try { localStorage.setItem(LEMLIST_LAST, chosen.id); } catch { /* storage blocked */ }
+    const queue = ready.map((r) => r.id);
+    const total = queue.length;
+    const t: LemlistTally = { added: 0, linkedinOnly: 0, dnc: 0, already: 0, conflict: 0, noContact: 0, failed: 0,
+      reason: "", campaign: chosen.name, tracking: "", running };
+    let answered = false;
+    setBusy("send"); setErr(""); setProgress({ done: 0, total });
+    try {
+      while (queue.length) {
+        const batch = queue.splice(0, LEMLIST_BATCH);
+        const r = await bobFetch<LemlistPush>(`/tables/${table.id}/lemlist/push`, {
+          method: "POST",
+          body: JSON.stringify({ campaign_id: chosen.id, row_ids: batch, allow_running: running && confirmRunning }),
+        });
         answered = true;
         const sk = r?.skipped || {};
-        const results = Array.isArray(r?.results) ? r.results : [];
-        const failed = results.filter((x) => x.status === "failed");
+        const failed = (Array.isArray(r?.results) ? r.results : []).filter((x) => x.status === "failed");
         t.added += Number(r?.added) || 0;
-        t.noContact += Number(sk.no_contact) || 0;
+        t.linkedinOnly += Number(r?.linkedin_only) || 0;
+        t.dnc += Number(sk.do_not_contact) || 0;
         t.already += (Number(sk.already_in_campaign) || 0) + (Number(sk.in_other_campaign) || 0);
+        t.conflict += Number(sk.contact_conflict) || 0;
+        t.noContact += Number(sk.no_contact) || 0;
         t.failed += Math.max(Number(sk.error) || 0, failed.length);
         if (!t.reason) t.reason = lemlistReason(str(failed.find((x) => x.reason)?.reason));
+        if (!t.tracking && r?.tracking) t.tracking = str(r.tracking);
         if (r?.campaign_name) t.campaign = r.campaign_name;
-        // The server may stop part way through a request and say how many rows it did not reach: those go round
-        // once more, and a row it misses twice is reported as not sent.
-        if ((Number(r?.remaining) || 0) > 0) {
-          const back = new Set(results.map((x) => x.row_id));
-          const again: number[] = [];
-          for (const id of batch) {
-            if (back.has(id)) continue;
-            if (retried.has(id)) t.left++;
-            else { retried.add(id); again.push(id); }
-          }
-          queue.unshift(...again);
-        }
         setProgress({ done: total - queue.length, total });
       }
     } catch (e: any) {
       setErr(e?.message || "Could not send to Lemlist");
-      t.left += batch.length + queue.length;   // the request that failed, and the ones not made
     } finally {
-      setBusy(false);
+      setBusy("");
       setProgress(null);
       // the rows now carry their Lemlist status: read them again so the pills show
       if (answered) { setSummary(lemlistSummary(t)); onSent(); }
     }
   };
 
+  // "Held back: 1 on your do-not-contact list, 2 already in a Lemlist campaign."
+  const heldBy = new Map<string, number>();
+  for (const r of rows) {
+    const st = checks && picked.has(r.id) ? checks.get(r.id)?.state || "check_failed" : "ready";
+    if (st !== "ready") heldBy.set(st, (heldBy.get(st) || 0) + 1);
+  }
+  const heldWords = heldBy.size > 0
+    ? `Held back: ${Array.from(heldBy, ([st, n]) => `${n} ${LEMLIST_HELD[st] || "not checked"}`).join(", ")}.`
+    : "";
   const name = ui === "new" ? sentence(table.name) : prettify(table.name);
   return (
     <div className={DIALOG_BACKDROP} onClick={() => { if (!busy) onClose(); }}>
-      <div className={DIALOG_CARD} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Send to Lemlist">
+      <div className={`${DIALOG_CARD.replace("max-w-md", "max-w-2xl")} max-h-[92vh] flex flex-col`} onClick={(e) => e.stopPropagation()}
+        role="dialog" aria-modal="true" aria-label="Send to Lemlist">
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-['Clash_Display'] text-xl font-semibold">Send to Lemlist</h2>
-          <button onClick={onClose} disabled={busy} className="text-neutral-400 hover:text-neutral-900 disabled:opacity-40" aria-label="Close"><FiX size={18} /></button>
+          <button onClick={onClose} disabled={!!busy} className="text-neutral-400 hover:text-neutral-900 disabled:opacity-40" aria-label="Close"><FiX size={18} /></button>
         </div>
-        <p className="text-sm text-neutral-500 mb-4 truncate" title={name}>{name}</p>
+        <p className="text-sm text-neutral-500 truncate" title={name}>{name}</p>
+        <p className="text-[12.5px] text-neutral-500 mt-1.5 mb-4">
+          Pick the contacts to send. Nothing goes to Lemlist until you click Send, and Sensei never overwrites a
+          contact that is already in your Lemlist.
+        </p>
 
         {campaigns === null ? (
           <p className="flex items-center gap-2 text-sm text-neutral-400"><FiLoader size={14} className="animate-spin" /> Loading your Lemlist campaigns…</p>
         ) : loadErr ? (
           <p className="text-red-600 text-sm">{loadErr}</p>
-        ) : campaigns.length === 0 ? (
-          <p className="text-sm text-neutral-500">Your Lemlist account has no campaigns yet. Create one in Lemlist, then send these contacts to it.</p>
         ) : (
-          <>
-            <label htmlFor="lemlist-campaign" className="block text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mb-1.5">Lemlist campaign</label>
-            <select id="lemlist-campaign" value={campaignId} disabled={busy || !!summary} onChange={(e) => setCampaignId(e.target.value)}
-              className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-base bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
-              <option value="" disabled>Choose a campaign</option>
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>{c.status ? `${c.name} (${sentence(c.status).toLowerCase()})` : c.name}</option>
-              ))}
-            </select>
-            {!summary && (
-              <div className="mt-4 space-y-1 text-[13px] text-neutral-600">
-                <p>
-                  {ready > 0
-                    ? <><b className="text-neutral-900">{ready}</b> {ready === 1 ? "contact has" : "contacts have"} a work email or LinkedIn and will be sent.</>
-                    : rows.length === 0
-                      ? "This table has no rows yet."
-                      : noContact === 0
-                        ? "Every row is already in a Lemlist campaign."
-                        : "Nothing to send yet: none of these rows has a work email or LinkedIn. Enrich them first."}
-                </p>
-                {(noContact > 0 || inCampaign > 0) && (
-                  <p className="text-neutral-500">
-                    Skipped: {[noContact > 0 ? `${noContact} with no contact yet` : "", inCampaign > 0 ? `${inCampaign} already in a Lemlist campaign` : ""].filter(Boolean).join(", ")}.
+          <div className="flex flex-col min-h-0 gap-3">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+              {senders.length > 1 && (
+                <div>
+                  <label htmlFor="lemlist-sender" className="block text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mb-1.5">Campaigns sent by</label>
+                  <select id="lemlist-sender" value={sender} disabled={locked} onChange={(e) => chooseSender(e.target.value)}
+                    className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="">Everyone</option>
+                    {senders.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              )}
+              <div className={senders.length > 1 ? "" : "sm:col-span-2"}>
+                <label htmlFor="lemlist-campaign" className="block text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mb-1.5">Lemlist campaign</label>
+                {shown.length === 0 ? (
+                  <p className="text-sm text-neutral-500">
+                    {sender ? "No open campaigns for this sender. " : "No open campaigns yet. "}
+                    Create one in Lemlist, then send these contacts to it.
                   </p>
+                ) : (
+                  <select id="lemlist-campaign" value={campaignId} disabled={locked} onChange={(e) => choose(e.target.value)}
+                    className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="" disabled>Choose a campaign</option>
+                    {shown.map((c) => (
+                      <option key={c.id} value={c.id}>{c.status ? `${c.name} (${c.status === "draft" ? "not launched" : c.status})` : c.name}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            {running && !summary && (
+              <div className="text-[12.5px] bg-amber-50 border-2 border-amber-300 text-amber-900 rounded-xl px-3 py-2">
+                <p>
+                  {"“"}{chosen?.name}{"”"} is running. If Auto-launch is on in Lemlist, contacts you add start
+                  receiving its steps on their own. To review them in Lemlist first, pick a campaign that is not launched.
+                </p>
+                <label className="mt-1.5 flex items-center gap-2 font-semibold">
+                  <input type="checkbox" checked={confirmRunning} disabled={locked} onChange={(e) => setConfirmRunning(e.target.checked)} className="accent-violet-600" />
+                  Send to this running campaign anyway
+                </label>
+              </div>
+            )}
+
+            {!summary && (
+              <div className="flex items-center justify-between gap-3 text-[12px]">
+                <span className="text-neutral-500">
+                  {picked.size > 0 ? `${picked.size} of ${pickable.length} picked` : pickable.length > 0 ? `${pickable.length} can be sent` : "No contact here can be sent yet"}
+                </span>
+                {pickable.length > 0 && (
+                  <span className="flex gap-3">
+                    <button type="button" disabled={locked} onClick={() => pickAll(true)} className="font-semibold text-violet-700 hover:text-violet-900 disabled:opacity-40">Pick all</button>
+                    <button type="button" disabled={locked || picked.size === 0} onClick={() => pickAll(false)} className="font-semibold text-neutral-500 hover:text-neutral-900 disabled:opacity-40">Clear</button>
+                  </span>
                 )}
               </div>
             )}
-          </>
+
+            {!summary && (
+              <ul className="min-h-0 overflow-y-auto max-h-[40vh] divide-y divide-neutral-100 border-2 border-neutral-200 rounded-xl">
+                {rows.length === 0 && <li className="px-3 py-3 text-sm text-neutral-500">This table has no rows yet.</li>}
+                {rows.map((r) => {
+                  const c = r.cells;
+                  const who = str(c.contact_name) || str(c.name);
+                  const title = str(c.contact_title) || str(c.title);
+                  const company = str(c.company);
+                  const mark = lemlistOf(c);
+                  const inCampaign = LEMLIST_IN_CAMPAIGN.has(mark?.status || "");
+                  const reachable = lemlistReachable(c);
+                  const check = checks?.get(r.id);
+                  const chip = check ? LEMLIST_CHECK_CHIP[check.state] : undefined;
+                  const words = check ? lemlistCheckWords(check) : "";
+                  return (
+                    <li key={r.id} className="px-3 py-2">
+                      <label className="flex items-start gap-2.5">
+                        <input type="checkbox" checked={picked.has(r.id)} disabled={!canPick(r) || locked} onChange={() => toggle(r.id)}
+                          className="mt-1 accent-violet-600" aria-label={`Send ${who || company || "this contact"}`} />
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`text-sm font-semibold truncate ${reachable ? "" : "text-neutral-400"}`}>
+                              {who ? (ui === "new" ? personName(who) : who) : company || "Unnamed row"}
+                            </span>
+                            {reachable && !lemlistHasEmail(c) && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-md border px-1.5 py-0.5 bg-sky-50 text-sky-800 border-sky-300">
+                                <FiLinkedin size={9} aria-hidden="true" /> LinkedIn only
+                              </span>
+                            )}
+                            {inCampaign && <LemlistPill cells={c} />}
+                            {chip && <span className={`text-[10px] font-bold rounded-md border px-1.5 py-0.5 ${chip[1]}`}>{chip[0]}</span>}
+                          </span>
+                          <span className="block text-[12px] text-neutral-500 truncate">{[title, who ? company : ""].filter(Boolean).join(" · ")}</span>
+                          {!reachable && <span className="block text-[11.5px] text-neutral-400">No work email or LinkedIn profile yet. Enrich it first.</span>}
+                          {inCampaign && !check && mark?.campaign && <span className="block text-[11.5px] text-neutral-500">Already sent to {mark.campaign}.</span>}
+                          {words && <span className="block text-[11.5px] text-neutral-600">{words}</span>}
+                        </span>
+                      </label>
+                      {check?.state === "ready" && check.lead && Object.keys(check.lead).length > 0 && (
+                        <div className="pl-7">
+                          <button type="button" onClick={() => setOpen(open === r.id ? null : r.id)} aria-expanded={open === r.id}
+                            className="text-[11.5px] font-semibold text-violet-700 hover:text-violet-900 mt-0.5">
+                            {open === r.id ? "Hide what Lemlist gets" : "See what Lemlist gets"}
+                          </button>
+                          {open === r.id && <LemlistFields lead={check.lead} />}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {checks && !summary && (
+              <p className="text-[12.5px] text-neutral-700">
+                <b className="text-neutral-900">{ready.length}</b> ready to send{readyLinkedin > 0 ? ` (${readyLinkedin} LinkedIn only)` : ""}.
+                {heldWords ? ` ${heldWords}` : ""}
+              </p>
+            )}
+          </div>
         )}
 
         {err && <p className="text-red-600 text-sm mt-3">{err}</p>}
@@ -4630,14 +4899,20 @@ function LemlistModal({ table, onClose, onSent }: { table: BobTable; onClose: ()
             <button onClick={onClose} className={BTN_PRIMARY}>Done</button>
           ) : (
             <>
-              <button onClick={onClose} disabled={busy} className={BTN_CANCEL}>Cancel</button>
-              {!loadErr && !!campaigns?.length && (
-                <button onClick={send} disabled={busy || !chosen || ready === 0} className={BTN_PRIMARY}>
-                  {busy
+              <button onClick={checks ? unreview : onClose} disabled={!!busy} className={BTN_CANCEL}>{checks ? "Back" : "Cancel"}</button>
+              {!loadErr && !!campaigns && (checks ? (
+                <button onClick={send} disabled={!!busy || ready.length === 0 || (running && !confirmRunning)} className={BTN_PRIMARY}>
+                  {busy === "send"
                     ? (progress && progress.total > LEMLIST_BATCH ? `Sending ${progress.done} of ${progress.total}…` : "Sending…")
-                    : ready > 0 ? `Send ${ready} to Lemlist` : "Send to Lemlist"}
+                    : ready.length > 0 ? `Send ${ready.length} to Lemlist` : "Nothing to send"}
                 </button>
-              )}
+              ) : (
+                <button onClick={review} disabled={!!busy || !chosen || picked.size === 0} className={BTN_PRIMARY}>
+                  {busy === "review"
+                    ? (progress && progress.total > LEMLIST_BATCH ? `Checking ${progress.done} of ${progress.total}…` : "Checking with Lemlist…")
+                    : picked.size > 0 ? `Review ${picked.size}` : "Review"}
+                </button>
+              ))}
             </>
           )}
         </div>

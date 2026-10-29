@@ -89,10 +89,11 @@ interface ChatRow { id: number; cells: Record<string, any>; status?: string }
 interface ChatTable { id: number; name: string; rows: ChatRow[] }
 interface ChatDetail { messages: ChatMsg[]; tables: ChatTable[] }
 // bob-svc GET/PUT/DELETE /org/integrations/lemlist. key_hint is the end of the saved key ("...a1b2"); the key itself
-// never comes back. webhook is whether Lemlist is sending us opens and replies: "active", "missing" or "error".
+// never comes back. webhook is how opens and replies come back: "active" (for tracked_campaigns campaigns), "ready"
+// (from the first campaign Sensei sends to), "missing" (not set up on this server) or "error" (Lemlist refused one).
 interface LemlistState {
   available?: boolean; enabled: boolean; connected: boolean; team_name: string | null; key_hint: string | null;
-  webhook: string; connected_at: string | null; error: string | null;
+  webhook: string; tracked_campaigns?: number; connected_at: string | null; error: string | null;
 }
 
 // ── Two looks, one dashboard ─────────────────────────────────────────────────
@@ -1158,9 +1159,10 @@ function LemlistPanel({ card, state, onState }: { card: string; state: LemlistSt
   };
 
   const on = state.connected && state.enabled;
-  // a saved key that stopped working opens the field straight away: a new key is the fix
-  const showKey = !state.connected || newKey || !!state.error;
-  const updates = state.webhook === "active";
+  // a saved key that stopped working reads as not connected, which opens the field straight away: a new key is the fix
+  const showKey = !state.connected || newKey;
+  const updates = state.webhook === "active" || state.webhook === "ready";
+  const tracked = Number(state.tracked_campaigns) || 0;
 
   return (
     <div className={`${card} p-5 max-w-2xl`}>
@@ -1185,10 +1187,22 @@ function LemlistPanel({ card, state, onState }: { card: string; state: LemlistSt
           )}
           <div className="flex items-start gap-2 text-xs">
             <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${updates ? "bg-green-500" : "bg-amber-500"}`} />
-            {updates
-              ? <span className="text-neutral-600">Updates from Lemlist are active: opens, clicks and replies show in Sensei.</span>
-              : <span className="text-amber-700">Not receiving updates from Lemlist. Sending still works, but opens and replies will not show in Sensei.</span>}
+            {updates ? (
+              <span className="text-neutral-600">
+                {tracked > 0
+                  ? `Opens, clicks and replies come back to Sensei for the ${tracked === 1 ? "campaign" : `${tracked} campaigns`} you sent contacts to.`
+                  : "Opens, clicks and replies come back to Sensei for each campaign you send contacts to."}
+              </span>
+            ) : state.webhook === "error" ? (
+              <span className="text-amber-700">Lemlist did not accept the updates for a campaign. Sending still works, but its opens and replies will not show in Sensei.</span>
+            ) : (
+              <span className="text-amber-700">Updates from Lemlist are not set up on this server. Sending still works, but opens and replies will not show in Sensei.</span>
+            )}
           </div>
+          <p className="text-xs text-neutral-400">
+            Sensei reads your campaign list and checks only the contacts you send. It never overwrites a contact
+            already in your Lemlist, and nothing from your other campaigns comes back to Sensei.
+          </p>
         </div>
       )}
 
@@ -1230,12 +1244,10 @@ function LemlistPanel({ card, state, onState }: { card: string; state: LemlistSt
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-neutral-100 flex items-center justify-between gap-3">
-            {!state.error ? (
-              <button onClick={() => { setNewKey(!newKey); setKey(""); setErr(""); }}
-                className="text-xs font-semibold text-neutral-500 hover:text-violet-700">
-                {newKey ? "Keep the current key" : "Use a different key"}
-              </button>
-            ) : <span />}
+            <button onClick={() => { setNewKey(!newKey); setKey(""); setErr(""); }}
+              className="text-xs font-semibold text-neutral-500 hover:text-violet-700">
+              {newKey ? "Keep the current key" : "Use a different key"}
+            </button>
             <button onClick={disconnect} disabled={!!busy}
               className="shrink-0 flex items-center gap-1 text-xs font-bold text-red-600 px-2.5 py-1.5 rounded-lg border-2 border-red-300 hover:bg-red-50 disabled:opacity-60">
               {busy === "disconnect" ? "Disconnecting…" : "Disconnect"}
