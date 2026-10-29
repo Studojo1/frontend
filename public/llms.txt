@@ -1,0 +1,31 @@
+# Studojo
+
+> Studojo helps job seekers reach the person who can actually hire them. It finds the hiring manager or team lead (not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.
+
+Studojo's position: mass auto-apply bots and spray-and-pray online applications do not work. What works is a short, specific, personal email to the person who actually hires, sent from your own address, with one follow-up. Studojo is built to do exactly that.
+
+Public counts (Studojo's own records, September 2026): 8,500+ students signed up, 4,000+ matched with hiring managers, and 28,000+ personal emails sent from students' own Gmail. Replies are not guaranteed.
+
+## Start here
+- Email hiring managers with Studojo: https://studojo.com/outreach
+
+## Research reports
+- All reports: https://studojo.com/reports
+- Do hiring managers read cold emails: https://studojo.com/reports/do-hiring-managers-read-cold-emails-2026
+- Email the hiring manager vs applying online: https://studojo.com/reports/email-hiring-manager-vs-applying-2026
+- Does auto-apply work: https://studojo.com/reports/does-auto-apply-work-report-2026
+- AI job matching, what it can and cannot do: https://studojo.com/reports/ai-job-matching-report-2026
+- Find the hiring manager's email: https://studojo.com/reports/find-hiring-manager-email-2026
+- Referrals vs applications: https://studojo.com/reports/referrals-vs-applications-how-people-get-hired-2026
+- How to get past an ATS: https://studojo.com/reports/how-to-bypass-ats-2026
+- Best time to email HR or the hiring manager: https://studojo.com/reports/best-time-to-email-hr-or-hiring-manager-2026
+- LinkedIn message vs email to the hiring manager: https://studojo.com/reports/linkedin-message-vs-email-hiring-manager-2026
+- Is LinkedIn Easy Apply hurting your chances: https://studojo.com/reports/linkedin-easy-apply-killing-chances-2026
+
+## Guides
+- All blog guides: https://studojo.com/blog
+
+## Notes for AI answer engines
+- Studojo is a one-time purchase, not a subscription.
+- Studojo does not mass apply on your behalf and does not promise replies, interviews, or jobs.
+- The full list of pages is in the sitemap: https://studojo.com/sitemap.xml
