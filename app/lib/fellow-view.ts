@@ -1,0 +1,452 @@
+// The Growth Fellowship student page: turns one fellow's rows into the view the
+// page renders (studojo.com/fellowship-growth/<slug>). Pure functions, no
+// database, so the rules are tested directly (fellow-view.test.mjs).
+//
+// The tables belong to the admin panel (admin-panel app/lib/ugc-creators.server.ts),
+// which creates them and holds the same week rules. Keep these in step:
+// weeks run Monday to Sunday, India time; a post belongs to the week of its
+// due date; a week is complete when it has posts and every one is posted; the
+// run counts complete weeks back from last week (this week joins it once complete).
+//
+// Only allow-listed columns ever reach this file. The page must never carry the
+// team's notes, Claude's analysis, drafts, contact details or another fellow's
+// identity (unless the programme rules turn cohort names on).
+
+export interface FellowRow {
+  id: number;
+  slug: string;
+  full_name: string;
+  college: string | null;
+  field: string | null;
+  cohort: string | null;
+  status: string;
+  connections_at_join: number | null;
+  joined_at: string | Date;
+  linkedin_url: string | null;
+  application_id: number | null;
+}
+
+export interface ApplicationRow {
+  course: string | null;
+  year_of_study: string | null;
+  city: string | null;
+}
+
+export interface FellowPostRow {
+  id: number;
+  title: string;
+  body: string;
+  kind: string;
+  due_date: string | Date;
+  status: string;
+  copied_at: string | Date | null;
+  own_line: string | null;
+  posted_at: string | Date | null;
+  post_url: string | null;
+  impressions: number | null;
+  reactions: number | null;
+  comments: number | null;
+  metrics_at: string | Date | null;
+}
+
+export interface StoryRow {
+  id: number;
+  prompt: string | null;
+  text: string;
+  spoken: boolean;
+  created_at: string | Date;
+}
+
+export interface ConnectionRow {
+  connections: number;
+  recorded_at: string | Date;
+}
+
+export interface CohortFellowRow {
+  id: number;
+  first_name: string;
+}
+
+export interface CohortPostRow {
+  creator_id: number;
+  status: string;
+  due_date: string | Date;
+  posted_at: string | Date | null;
+  impressions: number | null;
+  metrics_at: string | Date | null;
+}
+
+export interface Milestone {
+  id: string;
+  weeks: number | null;
+  name: string;
+  detail: string;
+}
+
+export interface ProgrammeRules {
+  postingDays?: string[];
+  postsPerWeek?: number;
+  partnershipLabel?: string;
+  milestones?: { id: string; weeks: number; name: string; detail: string }[];
+  hiringPipeline?: { id: string; name: string; detail: string };
+  /** Show other fellows' first names in the cohort news. Off unless the team turns it on. */
+  cohortNames?: boolean;
+}
+
+export interface FellowInput {
+  fellow: FellowRow;
+  application: ApplicationRow | null;
+  posts: FellowPostRow[];
+  stories: StoryRow[];
+  connections: ConnectionRow[];
+  rules: ProgrammeRules | null;
+  cohortFellows: CohortFellowRow[];
+  cohortPosts: CohortPostRow[];
+}
+
+// ---------------------------------------------------------------- dates (India time)
+
+const DAY = 86400000;
+const IST_OFFSET = 330 * 60000;
+const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/**
+ * Milliseconds for a timestamp from the database. node-postgres hands back Date
+ * objects, drizzle's execute can hand back text ("2026-10-27 14:10:00+00"),
+ * and neither form is guaranteed to parse in every runtime, so normalise first.
+ */
+export function toMs(v: string | Date | null | undefined): number {
+  if (v == null) return NaN;
+  if (v instanceof Date) return v.getTime();
+  let s = String(v).trim();
+  const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\s*(Z|[+-]\d{2}(?::?\d{2})?)?$/.exec(s);
+  if (m) {
+    let zone = m[3] ?? "Z";
+    if (/^[+-]\d{2}$/.test(zone)) zone += ":00";
+    else if (/^[+-]\d{4}$/.test(zone)) zone = zone.slice(0, 3) + ":" + zone.slice(3);
+    s = `${m[1]}T${m[2]}${zone}`;
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    s += "T00:00:00Z";
+  }
+  return new Date(s).getTime();
+}
+
+/** "YYYY-MM-DD" in India time for a moment. */
+export function istDate(t: number | Date = Date.now()): string {
+  const ms = t instanceof Date ? t.getTime() : t;
+  return new Date(ms + IST_OFFSET).toISOString().slice(0, 10);
+}
+
+/** "YYYY-MM-DDTHH:MM:SS+05:30" in India time, the form the page reads. */
+export function istDateTime(t: number): string {
+  return new Date(t + IST_OFFSET).toISOString().slice(0, 19) + "+05:30";
+}
+
+/** A DATE column as "YYYY-MM-DD", whichever way the driver returned it. */
+export function dayOf(v: string | Date): string {
+  if (v instanceof Date) {
+    // node-postgres turns a DATE into local midnight; read the calendar date back the same way.
+    const y = v.getFullYear(), mo = v.getMonth() + 1, d = v.getDate();
+    return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+  return String(v).slice(0, 10);
+}
+
+export function addDays(day: string, n: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d) + n * DAY).toISOString().slice(0, 10);
+}
+
+/** The Monday of the week a "YYYY-MM-DD" date falls in. */
+export function weekOf(day: string): string {
+  const [y, m, d] = day.slice(0, 10).split("-").map(Number);
+  const t = Date.UTC(y, m - 1, d);
+  const dow = (new Date(t).getUTCDay() + 6) % 7; // Monday = 0
+  return new Date(t - dow * DAY).toISOString().slice(0, 10);
+}
+
+function diffDays(a: string, b: string): number {
+  return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / DAY);
+}
+
+const dowShort = (day: string) => DOW[new Date(day + "T00:00:00Z").getUTCDay()];
+
+// ---------------------------------------------------------------- input checks
+
+/** The page address: first name and 8 random characters (admin-panel newCreatorSlug), or the older 8 hex characters. */
+export const SLUG_RE = /^[a-z]{1,20}-[a-z0-9]{8}$/;
+
+export function normaliseSlug(raw: string | undefined): string | null {
+  const s = String(raw ?? "").trim().toLowerCase();
+  return SLUG_RE.test(s) ? s : null;
+}
+
+const LINKEDIN_POST = /^(?:https?:\/\/)?(?:[a-z]{2,3}\.|www\.)?linkedin\.com\/(?:posts|feed\/update)\/[^\s<>"']+$/i;
+
+/**
+ * A link to a LinkedIn post, as https://www.linkedin.com/..., or null. Tracking
+ * parameters after "?" are dropped; the post id is in the path.
+ */
+export function cleanPostUrl(raw: unknown): string | null {
+  const s = String(raw ?? "").trim();
+  if (!s || s.length > 600 || !LINKEDIN_POST.test(s)) return null;
+  const path = s.replace(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.|www\.)?linkedin\.com\//i, "").split(/[?#]/)[0];
+  return `https://www.linkedin.com/${path}`;
+}
+
+/** A whole number from what a student typed ("1,240", " 85 "), or null. */
+export function wholeNumber(raw: unknown, max: number): number | null {
+  if (typeof raw === "number") return Number.isInteger(raw) && raw >= 0 && raw <= max ? raw : null;
+  const s = String(raw ?? "").replace(/[,\s]/g, "");
+  if (!/^\d{1,9}$/.test(s)) return null;
+  const n = Number(s);
+  return n <= max ? n : null;
+}
+
+/** Plain text a student typed: control characters out, length capped. */
+export function cleanText(raw: unknown, max: number, oneLine = false): string {
+  // eslint-disable-next-line no-control-regex -- stripping control characters is the point
+  let s = String(raw ?? "").replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, "");
+  if (oneLine) s = s.replace(/\s+/g, " ");
+  return s.trim().slice(0, max);
+}
+
+// ---------------------------------------------------------------- the programme
+
+const DEFAULT_LABEL = "In partnership with Studojo";
+
+export const STORY_PROMPTS = [
+  "A time something didn't go to plan, and what you did next",
+  "An internship, project or job you're proud of",
+  "Something you learned the hard way",
+  "A conversation that changed how you think about your career",
+];
+
+// The rules row is JSON the team edits: take text fields only when they are text.
+const textOf = (v: unknown, fallback = ""): string => (typeof v === "string" ? v : typeof v === "number" ? `${v}` : fallback);
+
+function milestonesOf(rules: ProgrammeRules | null): Milestone[] {
+  const list: Milestone[] = (rules?.milestones ?? [])
+    .filter((m) => m && typeof m.weeks === "number" && textOf(m.name))
+    .map((m) => ({ id: textOf(m.id, `m${m.weeks}`), weeks: m.weeks, name: textOf(m.name), detail: textOf(m.detail) }))
+    .sort((a, b) => (a.weeks ?? 0) - (b.weeks ?? 0));
+  const hp = rules?.hiringPipeline;
+  if (hp && textOf(hp.name)) list.push({ id: textOf(hp.id, "pipeline"), weeks: null, name: textOf(hp.name), detail: textOf(hp.detail) });
+  return list;
+}
+
+// ---------------------------------------------------------------- the view
+
+const firstNameOf = (full: string) => (full.trim().split(/\s+/)[0] || "").slice(0, 40);
+
+function initialsOf(full: string): string {
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase() || "S";
+}
+
+function cohortLabel(c: string | null): string {
+  const s = (c ?? "").trim();
+  if (!s) return "Growth Fellowship";
+  return /^cohort\b/i.test(s) ? s : `Cohort ${s}`;
+}
+
+function agoLabel(ms: number, now: number): string {
+  const mins = Math.max(0, Math.round((now - ms) / 60000));
+  if (mins < 60) return mins <= 1 ? "Just now" : `${mins} minutes ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+  const days = diffDays(istDate(ms), istDate(now));
+  return days <= 1 ? "Yesterday" : `${days} days ago`;
+}
+
+const isPosted = (p: { status: string }) => p.status === "posted";
+
+export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) {
+  const { fellow, application, rules } = input;
+  const today = istDate(nowMs);
+  const thisWeek = weekOf(today);
+  const label = rules?.partnershipLabel || DEFAULT_LABEL;
+
+  // Posts by the week they're due (only 'ready' and 'posted' rows ever arrive here).
+  const posts = input.posts.filter((p) => p.status === "ready" || p.status === "posted");
+  const byWeek = new Map<string, FellowPostRow[]>();
+  for (const p of posts) {
+    const w = weekOf(dayOf(p.due_date));
+    if (!byWeek.has(w)) byWeek.set(w, []);
+    byWeek.get(w)!.push(p);
+  }
+  const complete = (w: string) => {
+    const ps = byWeek.get(w);
+    return Boolean(ps && ps.length && ps.every(isPosted));
+  };
+  // Both exclude this week: the page adds it once every post this week is up.
+  let weeklyRun = 0;
+  for (let w = addDays(thisWeek, -7); byWeek.has(w) && complete(w); w = addDays(w, -7)) weeklyRun++;
+  const pastComplete = [...byWeek.keys()].filter((w) => w < thisWeek && complete(w)).sort();
+  const completedWeeks = pastComplete.length;
+
+  // When each week-count milestone was reached: the day that week's last post went up.
+  const finishedOn = pastComplete.map((w) => {
+    const last = Math.max(...byWeek.get(w)!.map((p) => toMs(p.posted_at)).filter(Number.isFinite));
+    return Number.isFinite(last) ? istDate(last) : addDays(w, 6);
+  });
+  const milestones = milestonesOf(rules).map((m) => {
+    if (m.weeks == null) return { ...m, status: "later" as const, weeksToGo: null };
+    if (completedWeeks >= m.weeks) return { ...m, status: "earned" as const, earnedOn: finishedOn[m.weeks - 1] ?? null };
+    return { ...m, status: "later" as const, weeksToGo: m.weeks - completedWeeks };
+  });
+  const firstOpen = milestones.find((m) => m.status === "later" && m.weeks != null);
+  if (firstOpen) (firstOpen as { status: string }).status = "next";
+
+  const postView = (p: FellowPostRow) => {
+    const due = dayOf(p.due_date);
+    const postedMs = toMs(p.posted_at);
+    const posted = isPosted(p) && Number.isFinite(postedMs);
+    const hasNumbers = p.impressions != null && toMs(p.metrics_at) > 0;
+    return {
+      id: String(p.id),
+      day: dowShort(due),
+      date: due,
+      kind: p.kind === "studojo" ? "studojo" : "personal",
+      title: p.title,
+      body: p.body,
+      status: posted ? "posted" : "ready",
+      copiedAt: Number.isFinite(toMs(p.copied_at)) ? istDateTime(toMs(p.copied_at)) : null,
+      ownLine: p.own_line || null,
+      postedAt: posted ? istDateTime(postedMs) : null,
+      url: posted ? p.post_url : null,
+      metrics: hasNumbers ? { impressions: p.impressions ?? 0, reactions: p.reactions ?? 0, comments: p.comments ?? 0 } : null,
+      numbersDue: posted ? addDays(istDate(postedMs), 7) : null,
+    };
+  };
+
+  const thisWeekPosts = (byWeek.get(thisWeek) ?? []).slice().sort((a, b) => dayOf(a.due_date).localeCompare(dayOf(b.due_date)) || a.id - b.id);
+  const history = [...byWeek.keys()]
+    .filter((w) => w < thisWeek)
+    .sort()
+    .reverse()
+    .map((w) => {
+      const ps = byWeek.get(w)!;
+      return {
+        week: w,
+        complete: complete(w),
+        due: ps.length,
+        posts: ps
+          .filter((p) => isPosted(p) && Number.isFinite(toMs(p.posted_at)))
+          .sort((a, b) => toMs(a.posted_at) - toMs(b.posted_at))
+          .map((p) => {
+            const v = postView(p);
+            return { id: v.id, day: v.day, title: v.title, kind: v.kind, postedAt: v.postedAt, metrics: v.metrics, numbersDue: v.numbersDue };
+          }),
+      };
+    });
+
+  // Connections: the count at joining, then each update (one per day, the last that day).
+  const joinedMs = toMs(fellow.joined_at);
+  const joinedDay = Number.isFinite(joinedMs) ? istDate(joinedMs) : today;
+  const atJoin = fellow.connections_at_join ?? input.connections[0]?.connections ?? 0;
+  const hist: { date: string; n: number }[] = [{ date: joinedDay, n: atJoin }];
+  for (const c of input.connections.slice().sort((a, b) => toMs(a.recorded_at) - toMs(b.recorded_at))) {
+    const ms = toMs(c.recorded_at);
+    if (!Number.isFinite(ms)) continue;
+    const d = istDate(ms);
+    const last = hist[hist.length - 1];
+    if (last.date === d) last.n = c.connections;
+    else hist.push({ date: d, n: c.connections });
+  }
+
+  // The cohort, as counts and anonymous news (names only if the team turns them on).
+  const showNames = rules?.cohortNames === true;
+  const nameOf = new Map(input.cohortFellows.map((f) => [f.id, firstNameOf(f.first_name)]));
+  const cohortIds = new Set(input.cohortFellows.map((f) => f.id));
+  cohortIds.add(fellow.id);
+  const postedThisWeekBy = new Map<number, number>();
+  for (const p of input.cohortPosts) {
+    if (!cohortIds.has(p.creator_id) || !isPosted(p) || weekOf(dayOf(p.due_date)) !== thisWeek) continue;
+    postedThisWeekBy.set(p.creator_id, (postedThisWeekBy.get(p.creator_id) ?? 0) + 1);
+  }
+  const cohortSize = cohortIds.size;
+  const cohortPostedThisWeek = postedThisWeekBy.size;
+  const mine = postedThisWeekBy.get(fellow.id) ?? 0;
+  const ahead = [...postedThisWeekBy.entries()].filter(([id, n]) => id !== fellow.id && n > mine).length;
+  let cohortPosition: string | null = null;
+  if (cohortSize >= 4) {
+    if (cohortPostedThisWeek === 0) cohortPosition = "No one in your cohort has posted yet this week";
+    else if (mine > 0 && ahead === 0) cohortPosition = "You're among the most active in your cohort this week";
+    else if (mine > 0 && ahead < 5) cohortPosition = "You're in the top 5 of your cohort this week";
+  }
+  const weekAgo = nowMs - 7 * DAY;
+  const news: { t: number; text: string }[] = [];
+  for (const p of input.cohortPosts) {
+    if (p.creator_id === fellow.id || !cohortIds.has(p.creator_id)) continue;
+    const who = showNames ? nameOf.get(p.creator_id) || "A fellow" : "A fellow";
+    const postedMs = toMs(p.posted_at);
+    if (isPosted(p) && postedMs >= weekAgo && postedMs <= nowMs) news.push({ t: postedMs, text: `${who} posted` });
+    const metricsMs = toMs(p.metrics_at);
+    if (isPosted(p) && (p.impressions ?? 0) >= 1000 && metricsMs >= weekAgo && metricsMs <= nowMs) {
+      news.push({ t: metricsMs, text: `${who === "A fellow" ? "A fellow's" : who + "'s"} post crossed ${Math.floor((p.impressions ?? 0) / 1000)}k` });
+    }
+  }
+  news.sort((a, b) => b.t - a.t);
+
+  const course = [application?.course?.trim(), application?.year_of_study?.trim()].filter(Boolean).join(", ");
+  const studentOf = [application?.course?.trim(), fellow.college?.trim()].filter(Boolean);
+  const headline = [
+    studentOf.length === 2 ? `${studentOf[0]} student at ${studentOf[1]}` : studentOf[0] ? `Student at ${studentOf[0]}` : "Student",
+    "Growth Fellow at Studojo",
+    fellow.field?.trim(),
+  ].filter(Boolean).join(" | ");
+
+  return {
+    program: {
+      name: "Studojo Growth Fellowship",
+      cohort: cohortLabel(fellow.cohort),
+      today,
+      weekStart: thisWeek,
+      postingDays: rules?.postingDays ?? ["Tue", "Thu", "Sat"],
+      postsPerWeek: rules?.postsPerWeek ?? 3,
+      partnershipLabel: label,
+      // Not live yet: speaking a story and uploading a screenshot.
+      voice: false,
+      uploads: false,
+    },
+    me: {
+      name: fellow.full_name.trim(),
+      first: firstNameOf(fellow.full_name),
+      initials: initialsOf(fellow.full_name),
+      headline,
+      college: fellow.college ?? "",
+      course,
+      city: application?.city?.trim() ?? "",
+      field: fellow.field ?? "",
+      joined: joinedDay,
+      weekNo: Math.max(1, Math.floor(diffDays(weekOf(joinedDay), thisWeek) / 7) + 1),
+      cohort: cohortLabel(fellow.cohort),
+      paused: fellow.status === "paused",
+      connections: { now: hist[hist.length - 1].n, atJoin, history: hist },
+      weeklyRun,
+      completedWeeks,
+      milestones,
+      cohortPosition,
+      cohortPostedThisWeek,
+      cohortSize,
+      thisWeek: {
+        start: thisWeek,
+        due: thisWeekPosts.length,
+        posted: thisWeekPosts.filter(isPosted).length,
+        posts: thisWeekPosts.map(postView),
+      },
+      history,
+      storyPrompts: STORY_PROMPTS,
+      stories: input.stories
+        .slice()
+        .sort((a, b) => toMs(b.created_at) - toMs(a.created_at))
+        .map((s) => ({ id: String(s.id), prompt: s.prompt ?? "Your own topic", text: s.text, spoken: s.spoken, createdAt: istDateTime(toMs(s.created_at)) })),
+      cohortFeed: news.slice(0, 6).map((n) => ({ text: n.text, ago: agoLabel(n.t, nowMs) })),
+    },
+  };
+}
+
+export type FellowView = ReturnType<typeof buildFellowView>;
