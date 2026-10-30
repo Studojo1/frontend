@@ -14,8 +14,10 @@ import { StuArt } from "./StuArt";
 // Signed out, a tap on Stu or the button opens the call takeover (Takeover.tsx), where Stu says /b2cnew/join's line
 // and then shows /join's sign-up card; signed in, both are "Open my jobs". [data-hero-end] is what the floating agent
 // watches (Floating.tsx).
+// 30 Oct 2026, the owner after watching a real user: "email is just a channel"; the page leads with the action,
+// reaching the person who's hiring. Email is named once, plainly, in how it works (step 4).
 
-const STEPS = ["Learns what you want", "Finds jobs that fit you", "Finds who's hiring", "Writes your email"] as const;
+const STEPS = ["Learns what you want", "Finds jobs that fit you", "Finds who's hiring", "Reaches out for you"] as const;
 const d = (ms: number) => ({ "--hv3-d": `${ms}ms` }) as CSSProperties;
 
 export function Hero() {
@@ -55,7 +57,7 @@ export function Hero() {
         <h1 className="hv3-h1" id="hero-title">
           <span className="hv3-l">Find jobs that fit you.</span>{" "}
           <span className="hv3-l">
-            Email the person{" "}
+            Reach the person{" "}
             <span className="hv3-hl">
               who&apos;s hiring
               <svg className="hv3-squig" viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true">
@@ -66,7 +68,7 @@ export function Hero() {
           </span>
         </h1>
         <p className="hv3-hero-sub">
-          Tell Stu, our AI career agent, what you&apos;re looking for. Stu finds jobs that fit you, finds out who&apos;s hiring, and writes the email. You just hit send.
+          Tell Stu, our AI career agent, what you&apos;re looking for. Stu finds jobs that fit you, finds out who&apos;s hiring, and reaches out to them for you. You skip the portal.
         </p>
       </div>
       <div className="hv-go">

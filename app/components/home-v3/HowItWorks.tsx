@@ -64,7 +64,7 @@ export function HowItWorks() {
           <li className="hv-card hv3-step" data-reveal style={d(0)}>
             <span className="hv3-stepnum" aria-hidden="true">3</span>
             <h3 className="hv3-h3">Stu finds who&apos;s hiring</h3>
-            <p className="hv3-p">Usually that&apos;s the hiring manager or a recruiter, along with their work email.</p>
+            <p className="hv3-p">Usually that&apos;s the hiring manager or a recruiter for the role.</p>
             <figure className="hv3-ex hv3-ex-person" aria-label="Example: the person Stu found for that job">
               <span className="hv3-ex-tag">Example</span>
               <div className="hv3-person">
@@ -76,14 +76,14 @@ export function HowItWorks() {
               </div>
               <p className="hv3-why">
                 <Check size={16} sw={2.6} />
-                Work email found
+                Direct contact found
               </p>
             </figure>
           </li>
           <li className="hv-card hv3-step" data-reveal style={d(140)}>
             <span className="hv3-stepnum" aria-hidden="true">4</span>
-            <h3 className="hv3-h3">Stu writes the email. You send it.</h3>
-            <p className="hv3-p">It goes out from your own inbox, and Stu follows up if they don&apos;t reply.</p>
+            <h3 className="hv3-h3">Stu reaches out for you</h3>
+            <p className="hv3-p">Stu writes the email. It goes out from your own inbox, and Stu follows up if they don&apos;t reply.</p>
             <figure className="hv3-ex hv3-ex-mail" aria-label="Example: an email Stu wrote">
               <span className="hv3-ex-tag">Example</span>
               <p className="hv3-mail-to">

@@ -42,7 +42,7 @@ const all = files.filter((f) => f.endsWith(".tsx")).map(read).join("\n");
 const text = code(all).replace(/&apos;/g, "'");
 for (const must of [
   "Find jobs that fit you.",
-  "Email the person",
+  "Reach the person",
   "who's hiring",
   "Tell Stu, our AI career agent, what you're looking for.",
   "Every day, Stu checks company career sites and job boards for new roles",
@@ -57,7 +57,12 @@ for (const must of [
 ]) assert.ok(text.includes(must), `copy: ${must}`);
 // The hero's four cards are what Stu does, in order (owner 28 Oct: "animations that have functionality"), not
 // stand-alone figures like "86% match".
-assert.match(read("Hero.tsx"), /const STEPS = \["Learns what you want", "Finds jobs that fit you", "Finds who's hiring", "Writes your email"\] as const;/, "the hero's four steps");
+assert.match(read("Hero.tsx"), /const STEPS = \["Learns what you want", "Finds jobs that fit you", "Finds who's hiring", "Reaches out for you"\] as const;/, "the hero's four steps");
+// 30 Oct 2026, the owner after watching a real user: "email is just a channel". The page leads with reaching the
+// person who's hiring; email is named in how it works (step 4) and the questions, never in the hero, why or proof.
+for (const f of ["Hero.tsx", "WhyEmail.tsx", "Proof.tsx"]) {
+  assert.doesNotMatch(code(read(f)), /\bemail/i, `${f}: leads with reaching the person, not email`);
+}
 assert.doesNotMatch(code(read("Hero.tsx")), /86% match|New roles daily/, "no stand-alone figures around Stu");
 // No call length and no "talk or type" above the questions (owner 28 Oct: "why is 10 minutes required? Not
 // required"); the call's details are answered in the questions.

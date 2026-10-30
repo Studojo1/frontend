@@ -33,7 +33,7 @@ export function Proof() {
           <div className="hv-card hv3-stat" data-reveal data-count style={d(240)}><b>8,300+</b><span>companies where we&apos;ve found hiring managers</span></div>
         </div>
         <div className="hv3-logos" data-reveal>
-          <p className="hv3-logos-label">People using Studojo have emailed hiring managers at</p>
+          <p className="hv3-logos-label">People using Studojo have reached out to hiring managers at</p>
           {ROWS.map((row, i) => (
             <div className={`hv3-row${i ? " hv3-row-rev" : ""}`} key={i}>
               <ul>

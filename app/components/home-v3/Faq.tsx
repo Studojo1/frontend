@@ -18,7 +18,7 @@ import { Plus } from "./icons";
 const QA: { q: string; a: string }[] = [
   {
     q: "Is Stu a real person?",
-    a: "No. Stu is your AI career agent, working for you every day: finding jobs, finding the people hiring and writing your emails. Talk to it or type, whichever suits you.",
+    a: "No. Stu is your AI career agent, working for you every day: finding jobs, finding the people hiring and reaching out to them for you. Talk to it or type, whichever suits you.",
   },
   {
     q: "Where do the jobs come from?",
@@ -34,11 +34,11 @@ const QA: { q: string; a: string }[] = [
   },
   {
     q: "Will Stu spam the company?",
-    a: "No. Stu emails one person per company at a time, never pitches the same person twice, and skips anyone who has asked not to be contacted.",
+    a: "No. Stu reaches out to one person per company at a time, never pitches the same person twice, and skips anyone who has asked not to be contacted.",
   },
   {
     q: "I'm a fresher. Is this for me?",
-    a: "Yes. Stu builds your pitch from your projects, studies and internships, so your email shows what you can do, not just where you've worked.",
+    a: "Yes. Stu builds your pitch from your projects, studies and internships, so the person hiring sees what you can do, not just where you've worked.",
   },
   {
     q: "Can I keep my current employer out of it?",

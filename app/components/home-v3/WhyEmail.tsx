@@ -4,13 +4,15 @@ import { Check, Cross } from "./icons";
 // visitors only understood what Studojo is for once they read this argument, halfway down the old page; it now comes
 // right after how it works. No claim beyond what is true of any posting: no reply rates, nothing guaranteed.
 // Motion: the two sides slide in from either edge, their marks pop in one by one (Motion.tsx, home-v3.css).
+// 30 Oct 2026, the owner: "email is just a channel". The case is for reaching the person who's hiring, so email
+// itself is not named here.
 
 export function WhyEmail() {
   return (
     <section className="hv-sec hv3-sec" id="why" aria-labelledby="why-h">
       <div className="hv3-in">
         <header className="hv3-head" data-reveal>
-          <h2 className="hv3-h2" id="why-h">Portals bury your application. An email reaches a person.</h2>
+          <h2 className="hv3-h2" id="why-h">Portals bury your application. With Stu, it reaches a person.</h2>
         </header>
         <div className="hv3-vs">
           <div className="hv-card hv3-vs-col hv3-from-left" data-reveal>
@@ -31,11 +33,11 @@ export function WhyEmail() {
             </ul>
           </div>
           <div className="hv-card hv3-vs-col hv3-vs-yes hv3-from-right" data-reveal>
-            <h3 className="hv3-h3">Emailing the person who&apos;s hiring</h3>
+            <h3 className="hv3-h3">Reaching the person who&apos;s hiring</h3>
             <ul className="hv3-list">
               <li>
                 <span className="hv3-mark" aria-hidden="true"><Check size={14} sw={2.8} /></span>
-                It lands in their own inbox.
+                They hear from you directly.
               </li>
               <li>
                 <span className="hv3-mark" aria-hidden="true"><Check size={14} sw={2.8} /></span>

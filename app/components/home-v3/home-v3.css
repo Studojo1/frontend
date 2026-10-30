@@ -659,7 +659,7 @@
     .hv2 .hv3-step:hover, .hv2 .hv3-vs-col:hover, .hv2 .hv3-stat:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--hv-ink-e); }
   }
   /* on a phone the headline's two sentences rise as two blocks (wrapped plainly: balancing broke the second one as
-     "Email the / person who's hiring." on a 360px screen) */
+     "Reach the / person who's hiring." on a 360px screen) */
   @media (max-width: 767px) {
     .hv2 .hv3-l { display: inline-block; text-wrap: wrap; }
   }
