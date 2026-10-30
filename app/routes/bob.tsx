@@ -4409,6 +4409,7 @@ type LemlistCheck = {
   same_campaign?: boolean;
   dnc?: string;                     // which value is on the do-not-contact list: email | domain | linkedin | phone
   reason?: string;
+  opening?: string;                 // a suggested first line for the email, written from the posting (editable)
 };
 type LemlistMark = { status: string; reason: string; campaign: string; linkedinOnly: boolean };
 
@@ -4605,6 +4606,7 @@ function LemlistModal({ table, myEmail, onClose, onSent }: { table: BobTable; my
   const [campaignId, setCampaignId] = useState("");
   const [picked, setPicked] = useState<Set<number>>(() => new Set());
   const [checks, setChecks] = useState<Map<number, LemlistCheck> | null>(null);   // the review of `picked`
+  const [openings, setOpenings] = useState<Record<number, string>>({});            // each line as the user left it
   const [open, setOpen] = useState<number | null>(null);    // the contact whose fields are shown
   const [confirmRunning, setConfirmRunning] = useState(false);
   const [busy, setBusy] = useState<"" | "review" | "send">("");
@@ -4657,6 +4659,8 @@ function LemlistModal({ table, myEmail, onClose, onSent }: { table: BobTable; my
   const canPick = (r: BobRow) => lemlistReachable(r.cells) && !LEMLIST_IN_CAMPAIGN.has(lemlistOf(r.cells)?.status || "");
   const pickable = rows.filter(canPick);
   const ready = checks ? rows.filter((r) => picked.has(r.id) && checks.get(r.id)?.state === "ready") : [];
+  // suggested opening lines exist only when the server wrote some (BOB_LEMLIST_OPENING_LINES_ENABLED)
+  const openingsOn = !!checks && [...checks.values()].some((c) => typeof c.opening === "string");
   const readyLinkedin = ready.filter((r) => checks?.get(r.id)?.linkedin_only).length;
   const locked = !!busy || !!summary;
 
@@ -4691,6 +4695,12 @@ function LemlistModal({ table, myEmail, onClose, onSent }: { table: BobTable; my
         setProgress({ done: Math.min(ids.length, i + batch.length), total: ids.length });
       }
       setChecks(got);
+      // a line the user already edited (or cleared) survives another review; new rows get the suggestion
+      setOpenings((prev) => {
+        const next = { ...prev };
+        for (const [id, c] of got) if (c.state === "ready" && typeof c.opening === "string" && !(id in next)) next[id] = c.opening;
+        return next;
+      });
     } catch (e: any) {
       setErr(e?.message || "Could not check these contacts with Lemlist");
     } finally {
@@ -4713,7 +4723,11 @@ function LemlistModal({ table, myEmail, onClose, onSent }: { table: BobTable; my
         const batch = queue.splice(0, LEMLIST_BATCH);
         const r = await bobFetch<LemlistPush>(`/tables/${table.id}/lemlist/push`, {
           method: "POST",
-          body: JSON.stringify({ campaign_id: chosen.id, row_ids: batch, allow_running: running && confirmRunning }),
+          body: JSON.stringify({
+            campaign_id: chosen.id, row_ids: batch, allow_running: running && confirmRunning,
+            // the opening line each contact gets, as left in the review ("" sends none)
+            ...(openingsOn ? { openings: Object.fromEntries(batch.map((id) => [String(id), openings[id] ?? ""])) } : {}),
+          }),
         });
         answered = true;
         const sk = r?.skipped || {};
@@ -4865,6 +4879,18 @@ function LemlistModal({ table, myEmail, onClose, onSent }: { table: BobTable; my
                           {words && <span className="block text-[11.5px] text-neutral-600">{words}</span>}
                         </span>
                       </label>
+                      {check?.state === "ready" && openingsOn && (
+                        <div className="pl-7 mt-1.5">
+                          <label htmlFor={`lemlist-opening-${r.id}`}
+                            className="block text-[10.5px] font-semibold uppercase tracking-wide text-neutral-400 mb-1">
+                            Opening line <span className="font-mono normal-case tracking-normal text-neutral-300">{"{{icebreaker}}"}</span>
+                          </label>
+                          <textarea id={`lemlist-opening-${r.id}`} rows={2} maxLength={300} value={openings[r.id] ?? ""} disabled={locked}
+                            onChange={(e) => { const v = e.target.value; setOpenings((o) => ({ ...o, [r.id]: v })); }}
+                            placeholder="Write the first line of the email, or leave it empty"
+                            className="w-full text-[12.5px] leading-snug border-2 border-neutral-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-violet-500 disabled:opacity-60" />
+                        </div>
+                      )}
                       {check?.state === "ready" && check.lead && Object.keys(check.lead).length > 0 && (
                         <div className="pl-7">
                           <button type="button" onClick={() => setOpen(open === r.id ? null : r.id)} aria-expanded={open === r.id}
@@ -4884,6 +4910,12 @@ function LemlistModal({ table, myEmail, onClose, onSent }: { table: BobTable; my
               <p className="text-[12.5px] text-neutral-700">
                 <b className="text-neutral-900">{ready.length}</b> ready to send{readyLinkedin > 0 ? ` (${readyLinkedin} LinkedIn only)` : ""}.
                 {heldWords ? ` ${heldWords}` : ""}
+                {openingsOn && ready.length > 0 && (
+                  <span className="block text-neutral-500 mt-0.5">
+                    Each one has a suggested opening line written from its posting (it uses a little of your AI credits).
+                    Edit or clear it before you send.
+                  </span>
+                )}
               </p>
             )}
           </div>
