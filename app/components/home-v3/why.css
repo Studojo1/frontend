@@ -1,0 +1,145 @@
+/* HOMEPAGE V3, why (#why), 1 Nov 2026. The founder: the boxes and fonts were too small to read well; make it more
+   appealing, with larger, useful fonts. Linked by WhyEmail.tsx. Every rule sits under .hv2 #why, so nothing here
+   reaches another section or page, and the section's own sizes win over home-v3.css's shared ones (.hv3-h2, .hv3-h3,
+   .hv3-note) whichever stylesheet comes first.
+   The two sides differ at a glance: the portal is drained to greys, a pile of applications with yours buried in it;
+   reaching the person is vivid, violet marks, a violet edge and a short note to a named hiring manager, with a reply.
+   Sizes: the title 34px on a phone, 46px on a tablet, up to 56px on a laptop; the cards' titles 23, 26, 29px; their
+   lines 18.5, 20, 21px. Motion (prefers-reduced-motion: no-preference only) rides on Motion.tsx's hv3-rv-in and
+   home-v3.css's keyframes (hv3-rise, hv3-shake, hv3-pop-in); with less motion, or without JS, it is all simply there. */
+
+.hv2 #why {
+  --hv3-cmp-mute-bg: #f1f0f4; --hv3-cmp-mute-line: #bcb7c5; --hv3-cmp-mute-stage: #e6e3ec; --hv3-cmp-mute-dot: #d2cdd9;
+  --hv3-cmp-mute-ink: #4a4655; --hv3-cmp-mute-mark: #6f6a7a;
+  --hv3-cmp-yes-bg: #f6f2ff; --hv3-cmp-yes-stage: #ebe2fe; --hv3-cmp-yes-dot: #d9c9fb;
+}
+.hv2 #why .hv3-in { max-width: 1120px; }
+
+/* the title: the portal's sentence in grey, Stu's in ink, "a person." in violet on a lilac marker line */
+.hv2 #why .hv3-head { max-width: 980px; margin-bottom: 36px; }
+.hv2 #why .hv3-h2 { font-size: 34px; line-height: 1.08; letter-spacing: -0.03em; }
+.hv2 #why .hv3-cmp-l1, .hv2 #why .hv3-cmp-l2 { display: block; text-wrap: balance; }
+.hv2 #why .hv3-cmp-l1 { color: #75717e; }
+.hv2 #why .hv3-cmp-hl { white-space: nowrap; color: var(--hv-purple-strong); background: linear-gradient(180deg, transparent 64%, #e4d7fd 64%, #e4d7fd 94%, transparent 94%); }
+
+/* the two cards, one above the other with "vs" between them on a phone; side by side from 900px */
+.hv2 #why .hv3-cmp { position: relative; display: grid; max-width: 620px; margin: 0 auto; }
+.hv2 #why .hv3-cmp-card { display: flex; flex-direction: column; gap: 18px; min-width: 0; padding: 16px 16px 26px; border-radius: 22px; }
+.hv2 #why .hv3-cmp-card .hv3-h3 { margin: 4px 6px 0; font-size: 23px; line-height: 1.2; letter-spacing: -0.02em; }
+.hv2 #why .hv3-cmp-list { list-style: none; margin: 0 6px; padding: 0; display: grid; gap: 14px; }
+.hv2 #why .hv3-cmp-list li { display: flex; align-items: flex-start; gap: 14px; font-size: 18.5px; line-height: 1.42; color: var(--hv-ink); text-wrap: pretty; }
+.hv2 #why .hv3-cmp-mark { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-top: -2px; border-radius: 50%; border: var(--hv-bw) solid var(--hv-ink-e); }
+
+.hv2 #why .hv3-cmp-no { background: var(--hv3-cmp-mute-bg); border-color: var(--hv3-cmp-mute-line); box-shadow: 3px 3px 0 var(--hv3-cmp-mute-line); }
+.hv2 #why .hv3-cmp-no .hv3-h3, .hv2 #why .hv3-cmp-no .hv3-cmp-list li { color: var(--hv3-cmp-mute-ink); }
+.hv2 #why .hv3-cmp-no .hv3-cmp-mark { background: #e2dfe8; border-color: #aaa4b4; color: var(--hv3-cmp-mute-mark); }
+.hv2 #why .hv3-cmp-yes { background: var(--hv3-cmp-yes-bg); box-shadow: 5px 5px 0 var(--hv-purple); }
+.hv2 #why .hv3-cmp-yes .hv3-cmp-mark { background: var(--hv-purple); color: #fff; }
+
+.hv2 #why .hv3-cmp-vs { position: relative; z-index: 2; justify-self: center; display: grid; place-items: center; width: 52px; height: 52px; margin: -16px 0; border-radius: 50%; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); box-shadow: var(--hv-hard); font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--hv-ink); }
+
+/* the pictures: a stage on the page's dot grid */
+.hv2 #why .hv3-cmp-art { position: relative; height: 156px; overflow: hidden; border-radius: 14px; background-size: 16px 16px; background-position: 8px 8px; }
+.hv2 #why .hv3-cmp-pile { background-color: var(--hv3-cmp-mute-stage); background-image: radial-gradient(circle, var(--hv3-cmp-mute-dot) 1px, transparent 1.4px); }
+.hv2 #why .hv3-cmp-reach { background-color: var(--hv3-cmp-yes-stage); background-image: radial-gradient(circle, var(--hv3-cmp-yes-dot) 1px, transparent 1.4px); }
+
+/* the pile: four applications, each a little askew, yours second from the bottom, under two more */
+.hv2 #why .hv3-cmp-pile { --hv3-cmp-step: 26px; --hv3-cmp-sheet: 60px; }
+.hv2 #why .hv3-cmp-sheet { position: absolute; left: var(--hv3-cmp-x); right: var(--hv3-cmp-x); top: calc(8px + var(--hv3-cmp-i) * var(--hv3-cmp-step)); height: var(--hv3-cmp-sheet); display: flex; align-items: flex-start; gap: 10px; padding: 5px 12px; overflow: hidden; border-radius: 10px; background: #fff; border: var(--hv-bw) solid #c6c1ce; box-shadow: 0 2px 0 rgba(23, 23, 23, .06); rotate: var(--hv3-cmp-r); }
+.hv2 #why .hv3-cmp-sheet:nth-child(1) { --hv3-cmp-i: 0; --hv3-cmp-x: 21%; --hv3-cmp-r: -2.4deg; background: #f8f7fa; }
+.hv2 #why .hv3-cmp-sheet:nth-child(2) { --hv3-cmp-i: 1; --hv3-cmp-x: 15%; --hv3-cmp-r: 1.4deg; }
+.hv2 #why .hv3-cmp-sheet:nth-child(3) { --hv3-cmp-i: 2; --hv3-cmp-x: 10%; --hv3-cmp-r: -1.1deg; }
+.hv2 #why .hv3-cmp-sheet:nth-child(4) { --hv3-cmp-i: 3; --hv3-cmp-x: 5%; --hv3-cmp-r: .7deg; }
+.hv2 #why .hv3-cmp-face { flex: none; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #dedae5; }
+.hv2 #why .hv3-cmp-bars { flex: 1; display: grid; gap: 7px; padding-top: 6px; }
+.hv2 #why .hv3-cmp-bars i { display: block; height: 7px; border-radius: 4px; background: #e4e1e9; }
+.hv2 #why .hv3-cmp-bars i + i { width: 58%; }
+.hv2 #why .hv3-cmp-mine { border-color: #b9a8e6; }
+.hv2 #why .hv3-cmp-mine .hv3-cmp-face { background: #ebe2fe; color: var(--hv-purple-strong); font-size: 11px; font-weight: 700; line-height: 1; }
+.hv2 #why .hv3-cmp-mine b { font-size: 14px; font-weight: 600; line-height: 18px; letter-spacing: -0.005em; color: #6a6476; white-space: nowrap; }
+
+/* the note: from you to Ananya, and her reply under it */
+.hv2 #why .hv3-cmp-msg { position: absolute; left: 14px; right: 14px; top: 14px; padding: 10px 13px 11px; border-radius: 13px; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); box-shadow: var(--hv-hard); }
+.hv2 #why .hv3-cmp-msg-head { margin: 0; display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 14px; line-height: 1.2; color: var(--hv-muted); white-space: nowrap; }
+.hv2 #why .hv3-cmp-msg-head svg { flex: none; color: var(--hv-purple-strong); }
+.hv2 #why .hv3-cmp-from { flex: none; display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; background: var(--hv-purple); color: #fff; font-size: 13.5px; font-weight: 600; }
+.hv2 #why .hv3-cmp-av { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--hv-lilac); border: var(--hv-bw) solid var(--hv-ink-e); color: var(--hv-purple-strong); font-size: 12px; font-weight: 700; }
+.hv2 #why .hv3-cmp-to { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.hv2 #why .hv3-cmp-to b { margin-right: 3px; font-weight: 600; color: var(--hv-ink); }
+.hv2 #why .hv3-cmp-msg-body { margin: 8px 0 0; font-size: 14px; line-height: 1.45; color: var(--hv-ink); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.hv2 #why .hv3-cmp-reply { position: absolute; right: 14px; bottom: 11px; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px 0 11px; border-radius: 999px; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); box-shadow: var(--hv-hard); font-size: 14px; font-weight: 600; color: var(--hv-ink); white-space: nowrap; }
+.hv2 #why .hv3-cmp-live { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--hv-green); box-shadow: 0 0 0 3px var(--hv-green-bg); }
+
+/* the honest line under them, readable */
+.hv2 #why .hv3-note { margin-top: 36px; max-width: 720px; font-size: 17px; line-height: 1.5; color: #5f5b69; text-wrap: balance; }
+
+@media (max-width: 360px) {
+  .hv2 #why .hv3-h2 { font-size: 31px; }
+  .hv2 #why .hv3-cmp-card .hv3-h3 { font-size: 22px; }
+  .hv2 #why .hv3-cmp-list li { font-size: 18px; }
+  .hv2 #why .hv3-cmp-to { display: none; }
+}
+@media (min-width: 768px) {
+  .hv2 #why .hv3-head { margin-bottom: 48px; }
+  .hv2 #why .hv3-h2 { font-size: 46px; }
+  .hv2 #why .hv3-cmp-card { gap: 20px; padding: 18px 18px 30px; }
+  .hv2 #why .hv3-cmp-card .hv3-h3 { margin-top: 6px; font-size: 26px; }
+  .hv2 #why .hv3-cmp-list { gap: 16px; }
+  .hv2 #why .hv3-cmp-list li { font-size: 20px; }
+  .hv2 #why .hv3-cmp-mark { width: 32px; height: 32px; }
+  .hv2 #why .hv3-cmp-art { height: 168px; }
+  .hv2 #why .hv3-cmp-pile { --hv3-cmp-step: 26px; --hv3-cmp-sheet: 70px; }
+  .hv2 #why .hv3-cmp-msg { left: 18px; right: 18px; top: 18px; }
+  .hv2 #why .hv3-cmp-msg-body, .hv2 #why .hv3-cmp-msg-head, .hv2 #why .hv3-cmp-reply { font-size: 14.5px; }
+  .hv2 #why .hv3-cmp-reply { right: 18px; bottom: 14px; }
+  .hv2 #why .hv3-note { margin-top: 44px; font-size: 18px; }
+}
+@media (min-width: 900px) {
+  .hv2 #why .hv3-cmp { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 52px; }
+  .hv2 #why .hv3-cmp-vs { position: absolute; left: calc(50% - 30px); top: calc(50% - 30px); width: 60px; height: 60px; margin: 0; font-size: 20px; }
+}
+@media (min-width: 1024px) {
+  .hv2 #why .hv3-head { margin-bottom: 56px; }
+  .hv2 #why .hv3-h2 { font-size: clamp(48px, 3.9vw, 56px); }
+  .hv2 #why .hv3-cmp-card { gap: 22px; padding: 20px 20px 36px; }
+  .hv2 #why .hv3-cmp-card .hv3-h3 { margin: 8px 10px 0; font-size: 29px; }
+  .hv2 #why .hv3-cmp-list { margin: 0 10px; gap: 18px; }
+  .hv2 #why .hv3-cmp-list li { gap: 16px; font-size: 21px; }
+  .hv2 #why .hv3-cmp-mark { width: 34px; height: 34px; }
+  .hv2 #why .hv3-cmp-art { height: 184px; }
+  .hv2 #why .hv3-cmp-pile { --hv3-cmp-step: 28px; --hv3-cmp-sheet: 76px; }
+  .hv2 #why .hv3-cmp-mine b { font-size: 14.5px; }
+  .hv2 #why .hv3-note { font-size: 19px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* the lines come in one by one; the crosses shake, the ticks pop */
+  .hv2 #why .hv3-cmp-card.hv3-rv-in .hv3-cmp-list li { animation: hv3-rise .5s cubic-bezier(.2, .9, .3, 1) both; }
+  .hv2 #why .hv3-cmp-card.hv3-rv-in .hv3-cmp-list li:nth-child(1) { animation-delay: .45s; }
+  .hv2 #why .hv3-cmp-card.hv3-rv-in .hv3-cmp-list li:nth-child(2) { animation-delay: .65s; }
+  .hv2 #why .hv3-cmp-card.hv3-rv-in .hv3-cmp-list li:nth-child(3) { animation-delay: .85s; }
+  .hv2 #why .hv3-cmp-no.hv3-rv-in .hv3-cmp-mark { animation: hv3-shake .6s ease 1.3s both; }
+  .hv2 #why .hv3-cmp-yes.hv3-rv-in .hv3-cmp-mark { animation: hv3-pop-in .45s cubic-bezier(.2, .9, .3, 1.6) 1.3s both; }
+  /* the applications land on the pile one after another, yours second */
+  .hv2 #why .hv3-cmp-no.hv3-rv-in .hv3-cmp-sheet { animation: hv3-cmp-drop .5s cubic-bezier(.2, .9, .3, 1.15) both; }
+  .hv2 #why .hv3-cmp-no.hv3-rv-in .hv3-cmp-sheet:nth-child(1) { animation-delay: .2s; }
+  .hv2 #why .hv3-cmp-no.hv3-rv-in .hv3-cmp-sheet:nth-child(2) { animation-delay: .4s; }
+  .hv2 #why .hv3-cmp-no.hv3-rv-in .hv3-cmp-sheet:nth-child(3) { animation-delay: .75s; }
+  .hv2 #why .hv3-cmp-no.hv3-rv-in .hv3-cmp-sheet:nth-child(4) { animation-delay: .95s; }
+  /* the note rises in, then the reply pops up and its dot pings */
+  .hv2 #why .hv3-cmp-yes.hv3-rv-in .hv3-cmp-msg { animation: hv3-rise .6s cubic-bezier(.2, .9, .3, 1) .25s both; }
+  .hv2 #why .hv3-cmp-yes.hv3-rv-in .hv3-cmp-reply { animation: hv3-cmp-pop .5s cubic-bezier(.2, .9, .3, 1.5) 1.5s both; }
+  .hv2 #why .hv3-cmp-yes.hv3-rv-in .hv3-cmp-live { animation: hv3-cmp-ping 1.4s ease-out 2s 3; }
+  /* "vs" pops in once the cards have arrived (hidden while the first card waits off screen) */
+  .hv2.hv3-motion #why .hv3-cmp-vs { transition: opacity .3s ease .45s, scale .5s cubic-bezier(.2, .9, .3, 1.5) .45s; }
+  .hv2.hv3-motion #why .hv3-cmp-no.hv3-rv-pre + .hv3-cmp-vs { opacity: 0; scale: .4; transition-delay: 0s; }
+}
+/* the cards lift under the pointer, each with its own shadow */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .hv2 #why .hv3-cmp-no:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--hv3-cmp-mute-line); }
+  .hv2 #why .hv3-cmp-yes:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--hv-purple); }
+}
+
+@keyframes hv3-cmp-drop { from { opacity: 0; transform: translateY(-28px); } to { opacity: 1; transform: none; } }
+@keyframes hv3-cmp-pop { 0% { opacity: 0; transform: translateY(10px) scale(.7); } 100% { opacity: 1; transform: none; } }
+@keyframes hv3-cmp-ping { 0% { box-shadow: 0 0 0 3px var(--hv-green-bg), 0 0 0 3px rgba(16, 185, 129, .45); } 100% { box-shadow: 0 0 0 3px var(--hv-green-bg), 0 0 0 11px rgba(16, 185, 129, 0); } }
