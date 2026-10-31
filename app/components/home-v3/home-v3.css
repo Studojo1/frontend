@@ -527,39 +527,38 @@
    it is, and a reader without JS sees everything. */
 
 /* the hero's four steps around Stu: what Stu does, in order (owner 28 Oct: "animations that have functionality").
-   Still, they are four numbered cards; with motion they float in in order, then light up one after another (hv3-on)
-   and tick off (hv3-done), then start again (Motion.tsx). */
+   Still, they are four numbered cards; with motion they float in in order, then light up one after another (hv3-on),
+   then start again (Motion.tsx). A number always stays a number (1 Nov 2026, the founder after a customer call: a
+   number turning into a tick was too much). */
 .hv2 .hv3-stu-wrap { position: relative; }
 .hv2 .hv3-stu-wrap .hv-hero-stu { position: relative; z-index: 1; }
 .hv2 .hv3-flow { position: absolute; inset: 0; z-index: 2; margin: 0; padding: 0; list-style: none; pointer-events: none; }
 .hv2 .hv3-flow-step { position: absolute; display: block; }
 .hv2 .hv3-flow-in { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 16px; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); box-shadow: var(--hv-hard); font-size: 14px; font-weight: 600; line-height: 1.2; color: var(--hv-ink); text-align: left; }
 .hv2 .hv3-flow-t { max-width: 7.4em; text-wrap: balance; }
-.hv2 .hv3-flow-n { position: relative; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--hv-lilac); color: var(--hv-purple-strong); font-size: 13px; font-weight: 700; }
-.hv2 .hv3-flow-n svg { position: absolute; inset: 0; margin: auto; opacity: 0; }
+.hv2 .hv3-flow-n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--hv-lilac); color: var(--hv-purple-strong); font-size: 13px; font-weight: 700; }
 .hv2 .hv3-on .hv3-flow-in { border-color: var(--hv-purple-strong); background: #f6f2ff; }
 .hv2 .hv3-on .hv3-flow-n { background: var(--hv-purple); color: #fff; }
-.hv2 .hv3-done .hv3-flow-n { background: #10b981; color: #fff; }
-.hv2 .hv3-done .hv3-flow-n b { opacity: 0; }
-.hv2 .hv3-done .hv3-flow-n svg { opacity: 1; }
-/* on a phone there is no room beside Stu: two steps above him and two below, still going round (1 2 above, 4 3
-   below), 12px in from the screen's edges (Stu is centred, so 50% - 50vw is the screen's edge), never over his face */
+/* the order (1 Nov 2026, the founder): 1 top right, 2 top left, 3 bottom left, 4 bottom right, on every screen.
+   On a phone there is no room beside Stu: two steps above him (2 1) and two below (3 4), 12px in from the screen's
+   edges (Stu is centred, so 50% - 50vw is the screen's edge), never over his face */
 .hv2 .hv3-stu-wrap { padding: 54px 0; }
 .hv2 .hv3-flow-in { max-width: calc(50vw - 18px); }
-.hv2 .hv3-s1 { left: calc(50% - 50vw + 12px); top: 0; }
-.hv2 .hv3-s2 { right: calc(50% - 50vw + 12px); top: 0; }
-.hv2 .hv3-s3 { right: calc(50% - 50vw + 12px); bottom: 0; }
-.hv2 .hv3-s4 { left: calc(50% - 50vw + 12px); bottom: 0; }
-/* from a tablet up, around Stu: two on his left, two on his right */
+.hv2 .hv3-s1 { right: calc(50% - 50vw + 12px); top: 0; }
+.hv2 .hv3-s2 { left: calc(50% - 50vw + 12px); top: 0; }
+.hv2 .hv3-s3 { left: calc(50% - 50vw + 12px); bottom: 0; }
+.hv2 .hv3-s4 { right: calc(50% - 50vw + 12px); bottom: 0; }
+/* from a tablet up, around Stu: 1 high on his right, 2 a little lower on his left, 3 low on his left, 4 lowest on his
+   right, so they still step down in order */
 @media (min-width: 768px) {
   .hv2 .hv3-stu-wrap { padding: 0; }
   .hv2 .hv3-flow-in { max-width: none; gap: 9px; padding: 7px 15px 7px 7px; border-radius: 999px; font-size: 15px; }
   .hv2 .hv3-flow-t { max-width: none; white-space: nowrap; }
   .hv2 .hv3-flow-n { width: 26px; height: 26px; font-size: 14px; }
-  .hv2 .hv3-s1 { left: auto; right: calc(100% + 18px); top: 0; }
-  .hv2 .hv3-s2 { right: auto; left: calc(100% + 18px); top: 12%; }
-  .hv2 .hv3-s3 { right: auto; left: calc(100% + 34px); top: 64%; bottom: auto; }
-  .hv2 .hv3-s4 { left: auto; right: calc(100% + 34px); top: 76%; bottom: auto; }
+  .hv2 .hv3-s1 { right: auto; left: calc(100% + 18px); top: 0; }
+  .hv2 .hv3-s2 { left: auto; right: calc(100% + 18px); top: 12%; }
+  .hv2 .hv3-s3 { left: auto; right: calc(100% + 34px); top: 64%; bottom: auto; }
+  .hv2 .hv3-s4 { right: auto; left: calc(100% + 34px); top: 76%; bottom: auto; }
 }
 
 /* the hand-drawn line under "who's hiring" (drawn, still) */
@@ -592,7 +591,7 @@
   .hv2 .hv3-hero .hv3-hero-sub { animation: hv3-rise .7s cubic-bezier(.2, .9, .3, 1) .7s both; }
   .hv2 .hv3-hero .hv-go { animation: hv3-rise .7s cubic-bezier(.2, .9, .3, 1) .85s both; }
   .hv2 .hv3-hero .hv-go-btn { animation: hv3-ring 1.6s ease-out 2s 2; }
-  /* the four steps: in, in order; a gentle drift; the one Stu is on grows and pulses, the done ones tick */
+  /* the four steps: in, in order; a gentle drift; the one Stu is on grows and pulses (its number stays) */
   .hv2 .hv3-flow-step { animation: hv3-float-in .8s cubic-bezier(.2, .9, .3, 1.3) var(--hv3-d, 1s) both; translate: calc(var(--hv3-px, 0) * 30px) calc(var(--hv3-py, 0) * 18px); transition: translate .6s cubic-bezier(.2, .8, .3, 1); }
   .hv2 .hv3-s2, .hv2 .hv3-s3 { translate: calc(var(--hv3-px, 0) * -24px) calc(var(--hv3-py, 0) * -14px); }
   .hv2 .hv3-flow-in { animation: hv3-bob 5.6s ease-in-out infinite; transition: border-color .3s ease, background-color .3s ease, scale .4s cubic-bezier(.2, .9, .3, 1.4); }
@@ -600,10 +599,8 @@
   .hv2 .hv3-s3 .hv3-flow-in { animation-duration: 5.9s; animation-delay: -3.1s; }
   .hv2 .hv3-s4 .hv3-flow-in { animation-duration: 7.1s; animation-delay: -2.2s; }
   .hv2 .hv3-flow-n { transition: background-color .3s ease, color .3s ease; }
-  .hv2 .hv3-flow-n b { transition: opacity .2s ease; }
   .hv2 .hv3-on .hv3-flow-in { scale: 1.07; }
   .hv2 .hv3-on .hv3-flow-n { animation: hv3-ping 1.2s ease-out infinite; }
-  .hv2 .hv3-done .hv3-flow-n svg { animation: hv3-pop-in .4s cubic-bezier(.2, .9, .3, 1.6) both; }
 
   /* float in, float out (Motion.tsx adds hv3-motion to the root, then hv3-rv-pre / hv3-rv-in to each [data-reveal]) */
   .hv2.hv3-motion [data-reveal] { transition: opacity .65s cubic-bezier(.2, .8, .3, 1) var(--hv3-d, 0ms), translate .85s cubic-bezier(.2, .9, .3, 1) var(--hv3-d, 0ms), scale .85s cubic-bezier(.2, .9, .3, 1) var(--hv3-d, 0ms), transform .25s ease, box-shadow .25s ease; }

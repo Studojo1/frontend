@@ -1,0 +1,45 @@
+/* HOMEPAGE V3 hero: the foot of the first screen, "See how Stu works" (1 Nov 2026, the founder after a customer call:
+   when you land on the page it is very hard to tell there is more than this screen and its start). A quiet link at the
+   bottom of the hero, under the start: its words and a round chevron that bobs gently; a tap glides down to how it
+   works (Hero.tsx). Linked by Hero.tsx; every rule sits under .hv2, the page's root, like home-v3.css.
+   - Never on the start: the hero keeps room for it at its foot (its bottom padding) and centres everything else above
+     that room. On a phone the words sit beside the chevron (the room under the start is short); from 641px up the
+     chevron sits under the words.
+   - Never under the cookie notice: while the notice shows, the hero's foot and the link rise by its height
+     (--sj-notice-h, set by the notice), on a phone as before and now on a desktop too.
+   - Never beside the floating agent: the link goes up with the hero, and the floating agent only comes on once the
+     hero's end has gone up under the header (Floating.tsx watches [data-hero-end]).
+   - Reduced motion: it is simply there, nothing bobs, and the tap jumps instead of gliding. */
+
+.hv2 .hv-hero.hv3-hero { --hv3-more-zone: max(72px, 9svh); padding-bottom: calc(var(--hv3-more-zone) + var(--sj-notice-h, 0px)); }
+.hv2 .hv3-more { position: absolute; left: 50%; bottom: calc((var(--hv3-more-zone) - 44px) / 2 + var(--sj-notice-h, 0px)); z-index: 3; translate: -50% 0;
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 8px 4px 14px; border-radius: 999px;
+  font-size: 15px; font-weight: 600; line-height: 1.2; letter-spacing: -0.005em; color: var(--hv3-text); white-space: nowrap;
+  -webkit-tap-highlight-color: transparent; }
+.hv2 .hv3-more-chev { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%;
+  background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); box-shadow: 2px 2px 0 var(--hv-ink-e); color: var(--hv-ink); transition: background-color var(--hv-ease); }
+.hv2 .hv3-more-chev svg { width: 16px; height: 16px; display: block; }
+.hv2 .hv3-more:hover { color: var(--hv-ink); }
+.hv2 .hv3-more:hover .hv3-more-t { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.hv2 .hv3-more:hover .hv3-more-chev { background: var(--hv-fill-hover); }
+.hv2 .hv3-more:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 2px; }
+/* the link moves focus to the title of how it works (Hero.tsx adds its tabindex): a keyboard reader sees it there in
+   the page's own ring, and a tap or a click shows none */
+.hv2 #how-h[tabindex="-1"]:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 6px; border-radius: 10px; }
+.hv2 #how-h[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
+
+@media (min-width: 641px) {
+  .hv2 .hv-hero.hv3-hero { --hv3-more-zone: 116px; }
+  .hv2 .hv3-more { bottom: calc(14px + var(--sj-notice-h, 0px)); flex-direction: column; gap: 7px; padding: 6px 14px 8px; border-radius: 18px; font-size: 15.5px; }
+  .hv2 .hv3-more-chev { width: 32px; height: 32px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* it comes in after the start, then the chevron bobs; it rises and settles with the notice smoothly */
+  .hv2 .hv3-more { animation: hv3-more-in .7s cubic-bezier(.2, .9, .3, 1) 1.3s both; transition: bottom .35s cubic-bezier(.2, .8, .3, 1), color var(--hv-ease); }
+  .hv2 .hv3-more-chev { animation: hv3-more-bob 2.2s ease-in-out 2.2s infinite; }
+  .hv2 .hv-hero.hv3-hero { transition: padding-bottom .35s cubic-bezier(.2, .8, .3, 1); }
+}
+
+@keyframes hv3-more-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes hv3-more-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 5px; } }

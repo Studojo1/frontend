@@ -10,8 +10,9 @@ import { useEffect } from "react";
 // - [data-type]: the text types itself out the first time it is shown, then its figure gets hv3-typed (the example
 //   email's button presses and the email flies off).
 // - the questions (.hv3-q): open and close by animating their height, not a jump.
-// - the hero's four steps (what Stu does) light up one after another and tick off, then start again, while the hero
-//   is on screen (28 Oct 2026, the owner: "animations that have functionality"); they lean with the pointer on a laptop.
+// - the hero's four steps (what Stu does) light up one after another, then start again, while the hero is on screen
+//   (28 Oct 2026, the owner: "animations that have functionality"); they lean with the pointer on a laptop. A step's
+//   number stays its number (1 Nov 2026, the founder after a customer call: turning it into a tick was too much).
 // Reduced motion: everything is shown as it is, nothing moves.
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -78,18 +79,14 @@ function accordion(root: HTMLElement): () => void {
   return () => root.removeEventListener("click", onClick);
 }
 
-/** The hero's four steps: the one Stu is on lights up (hv3-on), the ones before it tick off (hv3-done); after the
- * fourth, all four show done for a moment, then it starts again. Only while the hero is on screen. */
+/** The hero's four steps: the one Stu is on lights up (hv3-on), its number still a number; after the fourth, none is
+ * lit for a moment, then it starts again. Only while the hero is on screen. */
 function flowCycle(flow: HTMLElement): () => void {
   const steps = [...flow.querySelectorAll<HTMLElement>(".hv3-flow-step")];
   let at = -1;
   let timer = 0;
   let running = false;
-  const paint = () =>
-    steps.forEach((s, i) => {
-      s.classList.toggle("hv3-on", i === at);
-      s.classList.toggle("hv3-done", i < at);
-    });
+  const paint = () => steps.forEach((s, i) => s.classList.toggle("hv3-on", i === at));
   const tick = () => {
     at = at >= steps.length ? 0 : at + 1;
     paint();
