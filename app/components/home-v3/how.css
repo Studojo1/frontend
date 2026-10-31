@@ -1,0 +1,176 @@
+/* HOMEPAGE V3 how it works: the four examples drawn as the Stu desk draws them (HowExamples.tsx; 1 Nov 2026, the founder:
+   "more visuals throughout the page with actual UI components of our product"). Linked by HowItWorks.tsx. Every rule sits
+   under .hv2 and every class is hv3x-, with the page's own tokens (--hv-*, the desk's --cv-* values): the desk's card
+   (white, the ink edge, the hard shadow), its rows, fit ring, logo tile, buttons and tags, a step smaller to fit a card.
+   Nothing a person reads under 14px. The still state is the finished example (no JS, reduced motion); with motion each
+   plays out as its step floats in (Motion.tsx; the motion block at the bottom). Nothing moves the layout while it plays:
+   what comes in only fades and rises, and the email types itself over a hidden copy that holds its height. */
+
+/* the example: flush at the foot of its card (the card's side padding is --hv3-pad, home-v3.css), on the desk's lilac
+   ground with its dots, the Example tag at its top left */
+.hv2 .hv3x { position: relative; margin: 8px calc(-1 * var(--hv3-pad, 18px)) 0; padding: 48px 14px 18px; display: grid; align-content: start; gap: 12px; border-top: var(--hv-bw) solid var(--hv-ink-e); background-color: var(--hv-lilac-bg); background-image: radial-gradient(circle, #e6dbf8 1px, transparent 1.4px); background-size: 18px 18px; background-position: 9px 9px; }
+.hv2 .hv3x-tag { position: absolute; top: 13px; left: 14px; padding: 2px 10px; border-radius: 999px; background: #fff; border: 1px solid #ddd0f6; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--hv-purple-strong); }
+.hv2 .hv3x-app { min-width: 0; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); border-radius: 14px; box-shadow: var(--hv-hard); overflow: hidden; text-align: left; }
+
+/* the desk's small parts: a list's head, the logo tile, buttons, chips */
+.hv2 .hv3x-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--hv-hair); }
+.hv2 .hv3x-head b { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--hv-ink); }
+.hv2 .hv3x-head span { font-size: 14px; color: var(--hv-muted); }
+.hv2 .hv3x-logo { position: relative; flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; border: 1px solid #d6d1df; background: #fff; overflow: hidden; font-size: 12px; font-weight: 700; line-height: 1; color: var(--hv-ink); box-shadow: 0 1px 0 rgba(25, 26, 35, .08); }
+.hv2 .hv3x-logo img { display: block; width: 74%; height: 74%; object-fit: contain; }
+.hv2 .hv3x-logo-md { width: 36px; height: 36px; border-radius: 10px; font-size: 16px; }
+.hv2 .hv3x-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 999px; border: var(--hv-bw) solid var(--hv-ink-e); background: #fff; box-shadow: 2px 2px 0 var(--hv-ink-e); font-size: 14px; font-weight: 600; letter-spacing: -0.005em; line-height: 1; white-space: nowrap; color: var(--hv-ink); }
+.hv2 .hv3x-btn-p { color: #fff; background: var(--hv-cta-bg); box-shadow: var(--hv-cta-in), 2px 2px 0 var(--hv-ink-e); }
+.hv2 .hv3x-ico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.hv2 .hv3x-chip { display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 999px; background: #fff; border: 1px solid #d6c8f5; color: var(--hv-purple-strong); font-size: 14px; font-weight: 600; white-space: nowrap; }
+.hv2 .hv3x-muted { color: var(--hv-muted); }
+/* Stu's face, the logo's drawn head on a white disc with the ink edge (the page's .hv-stu-cell) */
+.hv2 .hv3x-face { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); overflow: hidden; }
+.hv2 .hv3x-face img { display: block; width: 86%; height: 86%; margin-top: 22%; object-fit: contain; }
+
+/* 1. the call: its bar (Stu, Live, his voice, End), the lines said, and what Stu noted */
+.hv2 .hv3x-bar { display: flex; align-items: center; gap: 10px; padding: 9px 10px 9px 12px; border-bottom: 1px solid var(--hv-hair); }
+.hv2 .hv3x-bar-words { flex: 1; min-width: 0; display: grid; line-height: 1.3; }
+.hv2 .hv3x-bar-words b { font-size: 15px; font-weight: 700; color: var(--hv-ink); }
+.hv2 .hv3x-bar-words small { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--hv-muted); }
+.hv2 .hv3x-live { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--hv-green); box-shadow: 0 0 0 3px rgba(16, 185, 129, .2); }
+.hv2 .hv3x-wave { flex: none; display: inline-flex; align-items: center; gap: 3px; height: 18px; }
+.hv2 .hv3x-wave i { width: 3px; height: 8px; border-radius: 2px; background: var(--hv-purple); }
+.hv2 .hv3x-wave i:nth-child(2), .hv2 .hv3x-wave i:nth-child(4) { height: 13px; }
+.hv2 .hv3x-wave i:nth-child(3) { height: 16px; }
+.hv2 .hv3x-end { flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 999px; border: var(--hv-bw) solid var(--hv-ink-e); background: #dc2626; color: #fff; font-size: 14px; font-weight: 600; }
+.hv2 .hv3x-log { display: grid; gap: 10px; padding: 14px 14px 12px; }
+.hv2 .hv3x-stu { display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 10px; align-items: start; }
+.hv2 .hv3x-stu .hv3x-face { width: 28px; height: 28px; }
+.hv2 .hv3x-stu p { margin: 0; padding-top: 3px; font-size: 15px; line-height: 1.5; color: var(--hv-ink); }
+.hv2 .hv3x-you { justify-self: end; max-width: 85%; margin: 0; padding: 7px 13px; border: var(--hv-bw) solid var(--hv-ink-e); border-radius: 16px 16px 5px 16px; background: var(--hv-lilac); font-size: 15px; line-height: 1.45; color: var(--hv-ink); }
+.hv2 .hv3x-noted { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 14px 12px; border-top: 1px solid var(--hv-hair); background: var(--hv-lilac-bg); }
+.hv2 .hv3x-noted-k { margin-right: 2px; font-size: 14px; font-weight: 600; color: var(--hv-muted); }
+
+/* 2. My matches: the fit ring and its word, the title, the company's tile and name, place and type; the top match with
+   its reason and its two buttons */
+.hv2 .hv3x-rows { list-style: none; margin: 0; padding: 0; }
+.hv2 .hv3x-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; }
+.hv2 .hv3x-row + .hv3x-row { border-top: 1px solid var(--hv-hair); }
+.hv2 .hv3x-fit { flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; width: 70px; }
+.hv2 .hv3x-fit small { font-size: 14px; font-weight: 600; line-height: 1.2; color: var(--hv-muted); white-space: nowrap; }
+.hv2 .hv3x-ring { position: relative; display: inline-grid; place-items: center; width: 50px; height: 50px; }
+.hv2 .hv3x-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; rotate: -90deg; }
+.hv2 .hv3x-ring-bg { fill: none; stroke: #ece9f2; stroke-width: 4; }
+.hv2 .hv3x-ring-fg { fill: none; stroke: var(--hv-purple); stroke-width: 4; stroke-linecap: round; stroke-dasharray: var(--p) 100; stroke-dashoffset: 0; }
+.hv2 .hv3x-ring-hi .hv3x-ring-fg { stroke: var(--hv-green); }
+.hv2 .hv3x-ring b { position: relative; font-size: 14px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--hv-ink); }
+.hv2 .hv3x-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.hv2 .hv3x-title { font-size: 16px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--hv-ink); }
+.hv2 .hv3x-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; font-size: 14px; line-height: 1.45; color: var(--hv-muted); }
+.hv2 .hv3x-co { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--hv-ink); }
+.hv2 .hv3x-why { margin-top: 5px; font-size: 15px; line-height: 1.45; color: var(--hv-ink); }
+.hv2 .hv3x-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
+
+/* 3. who's hiring, on each job's campaign row: the search, then the person, their work email found, and Email them; the
+   next job still being searched */
+.hv2 .hv3x-camp { list-style: none; margin: 0; padding: 0; }
+.hv2 .hv3x-camp > li { display: grid; gap: 12px; padding: 14px; }
+.hv2 .hv3x-camp > li + li { border-top: 1px solid var(--hv-hair); }
+.hv2 .hv3x-wait { display: flex; align-items: center; gap: 9px; margin: 0; padding: 0 2px; font-size: 15px; color: var(--hv-muted); }
+.hv2 .hv3x-jobline { display: flex; align-items: center; gap: 10px; margin: 0; }
+.hv2 .hv3x-jobline > span { display: grid; min-width: 0; line-height: 1.35; }
+.hv2 .hv3x-jobline b { font-size: 16px; font-weight: 600; color: var(--hv-ink); }
+.hv2 .hv3x-jobline > span > span { font-size: 14px; color: var(--hv-muted); }
+.hv2 .hv3x-find { display: grid; }
+.hv2 .hv3x-find > * { grid-area: 1 / 1; }
+.hv2 .hv3x-finding { display: none; align-self: center; align-items: center; gap: 9px; margin: 0; padding: 0 12px; font-size: 15px; color: var(--hv-muted); }
+.hv2 .hv3x-spin { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #ddd0f6; border-top-color: var(--hv-purple-strong); }
+.hv2 .hv3x-person { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--hv-lilac-bg); border: 1px solid var(--hv-lilac-2); }
+.hv2 .hv3x-av { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); color: var(--hv-purple-strong); font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+.hv2 .hv3x-person-main { display: grid; min-width: 0; line-height: 1.35; }
+.hv2 .hv3x-person-main b { font-size: 16px; font-weight: 600; color: var(--hv-ink); }
+.hv2 .hv3x-person-main span { font-size: 14px; color: var(--hv-muted); }
+.hv2 .hv3x-found { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.hv2 .hv3x-ok { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 10px; border-radius: 999px; background: var(--hv-green-bg); color: #047857; font-size: 14px; font-weight: 600; }
+
+/* 4. the email (To, Subject, the body) with its Start, then the reply as Replies lists it */
+.hv2 .hv3x-mail-head { display: grid; gap: 3px; padding: 10px 14px; background: var(--hv-lilac-bg); border-bottom: 1px solid var(--hv-hair); }
+.hv2 .hv3x-mail-head p { display: grid; grid-template-columns: 62px minmax(0, 1fr); margin: 0; font-size: 14px; line-height: 1.45; color: var(--hv-ink); overflow-wrap: anywhere; }
+.hv2 .hv3x-mail-head p > span:first-child { color: var(--hv-muted); }
+.hv2 .hv3x-mail-head b { font-weight: 600; }
+.hv2 .hv3x-mail-body { display: grid; padding: 12px 14px; }
+.hv2 .hv3x-mail-body > p { grid-area: 1 / 1; margin: 0; font-size: 15px; line-height: 1.55; color: var(--hv-ink); }
+.hv2 .hv3x-ghost { visibility: hidden; }
+.hv2 .hv3x-mail-foot { display: flex; align-items: center; gap: 10px; padding: 10px 14px 12px; border-top: 1px solid var(--hv-hair); }
+.hv2 .hv3x-from { margin-right: auto; font-size: 14px; color: var(--hv-muted); }
+.hv2 .hv3x-go { flex: none; display: grid; justify-items: end; align-items: center; }
+.hv2 .hv3x-go > * { grid-area: 1 / 1; }
+.hv2 .hv3x-started { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 999px; background: var(--hv-green-bg); color: #047857; font-size: 14px; font-weight: 600; opacity: 0; }
+.hv2 .hv3x-reply { position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px 12px 16px; background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); border-radius: 14px; box-shadow: inset 4px 0 0 var(--hv-purple-strong), var(--hv-hard); }
+.hv2 .hv3x-reply-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.hv2 .hv3x-reply-top { display: flex; align-items: baseline; gap: 10px; }
+.hv2 .hv3x-reply-top b { flex: 1; min-width: 0; font-size: 16px; font-weight: 700; color: var(--hv-ink); }
+.hv2 .hv3x-reply-top span { flex: none; font-size: 14px; font-weight: 600; color: var(--hv-purple-strong); }
+.hv2 .hv3x-reply-role { font-size: 14px; line-height: 1.4; color: var(--hv-muted); }
+.hv2 .hv3x-reply-text { margin-top: 2px; font-size: 15px; line-height: 1.45; color: var(--hv-ink); }
+.hv2 .hv3x-badge { justify-self: start; display: inline-flex; align-items: center; height: 26px; margin-top: 6px; padding: 0 10px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 14px; font-weight: 700; }
+
+/* from a tablet up: a little more room around each example */
+@media (min-width: 768px) {
+  .hv2 .hv3x { padding: 52px 22px 24px; gap: 14px; }
+  .hv2 .hv3x-tag { top: 14px; left: 22px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 1. Stu's voice moves while the call is live; the lines come in turn, then what Stu noted */
+  .hv2 .hv3x-live { animation: hv3x-live 1.8s ease-in-out infinite; }
+  .hv2 .hv3x-wave i { animation: hv-bar 1.1s ease-in-out infinite; }
+  .hv2 .hv3x-wave i:nth-child(2) { animation-delay: -.35s; }
+  .hv2 .hv3x-wave i:nth-child(3) { animation-delay: -.7s; }
+  .hv2 .hv3x-wave i:nth-child(4) { animation-delay: -.2s; }
+  .hv2 .hv3x-wave i:nth-child(5) { animation-delay: -.55s; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-log > * { animation: hv3-bub .5s cubic-bezier(.2, .9, .3, 1.3) both; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-log > .hv3x-you { transform-origin: 100% 100%; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-log > :nth-child(1) { animation-delay: calc(var(--hv3-d, 0ms) + .5s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-log > :nth-child(2) { animation-delay: calc(var(--hv3-d, 0ms) + 1.2s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-log > :nth-child(3) { animation-delay: calc(var(--hv3-d, 0ms) + 2s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-log > :nth-child(4) { animation-delay: calc(var(--hv3-d, 0ms) + 2.7s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-log > :nth-child(5) { animation-delay: calc(var(--hv3-d, 0ms) + 3.5s); }
+  .hv2 .hv3-step.hv3-rv-in :is(.hv3x-chip-a, .hv3x-chip-b) { animation: hv3-pop-in .45s cubic-bezier(.2, .9, .3, 1.6) calc(var(--hv3-d, 0ms) + 1.55s) both; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-chip-a + .hv3x-chip-a { animation-delay: calc(var(--hv3-d, 0ms) + 1.7s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-chip-b { animation-delay: calc(var(--hv3-d, 0ms) + 3.05s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-chip-b + .hv3x-chip-b { animation-delay: calc(var(--hv3-d, 0ms) + 3.2s); }
+
+  /* 2. the matches come in, best first; each ring fills; the top one's reason and buttons follow */
+  .hv2 .hv3-step.hv3-rv-in .hv3x-row { animation: hv3-rise .55s cubic-bezier(.2, .9, .3, 1) both; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-row:nth-child(1) { animation-delay: calc(var(--hv3-d, 0ms) + .3s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-row:nth-child(2) { animation-delay: calc(var(--hv3-d, 0ms) + .55s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-row:nth-child(3) { animation-delay: calc(var(--hv3-d, 0ms) + .75s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-ring-fg { animation: hv3x-fill 1.3s cubic-bezier(.3, .7, .2, 1) calc(var(--hv3-d, 0ms) + .5s) both; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-row:nth-child(2) .hv3x-ring-fg { animation-delay: calc(var(--hv3-d, 0ms) + .8s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-row:nth-child(3) .hv3x-ring-fg { animation-delay: calc(var(--hv3-d, 0ms) + 1s); }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-why { animation: hv3-rise .5s cubic-bezier(.2, .9, .3, 1) calc(var(--hv3-d, 0ms) + 1.5s) both; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-acts { animation: hv3-rise .5s cubic-bezier(.2, .9, .3, 1) calc(var(--hv3-d, 0ms) + 1.8s) both; }
+
+  /* 3. "Finding who's hiring...", then the person, their work email found, and Email them */
+  .hv2.hv3-motion .hv3-step.hv3-rv-in .hv3x-finding { display: flex; animation: hv3x-finding 1.7s ease calc(var(--hv3-d, 0ms) + .3s) both; }
+  .hv2 .hv3x-spin { animation: hv3x-spin .8s linear infinite; }
+  .hv2.hv3-motion .hv3-step.hv3-rv-in .hv3x-person { animation: hv3-rise .55s cubic-bezier(.2, .9, .3, 1) calc(var(--hv3-d, 0ms) + 1.9s) both; }
+  .hv2.hv3-motion .hv3-step.hv3-rv-in .hv3x-av { animation: hv3-pop .7s cubic-bezier(.2, .9, .3, 1.4) calc(var(--hv3-d, 0ms) + 2s) both; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-ok { animation: hv3-pop-in .45s cubic-bezier(.2, .9, .3, 1.6) calc(var(--hv3-d, 0ms) + 2.5s) both; }
+  .hv2 .hv3-step.hv3-rv-in .hv3x-found .hv3x-btn { animation: hv3-rise .5s cubic-bezier(.2, .9, .3, 1) calc(var(--hv3-d, 0ms) + 2.75s) both; }
+
+  /* 4. the email types itself (Motion.tsx), Start is pressed, the email is started, and a reply comes in */
+  .hv2 .hv3-typing::after { content: ""; display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -0.15em; background: var(--hv-purple-strong); animation: hv3-caret .8s steps(1) infinite; }
+  .hv2 .hv3-typed .hv3x-start { animation: hv3x-start 1.5s ease .25s both; }
+  .hv2 .hv3-typed .hv3x-plane { animation: hv3-fly 1.1s cubic-bezier(.5, 0, .4, 1) .6s both; }
+  .hv2 .hv3-typed .hv3x-started { animation: hv3-pop-in .45s cubic-bezier(.2, .9, .3, 1.4) 1.6s both; }
+  .hv2.hv3-motion .hv3x-mail:not(.hv3-typed) .hv3x-reply { opacity: 0; }
+  .hv2 .hv3-typed .hv3x-reply { animation: hv3x-notify .7s cubic-bezier(.2, .9, .3, 1.25) 2.4s both; }
+}
+
+@keyframes hv3x-live { 50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } }
+@keyframes hv3x-fill { from { stroke-dashoffset: var(--p); } to { stroke-dashoffset: 0; } }
+@keyframes hv3x-finding { 0% { opacity: 0; transform: translateY(6px); } 14%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes hv3x-spin { to { rotate: 360deg; } }
+@keyframes hv3x-notify { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes hv3-bub { 0% { opacity: 0; transform: translateY(10px) scale(.92); } 100% { opacity: 1; transform: none; } }
+@keyframes hv3-caret { 50% { opacity: 0; } }
+@keyframes hv3x-start { 0%, 30% { opacity: 1; transform: none; } 14% { transform: translate(2px, 2px); box-shadow: var(--hv-cta-in), 0 0 0 var(--hv-ink-e); } 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: scale(.9); } }
+@keyframes hv3-fly { 0% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translate(150px, -90px) rotate(18deg) scale(.6); } }
