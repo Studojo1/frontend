@@ -21,7 +21,7 @@ const SWIGGY: Company = { name: "Swiggy", domain: "swiggy.com" };
 const GROWW: Company = { name: "Groww", domain: "groww.in" };
 /** The example email. It types itself (Motion.tsx) over a hidden copy that holds its height, so nothing below moves. */
 const BODY =
-  "Hi Ananya, I saw the Business Analyst opening on your team. I built a sales dashboard that cut a weekly report from six hours to two, and I'd love to do that kind of work with you.";
+  "Hi Ananya, I built a sales dashboard that cut a weekly report from six hours to two. I can own your team's weekly reporting from day one. Can I send you my resume?";
 
 const LOGO_CLIENT_ID = (import.meta.env as Record<string, string | undefined>).VITE_CONTEXT_LOGO_CLIENT_ID || "";
 const logoSrc = (domain: string) =>

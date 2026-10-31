@@ -221,3 +221,21 @@ export const LuVolume2Icon = (p: IconProps) => (
     <path d="M19.364 18.364a9 9 0 0 0 0-12.728" />
   </Svg>
 );
+
+/** Instagram, outline (lucide's shape), for the footer's community links. */
+export const Instagram = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </Svg>
+);
+
+/** WhatsApp, outline (a speech bubble with the handset), for the footer's community links. */
+export const WhatsApp = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />
+    <path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1" />
+  </Svg>
+);
+

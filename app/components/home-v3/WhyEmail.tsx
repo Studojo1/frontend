@@ -90,7 +90,7 @@ export function WhyEmail() {
                     </span>
                   </p>
                   <p className="hv3-cmp-msg-body">
-                    Hi Ananya, I saw the Business Analyst opening on your team. I built a sales dashboard that cut a weekly report from six hours to two.
+                    Hi Ananya, I built a sales dashboard that cut a weekly report from six hours to two. I can own your team's weekly reporting from day one.
                   </p>
                 </div>
                 <span className="hv3-cmp-reply">

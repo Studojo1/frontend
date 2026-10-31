@@ -1,5 +1,5 @@
+import { Instagram, WhatsApp } from "./icons";
 import type { ReactNode } from "react";
-import { FaInstagram, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
 import { Link } from "react-router";
 import footCss from "./footer.css?url";
 import { StartLink } from "./start";
@@ -45,9 +45,8 @@ const COLUMNS: { heading: string; links: FootLink[] }[] = [
   {
     heading: "Community",
     links: [
-      { label: "LinkedIn", href: "https://www.linkedin.com/company/studojo/", icon: <FaLinkedin /> },
-      { label: "Instagram", href: "https://instagram.com/studojo", icon: <FaInstagram /> },
-      { label: "WhatsApp", href: WHATSAPP_COMMUNITY, icon: <FaWhatsapp /> },
+      { label: "Instagram", href: "https://instagram.com/studojo", icon: <Instagram /> },
+      { label: "WhatsApp", href: WHATSAPP_COMMUNITY, icon: <WhatsApp /> },
     ],
   },
   {
