@@ -195,21 +195,11 @@
 .hv2 .hv-hero[data-stage="signup"] .hv-kicker { margin-top: 14px; }
 .hv2 .hv-hero[data-stage="signup"] .hv-jcard { justify-self: center; }
 .hv2 #sections { position: relative; z-index: 1; }
-.hv2 .hv-foot { position: relative; z-index: 1; border-top: 1px solid var(--hv-hair); padding: 72px 16px 32px; }
-.hv2 .hv-foot-cta { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.hv2 .hv-foot { position: relative; z-index: 1; border-top: 1px solid var(--hv-hair); padding: 72px 0 0; }
+.hv2 .hv-foot-cta { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 0 16px; text-align: center; }
 .hv2 .hv-foot-cta .hv-stu-art { --hv-s: 104px; margin-bottom: 2px; }
 .hv2 .hv-foot-cta .hv-h-sec { font-size: clamp(30px, 3.2vw, 44px); }
 .hv2 .hv-foot-cta .hv-btn-start { margin-top: 14px; width: 100%; }
-.hv2 .hv-foot-row { max-width: var(--hv-sec-max); margin: 56px auto 0; padding-top: 28px; border-top: 1px solid var(--hv-hair); display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
-.hv2 .hv-foot-row .hv-brand img { height: 26px; }
-.hv2 .hv-foot-row .hv-brand b { font-size: 18px; }
-.hv2 .hv-foot-row .hv-line { font-size: 14.5px; color: var(--hv-muted); }
-.hv2 .hv-foot-links { display: flex; flex-wrap: wrap; gap: 0 18px; font-size: 14.5px; color: var(--hv-muted); }
-.hv2 .hv-foot-links a { display: inline-flex; align-items: center; min-height: 44px; }
-.hv2 .hv-foot-links a:hover { color: var(--hv-ink); }
-.hv2 .hv-legal { max-width: var(--hv-sec-max); margin: 18px auto 0; padding-bottom: 96px; font-size: 13px; color: var(--hv-faint); }
-.hv2 .hv-legal a { color: var(--hv-faint); text-decoration: underline; text-decoration-color: rgba(138, 132, 148, .4); text-underline-offset: 3px; }
-.hv2 .hv-legal a:hover { color: var(--hv-muted); }
 .hv2 .hv-side { position: fixed; right: 24px; bottom: 24px; z-index: 60; display: none; height: 66px; padding: 0 30px 0 74px; font-size: 19px; cursor: pointer; font-family: inherit; box-shadow: var(--hv-cta-shadow); opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; visibility: hidden; overflow: visible; transition: opacity .35s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), box-shadow .18s ease, visibility 0s linear .35s; }
 .hv2 .hv-side.hv-show { opacity: 1; transform: none; pointer-events: auto; visibility: visible; transition: opacity .35s ease, transform .35s cubic-bezier(.2, .9, .3, 1.15), box-shadow .18s ease, visibility 0s; }
 .hv2 .hv-side.hv-show:hover { transform: var(--hv-lift); transition: opacity .35s ease, var(--hv-states), visibility 0s; }
@@ -246,11 +236,9 @@
   .hv2 .hv-micro { font-size: 14px; }
   .hv2 .hv-said { font-size: 34px; line-height: 1.2; max-width: 760px; margin-top: 14px; }
   .hv2 .hv-hero[data-stage="speaking"] .hv-go { margin-top: 30px; }
-  .hv2 .hv-foot { padding: 96px 28px 40px; }
+  .hv2 .hv-foot { padding: 96px 0 0; }
+  .hv2 .hv-foot-cta { padding: 0 28px; }
   .hv2 .hv-foot-cta .hv-btn-start { width: auto; height: 64px; padding: 0 36px; font-size: 20px; }
-  .hv2 .hv-foot-row { margin-top: 80px; flex-direction: row; align-items: center; gap: 24px; flex-wrap: wrap; }
-  .hv2 .hv-foot-links { margin-left: auto; gap: 10px 22px; }
-  .hv2 .hv-legal { margin-top: 22px; padding-bottom: 0; }
   .hv2 .hv-bar-m { display: none; }
   .hv2 .hv-side { display: inline-flex; }
   .hv2 .hv-jcard { padding: 32px; }
@@ -473,11 +461,9 @@
 .hv2 .hv3-q[open] .hv3-plus { transform: rotate(45deg); }
 .hv2 .hv3-q .hv3-p { max-width: 62ch; padding: 0 2px 24px; color: #64616f; }
 
-/* the footer */
+/* the footer's closing start (the full footer under it: footer.css, linked by HomeFooter.tsx) */
 .hv2 .hv3-foot-cta { gap: 14px; }
 .hv2 .hv3-foot-cta .hv3-lead { max-width: 30ch; }
-.hv2 .hv3-foot .hv-foot-row .hv-line, .hv2 .hv3-foot .hv-foot-links { font-size: 15.5px; }
-.hv2 .hv3-foot .hv-legal { font-size: 14px; }
 
 /* the floating agent's second line, readable */
 .hv2 .hv-side .hv-who small { font-size: 13.5px; }

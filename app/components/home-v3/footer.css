@@ -1,0 +1,48 @@
+/* The full footer under the homepage's closing start (HomeFooter.tsx; 1 Nov 2026, the founder: "the bottom section,
+   similar to what studojo.com has, made for the new product"). studojo.com's structure (components/common/footer.tsx)
+   in this page's look: a white band under the page's 1.5px ink edge; the logo, one line about Stu and the contact; five
+   link columns under small mono purple headings; the legal name over a hairline; and the big faded wordmark sinking
+   into the bottom edge. Linked by HomeFooter.tsx only, so nothing else on the site gets it; like home-v3.css, every
+   rule sits under .hv2 and uses its --hv-* tokens. While the cookie notice is open the band grows by its height
+   (--sj-notice-h, app.css), so the legal name is never under it. */
+
+.hv2 .hv3-ft { margin-top: 72px; padding-bottom: var(--sj-notice-h, 0px); overflow: hidden; background: #fff; border-top: var(--hv-bw) solid var(--hv-ink-e); }
+.hv2 .hv3-ft-in { max-width: calc(var(--hv-sec-max) + 32px); margin: 0 auto; padding: 44px 16px 0; }
+.hv2 .hv3-ft-grid { display: grid; gap: 36px; }
+
+/* the brand: the logo, what Stu does, the contact */
+.hv2 .hv3-ft-brand { display: flex; flex-direction: column; align-items: flex-start; }
+.hv2 .hv3-ft-brand .hv-brand { margin-left: -2px; }
+.hv2 .hv3-ft-brand .hv-brand img { height: 34px; }
+.hv2 .hv3-ft-brand .hv-brand b { font-size: 25px; }
+.hv2 .hv3-ft-line { margin: 8px 0 0; max-width: 30ch; font-size: 17px; line-height: 1.5; color: var(--hv3-text); text-wrap: pretty; }
+.hv2 .hv3-ft-contact { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; font-style: normal; font-size: 16px; color: var(--hv-muted); }
+.hv2 .hv3-ft-contact a { display: inline-flex; align-items: center; min-height: 44px; color: var(--hv-ink); text-decoration: underline; text-decoration-color: rgba(23, 23, 23, .25); text-underline-offset: 4px; transition: color var(--hv-ease), text-decoration-color var(--hv-ease); }
+.hv2 .hv3-ft-contact a:hover { color: var(--hv-purple-strong); text-decoration-color: currentColor; }
+
+/* the columns: two across on a phone */
+.hv2 .hv3-ft-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; }
+.hv2 .hv3-ft-h { margin: 0 0 4px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; font-weight: 500; line-height: 1.4; letter-spacing: .04em; color: var(--hv-purple-strong); }
+.hv2 .hv3-ft-col ul { list-style: none; margin: 0; padding: 0; }
+.hv2 .hv3-ft-a { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; font-size: 16px; line-height: 1.3; color: var(--hv3-text); transition: color var(--hv-ease); }
+.hv2 .hv3-ft-a:hover { color: var(--hv-purple-strong); }
+.hv2 .hv3-ft-ic { display: inline-flex; font-size: 18px; }
+.hv2 .hv3-ft-a:focus-visible, .hv2 .hv3-ft-contact a:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 2px; border-radius: 6px; }
+
+/* the legal name, then the wordmark: Satoshi like the logo's, faded to lilac, sitting on the page's end. At line-height
+   .8 its baseline sits .78em down and the j's tail ends at 1.04em, so a box 1.04em tall shows the whole word (cut any
+   higher, the j loses its tail and the word reads "studoio"). */
+.hv2 .hv3-ft-copy { margin: 36px 0 0; padding-top: 20px; border-top: 1px solid var(--hv-hair); font-size: 14.5px; color: var(--hv-muted); }
+.hv2 .hv3-ft-mark { height: 1.04em; margin-top: 24px; overflow: hidden; text-align: center; white-space: nowrap; font-family: Satoshi, system-ui, sans-serif; font-weight: 900; font-size: clamp(104px, 28vw, 380px); line-height: .8; letter-spacing: -0.055em; color: #efe9fb; background: linear-gradient(180deg, #e2d6fa 0%, #f1ebfd 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; user-select: none; pointer-events: none; }
+
+@media (min-width: 641px) {
+  .hv2 .hv3-ft { margin-top: 96px; }
+  .hv2 .hv3-ft-in { max-width: calc(var(--hv-sec-max) + 56px); padding: 64px 28px 0; }
+  .hv2 .hv3-ft-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 32px 40px; }
+  .hv2 .hv3-ft-a { min-height: 0; padding: 6px 0; }
+  .hv2 .hv3-ft-copy { margin-top: 56px; }
+  .hv2 .hv3-ft-mark { margin-top: 40px; }
+}
+@media (min-width: 1024px) {
+  .hv2 .hv3-ft-grid { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 72px; }
+}
