@@ -197,11 +197,19 @@ function InAppBrowserPrompt({ app, onDismiss }: { app: "instagram" | "facebook";
 export default function Auth() {
   // GUEST-LOGIN (31 Oct 2026, the founder): on studojo.pro (staging only) there is no Google sign-in for Stu: a sign-in
   // headed to Stu (/b2cnew) or to nowhere in particular goes straight to career-agent's one tap guest sign-in.
-  useEffect(() => {
-    if (window.location.hostname !== "studojo.pro") return;
+  // The founder: a dummy, one click and you are in. The guest sign-in is career-agent's POST /b2cnew/api/dev-login (it
+  // sets the session cookie), then straight on to where the sign-in was headed (the call, by default).
+  const [guestGo] = useState(() => typeof window !== "undefined" && window.location.hostname === "studojo.pro" && (() => {
     const to = new URLSearchParams(window.location.search).get("redirect") ?? "";
-    if (!to || to.startsWith("/b2cnew")) window.location.replace("/b2cnew/join");
-  }, []);
+    return !to || to.startsWith("/b2cnew");
+  })());
+  useEffect(() => {
+    if (!guestGo) return;
+    const to = new URLSearchParams(window.location.search).get("redirect") || "/b2cnew/start?fresh";
+    fetch("/b2cnew/api/dev-login", { method: "POST", credentials: "include" })
+      .catch(() => undefined)
+      .finally(() => window.location.replace(to.startsWith("/b2cnew") ? to : "/b2cnew/start?fresh"));
+  }, [guestGo]);
   const navigate = useNavigate();
   // SITE-V2 (27 Oct 2026): on B2C hosts (studojo.pro, site-b2c/host.tsx) the page wears the site's calm white-card
   // look, visual only. The page root gets "sv2-auth", the floating shapes are not drawn, Stu's head and a kicker
