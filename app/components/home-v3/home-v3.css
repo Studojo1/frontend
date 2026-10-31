@@ -456,7 +456,9 @@
 .hv2 .hv3-logos { margin-top: 36px; text-align: center; }
 .hv2 .hv3-logos-label { margin: 0 0 14px; font-size: 16px; font-weight: 600; color: var(--hv-ink); }
 .hv2 .hv3-logos ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.hv2 .hv3-logos li { padding: 6px 13px; border-radius: 999px; background: #fff; border: var(--hv-bw) solid var(--hv-line1); font-size: 15px; font-weight: 500; color: var(--hv-ink); }
+.hv2 .hv3-logos li { display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px 5px 6px; border-radius: 999px; background: #fff; border: var(--hv-bw) solid var(--hv-line1); font-size: 15px; font-weight: 500; white-space: nowrap; color: var(--hv-ink); }
+/* each company's logo before its name: a fixed square (nothing moves as it loads), its corners rounded */
+.hv2 .hv3-logos img { flex: none; display: block; width: 22px; height: 22px; border-radius: 6px; object-fit: contain; }
 
 /* questions: a plain list between thin lines, a plus that turns into a cross, the answer in grey, on a plain ground
    (no dots behind the words) (owner 28 Oct, after a reference the owner liked) */
