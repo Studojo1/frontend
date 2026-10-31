@@ -34,7 +34,7 @@ export function azureDeploymentFor(model: string): string {
     return process.env.AZURE_OPENAI_MINI_DEPLOYMENT?.trim() || "gpt-4o-mini";
   }
   if (model === "gpt-4o") {
-    return process.env.AZURE_OPENAI_CHAT_DEPLOYMENT?.trim() || "gpt-4o";
+    return process.env.AZURE_OPENAI_CHAT_DEPLOYMENT?.trim() || "gpt-4o-mini";
   }
   return model;
 }

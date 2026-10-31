@@ -18,9 +18,8 @@ export type { DraftContext };
  * The model calls behind the idea generator, the writer and the kill check.
  *
  * Same provider as the rest of the repo (Azure OpenAI, see
- * app/lib/azure-openai.server.ts). Model defaults to gpt-4o rather than the
- * gpt-4o-mini used for support chat: those answers are three sentences of
- * routing, these are posts that go out under a real person's name.
+ * app/lib/azure-openai.server.ts). Model defaults to gpt-4o-mini, like support
+ * chat (owner rule, 31 Oct 2026: gpt-4o-mini everywhere, never gpt-4o).
  *
  * Almost none of the voice lives in this file. It lives in the playbook rows,
  * which hold the studojo-content skill, and is pasted in whole. That is
@@ -28,7 +27,7 @@ export type { DraftContext };
  * not a pull request.
  */
 
-const MODEL = process.env.CONTENT_MODEL?.trim() || "gpt-4o";
+const MODEL = process.env.CONTENT_MODEL?.trim() || "gpt-4o-mini";
 
 export class ContentLlmError extends Error {}
 

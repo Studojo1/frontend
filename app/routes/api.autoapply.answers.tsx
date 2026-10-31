@@ -26,7 +26,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
   const apiKey = process.env.AZURE_OPENAI_API_KEY;
-  const deployment = process.env.AZURE_OPENAI_CHAT_DEPLOYMENT ?? "gpt-4o";
+  const deployment = process.env.AZURE_OPENAI_CHAT_DEPLOYMENT ?? "gpt-4o-mini";
 
   if (!endpoint || !apiKey) {
     return Response.json({ answer: "" }, { status: 500 });

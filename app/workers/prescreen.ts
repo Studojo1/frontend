@@ -1,11 +1,11 @@
 // AI pre-answering: generate answers to all likely screening questions for a job
-// Uses Azure OpenAI GPT-4o - answers cached in job_queue.prescreened_answers
+// Uses Azure OpenAI gpt-4o-mini, answers cached in job_queue.prescreened_answers
 
 import { stripDashes, stripDashesDeep } from "~/lib/strip-dashes";
 
 const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? "";
 const AZURE_KEY = process.env.AZURE_OPENAI_API_KEY ?? "";
-const DEPLOYMENT = process.env.AZURE_OPENAI_CHAT_DEPLOYMENT ?? "gpt-4o";
+const DEPLOYMENT = process.env.AZURE_OPENAI_CHAT_DEPLOYMENT ?? "gpt-4o-mini";
 
 const COMMON_QUESTIONS = [
   "Are you authorized to work in this country?",

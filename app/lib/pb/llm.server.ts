@@ -8,7 +8,7 @@ import { describeError } from "~/lib/error-detail";
  * direct OpenAI key was retired on 2026-10-12 and is never read. Every call
  * walks a chain of deployments, so a deployment that does not exist, or one
  * out of quota, moves the call to the next one instead of failing the job.
- * The default chain is gpt-5-mini, then gpt-4o. PB_MODEL and PB_WRITER_MODEL
+ * The default chain is gpt-5-mini, then gpt-4o-mini (never gpt-4o: owner rule, 31 Oct 2026). PB_MODEL and PB_WRITER_MODEL
  * put other deployments first (comma separated, "azure:<deployment>" or just
  * "<deployment>"); writing stages (draft, revise, fix) use the writer chain
  * when it is set.
@@ -79,7 +79,7 @@ export type PbChatResult = { text: string; json: unknown; model: string };
 /** Azure API version that takes max_completion_tokens and reasoning_effort (gpt-5 family) and plain gpt-4o alike. */
 const AZURE_API_VERSION = "2025-04-01-preview";
 /** Deployments on the Azure resource, best first for this pipeline. */
-export const PB_AZURE_DEFAULTS = ["gpt-5-mini", "gpt-4o"];
+export const PB_AZURE_DEFAULTS = ["gpt-5-mini", "gpt-4o-mini"];
 
 export type PbProvider = "azure";
 /** One place a call can go: an Azure deployment. */

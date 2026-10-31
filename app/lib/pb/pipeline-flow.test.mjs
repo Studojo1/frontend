@@ -352,7 +352,7 @@ const count = (calls, kind) => calls.filter((c) => c.kind === kind).length;
 
 // --- H. Azure deployments, in order -------------------------------------------
 {
-  process.env.PB_WRITER_MODEL = "azure:gpt-4o";
+  process.env.PB_WRITER_MODEL = "azure:gpt-4o-mini";
   const seen = [];
   const script = ({ kind, post }) => {
     if (kind === "dossier") return DOSSIER;
@@ -382,23 +382,23 @@ const count = (calls, kind) => calls.filter((c) => c.kind === kind).length;
   const dossierCall = seen.find((c) => c.body.messages[0].content.startsWith("You read what a student told us"));
   const draftCall = seen.find((c) => c.body.messages[1].content.includes("## This post"));
   assert.ok(dossierCall.url.includes("/deployments/gpt-5-mini/"), "thinking stages use the main chain (gpt-5-mini first)");
-  assert.ok(draftCall.url.includes("/deployments/gpt-4o/"), "writing stages use PB_WRITER_MODEL");
+  assert.ok(draftCall.url.includes("/deployments/gpt-4o-mini/"), "writing stages use PB_WRITER_MODEL");
   assert.ok("max_completion_tokens" in dossierCall.body && !("temperature" in dossierCall.body), "gpt-5-mini gets reasoning-model parameters");
-  assert.ok("max_tokens" in draftCall.body && "temperature" in draftCall.body, "gpt-4o gets classic parameters");
+  assert.ok("max_tokens" in draftCall.body && "temperature" in draftCall.body, "gpt-4o-mini gets classic parameters");
 
   // The writer's deployment is missing: writing moves to the next deployment and the job finishes.
   seen.length = 0;
-  missing = "gpt-4o";
+  missing = "gpt-4o-mini";
   const after = await generatePbPosts({ ...base });
   assert.strictEqual(after.length, 2, "a missing deployment does not fail the job");
-  assert.ok(seen.some((c) => c.url.includes("/deployments/gpt-4o/")), "the missing deployment was tried");
+  assert.ok(seen.some((c) => c.url.includes("/deployments/gpt-4o-mini/")), "the missing deployment was tried");
   assert.ok(seen.some((c) => c.url.includes("/deployments/gpt-5-mini/") && c.body.messages[1].content.includes("## This post")), "and drafting moved on to gpt-5-mini");
   assert.ok(seen.every((c) => c.url.startsWith(AZURE)), "nothing falls back to OpenAI direct");
   missing = "";
 
   // An openai: override is ignored; Azure deployments stay.
-  process.env.PB_MODEL = "openai:gpt-5.5, azure:gpt-4o";
-  assert.deepStrictEqual(pbModelChain(), ["azure:gpt-4o", "azure:gpt-5-mini"]);
+  process.env.PB_MODEL = "openai:gpt-5.5, azure:gpt-4o-mini";
+  assert.deepStrictEqual(pbModelChain(), ["azure:gpt-4o-mini", "azure:gpt-5-mini"]);
   delete process.env.PB_MODEL;
 
   // Out of quota on every deployment: a clear, permanent error, no other provider.
