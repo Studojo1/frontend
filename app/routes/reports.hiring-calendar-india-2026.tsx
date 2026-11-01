@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 
 export function meta() {
@@ -233,7 +234,7 @@ export default function HiringCalendarReport() {
         <div className="rpt-cta-strip rpt-cta-strip-orange">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Ready to apply to the roles on this calendar?</span>
-            <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-cta-pill rpt-cta-pill-orange">Let Stu find roles →</Link>
+            <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-cta-pill rpt-cta-pill-orange">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -398,7 +399,7 @@ export default function HiringCalendarReport() {
                 <div className="rpt-inline-cta-title">Don't wait for the window - prepare before it opens</div>
                 <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume and cover letter to each role, so your application is ready before each deadline hits.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -717,7 +718,7 @@ export default function HiringCalendarReport() {
                 <div className="rpt-inline-cta-title">Get direct outreach to hiring managers at these companies</div>
                 <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds the hiring manager or recruiter at each company and drafts the email. It goes from your own mailbox, only when you press Send.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu find the right person</Link>
+              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu find the right person</Link>
             </div>
           </div>
 
@@ -1111,8 +1112,8 @@ export default function HiringCalendarReport() {
               Stu, Studojo's job agent, finds the right person to write to at the companies on this calendar and drafts a personal email to each. Emails go from your own mailbox, only when you press Send. Most students wait for job boards. You don't have to.
             </p>
             <div className="rpt-final-cta-btns">
-              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-white">Start with Stu</Link>
-              <Link to="/b2cnew/join?via=report-hiring-calendar-india-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu</Link>
+              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
             </div>
           </div>
 

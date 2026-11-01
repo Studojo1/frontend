@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -482,7 +483,7 @@ export default function Report_GoogleInternshipReport2026() {
               <h3>Do not let one pool decide your season.</h3>
               <p>Stu, Studojo's job agent, finds other roles that fit you and the hiring manager to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-google-internship-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-google-internship-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →
             </Link>
           </div>

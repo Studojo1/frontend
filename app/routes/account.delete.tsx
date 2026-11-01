@@ -151,6 +151,9 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
                   <li>Your Studojo sign-in.</li>
                   <li>Unused credits and plan time are forfeited and can&apos;t be refunded (<a href="/refund-policy" className="underline">Refund Policy</a>). If you think a refund is owed, write to {SUPPORT} before you delete.</li>
                 </ul>
+                <p className="mb-6 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
+                  If you have paid Studojo, we keep the payment records, with no name, email or phone attached, because tax law requires it.
+                </p>
 
                 {error && (
                   <div

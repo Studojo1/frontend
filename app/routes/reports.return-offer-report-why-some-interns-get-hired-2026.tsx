@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -476,7 +477,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build parallel options before week eight"}</h4>
                 <p>{"Stu, Studojo's job agent, finds internships that fit you and the right person to write to at other companies, so one team's headcount cap does not define your pipeline."}</p>
-                <Link to="/b2cnew/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
+                <Link to={productHref("/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
               </div>
             </div>
             <p>{"Fit is subjective but real. Teams optimize for communication style, time-zone overlap, appetite for ambiguity, and willingness to do unglamorous work. A great engineer on a client-facing team might lose to a good engineer who presents calmly to stakeholders."}</p>
@@ -605,7 +606,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               <h3>{"Land the internship that can convert."}</h3>
               <p>{"Stu, Studojo's job agent, finds internships that fit you, best fit first, and drafts the email to the right person at each company. One team's headcount cap is not your only option."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}
             </Link>
           </div>

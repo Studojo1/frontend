@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 export function meta() {
   return [
@@ -195,7 +196,7 @@ export default function JobSearchReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Stop scrolling boards. Stu finds the roles that fit you, best fit first.</span>
-            <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
+            <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
           </div>
         </div>
 
@@ -291,7 +292,7 @@ export default function JobSearchReport() {
                 <div className="rpt-inline-cta-title">Find internships that are actually worth applying to</div>
                 <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds internships that fit you from company career sites and job boards, best fit first. No spray and pray.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
+              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
             </div>
           </div>
 
@@ -406,7 +407,7 @@ export default function JobSearchReport() {
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that opens cold outreach doors</div>
                 <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>A clean, ATS-optimised resume is the attachment that makes cold emails credible. Stu, Studojo's job agent, tailors yours to each job.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
+              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
             </div>
           </div>
 
@@ -653,8 +654,8 @@ export default function JobSearchReport() {
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Stop spraying and praying. Stu, Studojo's job agent, finds the internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-white">Start with Stu →</Link>
-              <Link to="/b2cnew/join?via=report-job-search-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
+              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu →</Link>
+              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

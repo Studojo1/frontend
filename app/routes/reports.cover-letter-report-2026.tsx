@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -600,7 +601,7 @@ export default function CoverLetterReport() {
               <h3>Get the resume right first.</h3>
               <p>The letter is a bonus. The resume does the heavy lifting. Stu, Studojo's job agent, tailors your resume and cover letter to each job.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-cover-letter-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-cover-letter-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu tailor your resume →
             </Link>
           </div>

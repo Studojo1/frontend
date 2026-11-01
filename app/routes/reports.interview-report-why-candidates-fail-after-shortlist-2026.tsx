@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -434,7 +435,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               <div className="rpt-cta-mid-inner">
                 <h4>{"Sharpen the stories they will ask about"}</h4>
                 <p>{"Stu, Studojo's job agent, tailors your resume to each job and runs mock interviews with you, so your stories hold up in manager rounds."}</p>
-                <Link to="/b2cnew/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
+                <Link to={productHref("/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
               </div>
             </div>
             <p>{"After each interview, send a short thank-you within twenty-four hours with one specific reference to the conversation. Not a novel. One paragraph. It rarely saves a bad interview, but it helps close ties."}</p>
@@ -543,7 +544,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               <h3>{"Turn shortlists into offers with proof that survives follow-ups."}</h3>
               <p>{"Stu, Studojo's job agent, gets you ready for each interview with a brief on the company and mock interviews, and tailors your resume to the job."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}
             </Link>
           </div>

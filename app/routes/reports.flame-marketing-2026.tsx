@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 
 export function meta() {
@@ -227,7 +228,7 @@ export default function FlameMarketingReport() {
         <div className="rpt-cta-strip rpt-cta-strip-purple">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Flame student looking for marketing internships?</span>
-            <Link to="/b2cnew/join?via=report-flame-marketing-2026&how=voice" reloadDocument className="rpt-cta-pill rpt-cta-pill-purple">Let Stu find roles →</Link>
+            <Link to={productHref("/join?via=report-flame-marketing-2026&how=voice")} reloadDocument className="rpt-cta-pill rpt-cta-pill-purple">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -430,8 +431,8 @@ export default function FlameMarketingReport() {
             <h2 className="rpt-cta-h">Find marketing internships worth applying to</h2>
             <p className="rpt-cta-sub">Stu, Studojo's job agent, finds brand, GTM, content, and performance roles that fit you, best fit first. Then it tailors your resume to each one.</p>
             <div className="rpt-cta-btns">
-              <Link to="/b2cnew/join?via=report-flame-marketing-2026&how=voice" reloadDocument className="rpt-btn rpt-btn-purple">Let Stu find roles</Link>
-              <Link to="/b2cnew/join?via=report-flame-marketing-2026&how=voice" reloadDocument className="rpt-btn rpt-btn-out-purple">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-flame-marketing-2026&how=voice")} reloadDocument className="rpt-btn rpt-btn-purple">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-flame-marketing-2026&how=voice")} reloadDocument className="rpt-btn rpt-btn-out-purple">Let Stu tailor your resume</Link>
             </div>
           </div>
 

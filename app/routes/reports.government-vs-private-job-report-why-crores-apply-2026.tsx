@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -371,7 +372,7 @@ export default function Report_GovernmentVsPrivateJobReportWhyCroresApply2026() 
               <h3>{"Keep your fallback ready while you prepare"}</h3>
               <p>{"Tell Stu, Studojo's job agent, what fits around your exam preparation, and it finds the internships that fit you, best fit first."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-government-vs-private-job-report-why-crores-apply-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-government-vs-private-job-report-why-crores-apply-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find roles →"}
             </Link>
           </div>

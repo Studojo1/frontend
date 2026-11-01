@@ -54,10 +54,38 @@ export const ident = (name: string): string => `"${name.replace(/"/g, '""')}"`;
 /** A table in the schema, quoted for SQL. */
 export const qualified = (schema: string, table: string): string => `${ident(schema)}.${ident(table)}`;
 
-/** Which tables hold the person's rows, and the order to delete them in, from the catalog. Pure. */
-export function planUserData(cat: Catalog): Plan {
+/**
+ * Payment records stay (the owner, 2 Nov 2026: tax law asks for about 6 years): a table with a user_id whose name says
+ * payment, refund, invoice or receipt (payment_orders, payment_refunds, ...) or a credit order (career_credit_orders).
+ * Pure.
+ */
+export function isPaymentTable(name: string): boolean {
+  return /(^|_)(payments?|refunds?|invoices?|receipts?)(_|$)/.test(name) || /(^|_)credit_orders$/.test(name);
+}
+
+/** What a user row becomes when the account had payments: no name, no address that reaches them, no phone. Pure. */
+export function anonymisedEmail(userId: string): string {
+  return `deleted-${userId}@deleted.studojo.com`;
+}
+
+/** The "user" columns cleared, with the value each gets (only those the table has are set). */
+export const ANONYMISE: Readonly<Record<string, string>> = Object.freeze({
+  email: "$email",
+  name: "''",
+  image: "NULL",
+  phone_number: "NULL",
+  phone_number_verified: "false",
+  email_verified: "false",
+  two_factor_enabled: "false",
+  last_login_method: "NULL",
+  updated_at: "now()",
+});
+
+/** Which tables hold the person's rows, and the order to delete them in, from the catalog. `keep`: tables never
+ * touched (payment records). Pure. */
+export function planUserData(cat: Catalog, keep: ReadonlySet<string> = new Set()): Plan {
   if (!cat.schema) return { steps: [], problems: [] };
-  const own = cat.userTables.filter((t) => t.startsWith("career_"));
+  const own = cat.userTables.filter((t) => t.startsWith("career_") && !keep.has(t));
   const ownSet = new Set(own);
   const problems: string[] = [];
   const childMap = new Map<string, ChildPlan>();
@@ -72,6 +100,11 @@ export function planUserData(cat: Catalog): Plan {
     childMap.set(fk.child, c);
   }
   const inSet = (t: string) => ownSet.has(t) || childMap.has(t);
+  // A kept table pointing at rows that go: the database decides (cascade would take a kept row, which the delete
+  // checks for and refuses).
+  for (const fk of cat.fks) {
+    if (keep.has(fk.child) && inSet(fk.parentName)) problems.push(`${fk.child} (kept) points at ${fk.parentName}`);
+  }
   const nodes = [...own, ...childMap.keys()].sort();
   const points = new Map<string, Set<string>>(nodes.map((t) => [t, new Set<string>()]));
   for (const fk of cat.fks) {
@@ -106,8 +139,9 @@ export function stepWhere(schema: string, st: Step, alias: string, param = "$1")
     .join(" OR ");
 }
 
-/** The auth rows deleted with the account, in this order, then the user row itself. */
-export const AUTH_TABLES: readonly string[] = Object.freeze(["session", "account", "user_profile"]);
+/** The auth rows deleted with the account, in this order, then the user row itself (or, with payments, its
+ * anonymised copy). Each only when the table exists. */
+export const AUTH_TABLES: readonly string[] = Object.freeze(["session", "account", "user_profile", "two_factor", "passkey"]);
 
 /** Columns of the product's tables that never leave in an export, on top of app/lib/account-export.ts isSecretKey:
  * a channel link code (career_channel_codes.code) works as a short-lived password. */

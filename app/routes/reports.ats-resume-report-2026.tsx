@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -608,7 +609,7 @@ export default function ATSResumeReport() {
               <h3>Build a resume that parses cleanly.</h3>
               <p>Stu, Studojo's job agent, finds roles that fit you and tailors your resume to each one, so the words match the job you are going for.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-ats-resume-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-ats-resume-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu tailor your resume →
             </Link>
           </div>

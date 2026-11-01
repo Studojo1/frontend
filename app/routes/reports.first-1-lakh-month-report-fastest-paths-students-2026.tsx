@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -502,7 +503,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build proof that wins international clients"}</h4>
                 <p>{"Stu, Studojo's job agent, tailors your resume and cover letter to each job, so it reads credibly to the people hiring, not just campus placement cells."}</p>
-                <Link to="/b2cnew/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
+                <Link to={productHref("/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
               </div>
             </div>
 
@@ -652,7 +653,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               <h3>{"Find roles that pay what the path promises"}</h3>
               <p>{"Stu, Studojo's job agent, finds jobs and internships that fit you on company career sites and job boards, best fit first, so you pick a lane with data, not guesswork."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find roles →"}
             </Link>
           </div>

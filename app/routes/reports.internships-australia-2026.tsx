@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 export function meta() {
   return [
@@ -226,7 +227,7 @@ export default function AustraliaInternshipsReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for paid internships in Australia and the Asia-Pacific?</span>
-            <Link to="/b2cnew/join?via=report-internships-australia-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
+            <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -338,7 +339,7 @@ export default function AustraliaInternshipsReport() {
                 <div className="rpt-inline-cta-title">Find paid internships across Australia and Asia-Pacific</div>
                 <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds paid internships that fit you on company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-internships-australia-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -471,7 +472,7 @@ export default function AustraliaInternshipsReport() {
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that Australian ATS systems accept</div>
                 <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Australian employers use ATS filters that are strict about format. Stu, Studojo's job agent, tailors your resume and cover letter to each role you apply to.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-internships-australia-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -657,8 +658,8 @@ export default function AustraliaInternshipsReport() {
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds paid internships that fit you. Then it tailors your resume and cover letter to each one.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/b2cnew/join?via=report-internships-australia-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to="/b2cnew/join?via=report-internships-australia-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

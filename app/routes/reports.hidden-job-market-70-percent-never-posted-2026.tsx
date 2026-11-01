@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -480,7 +481,7 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
               <h3>Find roles worth showing proof for.</h3>
               <p>Stu, Studojo's job agent, finds jobs and internships that fit you and the right person to write to at each company, so you can aim your emails and applications at real needs, not ghost listings alone.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-hidden-job-market-70-percent-never-posted-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-hidden-job-market-70-percent-never-posted-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →
             </Link>
           </div>

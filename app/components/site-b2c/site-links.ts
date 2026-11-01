@@ -1,3 +1,5 @@
+import { productHref } from "../../lib/product-origin";
+
 // SITE-V2 (27 Oct 2026): the look of every studojo.pro page but the homepage (blog, reports, legal, contact, about,
 // /auth, password pages, 404), from the owner's pick, the h1 prototype: soft off-white page with a faint dot grid,
 // white cards, lowercase headings, small mono purple kickers, the purple pill "start the call".
@@ -8,8 +10,10 @@
 
 /** Where "how it works" goes: the homepage's first story section (h1.html, #what). */
 export const HOW_IT_WORKS = "/#what";
-export const STU_HOME = "/b2cnew";
-export const STU_JOIN = "/b2cnew/join";
+// RELAUNCH (2 Nov 2026): on the product's own host (PRODUCT_ORIGIN, app/lib/product-origin.ts), or under /b2cnew
+// on this host without one.
+export const STU_HOME = productHref("/");
+export const STU_JOIN = productHref("/join");
 export const BLOG = "/blog";
 export const REPORTS = "/reports";
 export const TERMS = "/terms";

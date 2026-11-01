@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -359,7 +360,7 @@ export default function Report_ProductManagementInternshipsIndia2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Turn bands into conversations</h4>
                 <p>Know your target stipend band? Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts the email, so you can ask for real numbers for your cohort, not forum screenshots.</p>
-                <Link to="/b2cnew/join?via=report-product-management-internships-india-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-product-management-internships-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -430,7 +431,7 @@ export default function Report_ProductManagementInternshipsIndia2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
                 <p>Stu, Studojo's job agent, finds the hiring manager to write to and drafts a short email you send from your own mailbox.</p>
-                <Link to="/b2cnew/join?via=report-product-management-internships-india-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-product-management-internships-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -538,7 +539,7 @@ export default function Report_ProductManagementInternshipsIndia2026() {
               <h3>Reach product hiring managers in India, directly.</h3>
               <p>Stu, Studojo's job agent, finds the PM intern and APM roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-product-management-internships-india-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-product-management-internships-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →
             </Link>
           </div>

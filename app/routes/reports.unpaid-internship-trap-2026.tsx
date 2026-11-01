@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -466,7 +467,7 @@ export default function Report_UnpaidInternshipTrap2026() {
               <h3>Choose internships that build real proof.</h3>
               <p>Stu, Studojo's job agent, finds internships that fit you, best fit first, and tailors your resume to each one, so your effort goes into work you can show.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-unpaid-internship-trap-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-unpaid-internship-trap-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →
             </Link>
           </div>

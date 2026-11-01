@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { PRODUCT_LEGACY_BASE } from "~/lib/product-origin";
 import { Link, useLocation, useNavigate } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { clearTokenCache } from "~/lib/control-plane";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import { authUrl } from "~/lib/return-to";
-import { BLOG, HOW_IT_WORKS, REPORTS, SETTINGS, STU_HOME } from "./site-links";
+import { BLOG, HOW_IT_WORKS, REPORTS, SETTINGS } from "./site-links";
 import { Brand, MenuIcon, StartPill, useSignedInSite } from "./ui";
 
 // SITE-V2 header (h1.html): on every studojo.pro page but the homepage (components/common/header.tsx picks it on B2C
@@ -22,7 +23,8 @@ export function SiteHeader() {
   const { data: session } = authClient.useSession();
   // The sign-in and password pages carry their own way to sign in, so the header leaves its "sign in" out there.
   const onAuthPage = pathname === "/auth" || pathname.startsWith("/auth/") || pathname === "/forgot-password" || pathname === "/reset-password";
-  const signIn = authUrl("signin", STU_HOME);
+  // The return is a path on this host (sign-in only follows same-origin returns); /b2cnew then answers 301 to the product.
+  const signIn = authUrl("signin", PRODUCT_LEGACY_BASE);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [acctOpen, setAcctOpen] = useState(false);

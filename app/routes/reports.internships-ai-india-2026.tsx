@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 
 export function meta() {
@@ -207,7 +208,7 @@ export default function InternshipsAIIndiaReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for internships that are actually worth your time?</span>
-            <Link to="/b2cnew/join?via=report-internships-ai-india-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
+            <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -249,7 +250,7 @@ export default function InternshipsAIIndiaReport() {
                 <div className="rpt-inline-cta-title">Find internship roles that are still hiring humans</div>
                 <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-internships-ai-india-2026&how=voice" reloadDocument className="rpt-btn-primary" style={{ background: "#f59e0b", color: "#171717" }}>Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-primary" style={{ background: "#f59e0b", color: "#171717" }}>Let Stu find roles</Link>
             </div>
           </div>
 
@@ -314,7 +315,7 @@ export default function InternshipsAIIndiaReport() {
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets past AI screening</div>
                 <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume and cover letter to each role you apply to.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-internships-ai-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -573,7 +574,7 @@ export default function InternshipsAIIndiaReport() {
               Stu, Studojo's job agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.
             </div>
             <div className="rpt-final-cta-btns">
-              <Link to="/b2cnew/join?via=report-internships-ai-india-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
               <Link to="/reports" className="rpt-btn-outline" style={{ borderColor: "rgba(23,23,23,0.3)", color: "#171717" }}>Read More Reports</Link>
             </div>
           </div>

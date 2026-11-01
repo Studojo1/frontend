@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -673,7 +674,7 @@ export default function HowToGetAJobReport() {
               <h3>Skip the queue. Email the person who hires.</h3>
               <p>Studojo finds the hiring manager, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-how-to-get-a-job-2026&how=voice" reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
+            <Link to={productHref("/join?via=report-how-to-get-a-job-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
           </div>
         </div>
       </main>

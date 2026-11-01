@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 
 export function meta() {
@@ -215,7 +216,7 @@ export default function ChristUniversityFinanceReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for finance internships in Bangalore?</span>
-            <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
+            <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -255,7 +256,7 @@ export default function ChristUniversityFinanceReport() {
                 <div className="rpt-inline-cta-title">Find finance internships in Bangalore before placement season</div>
                 <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds finance roles that fit you from company career sites and job boards, best fit first.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -391,7 +392,7 @@ export default function ChristUniversityFinanceReport() {
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into a fintech finance role</div>
                 <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume and cover letter to each finance role you go for.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -455,7 +456,7 @@ export default function ChristUniversityFinanceReport() {
                   <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume to each finance role, so the words match the job.</div>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
+                  <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
                   <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
                 </div>
               </div>
@@ -507,7 +508,7 @@ export default function ChristUniversityFinanceReport() {
                   <div className="rpt-inline-cta-title">Find your first Bangalore finance internship</div>
                   <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds finance internships that fit you, best fit first.</div>
                 </div>
-                <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
+                <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
               </div>
             </div>
             <p className="rpt-source">Source: 200 Christ graduate hiring decisions tracked, recruiter interviews, April 2026</p>
@@ -588,7 +589,7 @@ export default function ChristUniversityFinanceReport() {
                   <div className="rpt-inline-cta-title">Reach Zerodha, Groww, and GCC hiring managers directly</div>
                   <div className="rpt-inline-cta-sub">Stu finds the hiring manager or recruiter to write to and drafts the email you send from your own mailbox.</div>
                 </div>
-                <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find the right person</Link>
+                <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find the right person</Link>
               </div>
             </div>
             <p className="rpt-source">Source: LinkedIn hiring data, company career pages, Studojo outreach conversion data, April 2026</p>
@@ -622,8 +623,8 @@ export default function ChristUniversityFinanceReport() {
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">The gap between a 5 LPA campus placement and a 10 LPA fintech role is not talent. It is preparation, timing, and knowing where to apply. Stu, Studojo's job agent, finds roles that fit you, tailors your resume to each one and gets you ready for interviews.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to="/b2cnew/join?via=report-christ-university-finance-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

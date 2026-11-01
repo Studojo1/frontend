@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -376,7 +377,7 @@ export default function Report_GapYearReportHowRecruitersViewCareerBreaks2026() 
               <h3>{"Turn your gap into experience"}</h3>
               <p>{"Stu, Studojo's job agent, finds the internships that fit you, best fit first, so you can build proof while you prepare, or restart quickly when you are ready."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-gap-year-report-how-recruiters-view-career-breaks-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-gap-year-report-how-recruiters-view-career-breaks-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find roles →"}
             </Link>
           </div>

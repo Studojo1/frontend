@@ -2,7 +2,7 @@
 // (app/lib/career-data.ts), the routes that use it, and, against a throwaway local database only, the real thing.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { AUTH_TABLES, CAREER_SCHEMA, CAREER_SECRET_COLUMNS, ident, planUserData, qualified, stepWhere } from "./career-data.ts";
+import { ANONYMISE, AUTH_TABLES, CAREER_SCHEMA, CAREER_SECRET_COLUMNS, anonymisedEmail, ident, isPaymentTable, planUserData, qualified, stepWhere } from "./career-data.ts";
 import { stripSecrets } from "./account-export.ts";
 
 const APP = new URL("../", import.meta.url).pathname;
@@ -61,6 +61,27 @@ const cyc = planUserData({
 assert.equal(cyc.steps.length, 2);
 assert.ok(cyc.problems.some((p) => p.startsWith("a cycle of keys")));
 
+// Payment records are kept (tax law): which tables count, and the plan leaves them alone.
+for (const t of ["payment_orders", "payment_refunds", "payments", "invoices", "career_invoices", "razorpay_payments", "career_credit_orders", "credit_orders", "payment_receipts"]) {
+  assert.ok(isPaymentTable(t), t);
+}
+for (const t of ["career_outreach_credits", "outreach_orders", "user_credits", "career_profiles", "prepayment_notes", "career_jobs"]) {
+  assert.ok(!isPaymentTable(t), t);
+}
+const kept = planUserData({ ...cat, userTables: [...cat.userTables] }, new Set(["career_credit_orders"]));
+assert.ok(!kept.steps.some((s) => s.table === "career_credit_orders"), "a kept table is never in the plan");
+assert.ok(kept.steps.some((s) => s.table === "career_threads"));
+const keptPoints = planUserData(
+  { schema: "s", userTables: ["career_credit_orders", "career_campaigns"], fks: [{ child: "career_credit_orders", childCol: "campaign_id", parentName: "career_campaigns", parentCol: "id" }] },
+  new Set(["career_credit_orders"]),
+);
+assert.deepEqual(keptPoints.problems, ["career_credit_orders (kept) points at career_campaigns"]);
+assert.equal(anonymisedEmail("u_1"), "deleted-u_1@deleted.studojo.com");
+assert.deepEqual(Object.keys(ANONYMISE).sort(), ["email", "email_verified", "image", "last_login_method", "name", "phone_number", "phone_number_verified", "two_factor_enabled", "updated_at"]);
+assert.equal(ANONYMISE.name, "''");
+assert.equal(ANONYMISE.image, "NULL");
+assert.equal(ANONYMISE.phone_number, "NULL");
+
 // The export drops every secret column of the product's tables, at any depth (a start over's saved copy holds rows).
 assert.deepEqual(
   stripSecrets(
@@ -72,12 +93,13 @@ assert.deepEqual(
 
 // ── 2. The code that runs it: one transaction, the product's rows, then the auth rows, then the user. No old table.
 const server = readFileSync(APP + "lib/career-data.server.ts", "utf8");
-assert.deepEqual([...AUTH_TABLES], ["session", "account", "user_profile"]);
+assert.deepEqual([...AUTH_TABLES], ["session", "account", "user_profile", "two_factor", "passkey"]);
 const del = server.slice(server.indexOf("export async function deleteAccount"), server.indexOf("export async function exportCareerData"));
-for (const want of ['c.query("BEGIN")', "planUserData(cat)", "for (const t of AUTH_TABLES)", 'DELETE FROM "user" WHERE id = $1', 'c.query("COMMIT")', 'c.query("ROLLBACK")', '"23503"']) {
+for (const want of ['c.query("BEGIN")', "readPaymentTables(c)", "planUserData(cat, keep)", "for (const t of AUTH_TABLES)", 'UPDATE "user" SET', 'DELETE FROM "user" WHERE id = $1', "if (after !== paymentRows)", 'c.query("COMMIT")', 'c.query("ROLLBACK")', '"23503"']) {
   assert.ok(del.includes(want), `deleteAccount: ${want}`);
 }
-assert.ok(del.indexOf("planUserData(cat)") < del.indexOf("for (const t of AUTH_TABLES)") && del.indexOf("for (const t of AUTH_TABLES)") < del.indexOf('DELETE FROM "user"'), "product rows, then auth rows, then the user");
+assert.ok(del.indexOf("planUserData(cat, keep)") < del.indexOf("for (const t of AUTH_TABLES)") && del.indexOf("for (const t of AUTH_TABLES)") < del.indexOf('DELETE FROM "user"'), "product rows, then auth rows, then the user");
+assert.ok(del.indexOf("if (after !== paymentRows)") < del.indexOf('c.query("COMMIT")'), "the payment rows are checked before the commit");
 const OLD_TABLES = /\b(resumes|resume_versions|resume_drafts|internship_applications|internships|autoapply_\w+|job_queue|outreach_\w+|extension_drafts|webinar_\w+|campus_ambassador_\w+|consultation_signups|career_applications|newsletter_subscriptions|email_preferences|candidates|leads|campaigns|emails_sent)\b/;
 assert.doesNotMatch(server.replace(/^\s*\/\/.*$/gm, ""), OLD_TABLES, "never names an old product's table");
 assert.match(server, /BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY/, "the export reads one snapshot and writes nothing");
@@ -116,6 +138,7 @@ if (!local) {
   } else {
     const { deleteAccount, exportCareerData } = await import("./career-data.server.ts");
     const ids = ["cd_test_a", "cd_test_b"];
+    let createdPaymentOrders = false;
     try {
       await pool.query(`
         CREATE SCHEMA career_agent;
@@ -163,6 +186,38 @@ if (!local) {
       assert.equal(await count(`SELECT count(*) AS n FROM "user" WHERE id = $1`, ["cd_test_b"]), 1);
       assert.equal(await count("SELECT count(*) AS n FROM career_agent.career_jobs", []), 1);
 
+      // A student who paid: every product row goes but the credit orders, the payment orders stay, sessions, sign-in
+      // methods and profile go, and the user row stays anonymised (the payment records point at it).
+      await pool.query(`CREATE TABLE IF NOT EXISTS career_agent.career_credit_orders (id BIGSERIAL PRIMARY KEY, user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE, amount_paise INT)`);
+      createdPaymentOrders = !(await pool.query(`SELECT to_regclass('public.payment_orders') IS NOT NULL AS ok`)).rows[0].ok;
+      if (createdPaymentOrders) {
+        await pool.query(`CREATE TABLE public.payment_orders (id SERIAL PRIMARY KEY, user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE, amount_cents INT, status TEXT)`);
+      }
+      const c = "cd_test_c";
+      ids.push(c);
+      await pool.query(`INSERT INTO "user" (id, name, email, email_verified, image, phone_number, created_at, updated_at) VALUES ($1, 'Paid T', $2, true, 'https://img', '+910000000000', now(), now())`, [c, `${c}@example.com`]);
+      await pool.query(`INSERT INTO session (id, token, user_id, expires_at, created_at, updated_at) VALUES ($1, $2, $3, now() + interval '1 day', now(), now())`, [`s_${c}`, `tok_${c}`, c]);
+      await pool.query(`INSERT INTO account (id, account_id, provider_id, user_id, password, created_at, updated_at) VALUES ($1, $2, 'credential', $2, 'hash', now(), now())`, [`a_${c}`, c]);
+      await pool.query(`INSERT INTO user_profile (id, user_id, full_name, college, year_of_study, course) VALUES ($1, $2, 'T', 'C', '1', 'X')`, [`p_${c}`, c]);
+      await pool.query("INSERT INTO career_agent.career_threads (user_id) VALUES ($1)", [c]);
+      await pool.query("INSERT INTO career_agent.career_credit_orders (user_id, amount_paise) VALUES ($1, 49900)", [c]);
+      await pool.query("INSERT INTO public.payment_orders (user_id, amount_cents, status) VALUES ($1, 2000, 'paid')", [c]);
+      const paid = await deleteAccount(c);
+      assert.equal(paid.anonymised, true);
+      assert.equal(paid.paymentRowsKept, 2);
+      assert.equal(paid.auth.user_anonymised, 1);
+      assert.equal(paid.auth.user, undefined, "the user row is not deleted");
+      const urow = (await pool.query(`SELECT name, email, image, phone_number, email_verified FROM "user" WHERE id = $1`, [c])).rows[0];
+      assert.deepEqual(urow, { name: "", email: "deleted-cd_test_c@deleted.studojo.com", image: null, phone_number: null, email_verified: false });
+      for (const [t, col] of [["session", "user_id"], ["account", "user_id"], ["user_profile", "user_id"]]) {
+        assert.equal(await count(`SELECT count(*) AS n FROM ${t} WHERE ${col} = $1`, [c]), 0, `${t} of the paying student`);
+      }
+      assert.equal(await count("SELECT count(*) AS n FROM career_agent.career_threads WHERE user_id = $1", [c]), 0, "product rows go");
+      assert.equal(await count("SELECT count(*) AS n FROM career_agent.career_credit_orders WHERE user_id = $1", [c]), 1, "credit orders stay");
+      assert.equal(await count("SELECT count(*) AS n FROM public.payment_orders WHERE user_id = $1", [c]), 1, "payment orders stay");
+      // The non-paying path above deleted the user row outright: a's row is gone, not anonymised.
+      assert.equal(await count(`SELECT count(*) AS n FROM "user" WHERE email LIKE 'deleted-%'`, []), 1, "only the paying student is anonymised");
+
       // A table outside the plan that keeps the user (a RESTRICT key, like some old product tables): the delete stops
       // and rolls back whole, so b keeps every row.
       await pool.query(`CREATE TABLE public.cd_test_hold (user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE RESTRICT)`);
@@ -178,9 +233,10 @@ if (!local) {
       assert.equal(await count(`SELECT count(*) AS n FROM "user" WHERE id = $1`, ["cd_test_b"]), 1, "rolled back: the user stays");
       assert.equal(await count("SELECT count(*) AS n FROM career_agent.career_threads WHERE user_id = $1", ["cd_test_b"]), 1, "rolled back: the rows stay");
       assert.equal(await count("SELECT count(*) AS n FROM session WHERE user_id = $1", ["cd_test_b"]), 1, "rolled back: the session stays");
-      console.log("  ok  real database: export and delete, one account only; a blocked delete changes nothing");
+      console.log("  ok  real database: export and delete, one account only; a paying student is anonymised, payments kept; a blocked delete changes nothing");
     } finally {
       await pool.query("DROP TABLE IF EXISTS public.cd_test_hold");
+      if (createdPaymentOrders) await pool.query("DROP TABLE IF EXISTS public.payment_orders");
       await pool.query("DROP SCHEMA IF EXISTS career_agent CASCADE");
       for (const id of ids) {
         await pool.query("DELETE FROM session WHERE user_id = $1", [id]);

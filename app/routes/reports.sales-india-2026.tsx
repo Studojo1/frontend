@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 
 export function meta() {
@@ -260,7 +261,7 @@ export default function SalesIndiaReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for sales roles in India?</span>
-            <Link to="/b2cnew/join?via=report-sales-india-2026&how=voice" reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
+            <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
           </div>
         </div>
 
@@ -334,7 +335,7 @@ export default function SalesIndiaReport() {
                 <div className="rpt-inline-cta-title">Build the resume that gets you into a sales role</div>
                 <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume and cover letter to each sales role you go for.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-sales-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
           </div>
 
@@ -465,7 +466,7 @@ export default function SalesIndiaReport() {
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Find SDR, BDA, and FMCG sales internships</div>
                 <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Build your track record before you apply full-time. Stu finds the roles that fit you, best fit first.</div>
               </div>
-              <Link to="/b2cnew/join?via=report-sales-india-2026&how=voice" reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
           </div>
 
@@ -653,8 +654,8 @@ export default function SalesIndiaReport() {
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds SDR, BDA, FMCG sales, and inside sales roles that fit you. It tailors your resume to each one, so it shows real skills, not just a degree.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/b2cnew/join?via=report-sales-india-2026&how=voice" reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to="/b2cnew/join?via=report-sales-india-2026&how=voice" reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
+              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
+              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

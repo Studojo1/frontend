@@ -18,6 +18,7 @@ export default [
       "**/reports.*.tsx",
       "**/legacy-redirects.tsx",
       "**/retired.tsx",
+      "**/b2cnew.tsx",
     ],
   })),
 
@@ -30,6 +31,10 @@ export default [
   // The list is app/lib/retired-routes.ts; the module answers 301 to "/" with
   // no query string for every method. One module, one id per path.
   ...retiredRoutes().map((r) => route(r.path, "routes/retired.tsx", { id: r.id })),
+
+  // ── /b2cnew and /b2cnew/*: 301 to the product's own host (PRODUCT_ORIGIN) ──
+  route("b2cnew", "routes/b2cnew.tsx", { id: "product-handoff" }),
+  route("b2cnew/*", "routes/b2cnew.tsx", { id: "product-handoff-all" }),
 
   // ── Permanent redirects (app/routes/legacy-redirects.tsx) ──────────────
   // Typed URLs, /support from old emails, and reports merged into their

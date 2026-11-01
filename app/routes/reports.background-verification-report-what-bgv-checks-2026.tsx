@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -421,7 +422,7 @@ export default function Report_BackgroundVerificationReportWhatBgvChecks2026() {
               <h3>{"Build a resume that survives verification"}</h3>
               <p>{"Stu, Studojo's job agent, tailors your resume to each job. Keep every line accurate, so the story you tell is the one BGV confirms."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-background-verification-report-what-bgv-checks-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-background-verification-report-what-bgv-checks-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu tailor your resume →"}
             </Link>
           </div>

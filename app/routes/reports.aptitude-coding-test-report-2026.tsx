@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -605,7 +606,7 @@ export default function AptitudeCodingTestReport() {
               <h3>Clear the test, then reach a human.</h3>
               <p>A good score gets you in the room. Stu, Studojo's job agent, finds the hiring manager to write to and drafts the email, so you are not relying on the portal alone.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-aptitude-coding-test-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-aptitude-coding-test-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →
             </Link>
           </div>

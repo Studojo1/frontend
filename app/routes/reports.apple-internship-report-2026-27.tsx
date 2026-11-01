@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -476,7 +477,7 @@ export default function Report_AppleInternshipReport202627() {
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach the team, not just the portal"}</h4>
                 <p>{"Stu, Studojo's job agent, finds the right person to write to on the team you want, the hiring manager or recruiter, and drafts the email. You add a short proof link instead of a generic ask."}</p>
-                <Link to="/b2cnew/join?via=report-apple-internship-report-2026-27&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
+                <Link to={productHref("/join?via=report-apple-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -564,7 +565,7 @@ export default function Report_AppleInternshipReport202627() {
               <h3>{"Apple hires by team. Reach the team."}</h3>
               <p>{"Stu, Studojo's job agent, finds roles that fit you, tailors your resume to each one and drafts the email to the right person, sent from your own mailbox when you press Send."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-apple-internship-report-2026-27&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-apple-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}
             </Link>
           </div>

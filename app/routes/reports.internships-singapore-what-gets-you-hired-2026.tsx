@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -364,7 +365,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
                 <p>Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox.</p>
-                <Link to="/b2cnew/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -435,7 +436,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Reach the right inbox</h4>
                 <p>Stu, Studojo's job agent, finds the right person to write to at each company and drafts the email. It goes from your own mailbox, only when you press Send.</p>
-                <Link to="/b2cnew/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -543,7 +544,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
               <h3>Reach Singapore hiring managers, directly.</h3>
               <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →
             </Link>
           </div>

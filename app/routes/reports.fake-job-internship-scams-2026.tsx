@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 const SLUG = "fake-job-internship-scams-2026";
@@ -673,7 +674,7 @@ export default function FakeJobScamsReport() {
               <h3>Apply to real roles, direct from the company.</h3>
               <p>Stu, Studojo's job agent, finds roles that fit you on company career sites and job boards, and the hiring manager or recruiter to write to. You send the email from your own mailbox.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-fake-job-internship-scams-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-fake-job-internship-scams-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →
             </Link>
           </div>

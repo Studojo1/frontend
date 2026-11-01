@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -452,7 +453,7 @@ export default function Report_CybersecurityInternshipReport2026() {
               <h3>Reach the security teams that never post.</h3>
               <p>Stu, Studojo's job agent, finds the right person to write to at each company and drafts the email that puts your write-ups in front of them.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-cybersecurity-internship-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-cybersecurity-internship-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →
             </Link>
           </div>

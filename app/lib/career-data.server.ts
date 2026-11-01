@@ -2,18 +2,28 @@
 // tables, which order) is app/lib/career-data.ts; this file runs it.
 //
 // Delete, in ONE transaction: the student's rows in the product's schema (career_agent), in the plan's order; then
-// their auth rows (session, account, user_profile); then the "user" row. Nothing here names a table of the old
-// products. The "user" row's own foreign keys decide the rest: a table that declared ON DELETE CASCADE loses that
-// user's rows with it (as every career_* table and the auth tables do), and a table that declared RESTRICT stops the
-// delete, which then rolls back whole, nothing deleted (AccountDeleteBlocked; the page asks them to write to us).
+// their auth rows (session, account, user_profile, two_factor, passkey); then the "user" row. Nothing here names a
+// table of the old products. The "user" row's own foreign keys decide the rest: a table that declared ON DELETE
+// CASCADE loses that user's rows with it (as every career_* table and the auth tables do), and a table that declared
+// RESTRICT stops the delete, which then rolls back whole, nothing deleted (AccountDeleteBlocked; the page asks them to
+// write to us).
+//
+// Payment records stay (the owner, 2 Nov 2026: tax law, about 6 years). When the student has any row in a payment
+// table (career-data.ts isPaymentTable: payment_orders, payment_refunds, career_credit_orders, ...), those rows are
+// kept, and the "user" row is anonymised instead of deleted (deleted-<id>@deleted.studojo.com, no name, no image, no
+// phone), so the records still point at a row and their cascade never fires. The payment rows are counted before and
+// after; if one went, the whole delete rolls back.
 //
 // Export: the same rows, read in one read-only snapshot, with every secret column dropped.
 import type { PoolClient } from "pg";
 import { pool } from "~/lib/db";
 import {
+  ANONYMISE,
   AUTH_TABLES,
   CAREER_SCHEMA,
+  anonymisedEmail,
   ident,
+  isPaymentTable,
   planUserData,
   qualified,
   stepWhere,
@@ -54,6 +64,27 @@ export async function readCareerCatalog(c: Queryable, schema = CAREER_SCHEMA): P
   };
 }
 
+/** Tables with a user_id that hold payment records, in this app's schema and the product's. */
+export async function readPaymentTables(c: Queryable, schemas = ["public", CAREER_SCHEMA]): Promise<{ schema: string; table: string }[]> {
+  const r = await c.query<{ schema: string; table: string }>(
+    `SELECT n.nspname AS schema, cl.relname AS table FROM pg_class cl JOIN pg_namespace n ON n.oid = cl.relnamespace
+      WHERE n.nspname = ANY($1) AND cl.relkind IN ('r', 'p') AND NOT cl.relispartition
+        AND EXISTS (SELECT 1 FROM pg_attribute a WHERE a.attrelid = cl.oid AND a.attname = 'user_id' AND a.attnum > 0 AND NOT a.attisdropped)
+      ORDER BY 1, 2`,
+    [schemas],
+  );
+  return r.rows.filter((t) => isPaymentTable(t.table));
+}
+
+async function countPayments(c: Queryable, tables: { schema: string; table: string }[], userId: string): Promise<number> {
+  let n = 0;
+  for (const t of tables) {
+    const r = await c.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${qualified(t.schema, t.table)} WHERE user_id = $1`, [userId]);
+    n += r.rows[0]?.n ?? 0;
+  }
+  return n;
+}
+
 /** The delete stopped: a table outside this plan still holds a row that keeps the user (a RESTRICT key). Nothing changed. */
 export class AccountDeleteBlocked extends Error {
   constructor(readonly detail: string) {
@@ -64,8 +95,11 @@ export class AccountDeleteBlocked extends Error {
 export interface DeleteDone {
   /** Rows deleted in the product's schema, by table. */
   career: Record<string, number>;
-  /** Auth rows deleted, by table ("user" is 1). */
+  /** Auth rows deleted, by table ("user" is 1 when the row was deleted). */
   auth: Record<string, number>;
+  /** Payment rows kept; when above 0 the user row was anonymised, not deleted. */
+  paymentRowsKept: number;
+  anonymised: boolean;
 }
 
 /** Deletes the account, in one transaction. userId: the signed-in person, never one from a request body. */
@@ -77,7 +111,10 @@ export async function deleteAccount(userId: string): Promise<DeleteDone> {
     await c.query("SET LOCAL lock_timeout = '10s'");
     await c.query("SET LOCAL statement_timeout = '120s'");
     const cat = await readCareerCatalog(c);
-    const plan = planUserData(cat);
+    const payTables = await readPaymentTables(c);
+    const paymentRows = await countPayments(c, payTables, userId);
+    const keep = new Set(payTables.filter((t) => t.schema === cat.schema).map((t) => t.table));
+    const plan = planUserData(cat, keep);
     if (plan.problems.length) console.warn(`[account-delete] plan notes: ${plan.problems.join("; ").slice(0, 400)}`);
     const career: Record<string, number> = {};
     if (cat.schema) {
@@ -88,15 +125,37 @@ export async function deleteAccount(userId: string): Promise<DeleteDone> {
     }
     const auth: Record<string, number> = {};
     for (const t of AUTH_TABLES) {
+      const exists = await c.query<{ ok: boolean }>("SELECT to_regclass($1) IS NOT NULL AS ok", [`public.${ident(t)}`]);
+      if (!exists.rows[0]?.ok) continue;
       const r = await c.query(`DELETE FROM ${ident(t)} WHERE user_id = $1`, [userId]);
       auth[t] = r.rowCount ?? 0;
     }
-    const u = await c.query(`DELETE FROM "user" WHERE id = $1`, [userId]);
-    auth.user = u.rowCount ?? 0;
+    const anonymised = paymentRows > 0;
+    if (anonymised) {
+      // Keep the row the payment records point at, with nothing left that names or reaches the student.
+      const cols = await c.query<{ name: string }>(
+        `SELECT attname AS name FROM pg_attribute WHERE attrelid = 'public."user"'::regclass AND attnum > 0 AND NOT attisdropped`,
+      );
+      const have = new Set(cols.rows.map((r) => r.name));
+      const sets = Object.entries(ANONYMISE)
+        .filter(([col]) => have.has(col))
+        .map(([col, v]) => `${ident(col)} = ${v === "$email" ? "$2" : v}`);
+      const u = await c.query(`UPDATE "user" SET ${sets.join(", ")} WHERE id = $1`, [userId, anonymisedEmail(userId)]);
+      auth.user_anonymised = u.rowCount ?? 0;
+    } else {
+      const u = await c.query(`DELETE FROM "user" WHERE id = $1`, [userId]);
+      auth.user = u.rowCount ?? 0;
+    }
+    // Not one payment record may go with the rest.
+    const after = await countPayments(c, payTables, userId);
+    if (after !== paymentRows) throw new Error(`payment rows changed (${paymentRows} before, ${after} after); rolled back`);
     await c.query("COMMIT");
     const n = Object.values(career).reduce((a, b) => a + b, 0);
-    console.log(`[account-delete] ${userId}: ${n} product rows in ${Object.values(career).filter((x) => x > 0).length} tables, user ${auth.user}`);
-    return { career, auth };
+    console.log(
+      `[account-delete] ${userId}: ${n} product rows in ${Object.values(career).filter((x) => x > 0).length} tables, ` +
+        (anonymised ? `user anonymised, ${paymentRows} payment rows kept` : `user ${auth.user}`),
+    );
+    return { career, auth, paymentRowsKept: paymentRows, anonymised };
   } catch (e) {
     await c.query("ROLLBACK").catch(() => undefined);
     const err = e as { code?: string; table?: string; constraint?: string };
@@ -121,7 +180,7 @@ export async function exportCareerData(userId: string): Promise<Record<string, u
     const out: Record<string, unknown[]> = {};
     if (cat.schema) {
       const plan = planUserData(cat);
-      // Parents first reads more naturally in the file; the order does not matter for reads.
+      // Payment tables are read too (the export is everything Studojo keeps). Parents first reads more naturally in the file; the order does not matter for reads.
       for (const st of [...plan.steps].reverse()) {
         const r = await c.query<{ rows: string }>(
           `SELECT coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb)::text AS rows FROM ${qualified(cat.schema, st.table)} AS t WHERE ${stepWhere(cat.schema, st, "t")}`,

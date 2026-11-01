@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -467,7 +468,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Reach growth leads directly</h4>
                 <p>Stu, Studojo's job agent, finds the hiring manager or growth lead at each company and drafts the email, so your case link lands before you are one of two hundred generic marketing resumes.</p>
-                <Link to="/b2cnew/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -581,7 +582,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
               <h3>Reach growth teams before the queue.</h3>
               <p>Stu, Studojo's job agent, finds the growth roles that fit you and the hiring manager to write to, then drafts the email you send from your own mailbox, so you are not another generic marketing application.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →
             </Link>
           </div>

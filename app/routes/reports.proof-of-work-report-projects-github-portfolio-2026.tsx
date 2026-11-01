@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -621,7 +622,7 @@ export default function ProofOfWorkReport() {
               <h3>Put your best project first.</h3>
               <p>Stu, Studojo's job agent, tailors your resume to each job and finds the right person to write to, then drafts the email with your project link. You send it from your own mailbox.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-proof-of-work-report-projects-github-portfolio-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-proof-of-work-report-projects-github-portfolio-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu tailor your resume →
             </Link>
           </div>

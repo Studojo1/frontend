@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -534,7 +535,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach the manager before the posting closes"}</h4>
                 <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox."}</p>
-                <Link to="/b2cnew/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
+                <Link to={productHref("/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -658,7 +659,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               <h3>{"Start building the connections that convert"}</h3>
               <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox. You supply the proof."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}
             </Link>
           </div>

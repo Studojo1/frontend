@@ -24,6 +24,7 @@ import { track } from "./lib/analytics";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
 import { isB2cRequest } from "./lib/b2c-home";
 import { googleOnlyEnabled } from "./lib/google-only";
+import { productOrigin, productOriginScript } from "./lib/product-origin";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import { CookieNotice } from "./components/legal/cookie-notice";
@@ -78,6 +79,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* PRODUCT_ORIGIN for the browser, before any module runs (app/lib/product-origin.ts) */}
+        <script dangerouslySetInnerHTML={{ __html: productOriginScript(productOrigin()) }} />
         {/* A page Meta must not see would otherwise reach it as the referrer
             of the next page loaded from it: same-site navigations send the
             full URL by default. */}

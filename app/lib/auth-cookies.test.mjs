@@ -133,4 +133,9 @@ try {
   console.error = realError;
 }
 
+// The privacy policy names the cookies the site really sets.
+const privacy = readFileSync(new URL("../routes/privacy.tsx", import.meta.url), "utf8");
+assert.match(privacy, />stu\.\* and __Secure-stu\.\* \(session, session data, sign-in state, last sign-in method\)</);
+assert.doesNotMatch(privacy, /better-auth\./, "no cookie under the old name is described");
+
 console.log("auth-cookies: prefix stu, shared .studojo.com cookies, trusted origins from env");

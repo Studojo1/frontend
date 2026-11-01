@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -471,7 +472,7 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Prioritize paid pipelines</h4>
                 <p>Stu, Studojo's job agent, finds paid internships that fit you, so you are not defaulting to unpaid labour.</p>
-                <Link to="/b2cnew/join?via=report-unpaid-internship-report-where-legal-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
+                <Link to={productHref("/join?via=report-unpaid-internship-report-where-legal-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
               </div>
             </div>
 
@@ -593,7 +594,7 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
               <h3>Target paid internships first.</h3>
               <p>Stu, Studojo's job agent, finds paid internships that fit you and the right person to write to at each company, so you are not relying on unlawful or exploitative unpaid work.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-unpaid-internship-report-where-legal-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-unpaid-internship-report-where-legal-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →
             </Link>
           </div>

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -627,7 +628,7 @@ export default function AIJobSearchToolsReport() {
               <h3>Point AI at the right roles.</h3>
               <p>Stu, Studojo&apos;s job agent, finds roles that fit you, tailors your resume to each one and drafts the email. Nothing goes out until you press Send, so the words are still yours.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-ai-job-search-tools-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-ai-job-search-tools-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →
             </Link>
           </div>

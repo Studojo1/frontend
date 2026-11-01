@@ -135,9 +135,12 @@ const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);
 const PINNED = {
   "routes/blog._index.tsx": "c56374e058eb2f3f",
   "routes/blog.$slug.tsx": "2a9c438fdd84f1ea",
-  "routes/reports.tsx": "3be1ca10c6ecb1b2", // re-pinned 28 Oct for the 14 batch-2 reports (REPORTS entries only)
+  // re-pinned 28 Oct for the 14 batch-2 reports (REPORTS entries only); RELAUNCH 2 Nov: its two CTAs go to the
+  // product host (productHref, app/lib/product-origin.ts) and nothing else changed
+  "routes/reports.tsx": "3ff3d9a8bfd4b79d",
   "routes/terms.tsx": "e565ab6f9433ba94",
-  "routes/privacy.tsx": "8288874388100760",
+  // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), nothing else changed
+  "routes/privacy.tsx": "07bd941d7e3867ba",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
   "routes/contact.tsx": "fdd5914095deaa8a",
   "routes/about.tsx": "8df5740170b73da6",
@@ -167,7 +170,8 @@ const siteFooter = read("components/site-b2c/SiteFooter.tsx");
 const linkTargets = (src) => [...src.matchAll(/<(?:Link to|a href)=\{([A-Z_a-z]+)\}/g)].map((m) => m[1]);
 assert.deepEqual([...new Set(linkTargets(siteHeader))].sort(), ["BLOG", "HOW_IT_WORKS", "REPORTS", "SETTINGS", "signIn"]);
 assert.match(siteHeader, /<StartPill size="sm" place="header" \/>/, "every page: start the call in the header");
-assert.match(siteHeader, /const signIn = authUrl\("signin", STU_HOME\);/);
+// Sign-in returns to a path on this host (same-origin returns only), which then 301s to the product (RELAUNCH).
+assert.match(siteHeader, /const signIn = authUrl\("signin", PRODUCT_LEGACY_BASE\);/);
 assert.deepEqual(linkTargets(siteFooter), ["HOW_IT_WORKS", "BLOG", "REPORTS", "TERMS", "PRIVACY", "CONTACT", "REFUNDS"]);
 assert.match(siteFooter, /Stu, your career agent at Studojo\./, "the homepage footer's line (home-v2/HomeFooter.tsx)");
 assert.match(siteFooter, /Studojo Labs Private Limited/);

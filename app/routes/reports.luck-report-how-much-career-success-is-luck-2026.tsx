@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -395,7 +396,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build discovery luck on purpose"}</h4>
                 <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox."}</p>
-                <Link to="/b2cnew/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
+                <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -507,7 +508,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>{"Increase your at-bats without spamming"}</h4>
                 <p>{"Stu, Studojo's job agent, finds the roles that fit you, best fit first, and drafts an email to the right person at each company."}</p>
-                <Link to="/b2cnew/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
+                <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
               </div>
             </div>
 
@@ -592,7 +593,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               <h3>{"Meet luck halfway with better discovery"}</h3>
               <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}
             </Link>
           </div>

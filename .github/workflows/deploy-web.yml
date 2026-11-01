@@ -107,6 +107,7 @@ jobs:
               echo "sha=$SHA"
               echo "cookie_domain=.studojo.com"
               echo "origins=https://studojo.com,https://www.studojo.com,https://platform.studojo.com"
+              echo "product=https://platform.studojo.com"
             } >> "$GITHUB_OUTPUT"
           else
             {
@@ -114,6 +115,7 @@ jobs:
               echo "sha=${{ github.sha }}"
               echo "cookie_domain=.studojo.pro"
               echo "origins=https://studojo.pro,https://platform.studojo.pro"
+              echo "product=https://platform.studojo.pro"
             } >> "$GITHUB_OUTPUT"
           fi
 
@@ -197,14 +199,16 @@ jobs:
           IMAGE: ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ steps.target.outputs.sha }}
           COOKIE_DOMAIN: ${{ steps.target.outputs.cookie_domain }}
           ORIGINS: ${{ steps.target.outputs.origins }}
+          PRODUCT: ${{ steps.target.outputs.product }}
         run: |
           set -euo pipefail
           # Read frontend's spec in this namespace (read only) into a file; nothing of it is printed.
           kubectl -n "$NS" get deployment/${{ env.SOURCE_APP }} -o json > "$RUNNER_TEMP/frontend.json"
-          # web's own sign-in settings (app/lib/auth-cookies.ts): the "stu" cookies shared across this domain, and
-          # the origins a sign-in may be posted from. Plain values, no secret.
-          SET=$(jq -n --arg d "$COOKIE_DOMAIN" --arg o "$ORIGINS" \
-            '{AUTH_COOKIE_PREFIX: "stu", AUTH_COOKIE_DOMAIN: $d, AUTH_TRUSTED_ORIGINS: $o}')
+          # web's own settings, plain values, no secret: the "stu" sign-in cookies shared across this domain and the
+          # origins a sign-in may be posted from (app/lib/auth-cookies.ts), and the product's host, where every join
+          # and start link goes and /b2cnew/* answers 301 (PRODUCT_ORIGIN, app/lib/product-origin.ts).
+          SET=$(jq -n --arg d "$COOKIE_DOMAIN" --arg o "$ORIGINS" --arg p "$PRODUCT" \
+            '{AUTH_COOKIE_PREFIX: "stu", AUTH_COOKIE_DOMAIN: $d, AUTH_TRUSTED_ORIGINS: $o, PRODUCT_ORIGIN: $p}')
           # Only when frontend has none: the control plane in this namespace, in-cluster.
           DEFAULTS='{"CONTROL_PLANE_URL": "http://control-plane:8080"}'
           jq --arg img "$IMAGE" --argjson drop "$(cat k8s/web/retired-env.json)" \

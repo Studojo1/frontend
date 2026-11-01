@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -588,7 +589,7 @@ export default function DegreeVsSkillsReport() {
               <h3>Build the skills signals that actually get you hired.</h3>
               <p>Stu, Studojo's job agent, finds roles that fit you and tailors your resume to each one, so your demonstrated work is what gets you through the door.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-degree-vs-skills-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-degree-vs-skills-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →
             </Link>
           </div>

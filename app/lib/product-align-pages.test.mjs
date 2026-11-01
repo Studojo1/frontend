@@ -19,9 +19,9 @@ for (const f of pages) {
   assert.equal(link, null, `${f} links a retired product: ${link?.[0]}`);
   const name = RETIRED_NAME.exec(src);
   assert.equal(name, null, `${f} names a retired product: ${name?.[0]}`);
-  // Every router Link into /b2cnew loads the page.
+  // Every router Link into the product (its own host since the relaunch, app/lib/product-origin.ts) loads the page.
   for (const tag of src.match(/<Link\b[^>]*>/g) ?? []) {
-    if (/to=\{?["'`]\/b2cnew/.test(tag)) assert.match(tag, /reloadDocument/, `${f}: ${tag.slice(0, 120)}`);
+    if (/to=\{?["'`]\/b2cnew|to=\{productHref\(/.test(tag)) assert.match(tag, /reloadDocument/, `${f}: ${tag.slice(0, 120)}`);
   }
 }
 console.log(`product-align pages: ${pages.length} pages speak for Stu`);

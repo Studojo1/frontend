@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 import { useSiteB2c } from "~/components/site-b2c/host";
 import { ReportsIndexB2C } from "~/components/site-b2c/reports/ReportsIndexB2C";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -1528,14 +1529,14 @@ export default function Reports() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              to="/b2cnew/join?via=reports&how=voice"
+              to={productHref("/join?via=reports&how=voice")}
               reloadDocument
               className="flex h-12 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-sm font-bold text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
               Start with Stu
             </Link>
             <Link
-              to="/b2cnew/start?via=reports&how=type"
+              to={productHref("/start?via=reports&how=type")}
               reloadDocument
               className="flex h-12 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/10 px-8 font-['Satoshi'] text-sm font-bold text-white transition hover:bg-white/20"
             >

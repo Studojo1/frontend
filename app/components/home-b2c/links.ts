@@ -1,5 +1,6 @@
 import { useRouteLoaderData } from "react-router";
 import { authUrl } from "../../lib/return-to";
+import { PRODUCT_LEGACY_BASE, productHref } from "../../lib/product-origin";
 
 // Every address the B2C homepage, header and footer link to, in one place, so the design only changes how
 // they look.
@@ -7,15 +8,18 @@ import { authUrl } from "../../lib/return-to";
 // /b2cnew is another app on this host (Studojo1/career-agent, app/lib/other-apps.ts). Links into it are a
 // plain <a href>, a full page load, never this site's router <Link>: the router would ask that app for its
 // data and show this site's error page (commit 93ba6dd).
-export const STU_HOME = "/b2cnew";
+// RELAUNCH (2 Nov 2026): on the product's own host (PRODUCT_ORIGIN, app/lib/product-origin.ts), or under /b2cnew
+// on this host without one.
+export const STU_HOME = productHref("/");
 /** Signed out, every way in: a quick sign-up, then straight into the call (owner rule, 27 Oct: every way in goes
  * through /b2cnew/join, and the homepage links nothing else in /b2cnew but "my jobs"). */
-export const STU_JOIN = "/b2cnew/join";
+export const STU_JOIN = productHref("/join");
 /** The script that defines career-agent's stu-agent web component (stu-embed.tsx). Not loaded on the homepage (owner, 27 Oct). */
 export const STU_EMBED_SRC = "/b2cnew/embed/stu.js";
 
 /** Sign in, then on to the student's agent (/auth hands /b2cnew over with a full page load). */
-export const SIGN_IN = authUrl("signin", STU_HOME);
+// The return is a path on this host (sign-in only follows same-origin returns); /b2cnew then answers 301 to the product.
+export const SIGN_IN = authUrl("signin", PRODUCT_LEGACY_BASE);
 
 /** Account settings, account deletion included: in the signed-in header menu, so it stays reachable. */
 export const SETTINGS = "/settings";

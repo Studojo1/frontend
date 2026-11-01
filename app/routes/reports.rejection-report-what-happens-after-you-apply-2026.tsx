@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -497,7 +498,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Skip the queue that ends in silence</h4>
                 <p>Stu, Studojo's job agent, finds the hiring manager or recruiter for each role and drafts the email, so you are not just one more PDF in the pile.</p>
-                <Link to="/b2cnew/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -602,7 +603,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Fewer applies, more conversations</h4>
                 <p>Stu finds the roles that fit you best and tailors your resume to each one, so you spend your effort on fewer, better applications.</p>
-                <Link to="/b2cnew/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
+                <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
               </div>
             </div>
 
@@ -687,7 +688,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
               <h3>Stop waiting on silence. Start conversations.</h3>
               <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →
             </Link>
           </div>

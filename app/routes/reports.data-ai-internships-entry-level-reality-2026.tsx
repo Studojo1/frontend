@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -467,7 +468,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach data hiring managers directly"}</h4>
                 <p>{"Stu, Studojo's job agent, finds the data hiring manager to write to and drafts the email. You add one project link before you are buried in a generic intern queue."}</p>
-                <Link to="/b2cnew/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
+                <Link to={productHref("/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
@@ -581,7 +582,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               <h3>{"Land a paid data intern role with proof."}</h3>
               <p>{"Stu, Studojo's job agent, finds data and analytics internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
             </div>
-            <Link to="/b2cnew/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}
             </Link>
           </div>

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
+import { productHref } from "~/lib/product-origin";
 
 const BASE_URL = "https://studojo.com";
 
@@ -401,7 +402,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
               <div className="rpt-cta-mid-inner">
                 <h4>Turn bands into conversations</h4>
                 <p>When you know your target stipend band, Stu, Studojo's job agent, finds the hiring manager or recruiter who can confirm real numbers for your cohort and drafts the email. You send it from your own mailbox.</p>
-                <Link to="/b2cnew/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -437,7 +438,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
                 <p>Stu, Studojo's job agent, finds the recruiter or hiring manager at each firm and drafts a short email for you. It goes from your own mailbox, only when you press Send.</p>
-                <Link to="/b2cnew/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice" reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
+                <Link to={productHref("/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
 
@@ -545,7 +546,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
               <h3>Find finance internships in India that match your lane.</h3>
               <p>Stu, Studojo's job agent, finds IB, consulting, and fintech roles that fit you, best fit first, so you spend time on programmes worth applying to, not noise.</p>
             </div>
-            <Link to="/b2cnew/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice" reloadDocument className="rpt-cta-btn">
+            <Link to={productHref("/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →
             </Link>
           </div>
