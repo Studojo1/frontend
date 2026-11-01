@@ -134,6 +134,14 @@ const postId = (v: unknown) => {
 
 const updated = (r: { rowCount?: number | null }) => (r.rowCount ?? 0) > 0;
 
+const TAKEN_BACK = "The team has taken this post back for changes. Reload the page to see your latest posts.";
+
+/** Why a change to one of the fellow's posts did nothing: null when the post is gone (the team pulled it back), else its status. */
+async function postStatus(exec: { execute: typeof db.execute }, fellow: FellowRow, id: number): Promise<string | null> {
+  const r = await exec.execute(sql`SELECT status FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
+  return (rows<Row>(r)[0]?.status as string | undefined) ?? null;
+}
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Runs fn in a transaction that holds this fellow's write lock, so a burst of requests can't race past a check. */
@@ -170,7 +178,10 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         UPDATE ugc_creator_posts SET own_line = ${line || null}, updated_at = now()
         WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
       `);
-      if (!updated(r)) throw new FellowInputError("This post is already posted, so your line can't change now.", 409);
+      if (!updated(r)) {
+        if ((await postStatus(db, fellow, id)) == null) throw new FellowInputError(TAKEN_BACK, 404);
+        throw new FellowInputError("This post is already posted, so your line can't change now.", 409);
+      }
       return;
     }
     case "posted": {
@@ -190,7 +201,10 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
           UPDATE ugc_creator_posts SET status = 'posted', post_url = ${url}, posted_at = now(), updated_at = now()
           WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
         `);
-        if (!updated(r)) throw new FellowInputError("This post is already marked as posted.", 409);
+        if (!updated(r)) {
+          if ((await postStatus(tx, fellow, id)) == null) throw new FellowInputError(TAKEN_BACK, 404);
+          throw new FellowInputError("This post is already marked as posted.", 409);
+        }
       });
       return;
     }
@@ -207,7 +221,10 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         SET impressions = ${impressions}, reactions = ${reactions}, comments = ${comments}, metrics_at = now(), updated_at = now()
         WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'posted'
       `);
-      if (!updated(r)) throw new FellowInputError("Numbers can be added once the post is marked as posted.", 409);
+      if (!updated(r)) {
+        if ((await postStatus(db, fellow, id)) == null) throw new FellowInputError(TAKEN_BACK, 404);
+        throw new FellowInputError("Numbers can be added once the post is marked as posted.", 409);
+      }
       return;
     }
     case "connections": {

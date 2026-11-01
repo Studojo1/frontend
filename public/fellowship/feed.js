@@ -122,21 +122,17 @@
     return pa ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date);
   }).map((p) => p.id);
 
+  // A Studojo post carries the partnership line once: at the top, unless the post already has it further down
+  // (the admin panel accepts it anywhere in the post).
+  const labelAtTop = (p) => p.kind === "studojo" && (p.body.startsWith(LABEL) || !p.body.toLowerCase().includes(LABEL.toLowerCase()));
+  const bodyOf = (p) => (p.kind === "studojo" && p.body.startsWith(LABEL) ? p.body.slice(LABEL.length).replace(/^\s+/, "") : p.body);
   function postText(p) {
-    let body = p.body;
-    if (p.kind === "studojo") {
-      if (body.startsWith(LABEL)) body = body.slice(LABEL.length).replace(/^\s+/, "");
-      return [LABEL, p.ownLine, body].filter(Boolean).join("\n\n");
-    }
-    return [p.ownLine, body].filter(Boolean).join("\n\n");
+    return [labelAtTop(p) ? LABEL : "", p.ownLine, bodyOf(p)].filter(Boolean).join("\n\n");
   }
   function postHTML(p) {
-    let body = p.body;
+    const body = bodyOf(p);
     const parts = [];
-    if (p.kind === "studojo") {
-      if (body.startsWith(LABEL)) body = body.slice(LABEL.length).replace(/^\s+/, "");
-      parts.push(esc(LABEL));
-    }
+    if (labelAtTop(p)) parts.push(esc(LABEL));
     if (p.ownLine) parts.push(`<mark class="own" title="Your line">${esc(p.ownLine)}</mark>`);
     parts.push(esc(body));
     return parts.join("\n\n");

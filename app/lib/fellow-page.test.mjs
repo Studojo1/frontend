@@ -106,9 +106,9 @@ try {
   assert.equal(view.me.course, "BBA, 3rd year");
 
   // ---------------------------------------------------------------- another fellow's posts can't be touched
-  await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.kTue, url: "https://www.linkedin.com/posts/x-activity-9" }), 409, "posted on another fellow's post");
-  await refused(() => page.applyFellowChange(asha, { intent: "line", postId: ids.kTue, line: "mine now" }), 409, "line on another fellow's post");
-  await refused(() => page.applyFellowChange(asha, { intent: "numbers", postId: ids.kPosted, impressions: 1, reactions: 1, comments: 1 }), 409, "numbers on another fellow's post");
+  await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.kTue, url: "https://www.linkedin.com/posts/x-activity-9" }), 404, "posted on another fellow's post");
+  await refused(() => page.applyFellowChange(asha, { intent: "line", postId: ids.kTue, line: "mine now" }), 404, "line on another fellow's post");
+  await refused(() => page.applyFellowChange(asha, { intent: "numbers", postId: ids.kPosted, impressions: 1, reactions: 1, comments: 1 }), 404, "numbers on another fellow's post");
   await page.applyFellowChange(asha, { intent: "copied", postId: ids.kTue });
   const k = await one(`SELECT status, own_line, copied_at, post_url FROM ugc_creator_posts WHERE id = $1`, [ids.kTue]);
   assert.deepEqual([k.status, k.own_line, k.copied_at, k.post_url], ["ready", null, null, null], "Kiran's post is untouched");
@@ -135,6 +135,14 @@ try {
   assert.equal((await one(`SELECT impressions FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).impressions, 1240);
   await page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed, url: "https://www.linkedin.com/posts/asha-late-activity-5" });
   assert.equal((await one(`SELECT status FROM ugc_creator_posts WHERE id = $1`, [ids.aMissed])).status, "posted", "last week's post can be marked late");
+
+  // The team pulls a post back (admin pullBack DELETEs it) while the page is open: the fellow is told, not misled.
+  await page.applyFellowChange(asha, { intent: "copied", postId: ids.aThu });
+  await setup.query(`DELETE FROM ugc_creator_posts WHERE id = $1 AND status <> 'posted'`, [ids.aThu]);
+  for (const change of [{ intent: "posted", url: "https://www.linkedin.com/posts/asha-thu-activity-8" }, { intent: "line", line: "x" }, { intent: "numbers", impressions: 1, reactions: 1, comments: 1 }]) {
+    await assert.rejects(() => page.applyFellowChange(asha, { ...change, postId: ids.aThu }), (e) => e.status === 404 && /taken this post back/.test(e.message), `${change.intent} on a pulled-back post`);
+  }
+  await addPost("aThu", 1, thu, "ready");
 
   for (const bad of [99999999999, "99999999999", 2147483648, -1, 0, "1e3", null]) {
     await refused(() => page.applyFellowChange(asha, { intent: "copied", postId: bad }), 404, `post id ${bad}`);
@@ -193,7 +201,7 @@ try {
   res = await post("gone-z5y4x3w2", JSON.stringify({ intent: "copied", postId: ids.aThu }));
   assert.equal(res.status, 404);
   res = await post("kiran-p7w2m4tq", JSON.stringify({ intent: "line", postId: ids.aThu, line: "via Kiran's address" }));
-  assert.equal(res.status, 409, "Kiran's address can't change Asha's post");
+  assert.equal(res.status, 404, "Kiran's address can't change Asha's post");
   assert.equal((await one(`SELECT own_line FROM ugc_creator_posts WHERE id = $1`, [ids.aThu])).own_line, null);
   res = await post("asha-k3m9x2qa", JSON.stringify({ intent: "line", postId: ids.aThu, line: "Thursday's line" }));
   assert.equal(res.status, 200);
