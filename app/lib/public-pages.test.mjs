@@ -4,8 +4,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { authUrl, signupReturnPath } from "./return-to.ts";
-import { loader as linkedinLoader } from "../routes/linkedin._index.tsx";
-import { loader as linkedinPricingLoader } from "../routes/linkedin.pricing.tsx";
+import { loader as retiredLoader } from "../routes/retired.tsx";
 
 const APP = new URL("../", import.meta.url).pathname;
 const PUBLIC = new URL("../../public/", import.meta.url).pathname;
@@ -27,24 +26,23 @@ assert.equal(
   "/auth?mode=signup&redirect=%2Foutreach%2Fonboarding%2Fupload",
 );
 
-// NEW-09: the retired LinkedIn sales pages send visitors to /outreach, with
-// their tracking params, and never render the old plans.
-for (const [loader, path] of [[linkedinLoader, "/linkedin"], [linkedinPricingLoader, "/linkedin/pricing"]]) {
-  const res = await loader({ request: new Request(`https://studojo.com${path}?utm_source=ig`) });
+// NEW-09, then the RELAUNCH (2 Nov 2026): the retired LinkedIn pages, like every
+// old product page, answer 301 to the homepage, with no query string.
+for (const path of ["/linkedin", "/linkedin/pricing"]) {
+  const res = retiredLoader();
   assert.equal(res.status, 301, path);
-  assert.equal(res.headers.get("Location"), "/outreach?utm_source=ig", path);
+  assert.equal(res.headers.get("Location"), "/", path);
 }
 
 // HP-N12: every studojo.com share image the app points at exists in public/,
 // so a link preview never falls back to no image.
-const files = ["root.tsx", "routes/_index.tsx", "routes/outreach._index.tsx"];
+const files = ["root.tsx", "routes/_index.tsx"];
 for (const f of files) {
   const src = readFileSync(APP + f, "utf8");
   for (const m of src.matchAll(/(?:studojo\.com|BASE_URL\})\/(og-[a-z0-9-]+\.png)/g)) {
     assert.ok(existsSync(PUBLIC + m[1]), `${f} points at missing public/${m[1]}`);
   }
 }
-assert.match(readFileSync(APP + "routes/_index.tsx", "utf8"), /og-home\.png/, "the homepage has its own share card");
 
 // PH-10 / PH-14: every row in the phone menu and the logo link are at least
 // 44px tall (min-h-11), and the phone menu's My Orders is the outreach one.

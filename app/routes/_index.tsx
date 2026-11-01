@@ -1,23 +1,9 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
-import { Link, redirect } from "react-router";
-import {
-  BackedBySection,
-  CTABanner,
-  CollegesBanner,
-  FeaturedProductCard,
-  Footer,
-  Header,
-  Hero,
-  ProblemSolution,
-  StepsSection,
-  TrustStrip,
-} from "~/components";
+import { lazy, Suspense } from "react";
 import { useLoaderData } from "react-router";
 import { HomeV2 } from "~/components/home-v2/HomeV2";
 import { HomeV3 } from "~/components/home-v3/HomeV3";
-import { isB2cRequest } from "~/lib/b2c-home";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
+import { homeV3On } from "~/lib/b2c-home";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { senseiUi } from "~/lib/sensei-ui";
 import type { Route } from "./+types/_index";
 
@@ -53,25 +39,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     // (app/lib/sensei-ui.ts), on the server, so the first paint is already in the right one.
     return { bobApp: senseiApp === "bob", dashboardApp: senseiApp === "dashboard", b2cHome: false, senseiUi: senseiUi(request.headers.get("host")) };
   }
-  // HOMEPAGE: studojo.pro (and localhost) get the B2C homepage, Studojo's job agent only; studojo.com never
-  // does (app/lib/b2c-home.ts). Signed in or not, everyone sees it (the owner reviews it signed in), with no
-  // redirect and no old /onboarding check. The session is read here only so the first paint is already right
-  // (signed in: "my jobs" in the header, "open my jobs" on every button); a failed read is "signed out".
-  if (isB2cRequest(request)) {
-    const signedIn = !!(await getSessionFromRequest(request).catch(() => null));
-    // HOMEPAGE V3 when the server's HOME_V3 is "1" (deploy-staging.yml sets it from the repository variable HOME_V3,
-    // 1 when unset); anything else keeps HOMEPAGE V2, the page before it. The undo needs no commit: set the variable
-    // to 0 and run the staging deploy again.
-    return { bobApp: false, dashboardApp: false, b2cHome: true, signedIn, homeV3: process.env.HOME_V3 === "1", senseiUi: "old" as const };
-  }
-  const session = await getSessionFromRequest(request);
-  if (session) {
-    const onboardingStatus = await requireOnboardingComplete(session.user.id);
-    if (!onboardingStatus.complete) {
-      throw redirect("/onboarding");
-    }
-  }
-  return { bobApp: false, dashboardApp: false, b2cHome: false, senseiUi: "old" as const };
+  // RELAUNCH (2 Nov 2026): studojo.com, www.studojo.com (sent to the apex by entry.server.tsx) and studojo.pro all get
+  // the new homepage, Studojo's job agent only. The old homepage and its redirect of signed-in students to the old
+  // /onboarding are gone. Signed in or not, everyone sees it. The session is read here only so the first paint is
+  // already right (signed in: "my jobs" in the header, "open my jobs" on every button); a failed read is "signed out".
+  const signedIn = !!(await getSessionFromRequest(request).catch(() => null));
+  return { bobApp: false, dashboardApp: false, b2cHome: true, signedIn, homeV3: homeV3On(process.env.HOME_V3), senseiUi: "old" as const };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -82,44 +55,23 @@ export function meta({ data }: Route.MetaArgs) {
   if (d?.bobApp) {
     return [{ title: "Bob | Studojo" }, { name: "robots", content: "noindex" }];
   }
-  if (d?.b2cHome) {
-    // No canonical: studojo.pro is noindex (app/lib/staging-host.ts). The share image falls back to root's
-    // og-default.png until the design brings a B2C card.
-    const title = "Studojo | Stu, your career agent";
-    const description = "Stu is your career agent at Studojo. A short call with Stu, then jobs that fit you, every day.";
-    return [
-      { title },
-      { name: "description", content: description },
-      { property: "og:type", content: "website" },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:site_name", content: "Studojo" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-    ];
-  }
+  // studojo.pro stays noindex (app/lib/staging-host.ts); the canonical address is studojo.com. The share image falls
+  // back to root's og-default.png until the design brings a card for the new homepage.
   const BASE_URL = "https://studojo.com";
+  const title = "Studojo | Stu, your career agent";
+  const description = "Stu is your career agent at Studojo. A short call with Stu, then jobs that fit you, every day.";
   return [
-    { title: "Studojo | Land Your Next Internship or Job" },
-    {
-      name: "description",
-      content:
-        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 8,500+ students signed up. $20 for 200 outreaches.",
-    },
+    { title },
+    { name: "description", content: description },
     { tagName: "link", rel: "canonical", href: BASE_URL },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "Studojo | Land Your Next Internship or Job" },
-    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. It goes out from your own Gmail. 8,500+ students signed up." },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
     { property: "og:url", content: BASE_URL },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Studojo | Land Your Next Internship or Job" },
-    { name: "twitter:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview." },
-    // The homepage has its own card (its hero line); /outreach uses
-    // og-default.png, the outreach card, which is also the site-wide fallback.
-    { property: "og:image", content: `${BASE_URL}/og-home.png` },
-    { name: "twitter:image", content: `${BASE_URL}/og-home.png` },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
     {
       "script:ld+json": {
         "@context": "https://schema.org",
@@ -144,123 +96,6 @@ export function meta({ data }: Route.MetaArgs) {
   ];
 }
 
-// On phones a Screen is at least one viewport tall (minus the sticky
-// header) with its main section's content centred; strips passed as
-// before/after sit at its edges. Desktop layout is unchanged.
-function Screen({ children, before, after }: { children: ReactNode; before?: ReactNode; after?: ReactNode }) {
-  return (
-    <div className="flex flex-col max-md:min-h-[calc(100svh-4rem)]">
-      {before}
-      <div className="flex flex-1 flex-col max-md:[&>section]:flex max-md:[&>section]:flex-1 max-md:[&>section]:flex-col max-md:[&>section]:justify-center max-md:[&>section>*]:w-full">
-        {children}
-      </div>
-      {after}
-    </div>
-  );
-}
-
-function AnnouncementBar() {
-  return (
-    <div className="border-b border-neutral-900 bg-violet-500 px-4 py-2.5 text-center">
-      <p className="font-['Satoshi'] text-xs font-medium text-white md:text-sm">
-        2026 recruiting is on. Internships &amp; jobs are filling up fast.{" "}
-        <Link
-          to="/outreach"
-          className="font-bold underline underline-offset-2 hover:no-underline"
-        >
-          Grab your spot now &rarr;
-        </Link>
-      </p>
-    </div>
-  );
-}
-
-function InternshipPopup() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (sessionStorage.getItem("outreach-popup-dismissed")) return;
-    // Not on phones: it opened mid-scroll and swallowed the tap meant for
-    // whatever button was under the user's finger.
-    if (window.matchMedia("(max-width: 767px)").matches) return;
-    let fired = false;
-    function onScroll() {
-      if (fired) return;
-      const scrolled = window.scrollY / (document.body.scrollHeight - window.innerHeight);
-      if (scrolled >= 0.6) {
-        fired = true;
-        setVisible(true);
-        window.removeEventListener("scroll", onScroll);
-      }
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  function dismiss() {
-    sessionStorage.setItem("outreach-popup-dismissed", "1");
-    setVisible(false);
-  }
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 px-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={dismiss}
-        >
-          <motion.div
-            className="relative w-full max-w-md rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
-            initial={{ scale: 0.92, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.92, opacity: 0, y: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={dismiss}
-              className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 bg-neutral-100 font-['Satoshi'] text-sm font-medium text-neutral-900 hover:bg-neutral-200"
-              aria-label="Close"
-            >
-              &times;
-            </button>
-
-            <div className="flex flex-col gap-5">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-200 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
-                <img src="/favicon.png" alt="Studojo" width="32" height="32" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <h2 className="font-['Clash_Display'] text-2xl font-medium leading-tight text-neutral-900">
-                  Email hiring managers directly
-                </h2>
-                <p className="font-['Satoshi'] text-base text-neutral-600">
-                  Upload your resume. We find who can hire you and write the emails.
-                </p>
-              </div>
-              <Link
-                to="/outreach/onboarding/upload"
-                onClick={dismiss}
-                className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
-              >
-                Find My Hiring Managers &rarr;
-              </Link>
-              <button
-                onClick={dismiss}
-                className="font-['Satoshi'] text-sm text-neutral-500 hover:text-neutral-700 underline"
-              >
-                Not now
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
 export default function Home() {
   const data = useLoaderData<typeof loader>();
   const { bobApp, dashboardApp, b2cHome, senseiUi: ui } = data;
@@ -268,38 +103,8 @@ export default function Home() {
   // dashboard.studojo.* -> manager portal; app.studojo.* -> Bob workspace at root
   if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage ui={ui} /></Suspense>;
   if (bobApp) return <Suspense fallback={senseiFallback}><BobPage ui={ui} /></Suspense>;
-  // studojo.pro: the B2C homepage, HOMEPAGE V3 (app/components/home-v3) when HOME_V3 is on, else HOMEPAGE V2
+  // Every other host: the new homepage, HOMEPAGE V3 (app/components/home-v3) unless HOME_V3 is "0", then HOMEPAGE V2
   // (app/components/home-v2), kept unchanged as the undo.
   if (b2cHome && homeV3) return <HomeV3 />;
-  if (b2cHome) return <HomeV2 />;
-  return (
-    <>
-      <AnnouncementBar />
-      <Header />
-      <InternshipPopup />
-      {/* Each block below fills one phone screen (under the sticky header).
-          Content renders visible on the server, so links work before JS loads. */}
-      <main>
-        <Screen after={<CollegesBanner />}>
-          <Hero />
-        </Screen>
-        <Screen>
-          <StepsSection />
-        </Screen>
-        <Screen>
-          <ProblemSolution />
-        </Screen>
-        <Screen before={<TrustStrip />}>
-          <FeaturedProductCard />
-        </Screen>
-        <Screen>
-          <BackedBySection />
-        </Screen>
-        <Screen>
-          <CTABanner />
-        </Screen>
-        <Footer />
-      </main>
-    </>
-  );
+  return <HomeV2 />;
 }

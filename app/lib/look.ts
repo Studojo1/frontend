@@ -8,8 +8,8 @@
 // no query and no cookie nothing changes: no attribute, no extra stylesheet, no switch. The small floating switch
 // (components/look/LookSwitch.tsx) shows only when the query or the cookie is there.
 //
-// Only on B2C hosts (app/lib/b2c-home.ts: studojo.pro, localhost, never on a studojo.com deployment), so
-// studojo.com, which already is the classic look, never gets the switch. Pure, for tests (app/lib/look.test.mjs).
+// Only on B2C hosts (app/lib/b2c-home.ts: studojo.com and studojo.pro since the relaunch, 2 Nov 2026, and localhost),
+// never on the Sensei hosts. Pure, for tests (app/lib/look.test.mjs).
 
 export type Look = "new" | "classic";
 

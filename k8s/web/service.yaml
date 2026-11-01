@@ -1,0 +1,19 @@
+# RELAUNCH (2 Nov 2026): the Service for the `web` Deployment (the new site), port 3000 like frontend's. Applied by
+# .github/workflows/deploy-web.yml into staging and studojo (kubectl apply -n). The ingress for studojo.com,
+# www.studojo.com and platform's /auth and /api/auth (staging: studojo.pro and platform.studojo.pro) points here;
+# that switch is not made by any workflow in this repo.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  type: ClusterIP
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP

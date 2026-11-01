@@ -1,5 +1,6 @@
 import { type RouteConfig, route } from "@react-router/dev/routes";
 import { flatRoutes } from "@react-router/fs-routes";
+import { retiredRoutes } from "./lib/retired-routes";
 
 // File-based route discovery handles most routes automatically.
 //
@@ -15,8 +16,8 @@ export default [
       "**/sitemap.xml.tsx",
       "**/robots.txt.tsx",
       "**/reports.*.tsx",
-      "**/connect-linkedin.tsx",
       "**/legacy-redirects.tsx",
+      "**/retired.tsx",
     ],
   })),
 
@@ -25,38 +26,20 @@ export default [
   route("sitemap.xml", "routes/sitemap.xml.tsx"),
   route("robots.txt", "routes/robots.txt.tsx"),
 
-  // ── LinkedIn connect (email link, no Studojo auth) ─────────────────────
-  route("connect-linkedin", "routes/connect-linkedin.tsx"),
-
-  // ── /insider serves the same page as /campus-ambassador ────────────────
-  // Kept only so links already posted under the short URL keep working; the
-  // page itself says Campus Ambassador throughout. /campus-ambassador is the
-  // URL to hand out. Same module, so there is one page to maintain, and it
-  // carries a canonical tag pointing at /campus-ambassador, so search engines
-  // do not treat the two as duplicates.
-  route("insider", "routes/campus-ambassador.tsx", { id: "insider" }),
-
-  // ── /no-one-is-hiring serves the same page as /webinar ─────────────────
-  // The webinar is titled "How to Get a Job When No One Is Hiring", so this
-  // path reads as the event rather than as a generic word. /webinar stays live
-  // and is the canonical URL: the nine campus ambassadors are already sharing
-  // it, and a link on someone's story has to keep working. Same module, so
-  // there is one page to maintain.
-  route("no-one-is-hiring", "routes/webinar.tsx", { id: "no-one-is-hiring" }),
+  // ── RELAUNCH (2 Nov 2026): every old product path, 301 to the homepage ──
+  // The list is app/lib/retired-routes.ts; the module answers 301 to "/" with
+  // no query string for every method. One module, one id per path.
+  ...retiredRoutes().map((r) => route(r.path, "routes/retired.tsx", { id: r.id })),
 
   // ── Permanent redirects (app/routes/legacy-redirects.tsx) ──────────────
-  // Typed URLs, old playbook links, /support from old emails, and reports
-  // merged into their stronger duplicate. One module, one id per path.
+  // Typed URLs, /support from old emails, and reports merged into their
+  // stronger duplicate. One module, one id per path. Old product paths
+  // (/pricing, /dojos, /internships) are retired above instead.
   route("signup", "routes/legacy-redirects.tsx", { id: "redirect-signup" }),
   route("register", "routes/legacy-redirects.tsx", { id: "redirect-register" }),
   route("login", "routes/legacy-redirects.tsx", { id: "redirect-login" }),
   route("signin", "routes/legacy-redirects.tsx", { id: "redirect-signin" }),
   route("sign-in", "routes/legacy-redirects.tsx", { id: "redirect-sign-in" }),
-  route("pricing", "routes/legacy-redirects.tsx", { id: "redirect-pricing" }),
-  route("dojos", "routes/legacy-redirects.tsx", { id: "redirect-dojos" }),
-  route("dojos/careers", "routes/legacy-redirects.tsx", { id: "redirect-dojos-careers" }),
-  route("dojos/outreach", "routes/legacy-redirects.tsx", { id: "redirect-dojos-outreach" }),
-  route("internships", "routes/legacy-redirects.tsx", { id: "redirect-internships" }),
   route("support", "routes/legacy-redirects.tsx", { id: "redirect-support" }),
   route("reports/why-80-percent-applications-get-no-response-2026", "routes/legacy-redirects.tsx", { id: "redirect-reports-why-80-percent-applications-get-no-response-2026" }),
   route("reports/linkedin-profile-what-hiring-managers-look-at-2026", "routes/legacy-redirects.tsx", { id: "redirect-reports-linkedin-profile-what-hiring-managers-look-at-2026" }),

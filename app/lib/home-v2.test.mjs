@@ -209,13 +209,13 @@ for (const f of ["laugh", "sparkle", "curious", "grin", "happy"]) assert.ok(read
   assert.match(css, /\.hv2 \.hv-signout \{/);
 }
 
-// ---------- 7. studojo.com cannot change ----------
-// The homepage renders only behind the B2C host gate (b2c-home.test.mjs: never on studojo.com), and its CSS cannot
-// reach any other page: every rule, each comma part, sits under .hv2, which only HomeV2 renders.
+// ---------- 7. the undo, scoped ----------
+// HOMEPAGE V2 is the undo of HOMEPAGE V3 (HOME_V3=0), on every host off the Sensei ones (RELAUNCH, 2 Nov 2026), and
+// its CSS cannot reach any other page: every rule, each comma part, sits under .hv2, which only HomeV2 renders.
 const index = readFileSync(new URL("../routes/_index.tsx", import.meta.url), "utf8");
 assert.match(index, /^import \{ HomeV2 \} from "~\/components\/home-v2\/HomeV2";$/m);
 assert.equal((index.match(/<HomeV2 \/>/g) ?? []).length, 1);
-assert.match(index, /if \(b2cHome\) return <HomeV2 \/>;/);
+assert.match(index, /if \(b2cHome && homeV3\) return <HomeV3 \/>;\s*return <HomeV2 \/>;/);
 for (const rule of css.replace(/@font-face\s*\{[^}]*\}/g, "").replace(/@keyframes[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "").match(/(^|[{}])\s*([^{}@]+)\{/g) ?? []) {
   const sel = rule.replace(/^[{}]?\s*/, "").replace(/\{$/, "").trim();
   if (!sel) continue;

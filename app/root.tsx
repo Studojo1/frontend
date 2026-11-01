@@ -23,6 +23,7 @@ import { onConsentChange, trackingAllowed } from "./lib/consent";
 import { track } from "./lib/analytics";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
 import { isB2cRequest } from "./lib/b2c-home";
+import { googleOnlyEnabled } from "./lib/google-only";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import { CookieNotice } from "./components/legal/cookie-notice";
@@ -394,9 +395,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Resolve the host on the SERVER so the global chat widget is never even
   // rendered on Sensei subdomains (no SSR flash, no hydration mismatch).
   const host = (request.headers.get("host") || "").toLowerCase();
-  // b2cHost: studojo.pro (and localhost) get the B2C homepage, header and footer; studojo.com never does
-  // (app/lib/b2c-home.ts). Read by components/common/header.tsx and footer.tsx.
-  return { isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host), b2cHost: isB2cRequest(request) };
+  // b2cHost: studojo.com, studojo.pro (and localhost) get the B2C homepage, header and footer (app/lib/b2c-home.ts).
+  // Read by components/common/header.tsx and footer.tsx.
+  // googleOnly: the GOOGLE_ONLY switch (app/lib/google-only.ts), read by /auth and /settings through useGoogleOnly.
+  return { isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host), b2cHost: isB2cRequest(request), googleOnly: googleOnlyEnabled() };
 }
 
 export default function App() {

@@ -53,12 +53,6 @@ assert.match(auth, /if \(!isAdVisitor\(/, "only for ad visitors");
 assert.match(auth, /\{resumeFirst && mode === "signup" && <ResumeFirstCard \/>\}/, "the card shows only when the flag said yes");
 assert.match(auth, /useState\(false\);\n  useEffect\(\(\) => \{\n    if \(!headedToUpload/, "resumeFirst starts off");
 
-const upload = readFileSync(APP + "routes/outreach.onboarding.upload.tsx", "utf8");
-const claim = upload.slice(upload.indexOf("loadResumeDraft().then"));
-assert.ok(claim.indexOf("clearResumeDraft()") < claim.indexOf("handleUpload(draft)"), "claimed once before the upload");
-assert.match(upload, /if \(!userId \|\| draftClaimedRef\.current\) return;/, "sent only once the account exists");
-// The loader still sends logged-out visitors to /auth: the server-side
-// redirect ad visitors rely on (PH-04) is untouched.
-assert.match(upload, /throw redirect\(`\/auth\?mode=signup&redirect=/);
+// The upload step (outreach.onboarding.upload) is retired (RELAUNCH, 2 Nov 2026): /outreach answers 301 to "/".
 
 console.log("resume-draft: ok");

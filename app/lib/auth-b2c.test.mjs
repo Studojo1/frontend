@@ -103,22 +103,6 @@ const PW_ALLOWED = [
   /^\{b2c && <Footer compact \/>\}$/,
 ];
 const PAGES = {
-  "forgot-password": {
-    names: ["email"],
-    inputs: ["email"],
-    links: ["/auth", "/auth"],
-    marks: ['"error"', '"note"', '"shell"', '"shell"', '"switch"'],
-    calls: [/await requestPasswordReset\(email\);/, /<form onSubmit=\{handleSubmit\} className="space-y-4">/, /disabled=\{submitting \|\| !email\}/],
-    classic: [/const BTN_PRIMARY =\n\s+"rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-\['Satoshi'\] text-base font-medium leading-6 text-white shadow-\[4px_4px_0px_0px_rgba\(25,26,35,1\)\] transition-transform /],
-  },
-  "reset-password": {
-    names: ["confirmPassword", "password"],
-    inputs: [],
-    links: ["/auth", "/forgot-password"],
-    marks: ['"error"', '"shell"', '"shell"', '"switch"', '"warn"'],
-    calls: [/await resetPassword\(token, password\);/, /navigate\("\/auth"\);/, /<form onSubmit=\{handleSubmit\} className="space-y-4">/, /disabled=\{submitting \|\| !token \|\| !password \|\| !confirmPassword\}/],
-    classic: [/const BTN_PRIMARY =\n\s+"rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 /],
-  },
   "auth.2fa": {
     names: ["code"],
     inputs: ["checkbox", "text"],
@@ -144,6 +128,26 @@ for (const [page, want] of Object.entries(PAGES)) {
   assert.equal((text.match(/type="submit"/g) ?? []).length, 1, `${page}: one submit`);
   assert.equal((text.match(/<form /g) ?? []).length, 1, `${page}: one form`);
   for (const re of [...want.calls, ...want.classic]) assert.match(text, re, `${page}: ${re}`);
+}
+
+// ---------- /forgot-password and /reset-password: the paused note (RELAUNCH, 2 Nov 2026) ----------
+// Reset emails are paused: both pages draw components/auth/reset-paused.tsx, a note and two links, with no form, no
+// field and no call to the emailer; with GOOGLE_ONLY on, both send the visitor to sign-in.
+const paused = read("../components/auth/reset-paused.tsx");
+assert.match(paused, /\n  const b2c = useSiteB2c\(\);\n/);
+for (const l of b2cLinesOf(paused)) {
+  assert.ok(PW_ALLOWED.some((re) => re.test(l)), `reset-paused.tsx: an unexpected B2C branch: ${l}`);
+  assert.doesNotMatch(l, BEHAVIOUR, `reset-paused: B2C changes behaviour: ${l}`);
+}
+assert.deepEqual(marksOf(paused).sort(), ['"note"', '"shell"']);
+assert.match(paused, /"Password reset emails are paused for a few days\. Write to admin@studojo\.com and we will reset it for you\."/);
+assert.doesNotMatch(paused, /<form|<input|onSubmit|fetch\(|emailer/, "the note sends nothing");
+assert.deepEqual(attrs(paused, /\bto="([^"]+)"/g), ["/auth?mode=signin"]);
+for (const page of ["forgot-password", "reset-password"]) {
+  const text = read(`../routes/${page}.tsx`);
+  assert.match(text, /<ResetPaused title="[^"]+" \/>/, page);
+  assert.match(text, /if \(googleOnlyEnabled\(\)\) throw redirect\("\/auth\?mode=signin"\);/, page);
+  assert.doesNotMatch(text, /emailer|requestPasswordReset|resetPassword\(|<form/, `${page}: no reset email, no form`);
 }
 
 // ---------- the CSS: the auth block of site-pages.css ----------

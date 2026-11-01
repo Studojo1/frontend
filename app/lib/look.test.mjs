@@ -1,7 +1,7 @@
 // CLASSIC LOOK (27 Oct 2026, the owner: "the same flow we have, in our old UI style with the Clash Display"): the look
 // switch (app/lib/look.ts, shared with career-agent). ?look=classic or ?look=new stores sj_look; the server draws the
 // first paint in it (<html data-look>, the classic sheet, the floating switch). No query and no cookie: the page is
-// exactly as before. Never on studojo.com (it already is the classic look), whatever Host a request claims.
+// exactly as before. Never on the Sensei hosts (RELAUNCH, 2 Nov 2026: studojo.com now has it, like studojo.pro).
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { LOOK_COOKIE, LOOK_MAX_AGE, lookCookieSecure, lookForRequest, lookFromCookie, lookFromSearch, lookSetCookie, resolveLook, switchHref } from "./look.ts";
@@ -32,21 +32,21 @@ assert.equal(lookCookieSecure("studojo.pro"), true);
 assert.equal(lookCookieSecure("127.0.0.1:3980"), false);
 assert.equal(switchHref("https://studojo.pro/blog?utm_source=x&look=new#top", "classic"), "/blog?utm_source=x&look=classic#top");
 
-// studojo.com never gets the switch: not by Host, and not on its deployment whatever Host a request claims
+// RELAUNCH (2 Nov 2026): studojo.com is a B2C host now, so it gets the switch like studojo.pro; the Sensei hosts and
+// the admin panel never do, whatever deployment they reach.
 const req = (url, host, cookie) => new Request(url, { headers: { host, ...(cookie ? { cookie } : {}) } });
 const saved = process.env.BETTER_AUTH_URL;
 try {
-  process.env.BETTER_AUTH_URL = "https://studojo.pro";
-  const pro = req("http://pod/?look=classic", "studojo.pro");
-  assert.deepEqual(lookForRequest(pro, isB2cRequest(pro)), { look: "classic", switchable: true, store: "classic" });
-  for (const host of ["studojo.com", "www.studojo.com", "app.studojo.pro", "dashboard.studojo.pro", "admin.studojo.pro"]) {
-    const r = req("http://pod/?look=classic", host, "sj_look=classic");
-    assert.equal(lookForRequest(r, isB2cRequest(r)), null, host);
-  }
-  process.env.BETTER_AUTH_URL = "https://studojo.com";
-  for (const host of ["studojo.pro", "localhost", "127.0.0.1"]) {
-    const r = req("http://pod/?look=classic", host, "sj_look=classic");
-    assert.equal(lookForRequest(r, isB2cRequest(r)), null, `${host} on the studojo.com deployment`);
+  for (const dep of ["https://studojo.pro", "https://studojo.com"]) {
+    process.env.BETTER_AUTH_URL = dep;
+    for (const host of ["studojo.pro", "studojo.com"]) {
+      const r = req("http://pod/?look=classic", host);
+      assert.deepEqual(lookForRequest(r, isB2cRequest(r)), { look: "classic", switchable: true, store: "classic" }, `${host} on ${dep}`);
+    }
+    for (const host of ["app.studojo.pro", "dashboard.studojo.pro", "admin.studojo.pro", "app.studojo.com", "dashboard.studojo.com"]) {
+      const r = req("http://pod/?look=classic", host, "sj_look=classic");
+      assert.equal(lookForRequest(r, isB2cRequest(r)), null, `${host} on ${dep}`);
+    }
   }
 } finally {
   if (saved === undefined) delete process.env.BETTER_AUTH_URL;
@@ -95,4 +95,4 @@ for (const f of readdirSync(dir).filter((f) => f.endsWith(".css"))) {
   }
 }
 
-console.log("look: ?look= and sj_look switch the look on studojo.pro only; default stays new; studojo.com never gets it");
+console.log("look: ?look= and sj_look switch the look on studojo.com and studojo.pro; default stays new; never on the Sensei hosts");

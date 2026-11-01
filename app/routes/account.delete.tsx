@@ -1,23 +1,68 @@
-// Self-serve account deletion (B2C open item NEW-04).
+// Self-serve account deletion (B2C open item NEW-04), without job-outreach-svc (RELAUNCH, 2 Nov 2026).
 //
-// Its own page rather than a section of /settings: /settings requires a
-// finished onboarding profile, which students who signed up by email through
-// Outreach never see, so they could not have reached a button there.
-import { useState } from "react";
-import { redirect, useNavigate } from "react-router";
+// Its own page rather than a section of /settings, so it is one plain link away from anywhere (career-agent's
+// settings link here too). The action deletes, in one transaction, the student's rows in the product's schema and
+// their sign-in (app/lib/career-data.server.ts), then clears the session cookies.
+import { useEffect, useState } from "react";
+import { data, redirect, useFetcher, useNavigate } from "react-router";
 import { Header } from "~/components";
+import { auth } from "~/lib/auth";
 import { authClient } from "~/lib/auth-client";
+import { AccountDeleteBlocked, deleteAccount } from "~/lib/career-data.server";
 import { clearTokenCache } from "~/lib/control-plane";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
-import { outreachFetch } from "~/lib/outreach/api";
-import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import type { Route } from "./+types/account.delete";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
-  if (!session) throw redirect("/auth?redirect=/account/delete");
+  if (!session) throw redirect("/auth?mode=signin&redirect=/account/delete");
   return { email: session.user.email };
+}
+
+type DeleteResult = { ok: boolean; error: string | null };
+
+const SUPPORT = "admin@studojo.com";
+
+/** A browser's own origin only: a form on another site never deletes an account (the cookie is SameSite=Lax too). */
+function sameOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === (request.headers.get("host") ?? "");
+  } catch {
+    return false;
+  }
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  if (request.method !== "POST") return data<DeleteResult>({ ok: false, error: "Method not allowed" }, { status: 405 });
+  if (!sameOrigin(request)) return data<DeleteResult>({ ok: false, error: "Nothing was deleted." }, { status: 403 });
+  const session = await getSessionFromRequest(request);
+  if (!session) return data<DeleteResult>({ ok: false, error: "You are signed out. Sign in again, then delete." }, { status: 401 });
+  const form = await request.formData();
+  if (form.get("confirm") !== "DELETE") return data<DeleteResult>({ ok: false, error: "Type DELETE to confirm." }, { status: 400 });
+  try {
+    await deleteAccount(session.user.id);
+  } catch (e) {
+    if (e instanceof AccountDeleteBlocked) {
+      return data<DeleteResult>(
+        { ok: false, error: `We couldn't delete your account automatically, and nothing was deleted. Write to ${SUPPORT} and we will delete it for you.` },
+        { status: 409 },
+      );
+    }
+    console.error("[account-delete] failed for", session.user.id, e instanceof Error ? e.message : String(e));
+    return data<DeleteResult>({ ok: false, error: "Something went wrong. Nothing was deleted. Please try again." }, { status: 500 });
+  }
+  // The session rows are gone; this clears the browser's cookies (and better-auth's cached copy of the session).
+  const headers = new Headers();
+  try {
+    const out = await auth.api.signOut({ headers: request.headers, asResponse: true });
+    for (const c of out.headers.getSetCookie()) headers.append("Set-Cookie", c);
+  } catch {
+    // The account is deleted either way; the page signs out in the browser too.
+  }
+  return data<DeleteResult>({ ok: true, error: null }, { headers });
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -26,41 +71,26 @@ export function meta({}: Route.MetaArgs) {
 
 export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
+  const fetcher = useFetcher<DeleteResult>();
   const [confirm, setConfirm] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const deleting = fetcher.state !== "idle";
+  const done = fetcher.data?.ok === true;
+  const error = fetcher.data && !fetcher.data.ok ? fetcher.data.error : null;
 
-  // Not a link to /settings: that page sends anyone without a finished
-  // profile to onboarding, and they are who this page exists for.
   const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate("/"));
 
-  const handleDelete = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (confirm !== "DELETE") return;
-    setDeleting(true);
-    setError(null);
-    try {
-      // One attempt, no retry: once the first call succeeds the session is
-      // gone, and a retry would 401 and bounce to sign-in. (fetchWithRetry's
-      // maxRetries counts attempts, so 0 would never send the request.)
-      await outreachFetch("/account/delete", {
-        method: "POST",
-        body: JSON.stringify({ confirm }),
-        maxRetries: 1,
-        timeout: 60_000,
-      });
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong. Nothing was deleted. Please try again.");
-      setDeleting(false);
-      return;
-    }
-    // The server already removed every session; this clears the browser's copy.
-    useOutreachStore.getState().resetFunnel();
+  // Deleted: clear what the browser still holds.
+  useEffect(() => {
+    if (!done) return;
     clearTokenCache();
     resetPostHog();
     authClient.signOut().catch(() => {});
-    setDone(true);
+  }, [done]);
+
+  const handleDelete = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (confirm !== "DELETE" || deleting) return;
+    fetcher.submit({ confirm }, { method: "post" });
   };
 
   const card =
@@ -83,8 +113,7 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
                   Your account is deleted
                 </h2>
                 <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  Your data is gone and Studojo can no longer use your Gmail. You can sign up again with the same
-                  email any time.
+                  Your data is gone. You can sign up again with the same email any time.
                 </p>
                 <button
                   type="button"
@@ -115,15 +144,13 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
                   You are deleting the account <strong className="break-all font-medium text-neutral-900">{loaderData.email}</strong>.
                 </p>
                 <ul className="mb-4 list-disc space-y-2 pl-5 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  <li>Your resumes and resume files, profile, leads and campaigns are deleted. Any campaign still sending stops.</li>
-                  <li>Every email sent from your Gmail, and every reply, is deleted from Studojo.</li>
-                  <li>Studojo&apos;s access to your Gmail is revoked with Google, and your LinkedIn connection is deleted.</li>
-                  <li>Your support chat history is deleted, and so is your record in PostHog, our product analytics.</li>
-                  <li>Unused credits and plan time are forfeited and can&apos;t be refunded (<a href="/refund-policy" className="underline">Refund Policy</a>). If you think a refund is owed, raise a ticket before you delete.</li>
+                  <li>Your profile, preferences and resumes, your calls with Stu and everything he learned about you.</li>
+                  <li>Your matches, liked jobs and followed companies, and your chats with Stu.</li>
+                  <li>Your email campaign: the emails, follow-ups and replies. Anything still waiting to send stops.</li>
+                  <li>Your page and your projects, your connected inbox, your credits and your plan.</li>
+                  <li>Your Studojo sign-in.</li>
+                  <li>Unused credits and plan time are forfeited and can&apos;t be refunded (<a href="/refund-policy" className="underline">Refund Policy</a>). If you think a refund is owed, write to {SUPPORT} before you delete.</li>
                 </ul>
-                <p className="mb-6 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
-                  We keep payment records, with no name or email attached, because tax law requires it. We also keep a record of who your outreach went to and when, as scrambled addresses with no content, for 3 years so we can handle complaints.
-                </p>
 
                 {error && (
                   <div

@@ -20,7 +20,7 @@ Sitemap: ${baseUrl}/sitemap.xml
 Disallow: /api/
 Disallow: /auth
 Disallow: /settings
-Disallow: /onboarding
+Disallow: /account
 `;
 
   return new Response(robotsTxt, {

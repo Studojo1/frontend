@@ -1,0 +1,245 @@
+name: Deploy web (new studojo.com site)
+
+# RELAUNCH (2 Nov 2026, the owner): the new site runs as its own Deployment, `web` (Service `web`, port 3000), built
+# from branch relaunch/site as ONE image, web:<sha>:
+#   - a push to relaunch/site builds it and deploys it to STAGING (namespace staging);
+#   - PRODUCTION (namespace studojo) only by hand (workflow_dispatch) with an explicit sha, and only the image staging
+#     is running now, so production gets exactly what was tested on staging. Nothing is rebuilt for production.
+#
+# The existing `frontend` Deployment (the B2B product on app., dashboard. and sensei.) is never touched: this workflow
+# only READS frontend's spec in the same namespace, to copy its container settings and env (every secret stays a
+# secretKeyRef to app-secrets), minus the retired services' variables (k8s/web/retired-env.json), plus web's own
+# sign-in settings below.
+#
+# No schema migrations run here. The site needs none on the production database (drizzle/0037_agent_runtime.sql is
+# in the tree from staging, but it belongs to job-outreach-svc's student agent and no code in this site reads its
+# tables). Any migration this site ever needs is applied by hand, after approval.
+#
+# Routing is not changed here either: the ingress for studojo.com, www.studojo.com and platform's /auth and
+# /api/auth (staging: studojo.pro, platform.studojo.pro) is switched to Service `web` separately.
+
+on:
+  push:
+    branches: [relaunch/site]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Production: the full 40-character commit sha to deploy (the one staging runs now)"
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-web-${{ github.event_name == 'workflow_dispatch' && 'production' || 'staging' }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  REGISTRY: acrstudojo-dhfsdrfhf6a6bbg2.azurecr.io
+  ACR_NAME: acrstudojo
+  APP_NAME: web
+  SOURCE_APP: frontend
+
+jobs:
+  build:
+    # Staging only: a push to relaunch/site. Production never builds; it takes the staging image.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/relaunch/site'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: |
+          TOKEN=$(az acr login --name ${{ env.ACR_NAME }} --expose-token --output tsv --query accessToken)
+          docker login ${{ env.REGISTRY }} -u 00000000-0000-0000-0000-000000000000 -p "$TOKEN"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # The runtime image only (the Dockerfile's last stage), the same for staging and production: nothing in it
+      # differs per environment (the control plane address is set at run time, CONTROL_PLANE_URL below).
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
+          build-args: |
+            VITE_PUBLIC_POSTHOG_KEY=${{ secrets.POSTHOG_KEY }}
+            VITE_CONTEXT_LOGO_CLIENT_ID=${{ vars.VITE_CONTEXT_LOGO_CLIENT_ID }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache,mode=max
+
+  deploy:
+    needs: build
+    # Staging after a successful build; production by hand (the build job is skipped then).
+    if: >-
+      always() &&
+      ((github.event_name == 'push' && needs.build.result == 'success') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/relaunch/site'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pick the target
+        id: target
+        env:
+          INPUT_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SHA="$INPUT_SHA"
+            if ! printf '%s' "$SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "::error::sha must be the full 40-character commit sha"
+              exit 1
+            fi
+            {
+              echo "namespace=studojo"
+              echo "sha=$SHA"
+              echo "cookie_domain=.studojo.com"
+              echo "origins=https://studojo.com,https://www.studojo.com,https://platform.studojo.com"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "namespace=staging"
+              echo "sha=${{ github.sha }}"
+              echo "cookie_domain=.studojo.pro"
+              echo "origins=https://studojo.pro,https://platform.studojo.pro"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      # The manifests and the retired list come from the very commit being deployed.
+      - name: Checkout the commit being deployed
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+          fetch-depth: 0
+
+      - name: The commit is on relaunch/site
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin relaunch/site
+          git merge-base --is-ancestor "${{ steps.target.outputs.sha }}" FETCH_HEAD || {
+            echo "::error::${{ steps.target.outputs.sha }} is not on relaunch/site"
+            exit 1
+          }
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      # Same as deploy.yml: grant this run's egress IP through the AKS API server firewall, revoked in the last step.
+      - name: Allow this runner through the AKS API server firewall
+        id: aks_allow
+        run: |
+          set -euo pipefail
+          CURRENT=$(az aks show -g rg-studojo -n studojo-aks \
+            --query "apiServerAccessProfile.authorizedIpRanges" -o tsv | paste -sd, -)
+          if [ -z "$CURRENT" ]; then
+            echo "No authorized IP ranges configured; nothing to do."
+            echo "modified=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          RUNNER_IP=$(curl -fsS --retry 3 https://api.ipify.org)
+          echo "Runner egress IP: $RUNNER_IP"
+          echo "original=$CURRENT" >> "$GITHUB_OUTPUT"
+          if printf '%s' "$CURRENT" | tr ',' '\n' | grep -qx "$RUNNER_IP/32"; then
+            echo "Already allowed."
+            echo "modified=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          az aks update -g rg-studojo -n studojo-aks \
+            --api-server-authorized-ip-ranges "$CURRENT,$RUNNER_IP/32" \
+            --only-show-errors -o none
+          echo "modified=true" >> "$GITHUB_OUTPUT"
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group rg-studojo \
+            --name studojo-aks \
+            --overwrite-existing
+
+      # Production takes only what staging runs now: the same image, never a rebuild.
+      - name: Production gets the image staging runs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -euo pipefail
+          WANT="${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ steps.target.outputs.sha }}"
+          ON_STAGING=$(kubectl -n staging get deployment/${{ env.APP_NAME }} \
+            -o jsonpath="{.spec.template.spec.containers[?(@.name=='${{ env.APP_NAME }}')].image}")
+          if [ "$ON_STAGING" != "$WANT" ]; then
+            echo "::error::staging runs $ON_STAGING, not $WANT: push it to relaunch/site and test it on staging first"
+            exit 1
+          fi
+          kubectl -n staging rollout status deployment/${{ env.APP_NAME }} --timeout=60s
+
+      - name: Create or update Deployment web and Service web
+        env:
+          NS: ${{ steps.target.outputs.namespace }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ steps.target.outputs.sha }}
+          COOKIE_DOMAIN: ${{ steps.target.outputs.cookie_domain }}
+          ORIGINS: ${{ steps.target.outputs.origins }}
+        run: |
+          set -euo pipefail
+          # Read frontend's spec in this namespace (read only) into a file; nothing of it is printed.
+          kubectl -n "$NS" get deployment/${{ env.SOURCE_APP }} -o json > "$RUNNER_TEMP/frontend.json"
+          # web's own sign-in settings (app/lib/auth-cookies.ts): the "stu" cookies shared across this domain, and
+          # the origins a sign-in may be posted from. Plain values, no secret.
+          SET=$(jq -n --arg d "$COOKIE_DOMAIN" --arg o "$ORIGINS" \
+            '{AUTH_COOKIE_PREFIX: "stu", AUTH_COOKIE_DOMAIN: $d, AUTH_TRUSTED_ORIGINS: $o}')
+          # Only when frontend has none: the control plane in this namespace, in-cluster.
+          DEFAULTS='{"CONTROL_PLANE_URL": "http://control-plane:8080"}'
+          jq --arg img "$IMAGE" --argjson drop "$(cat k8s/web/retired-env.json)" \
+            --argjson set "$SET" --argjson defaults "$DEFAULTS" \
+            -f k8s/web/deployment-from-frontend.jq "$RUNNER_TEMP/frontend.json" > "$RUNNER_TEMP/web.json"
+          rm -f "$RUNNER_TEMP/frontend.json"
+          echo "web in $NS, image $IMAGE"
+          echo "web env: $(jq -r '[.spec.template.spec.containers[0].env[].name] | join(", ")' "$RUNNER_TEMP/web.json")"
+          kubectl apply -f "$RUNNER_TEMP/web.json"
+          rm -f "$RUNNER_TEMP/web.json"
+          kubectl apply -n "$NS" -f k8s/web/service.yaml
+
+      - name: Wait for the rollout
+        env:
+          NS: ${{ steps.target.outputs.namespace }}
+        run: |
+          kubectl rollout status deployment/${{ env.APP_NAME }} -n "$NS" --timeout=10m || {
+            echo "Rollout failed or timed out. Pod status:"
+            kubectl get pods -n "$NS" -l app=${{ env.APP_NAME }} -o wide
+            LATEST_POD=$(kubectl get pods -n "$NS" -l app=${{ env.APP_NAME }} \
+              --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}' 2>/dev/null || echo "")
+            if [ -n "$LATEST_POD" ]; then
+              kubectl get events -n "$NS" --field-selector involvedObject.name=$LATEST_POD \
+                --sort-by='.lastTimestamp' | tail -20 || true
+              kubectl logs -n "$NS" $LATEST_POD --tail=50 || true
+            fi
+            exit 1
+          }
+
+      # Always restore the original allowlist, even if earlier steps failed.
+      - name: Revoke this runner from the AKS API server firewall
+        if: always() && steps.aks_allow.outputs.modified == 'true'
+        run: |
+          set -euo pipefail
+          az aks update -g rg-studojo -n studojo-aks \
+            --api-server-authorized-ip-ranges "${{ steps.aks_allow.outputs.original }}" \
+            --only-show-errors -o none
+          echo "Restored original authorized IP ranges."

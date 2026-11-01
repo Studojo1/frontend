@@ -1,7 +1,8 @@
 import { redirect } from "react-router";
 
-// Permanent redirects for URLs people type, old playbook links, and reports
-// merged into a stronger duplicate. Each path is registered in app/routes.ts
+// Permanent redirects for URLs people type, /support from old emails, and
+// reports merged into a stronger duplicate. Old product paths are retired
+// instead (app/lib/retired-routes.ts, app/routes/retired.tsx). Each path is registered in app/routes.ts
 // against this module (audit ST-N11, HP-N18, ST-N06). Query strings (utm_*,
 // fbclid) are carried over so attribution survives the hop.
 export const LEGACY_REDIRECTS: Record<string, string> = {
@@ -10,11 +11,6 @@ export const LEGACY_REDIRECTS: Record<string, string> = {
   "/login": "/auth?mode=signin",
   "/signin": "/auth?mode=signin",
   "/sign-in": "/auth?mode=signin",
-  "/pricing": "/outreach",
-  "/dojos": "/",
-  "/dojos/careers": "/resume-maker",
-  "/dojos/outreach": "/outreach",
-  "/internships": "/dojos/internships",
   // Emails sent before 29 Sep link "Help" to /support.
   "/support": "/contact",
   // Near-duplicate reports: keep the stronger page of each pair.

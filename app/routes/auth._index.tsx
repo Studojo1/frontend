@@ -6,6 +6,7 @@ import { PasswordInput } from "~/components/password-input";
 import { heldTrackingParams } from "~/lib/attribution";
 import { authClient } from "~/lib/auth-client";
 import { logFunnelStep } from "~/lib/funnel";
+import { useGoogleOnly } from "~/lib/google-only";
 import { isOtherApp } from "~/lib/other-apps";
 import { chromeIntentUrl, detectInAppBrowser, isAndroid, type InAppBrowser } from "~/lib/in-app-browser";
 import { capturePostHog, featureFlagEnabled } from "~/lib/posthog";
@@ -205,6 +206,8 @@ export default function Auth() {
   const b2c = useSiteB2c();
   const b2cMark = (part: string) => (b2c ? { "data-b2c": part } : {});
   const [searchParams, setSearchParams] = useSearchParams();
+  // GOOGLE_ONLY (app/lib/google-only.ts, off by default): only "Continue with Google", no email form, tabs or passkey.
+  const googleOnly = useGoogleOnly();
   // Returning visitors are switched back to Sign In below once their last
   // login method is readable.
   const modeParam = searchParams.get("mode");
@@ -371,8 +374,8 @@ export default function Auth() {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    // Only attempt passkey autoFill once per mount, and only in signin mode
-    if (mode !== "signin" || passkeyAttemptedRef.current) return;
+    // Only attempt passkey autoFill once per mount, and only in signin mode (never with GOOGLE_ONLY on)
+    if (googleOnly || mode !== "signin" || passkeyAttemptedRef.current) return;
     
     // Only run in browser
     if (typeof window === "undefined") return;
@@ -404,7 +407,7 @@ export default function Auth() {
         });
       }
     });
-  }, [mode]);
+  }, [mode, googleOnly]);
 
   if (!isPending && session) return null;
 
@@ -588,7 +591,8 @@ export default function Auth() {
 
             {inApp && !inAppDismissed && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
 
-            {/* Toggle Tabs */}
+            {/* Toggle Tabs (not with GOOGLE_ONLY on: Google signs people in and up alike) */}
+            {!googleOnly && (
             <div {...b2cMark("tabs")} className="mb-8 flex gap-2 rounded-2xl border-2 border-neutral-900 bg-white p-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
               <button
                 {...b2cMark(mode === "signin" ? "tab-on" : "tab")}
@@ -615,6 +619,7 @@ export default function Auth() {
                 Sign Up
               </button>
             </div>
+            )}
 
             {resumeFirst && mode === "signup" && <ResumeFirstCard />}
 
@@ -679,7 +684,7 @@ export default function Auth() {
                   <p {...b2cMark("fine")} className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
                     <ConsentLine lead="By continuing" />
                   </p>
-                  {mode === "signin" && (
+                  {mode === "signin" && !googleOnly && (
                     <button
                       {...b2cMark("passkey")}
                       type="button"
@@ -692,6 +697,8 @@ export default function Auth() {
                   )}
                 </div>
 
+                {!googleOnly && (
+                <>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center" aria-hidden>
                     <div className="w-full border-t border-neutral-200" />
@@ -765,9 +772,11 @@ export default function Auth() {
                   <ConsentLine lead={mode === "signup" ? "By signing up" : "By continuing"} />
                 </p>
                 </div>
+                </>
+                )}
               </form>
 
-              {mode === "signin" && (
+              {mode === "signin" && !googleOnly && (
                 <p {...b2cMark("switch")} className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                   Don't have an account?{" "}
                   <button
@@ -781,7 +790,7 @@ export default function Auth() {
                 </p>
               )}
 
-              {mode === "signup" && (
+              {mode === "signup" && !googleOnly && (
                 <p {...b2cMark("switch")} className="mt-6 text-center font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                   Already have an account?{" "}
                   <button

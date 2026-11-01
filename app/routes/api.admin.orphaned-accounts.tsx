@@ -3,7 +3,7 @@ import db from "~/lib/db";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.admin.orphaned-accounts";
 
-// Same admin allowlist as api.admin.cc-user-activity.
+// The admin allowlist (the same one the old career coach activity API used).
 const ADMIN_EMAILS = [
   "admin@studojo.com",
   "jeremy@studojo.com",
@@ -26,7 +26,7 @@ function corsHeaders(request: Request): Record<string, string> {
   const h: Record<string, string> = {
     Vary: "Origin",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, x-cc-admin-secret",
+    "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Credentials": "true",
   };
   if (allow) h["Access-Control-Allow-Origin"] = allow;
@@ -37,11 +37,9 @@ function jsonCors(request: Request, data: unknown, status = 200) {
   return Response.json(data, { status, headers: corsHeaders(request) });
 }
 
+// RELAUNCH (2 Nov 2026): the career coach admin secret (x-cc-admin-secret, cc-backend's CC_ADMIN_SECRET) no
+// longer opens this; cc-backend is retired. An allowlisted admin session only.
 async function isAuthorized(request: Request): Promise<boolean> {
-  const secret = request.headers.get("x-cc-admin-secret");
-  const expected =
-    process.env.CC_ADMIN_SECRET_KEY || process.env.CC_ADMIN_SECRET || "";
-  if (expected && secret && secret === expected) return true;
   const session = await getSessionFromRequest(request);
   return !!session && ADMIN_EMAILS.includes(session.user.email);
 }

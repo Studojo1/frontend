@@ -1,35 +1,49 @@
-// HOMEPAGE: studojo.pro (and localhost) get the B2C homepage, header and footer; studojo.com never does, even
-// with a forged Host header, because the deployment's own address (BETTER_AUTH_URL) must agree.
+// HOMEPAGE, RELAUNCH (2 Nov 2026): studojo.com, www.studojo.com and studojo.pro (and localhost) get the new homepage,
+// header and footer, and so do the product's platform hosts (only their sign-in pages reach this app). The Sensei
+// hosts (app., dashboard.) and the admin panel keep what they have.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
-import { b2cHomeHost, deploymentAllowsB2c } from "./b2c-home.ts";
+import { b2cHomeHost, deploymentAllowsB2c, homeV3On } from "./b2c-home.ts";
 
 const STAGING = "https://studojo.pro";
 const PROD = "https://studojo.com";
 
-for (const h of ["studojo.pro", "STUDOJO.PRO", "studojo.pro:443", "studojo.pro.", "www.studojo.pro", "localhost", "localhost:5173", "127.0.0.1:3000"]) {
-  assert.equal(b2cHomeHost(h, STAGING), true, h);
-  assert.equal(b2cHomeHost(h, undefined), true, `${h} (no deployment url: local runs and tests)`);
+const B2C = [
+  "studojo.com", "STUDOJO.COM", "studojo.com:443", "studojo.com.", "www.studojo.com",
+  "studojo.pro", "STUDOJO.PRO", "studojo.pro:443", "studojo.pro.", "www.studojo.pro",
+  "platform.studojo.com", "platform.studojo.pro",
+  "localhost", "localhost:5173", "127.0.0.1:3000",
+];
+for (const h of B2C) {
+  for (const dep of [STAGING, PROD, undefined]) assert.equal(b2cHomeHost(h, dep), true, `${h} on ${dep}`);
 }
-// Sensei, the admin panel, production and look-alikes keep what they have.
-for (const h of ["studojo.com", "www.studojo.com", "app.studojo.pro", "dashboard.studojo.pro", "admin.studojo.pro", "app.studojo.com", "studojo.pro.evil.com", "evilstudojo.pro", "studojo.prod", "", null, undefined]) {
-  assert.equal(b2cHomeHost(h, STAGING), false, String(h));
+// Sensei, the admin panel and look-alikes keep what they have, on every deployment.
+for (const h of ["app.studojo.pro", "dashboard.studojo.pro", "admin.studojo.pro", "app.studojo.com", "dashboard.studojo.com", "admin.studojo.com", "sensei.studojo.com", "studojo.pro.evil.com", "evilstudojo.pro", "studojo.com.evil.com", "studojo.prod", "", null, undefined]) {
+  for (const dep of [STAGING, PROD, undefined]) assert.equal(b2cHomeHost(h, dep), false, `${h} on ${dep}`);
 }
-// Production never shows it, whatever Host a request claims.
-for (const h of ["studojo.pro", "localhost", "127.0.0.1"]) assert.equal(b2cHomeHost(h, PROD), false, `${h} on production`);
-assert.equal(deploymentAllowsB2c(PROD), false);
+// A deployment for some other address never draws it.
+assert.equal(deploymentAllowsB2c(PROD), true);
+assert.equal(deploymentAllowsB2c(STAGING), true);
 assert.equal(deploymentAllowsB2c("http://localhost:3000"), true);
+assert.equal(deploymentAllowsB2c("https://example.com"), false);
 assert.equal(deploymentAllowsB2c("not a url"), false);
+assert.equal(b2cHomeHost("studojo.com", "https://example.com"), false);
 
-// Everyone on a B2C host sees the homepage, signed in or not: no redirect and no old /onboarding check
-// (the explainer, 27 Oct: the owner reviews it signed in). The B2C branch reads the session only to return
-// signedIn, so the first paint is right, and a failed read is "signed out".
+// HOME_V3: on unless "0" (studojo.com's deploy never sets it, so it gets V3 like studojo.pro).
+for (const v of [undefined, "", "1", "true", " 1 "]) assert.equal(homeV3On(v), true, String(v));
+assert.equal(homeV3On("0"), false);
+assert.equal(homeV3On(" 0 "), false);
+
+// Everyone off the Sensei hosts sees the new homepage, signed in or not: no redirect and no old /onboarding check,
+// and no old homepage left to fall back to. The loader reads the session only to return signedIn, so the first
+// paint is right, and a failed read is "signed out".
 const index = readFileSync(new URL("../routes/_index.tsx", import.meta.url), "utf8");
-const b2cBranch = index.slice(index.indexOf("if (isB2cRequest(request)) {"), index.indexOf("\n  }\n", index.indexOf("if (isB2cRequest(request)) {")));
-assert.match(b2cBranch, /const signedIn = !!\(await getSessionFromRequest\(request\)\.catch\(\(\) => null\)\);/);
-assert.match(b2cBranch, /return \{ bobApp: false, dashboardApp: false, b2cHome: true, signedIn,/);
-assert.doesNotMatch(b2cBranch, /redirect|requireOnboardingComplete/, "no redirect and no /onboarding check on a B2C host");
-assert.ok(index.indexOf("isB2cRequest(request)") < index.indexOf("requireOnboardingComplete("), "B2C branch before the old /onboarding check");
+const loaderSrc = index.slice(index.indexOf("export async function loader"), index.indexOf("export function meta"));
+assert.match(loaderSrc, /const signedIn = !!\(await getSessionFromRequest\(request\)\.catch\(\(\) => null\)\);/);
+assert.match(loaderSrc, /return \{ bobApp: false, dashboardApp: false, b2cHome: true, signedIn, homeV3: homeV3On\(process\.env\.HOME_V3\),/);
+const indexCode = index.replace(/^\s*\/\/.*$/gm, "");
+assert.doesNotMatch(indexCode, /redirect\(|requireOnboardingComplete|"\/onboarding|"\/outreach/, "no redirect, no /onboarding, no old product");
+assert.doesNotMatch(index, /from "~\/components";/, "the old homepage's sections are gone");
 // Signed in, the header offers "my jobs" (a plain <a> to /b2cnew) and keeps /settings (account deletion) reachable.
 const header = readFileSync(new URL("../components/home-b2c/HeaderB2C.tsx", import.meta.url), "utf8");
 assert.match(header, /<a\s[^>]*href=\{STU_HOME\}/);

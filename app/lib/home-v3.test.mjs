@@ -240,17 +240,18 @@ for (const f of ["laugh", "sparkle", "curious", "grin", "happy"]) assert.ok(read
   assert.match(css, /\.hv2 \.hv-signout \{/);
 }
 
-// ---------- 7. studojo.com cannot change ----------
-// The homepage renders only behind the B2C host gate (b2c-home.test.mjs: never on studojo.com) and the HOME_V3 switch,
-// with HOMEPAGE V2 in its place when the switch is off, and its CSS cannot reach any other page: every rule, each
-// comma part, sits under .hv2, which only HomeV3 (or HomeV2, never both in one deployment) renders.
+// ---------- 7. where it renders ----------
+// RELAUNCH (2 Nov 2026): the homepage on every host off the Sensei ones (studojo.com, www.studojo.com, studojo.pro),
+// behind the HOME_V3 switch, with HOMEPAGE V2 in its place when the switch is "0", and its CSS cannot reach any other
+// page: every rule, each comma part, sits under .hv2, which only HomeV3 (or HomeV2, never both at once) renders.
 const index = readFileSync(new URL("../routes/_index.tsx", import.meta.url), "utf8");
 assert.match(index, /^import \{ HomeV3 \} from "~\/components\/home-v3\/HomeV3";$/m);
 assert.equal((index.match(/<HomeV3 \/>/g) ?? []).length, 1);
-assert.match(index, /if \(b2cHome && homeV3\) return <HomeV3 \/>;\s*if \(b2cHome\) return <HomeV2 \/>;/, "V3 behind the host gate and the switch, V2 otherwise");
-const b2cBranch = index.slice(index.indexOf("if (isB2cRequest(request)) {"), index.indexOf("\n  }\n", index.indexOf("if (isB2cRequest(request)) {")));
-assert.match(b2cBranch, /homeV3: process\.env\.HOME_V3 === "1",/, "the switch is read on the server, in the B2C branch only");
-// The undo knob: the staging deploy sets HOME_V3 from the repository variable, on by default; production never does.
+assert.match(index, /if \(b2cHome && homeV3\) return <HomeV3 \/>;\s*return <HomeV2 \/>;/, "V3 behind the switch, V2 otherwise");
+const loaderSrc = index.slice(index.indexOf("export async function loader"), index.indexOf("export function meta"));
+assert.match(loaderSrc, /homeV3: homeV3On\(process\.env\.HOME_V3\),/, "the switch is read on the server: on unless HOME_V3 is 0");
+// The undo knob: the staging deploy sets HOME_V3 from the repository variable, on by default; production never does,
+// so it is on there too (unset is on, app/lib/b2c-home.ts homeV3On).
 const workflows = new URL("../../.github/workflows/", import.meta.url);
 assert.match(readFileSync(new URL("deploy-staging.yml", workflows), "utf8"), /kubectl set env deployment\/\$\{\{ env\.APP_NAME \}\} -c \$\{\{ env\.APP_NAME \}\} -n \$\{\{ env\.NAMESPACE \}\} \\\n\s+HOME_V3="\$\{\{ vars\.HOME_V3 \|\| '1' \}\}"/);
 assert.doesNotMatch(readFileSync(new URL("deploy.yml", workflows), "utf8"), /HOME_V3/, "studojo.com's deploy never sets HOME_V3");

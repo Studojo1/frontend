@@ -1,15 +1,16 @@
-// GET /api/account/export: "Download my data" on /settings.
+// GET /api/account/export: "Download my data" on /settings (career-agent's settings link here too).
 //
-// One file with everything Studojo holds for the signed-in user: job-outreach-svc's
-// own export (fetched server-side, as the user) plus this app's tables
-// (app/lib/account-export.server.ts). All or nothing: a file that silently
-// lacks the outreach half would read as complete when it is not, so if either
-// half fails the student gets an error and can try again.
+// One file with everything Studojo holds for the signed-in user (RELAUNCH, 2 Nov 2026; before, half of it came from
+// job-outreach-svc, which is being removed): this app's tables (app/lib/account-export.server.ts: the sign-in
+// account, support chat and tickets, attribution, report requests, API keys) and the product's own rows in the
+// career_agent schema (app/lib/career-data.server.ts). All or nothing: if either half fails the student gets an
+// error and can try again, never a file that silently lacks a part.
 import { collectAppData } from "~/lib/account-export.server";
 import { exportFilename, stripSecrets } from "~/lib/account-export";
+import { CAREER_SECRET_COLUMNS } from "~/lib/career-data";
+import { exportCareerData } from "~/lib/career-data.server";
 import { describeError } from "~/lib/error-detail";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
-import { outreachServerFetch } from "~/lib/outreach/server-api";
 import type { Route } from "./+types/api.account.export";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -19,13 +20,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
   const userId = session.user.id;
 
-  let outreach: unknown;
+  let career: Record<string, unknown[]>;
   let app: Record<string, unknown>;
   try {
-    [outreach, app] = await Promise.all([
-      outreachServerFetch("/account/export", { userId, timeout: 60_000 }),
-      collectAppData(userId, session.user.email ?? ""),
-    ]);
+    [career, app] = await Promise.all([exportCareerData(userId), collectAppData(userId, session.user.email ?? "")]);
   } catch (err) {
     console.error("[account-export] failed for", userId, describeError(err, "unknown error"));
     return Response.json(
@@ -35,12 +33,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const now = new Date();
-  const file = stripSecrets({
-    exported_at: now.toISOString(),
-    user_id: userId,
-    job_outreach: outreach,
-    ...app,
-  });
+  const file = {
+    ...stripSecrets({ exported_at: now.toISOString(), user_id: userId, ...app }),
+    // The product's tables, keyed by table: a channel link code is a secret there too.
+    studojo_agent: stripSecrets(career, CAREER_SECRET_COLUMNS),
+  };
 
   return new Response(JSON.stringify(file, null, 2), {
     status: 200,

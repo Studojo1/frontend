@@ -75,15 +75,9 @@ export async function loader() {
     { loc: "/reports/remote-jobs-report-who-hires-remote-freshers-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-scam-report-fake-internships-task-scams-students-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/background-verification-report-what-bgv-checks-2026", priority: "0.9", changefreq: "monthly" },
-    // Product + other. Only URLs that return 200 and robots.txt allows
-    // (no /auth, no /careers, which 301s to /).
-    { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
-    { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
-    { loc: "/cc", priority: "0.7", changefreq: "monthly" },
-    { loc: "/campus-ambassador", priority: "0.6", changefreq: "monthly" },
-    { loc: "/webinar", priority: "0.5", changefreq: "weekly" },
+    // Other pages. Only URLs that return 200 and robots.txt allows (no /auth).
+    // The old products are retired and 301 to / (app/lib/retired-routes.ts).
     { loc: "/sensei", priority: "0.6", changefreq: "monthly" },
-    { loc: "/resume-maker", priority: "0.7", changefreq: "monthly" },
     { loc: "/about", priority: "0.6", changefreq: "monthly" },
     { loc: "/contact", priority: "0.5", changefreq: "yearly" },
     { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
@@ -141,17 +135,6 @@ export async function loader() {
     blogPosts = result.rows as typeof blogPosts;
   } catch (error) {
     console.error("[sitemap.xml] Failed to fetch blog posts:", error);
-  }
-
-  // Published internship pages, with their real last-edit date.
-  let internships: Array<{ slug: string; updated_at: string }> = [];
-  try {
-    const result = await db.execute(
-      sql`SELECT slug, updated_at FROM internships WHERE status = 'published' ORDER BY updated_at DESC`
-    );
-    internships = result.rows as typeof internships;
-  } catch (error) {
-    console.error("[sitemap.xml] Failed to fetch internships:", error);
   }
 
   const day = (v: string | null | undefined) => (v ? new Date(v).toISOString().split("T")[0] : null);
@@ -254,14 +237,6 @@ export async function loader() {
     <loc>${baseUrl}/blog/${encodeURIComponent(post.slug)}</loc>${lastmodTag(day(post.updated_at) ?? day(post.published_at))}
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>`
-    ),
-    ...internships.map(
-      (job) => `
-  <url>
-    <loc>${baseUrl}/internships/${encodeURIComponent(job.slug)}</loc>${lastmodTag(day(job.updated_at))}
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
   </url>`
     ),
   ];

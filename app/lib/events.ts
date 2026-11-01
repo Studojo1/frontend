@@ -13,6 +13,18 @@ function emailerBaseUrl(): string {
 }
 
 /**
+ * RELAUNCH (2 Nov 2026, the owner): no email goes to a student from this app, not even by accident. Only events that
+ * mail the Studojo team pass; every other routing key (the welcome, the old Outreach and internship events) is
+ * dropped here, before any request. event.sensei.contact is a Sensei demo request, read by the team.
+ */
+export const TEAM_EVENT_KEYS: ReadonlySet<string> = new Set(["event.sensei.contact"]);
+
+/** Whether this app may publish a routing key (team mail only). Pure, for tests. */
+export function teamEventAllowed(routingKey: string): boolean {
+  return TEAM_EVENT_KEYS.has(routingKey);
+}
+
+/**
  * Publish an email event directly to the EMAILER service.
  *
  * SERVER-SIDE ONLY. The emailer's /v1/email/events endpoint is gated by
@@ -24,6 +36,10 @@ function emailerBaseUrl(): string {
  * or wrong URL is visible in logs instead of failing silently.
  */
 export async function publishEmailEvent(routingKey: string, event: any): Promise<void> {
+  if (!teamEventAllowed(routingKey)) {
+    console.warn(`[publishEmailEvent] ${routingKey} not sent: student emails are off`);
+    return;
+  }
   try {
     const base = emailerBaseUrl();
     const secret =
@@ -53,6 +69,8 @@ export async function publishEmailEvent(routingKey: string, event: any): Promise
  * resource route, which runs server-side, holds the internal secret, and
  * forwards to the gated emailer endpoint. Non-blocking and best-effort.
  */
+export const STUDENT_TEMPLATES_OFF = true;
+
 export async function publishEmailEventFromClient(
   routingKey: string,
   event: any
@@ -71,12 +89,18 @@ export async function publishEmailEventFromClient(
 /**
  * Send one named transactional template through the emailer (SERVER-SIDE ONLY,
  * uses the internal secret). Non-blocking like publishEmailEvent.
+ *
+ * RELAUNCH (2 Nov 2026): every template goes to a student (verify-email was the last caller), so nothing is sent.
  */
 export async function sendTemplateEmail(
   to: string,
   template: string,
   fields: { user_name?: string; action_url?: string } = {}
 ): Promise<void> {
+  if (STUDENT_TEMPLATES_OFF) {
+    console.warn(`[sendTemplateEmail] ${template} not sent: student emails are off`);
+    return;
+  }
   try {
     const secret =
       typeof process !== "undefined" ? process.env?.EMAILER_INTERNAL_SECRET : undefined;

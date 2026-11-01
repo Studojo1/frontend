@@ -54,7 +54,9 @@ const entry = read("entry.server.tsx");
 assert.match(entry, /\n  const b2c = isB2cRequest\(request\);\n/);
 assert.match(entry, /<Sv2HostContext\.Provider value=\{b2c\}>\n\s+(<LookContext\.Provider value=\{[^}]+\}>\n\s+)?<ServerRouter context=\{routerContext\} url=\{request\.url\} \/>\n\s+(<\/LookContext\.Provider>\n\s+)?<\/Sv2HostContext\.Provider>/);
 const { b2cHomeHost } = await import("./b2c-home.ts");
-assert.equal(b2cHomeHost("studojo.com", undefined), false, "the browser rule never makes studojo.com B2C");
+// RELAUNCH (2 Nov 2026): studojo.com is a B2C host now; the Sensei hosts never are.
+assert.equal(b2cHomeHost("studojo.com", undefined), true, "the browser rule makes studojo.com B2C");
+assert.equal(b2cHomeHost("app.studojo.com", undefined), false, "never the Sensei workspace");
 assert.equal(b2cHomeHost("studojo.pro", undefined), true);
 
 // ---------- 1b. every SITE-V2 CSS rule is under html[data-sv2] ----------

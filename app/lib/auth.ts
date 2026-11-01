@@ -14,8 +14,8 @@ import * as schema from "../../auth-schema";
 import db from "./db";
 import { sendOtpSms, getVerificationSid, clearVerificationSid } from "./sms";
 import { verifyOtpCode } from "./verify";
-import { sendTemplateEmail } from "./events";
-import { welcomeAfterCommit } from "./welcome-after-commit";
+import { googleOnlyEnabled } from "./google-only";
+import { LAST_LOGIN_METHOD_COOKIE, authCookieConfig } from "./auth-cookies";
 
 // Helper to generate IDs similar to better-auth (base64url encoded random bytes)
 // Browser-compatible implementation that works in both server and client
@@ -60,6 +60,11 @@ function generateId(): string {
 const baseURL =
   process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 
+// Cookie prefix, shared cookie domain and trusted origins, from env (app/lib/auth-cookies.ts): AUTH_COOKIE_PREFIX,
+// AUTH_COOKIE_DOMAIN, AUTH_TRUSTED_ORIGINS.
+const cookieConfig = authCookieConfig(process.env);
+for (const problem of cookieConfig.problems) console.error(`[auth] ${problem}`);
+
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 if (!googleClientId?.trim() || !googleClientSecret?.trim()) {
@@ -73,25 +78,6 @@ if (!googleClientId?.trim() || !googleClientSecret?.trim()) {
 const adminUserIds = process.env.ADMIN_USER_IDS
   ? process.env.ADMIN_USER_IDS.split(",").map((id) => id.trim()).filter(Boolean)
   : [];
-
-// Welcome only once the sign-up has committed a login (see welcome-after-commit).
-async function userHasLoginAccount(userId: string): Promise<boolean> {
-  const rows = await db
-    .select({ id: schema.account.id })
-    .from(schema.account)
-    .where(eq(schema.account.userId, userId))
-    .limit(1);
-  return rows.length > 0;
-}
-
-async function publishWelcome(payload: { user_id: string; email: string; name?: string | null }) {
-  const { publishEmailEvent } = await import("./events");
-  // ONLY the new flow welcome fires on signup. The old transactional
-  // event.user.signup ("welcome" template) is retired: it produced a
-  // duplicate second welcome. cc-welcome-new-user is the single welcome and
-  // also starts the Outreach not-used gate/chase.
-  await publishEmailEvent("event.cc.welcome_new_user", payload);
-}
 
 export const auth = betterAuth({
   // Failed OAuth callbacks (bad or missing state) used to land on the homepage
@@ -133,6 +119,9 @@ export const auth = betterAuth({
     ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
     // API subdomain: needed for cross-origin cookie access from outreach and other services
     "https://api.studojo.com",
+    // RELAUNCH: the site's own hosts and the product's (platform.studojo.com, whose /auth and /api/auth this app
+    // serves), from AUTH_TRUSTED_ORIGINS. A sign-in posted from an origin not listed gets 403 INVALID_ORIGIN.
+    ...cookieConfig.trustedOrigins,
   ],
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
   
@@ -153,6 +142,7 @@ export const auth = betterAuth({
       ...(process.env.CORS_ORIGINS?.includes("dev.studojo.com") ? [] : ["https://dev.studojo.com"]),
       // API subdomain: needed for cross-origin requests from outreach and other services
       "https://api.studojo.com",
+      ...cookieConfig.trustedOrigins,
     ],
     credentials: true,
   },
@@ -426,23 +416,8 @@ export const auth = betterAuth({
         before: async (account) => ("idToken" in account ? { data: { ...account, idToken: null } } : undefined),
       },
     },
-    user: {
-      create: {
-        after: async (user) => {
-          // Fire for ALL signup methods (email/password, Google OAuth, etc.)
-          //
-          // This hook runs INSIDE the sign-up transaction (see `transaction:
-          // true` above), before the credential row is written and before
-          // commit. Publishing here would welcome a user whose sign-up can
-          // still roll back. So the welcome is sent only once the user AND a
-          // login account are visible outside the transaction.
-          void welcomeAfterCommit(user, {
-            isCommitted: userHasLoginAccount,
-            publish: publishWelcome,
-          });
-        },
-      },
-    },
+    // RELAUNCH (2 Nov 2026, the owner): no email to a student who signs up. The welcome that a user.create.after
+    // hook published here (event.cc.welcome_new_user, which also started the old Outreach chase) is gone.
   },
 
   session: {
@@ -456,36 +431,29 @@ export const auth = betterAuth({
     storeSessionInDatabase: true,
   },
   
-  // Advanced cookie configuration for subdomain sharing
+  // Cookies (app/lib/auth-cookies.ts): our own prefix (AUTH_COOKIE_PREFIX, "stu" on web) and, with AUTH_COOKIE_DOMAIN,
+  // one cookie for the whole domain, so a sign-in started on platform.studojo.com survives Google's callback on
+  // studojo.com. The old advanced.cookieOptions here is not a better-auth 1.4 option and was ignored (host-only
+  // cookies). Unset, cookies stay host-only under "better-auth", as before.
   advanced: {
-    cookiePrefix: "better-auth",
-    // Set cookie domain to .studojo.com so cookies are accessible across all subdomains
-    // This allows admin.studojo.com and maverick.studojo.com to access cookies set by studojo.com
-    cookieOptions: baseURL.includes("studojo.com") ? {
-      domain: ".studojo.com",
-      sameSite: "lax",
-      secure: true,
-    } : baseURL.includes("studojo.pro") ? {
-      domain: ".studojo.pro",
-      sameSite: "lax",
-      secure: true,
-    } : undefined,
+    cookiePrefix: cookieConfig.cookiePrefix,
+    ...(cookieConfig.crossSubDomainCookies ? { crossSubDomainCookies: cookieConfig.crossSubDomainCookies } : {}),
   },
 
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,
+    // Email sign-up works without verifying the address (the owner, 2 Nov 2026), and is refused only when
+    // GOOGLE_ONLY is on (app/lib/google-only.ts). Sign-in is never gated on a verified email.
+    requireEmailVerification: false,
+    disableSignUp: googleOnlyEnabled(),
+    // No sendResetPassword: better-auth cannot send a reset email (the owner: reset emails are paused).
   },
-  // Email signups get a confirm link so email_verified means something (it was
-  // false for every one of them). Sign-in is deliberately NOT gated on it:
-  // requireEmailVerification stays off so nobody is blocked mid-funnel.
+  // RELAUNCH (2 Nov 2026, the owner): no verification email. With no sendVerificationEmail better-auth has no way to
+  // send one, and nothing asks it to.
   emailVerification: {
-    sendOnSignUp: true,
-    autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      // Not awaited: signup must not wait on (or fail with) the emailer.
-      void sendTemplateEmail(user.email, "verify-email", { user_name: user.name, action_url: url });
-    },
+    sendOnSignUp: false,
+    sendOnSignIn: false,
   },
   socialProviders: {
     google: {
@@ -495,7 +463,7 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    lastLoginMethod({ storeInDatabase: true }),
+    lastLoginMethod({ storeInDatabase: true, cookieName: LAST_LOGIN_METHOD_COOKIE }),
     jwt(),
     admin(adminUserIds.length > 0 ? { adminUserIds } : {}),
     passkey({

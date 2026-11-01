@@ -43,15 +43,16 @@ export function isSecretKey(key: string): boolean {
   return SECRET_PHRASES.some((p) => k === p || k.startsWith(`${p}_`) || k.endsWith(`_${p}`) || k.includes(`_${p}_`));
 }
 
-/** A deep copy of `value` with every secret-named key removed, at any depth. */
-export function stripSecrets<T>(value: T): T {
-  if (Array.isArray(value)) return value.map((v) => stripSecrets(v)) as T;
+/** A deep copy of `value` with every secret-named key removed, at any depth. `extra`: more keys to drop (exact,
+ * snake_case), for a part of the file that has its own (app/lib/career-data.ts CAREER_SECRET_COLUMNS). */
+export function stripSecrets<T>(value: T, extra?: ReadonlySet<string>): T {
+  if (Array.isArray(value)) return value.map((v) => stripSecrets(v, extra)) as T;
   if (value instanceof Date) return value.toISOString() as T;
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      if (isSecretKey(k)) continue;
-      out[k] = stripSecrets(v);
+      if (isSecretKey(k) || extra?.has(normaliseKey(k))) continue;
+      out[k] = stripSecrets(v, extra);
     }
     return out as T;
   }

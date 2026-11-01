@@ -4,7 +4,6 @@ import type { Route } from "./+types/api.tickets";
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
-import { outreachServerFetch } from "~/lib/outreach/server-api";
 import {
   categoryToPriority,
   isValidCategory,
@@ -148,24 +147,9 @@ export async function action({ request }: Route.ActionArgs) {
   const userName = session.user.name ?? null;
   const clientContext =
     contextRaw && typeof contextRaw === "object" ? contextRaw : null;
-  // Every campaign the user owns, with live state, attached server-side on
-  // every ticket whatever page it came from (audit P43). The ticket that first
-  // reported the orphaned-campaign bug carried only a page URL, and the answer
-  // it got was wrong because nobody could see the second campaign.
-  let campaigns: unknown = null;
-  try {
-    const res = await outreachServerFetch<{ campaigns: unknown[] }>("/campaign/user/all", {
-      userId: session.user.id,
-      timeout: 4000,
-    });
-    campaigns = res?.campaigns ?? null;
-  } catch {
-    // A ticket must never fail because this lookup did.
-  }
-  const context =
-    clientContext || campaigns
-      ? { ...(clientContext as Record<string, unknown> | null), ...(campaigns ? { campaigns } : {}) }
-      : null;
+  // RELAUNCH (2 Nov 2026): the old Outreach campaigns (job-outreach-svc) are no
+  // longer attached to a ticket; that service is being removed.
+  const context = clientContext ? (clientContext as Record<string, unknown>) : null;
 
   await ensureTicketTables();
 

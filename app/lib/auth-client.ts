@@ -7,6 +7,7 @@ import {
   twoFactorClient,
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import { LAST_LOGIN_METHOD_COOKIE } from "./auth-cookies";
 import { fetchWithRetry } from "./fetch-with-retry";
 
 // Wrap fetchWithRetry to match native fetch signature for Better Auth
@@ -54,7 +55,7 @@ export const authClient = createAuthClient({
     typeof window !== "undefined" ? window.location.origin : "",
   fetch: fetchWithRetryWrapper, // Use our retry-enabled fetch
   plugins: [
-    lastLoginMethodClient(),
+    lastLoginMethodClient({ cookieName: LAST_LOGIN_METHOD_COOKIE }),
     jwtClient(),
     adminClient(),
     passkeyClient(),
