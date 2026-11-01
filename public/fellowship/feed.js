@@ -108,6 +108,7 @@
     });
     S.conn.now = M.connections.now; S.conn.atJoin = M.connections.atJoin; S.conn.history = M.connections.history.slice();
     S.stories = M.stories.slice();
+    ME.storyPrompts = M.storyPrompts;
     return true;
   }
   const postedCount = () => S.posts.filter((p) => p.status === "posted").length;
@@ -442,29 +443,36 @@
   }
 
   /* ---------- share an experience */
+  // Posts are written only from what a fellow shares, so until they've shared a few stories this card
+  // leads the page (moved to the top of the feed at load) and says why.
+  const askingForStories = () => S.stories.length < ME.storiesWanted;
   function renderShare(keepText) {
     const ta = $("#story-text");
     const text = keepText && ta ? ta.value : "";
     const prompts = ME.storyPrompts;
-    const pr = prompts[S.promptIdx];
+    const pr = prompts[S.promptIdx] || prompts[0];
     const stories = S.stories.map((s) => `<li class="story" tabindex="-1">
         <p class="st-prompt">${esc(s.prompt)}</p>
         <p class="st-text">${esc(s.text)}</p>
         <p class="st-meta">${ic(s.spoken ? "mic" : "keyboard")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
       </li>`).join("");
+    const asking = askingForStories(), left = ME.storiesWanted - S.stories.length;
     $("#share").classList.toggle("is-listening", S.listening);
+    $("#share").classList.toggle("is-asking", asking);
     $("#share").innerHTML = `
-      <div class="card-head"><h2 class="card-title" id="share-title">Share an experience</h2></div>
-      <p class="card-sub">Tell us what happened, in your own words. We help turn good stories into posts.</p>
+      <div class="card-head"><h2 class="card-title" id="share-title">${asking ? "Start here: tell us your story" : "Share an experience"}</h2>${asking ? `<span class="chip chip-next">${S.stories.length} of ${ME.storiesWanted} shared</span>` : ""}</div>
+      <p class="card-sub">${asking
+        ? `Your posts are written from what you share here, so this comes first. Share ${left === 1 ? "one more story" : left + " stories"} about your own life: real places, people and what happened next make the best posts.`
+        : "Tell us what happened, in your own words. Your posts are written from these, so new stories mean better posts."}</p>
       <div class="prompt-box">
         <div class="prompt-top">
-          <span class="kicker">${ic("bulb")}Prompt ${S.promptIdx + 1} of ${prompts.length}</span>
-          <button class="btn-link" type="button" data-act="prompt-next">Another prompt${ic("arrow", "ic-sm")}</button>
+          <span class="kicker">${ic("bulb")}Question ${S.promptIdx + 1} of ${prompts.length}</span>
+          <button class="btn-link" type="button" data-act="prompt-next">Another question${ic("arrow", "ic-sm")}</button>
         </div>
         <p class="prompt-text" id="prompt-text">${esc(pr)}</p>
       </div>
       <label class="sr-only" for="story-text">Your story</label>
-      <textarea id="story-text" rows="4" aria-describedby="prompt-text story-err" placeholder="${S.listening ? "Listening. Start talking and we'll type it here." : (P.voice ? "Type here, or tap to speak." : "Type your story here.")}">${esc(text)}</textarea>
+      <textarea id="story-text" rows="4" aria-describedby="prompt-text story-err" placeholder="${S.listening ? "Listening. Start talking and we'll type it here." : (P.voice ? "Type here, or tap to speak." : "Type your story here: where it happened, what you did, what came next.")}">${esc(text)}</textarea>
       <p class="err" id="story-err">${S.storyErr ? ic("alert") + esc(S.storyErr) : ""}</p>
       <div class="share-actions">
         ${P.voice ? `<button class="mic" type="button" data-act="mic" aria-pressed="${S.listening}">
@@ -756,9 +764,9 @@
       const text = $("#story-text").value.trim();
       if (text.length < 10) { S.storyErr = !text && S.listening ? "We didn't catch anything yet. Keep talking, or type it instead." : text ? "Write a few more words first." : "Write a few words first."; renderShare(true); $("#story-text").focus(); return; }
       b.disabled = true;
-      try { if (!applyView(await call({ intent: "story", prompt: ME.storyPrompts[S.promptIdx], text }))) return; }
+      try { if (!applyView(await call({ intent: "story", prompt: ME.storyPrompts[S.promptIdx] || ME.storyPrompts[0], text }))) return; }
       catch (e) { S.storyErr = e.message; renderShare(true); $("#story-text").focus(); return; }
-      S.listening = false; S.spoke = false; S.storyErr = "";
+      S.listening = false; S.spoke = false; S.storyErr = ""; S.promptIdx = 0;
       renderShare(false); focusEl("#share .story");
       toast("Story shared. Thank you, " + ME.first + ".");
       return;
@@ -790,6 +798,7 @@
   /* ---------- first render */
   $("#week-pill").hidden = false;
   if (ME.paused) { const n = $("#notice"); n.textContent = "Your fellowship is paused for now. Message the Studojo team on WhatsApp to pick it back up."; n.hidden = false; }
+  if (askingForStories()) { const share = $("#share"); $("#main").insertBefore(share, $("#ed-cover")); share.classList.add("is-first"); }
   renderTop(); renderProfile(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
   $("#page").classList.add("is-ready");
   $("#main").removeAttribute("aria-busy");

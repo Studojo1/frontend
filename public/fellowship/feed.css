@@ -600,3 +600,6 @@ ul, ol { padding: 0; list-style: none; }
   .panel input[type="url"], .panel input[type="text"] { font-size: 16px; min-height: 44px; }
   .act-nums { flex-wrap: wrap; white-space: normal; }
 }
+/* A fellow who hasn't shared enough yet sees the story card first, marked out. */
+.share.is-asking { box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
+.share .card-head .chip { flex: none; }

@@ -219,12 +219,45 @@ export function cleanText(raw: unknown, max: number, oneLine = false): string {
 
 const DEFAULT_LABEL = "In partnership with Studojo";
 
-export const STORY_PROMPTS = [
-  "A time something didn't go to plan, and what you did next",
+// What fellows are asked to share. Their posts are written only from what they share, so the first six
+// cover the basics (in this order for someone new); the rest keep returning fellows on new questions.
+// A saved story keeps its prompt's text, so a prompt is never reworded once in use, only added.
+const CORE_PROMPTS = [
+  "Something that shaped who you are today",
+  "Why you chose your course, and whether you'd choose it again",
   "An internship, project or job you're proud of",
+  "A time something didn't go to plan, and what you did next",
+  "Something you're proud of that isn't on your CV",
+  "What you want to be doing a year from now, and what's in the way",
+];
+const MORE_PROMPTS = [
   "Something you learned the hard way",
   "A conversation that changed how you think about your career",
+  "A rejection that stung, and what it taught you",
+  "The first time you were paid for your work, or the first thing you built",
+  "Something you do outside class that most people don't know about",
+  "A person who opened a door for you",
+  "A moment at college you'll remember for a long time",
 ];
+export const STORY_PROMPTS = [...CORE_PROMPTS, ...MORE_PROMPTS];
+
+/** Stories a fellow is asked for before anything else on their page. */
+export const STORIES_WANTED = 3;
+
+/**
+ * The prompts in the order to ask them: the basics this fellow hasn't answered, in order; then the
+ * other unanswered ones, starting somewhere new each day; answered ones last.
+ */
+export function promptOrder(answered: (string | null)[], today: string): string[] {
+  const used = new Set(answered.filter(Boolean));
+  const more = MORE_PROMPTS.filter((p) => !used.has(p));
+  const shift = more.length ? Math.abs(diffDays("2026-01-01", today)) % more.length : 0;
+  return [
+    ...CORE_PROMPTS.filter((p) => !used.has(p)),
+    ...more.slice(shift), ...more.slice(0, shift),
+    ...STORY_PROMPTS.filter((p) => used.has(p)),
+  ];
+}
 
 // The rules row is JSON the team edits: take text fields only when they are text.
 const textOf = (v: unknown, fallback = ""): string => (typeof v === "string" ? v : typeof v === "number" ? `${v}` : fallback);
@@ -460,7 +493,8 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
         posts: thisWeekPosts.map(postView),
       },
       history,
-      storyPrompts: STORY_PROMPTS,
+      storyPrompts: promptOrder(input.stories.map((s) => s.prompt), today),
+      storiesWanted: STORIES_WANTED,
       stories: input.stories
         .slice()
         .sort((a, b) => toMs(b.created_at) - toMs(a.created_at))

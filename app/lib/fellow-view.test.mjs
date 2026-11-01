@@ -8,6 +8,9 @@ import {
   cleanPostUrl,
   LINKEDIN_POST,
   normaliseSlug,
+  promptOrder,
+  STORY_PROMPTS,
+  STORIES_WANTED,
   toMs,
   istDate,
   weekOf,
@@ -208,5 +211,20 @@ assert.equal(missed.me.completedWeeks, 1);
 assert.equal(missed.me.history[0].complete, false);
 assert.equal(missed.me.history[0].posts.length, 1, "only posted posts are listed");
 assert.deepEqual(missed.me.history[0].missed.map((m) => [m.id, m.day, m.date, m.body]), [["3", "Tue", "2026-10-20", "Body 3"]], "the missed post can still be copied and marked");
+
+// Story questions: the basics first for someone new, unanswered ones before answered, and a new order each day.
+const order0 = promptOrder([], "2026-11-01");
+assert.equal(order0.length, STORY_PROMPTS.length);
+assert.equal(order0[0], "Something that shaped who you are today", "a new fellow starts with what shaped them");
+assert.equal(order0[1], "Why you chose your course, and whether you'd choose it again");
+const done = promptOrder(["Something that shaped who you are today", null, "A time something didn't go to plan, and what you did next"], "2026-11-01");
+assert.equal(done[0], "Why you chose your course, and whether you'd choose it again", "answered questions aren't asked first again");
+assert.deepEqual(done.slice(-2).sort(), ["A time something didn't go to plan, and what you did next", "Something that shaped who you are today"].sort(), "answered ones go last");
+assert.equal(new Set(done).size, STORY_PROMPTS.length, "every question appears once");
+const allCore = STORY_PROMPTS.slice(0, 6);
+assert.notEqual(promptOrder(allCore, "2026-11-01")[0], promptOrder(allCore, "2026-11-02")[0], "returning fellows get a different first question the next day");
+assert.equal(STORIES_WANTED, 3);
+assert.equal(v.me.storiesWanted, 3);
+assert.equal(v.me.storyPrompts[0], "Something that shaped who you are today");
 
 console.log("fellow-view: ok");
