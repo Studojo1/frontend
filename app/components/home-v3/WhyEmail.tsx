@@ -111,7 +111,6 @@ export function WhyEmail() {
               </ul>
             </div>
           </div>
-          <p className="hv3-note" data-reveal>Replies are never guaranteed. But your note reaches a person, not a filter.</p>
         </div>
       </section>
     </>

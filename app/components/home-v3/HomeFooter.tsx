@@ -45,8 +45,8 @@ const COLUMNS: { heading: string; links: FootLink[] }[] = [
   {
     heading: "Community",
     links: [
-      { label: "Instagram", href: "https://instagram.com/studojo", icon: <Instagram /> },
-      { label: "WhatsApp", href: WHATSAPP_COMMUNITY, icon: <WhatsApp /> },
+      { label: "Instagram", href: "https://instagram.com/studojo", icon: <Instagram size={18} /> },
+      { label: "WhatsApp", href: WHATSAPP_COMMUNITY, icon: <WhatsApp size={18} /> },
     ],
   },
   {

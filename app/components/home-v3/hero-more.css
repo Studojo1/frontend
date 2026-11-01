@@ -20,7 +20,6 @@
   background: #fff; border: var(--hv-bw) solid var(--hv-ink-e); box-shadow: 2px 2px 0 var(--hv-ink-e); color: var(--hv-ink); transition: background-color var(--hv-ease); }
 .hv2 .hv3-more-chev svg { width: 16px; height: 16px; display: block; }
 .hv2 .hv3-more:hover { color: var(--hv-ink); }
-.hv2 .hv3-more:hover .hv3-more-t { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
 .hv2 .hv3-more:hover .hv3-more-chev { background: var(--hv-fill-hover); }
 .hv2 .hv3-more:focus-visible { outline: 2px solid var(--hv-purple); outline-offset: 2px; }
 /* the link moves focus to the title of how it works (Hero.tsx adds its tabindex): a keyboard reader sees it there in

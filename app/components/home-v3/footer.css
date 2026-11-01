@@ -6,7 +6,7 @@
    rule sits under .hv2 and uses its --hv-* tokens. While the cookie notice is open the band grows by its height
    (--sj-notice-h, app.css), so the legal name is never under it. */
 
-.hv2 .hv3-ft { margin-top: 72px; padding-bottom: var(--sj-notice-h, 0px); overflow: hidden; background: #fff; border-top: var(--hv-bw) solid var(--hv-ink-e); }
+.hv2 .hv3-ft { margin-top: 72px; padding-bottom: var(--sj-notice-h, 0px); overflow: hidden; background: transparent; }
 .hv2 .hv3-ft-in { max-width: calc(var(--hv-sec-max) + 32px); margin: 0 auto; padding: 44px 16px 0; }
 .hv2 .hv3-ft-grid { display: grid; gap: 36px; }
 
@@ -33,7 +33,7 @@
    .8 its baseline sits .78em down and the j's tail ends at 1.04em, so a box 1.04em tall shows the whole word (cut any
    higher, the j loses its tail and the word reads "studoio"). */
 .hv2 .hv3-ft-copy { margin: 36px 0 0; padding-top: 20px; border-top: 1px solid var(--hv-hair); font-size: 14.5px; color: var(--hv-muted); }
-.hv2 .hv3-ft-mark { height: 1.04em; margin-top: 24px; overflow: hidden; text-align: center; white-space: nowrap; font-family: Satoshi, system-ui, sans-serif; font-weight: 900; font-size: clamp(104px, 28vw, 380px); line-height: .8; letter-spacing: -0.055em; color: #efe9fb; background: linear-gradient(180deg, #e2d6fa 0%, #f1ebfd 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; user-select: none; pointer-events: none; }
+.hv2 .hv3-ft-mark { height: 1.04em; margin-top: 24px; overflow: hidden; text-align: center; white-space: nowrap; font-family: Satoshi, system-ui, sans-serif; font-weight: 900; font-size: clamp(104px, 28vw, 380px); line-height: .8; letter-spacing: -0.055em; color: #f1edfb; background: linear-gradient(180deg, #ece6fa 0%, #f4f0fc 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; user-select: none; pointer-events: none; }
 
 @media (min-width: 641px) {
   .hv2 .hv3-ft { margin-top: 96px; }

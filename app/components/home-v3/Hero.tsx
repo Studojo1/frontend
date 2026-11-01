@@ -12,9 +12,9 @@ import { StuArt } from "./StuArt";
 // under the title says the same in full words, with no call length and no "talk or type": the call is explained
 // further down. Stu's head is still a start.
 // 1 Nov 2026, the founder after a customer call: a number turning into a tick was too much, so a step's number stays
-// its number; the order goes 1 top right, 2 top left, 3 bottom left, 4 bottom right (home-v3.css, phone and desktop);
-// and it was hard to tell there is more below this screen, so its foot says "See how Stu works" with a chevron that
-// bobs, a link that glides down to how it works (#how; hero-more.css).
+// its number; the order is a zig zag, 1 top left, 2 top right, 3 bottom left, 4 bottom right (home-v3.css, phone and
+// desktop); and it was hard to tell there is more below this screen, so its foot has a chevron that bobs, a link
+// (labelled "See how Stu works" for screen readers; the founder: just the arrow) that glides down to #how.
 // Signed out, a tap on Stu or the button opens the call takeover (Takeover.tsx), where Stu says /b2cnew/join's line
 // and then shows /join's sign-up card; signed in, both are "Open my jobs". [data-hero-end] is what the floating agent
 // watches (Floating.tsx).
@@ -86,14 +86,13 @@ export function Hero() {
           </span>
         </h1>
         <p className="hv3-hero-sub">
-          Tell Stu, our AI career agent, what you&apos;re looking for. Stu finds jobs that fit you, finds out who&apos;s hiring, and reaches out to them for you. You skip the portal.
+          Tell Stu what jobs you&apos;re looking for. Stu finds the ones that fit you best, finds out who&apos;s hiring, and reaches out to them for you. You skip the portal.
         </p>
       </div>
       <div className="hv-go">
         <StartLink place="hero" className="hv-btn-start hv-go-btn" id="hv-hero-btn" />
       </div>
-      <a className="hv3-more" href="#how" onClick={seeHow}>
-        <span className="hv3-more-t">See how Stu works</span>
+      <a className="hv3-more" href="#how" onClick={seeHow} aria-label="See how Stu works">
         <span className="hv3-more-chev" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 9.5l6 6 6-6" />
