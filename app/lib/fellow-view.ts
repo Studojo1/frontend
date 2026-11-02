@@ -462,8 +462,9 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       postingDays: rules?.postingDays ?? ["Tue", "Thu", "Sat"],
       postsPerWeek: rules?.postsPerWeek ?? 3,
       partnershipLabel: label,
-      // Not live yet: speaking a story and uploading a screenshot.
-      voice: false,
+      // Speaking a story uses the browser's own speech-to-text (the page shows it only where the browser has it).
+      // Uploading a screenshot is not live yet.
+      voice: true,
       uploads: false,
     },
     me: {

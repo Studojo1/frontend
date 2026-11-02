@@ -603,3 +603,4 @@ ul, ol { padding: 0; list-style: none; }
 /* A fellow who hasn't shared enough yet sees the story card first, marked out. */
 .share.is-asking { box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
 .share .card-head .chip { flex: none; }
+.voice-note { font-size: 12px; color: var(--ink-2); margin-top: 8px; line-height: 1.4; }

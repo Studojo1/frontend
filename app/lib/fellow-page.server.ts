@@ -253,7 +253,7 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         `);
         if (Number(rows<Row>(today)[0]?.n ?? 0) >= 30) throw new FellowInputError("That's a lot of stories for one day. Try again tomorrow.", 429);
         await tx.execute(sql`
-          INSERT INTO ugc_creator_stories (creator_id, prompt, text, spoken) VALUES (${fellow.id}, ${prompt}, ${text}, false)
+          INSERT INTO ugc_creator_stories (creator_id, prompt, text, spoken) VALUES (${fellow.id}, ${prompt}, ${text}, ${body.spoken === true})
         `);
       });
       return;

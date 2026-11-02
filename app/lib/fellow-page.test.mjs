@@ -161,9 +161,14 @@ try {
   await refused(() => page.applyFellowChange(asha, { intent: "story", text: "x".repeat(8001) }), 400, "a story over 8,000 characters");
   await refused(() => page.applyFellowChange(asha, { intent: "story", text: "short" }), 400, "a story under 10 characters");
   await page.applyFellowChange(asha, { intent: "story", text: "y".repeat(8000), prompt: "not a real prompt" });
-  const st = await one(`SELECT length(text) AS n, prompt FROM ugc_creator_stories WHERE creator_id = 1`);
+  const st = await one(`SELECT length(text) AS n, prompt, spoken FROM ugc_creator_stories WHERE creator_id = 1`);
+  assert.equal(st.spoken, false, "a typed story is marked typed");
   assert.equal(st.n, 8000);
   assert.equal(st.prompt, null, "only the page's own prompts are stored");
+  await page.applyFellowChange(kiran, { intent: "story", text: "A story Kiran told out loud, about his first internship.", spoken: true });
+  await page.applyFellowChange(kiran, { intent: "story", text: "Another story, with a spoken flag that isn't true.", spoken: "yes" });
+  assert.deepEqual((await setup.query(`SELECT spoken FROM ugc_creator_stories WHERE creator_id = 2 ORDER BY id`)).rows.map((r) => r.spoken), [true, false], "only spoken: true marks a story spoken");
+  await setup.query(`DELETE FROM ugc_creator_stories WHERE creator_id = 2`);
   await setup.query(`INSERT INTO ugc_creator_stories (creator_id, text) SELECT 1, 'an earlier story today' FROM generate_series(1, 24)`);
   const burst = await Promise.allSettled(Array.from({ length: 12 }, (_, i) => page.applyFellowChange(asha, { intent: "story", text: `A story told in a burst, number ${i}` })));
   const stories = (await one(`SELECT count(*)::int AS n FROM ugc_creator_stories WHERE creator_id = 1`)).n;

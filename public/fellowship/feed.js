@@ -446,6 +446,46 @@
   // Posts are written only from what a fellow shares, so until they've shared a few stories this card
   // leads the page (moved to the top of the feed at load) and says why.
   const askingForStories = () => S.stories.length < ME.storiesWanted;
+
+  // Speaking a story: the browser's own speech service (Google in Chrome and on Android, Apple on iPhone)
+  // writes the words into the box as the fellow talks. No audio reaches Studojo, only the text they share.
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const canSpeak = () => !!(P.voice && SpeechRec);
+  let rec = null;
+  function stopListening() {
+    const r = rec; rec = null; S.listening = false;
+    if (r) { try { r.stop(); } catch (e) { /* already stopped */ } }
+  }
+  function startListening() {
+    const box = $("#story-text");
+    const base = box && box.value.trim() ? box.value.trim() + " " : "";
+    let heard = "";
+    const r = new SpeechRec();
+    r.lang = "en-IN"; r.continuous = true; r.interimResults = true;
+    r.onresult = (ev) => {
+      let interim = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const t = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) heard += t.trim() + " "; else interim += t;
+      }
+      const ta = $("#story-text");
+      if (ta) ta.value = (base + heard + interim).replace(/\s+$/, "");
+      if ((heard + interim).trim()) S.spoke = true;
+    };
+    r.onerror = (ev) => {
+      const why = {
+        "not-allowed": "Allow the microphone in your browser to speak your story, or type it instead.",
+        "service-not-allowed": "Speaking isn't allowed in this browser. Type your story instead.",
+        "audio-capture": "We couldn't find a microphone. Type your story instead.",
+        "no-speech": "We didn't catch anything. Tap Speak and try again, or type it.",
+        network: "Speaking needs an internet connection. Try again, or type it.",
+      }[ev.error];
+      if (why) S.storyErr = why;
+    };
+    r.onend = () => { if (rec === r) { rec = null; S.listening = false; renderShare(true); } else if (S.storyErr) renderShare(true); };
+    rec = r; S.listening = true; S.storyErr = "";
+    try { r.start(); } catch (e) { rec = null; S.listening = false; S.storyErr = "We couldn't start the microphone. Type your story instead."; }
+  }
   function renderShare(keepText) {
     const ta = $("#story-text");
     const text = keepText && ta ? ta.value : "";
@@ -472,16 +512,17 @@
         <p class="prompt-text" id="prompt-text">${esc(pr)}</p>
       </div>
       <label class="sr-only" for="story-text">Your story</label>
-      <textarea id="story-text" rows="4" aria-describedby="prompt-text story-err" placeholder="${S.listening ? "Listening. Start talking and we'll type it here." : (P.voice ? "Type here, or tap to speak." : "Type your story here: where it happened, what you did, what came next.")}">${esc(text)}</textarea>
+      <textarea id="story-text" rows="4" aria-describedby="prompt-text story-err" placeholder="${S.listening ? "Listening. Start talking and we'll write it here." : canSpeak() ? "Type your story, or tap Speak and talk. Where it happened, what you did, what came next." : "Type your story here: where it happened, what you did, what came next."}">${esc(text)}</textarea>
       <p class="err" id="story-err">${S.storyErr ? ic("alert") + esc(S.storyErr) : ""}</p>
       <div class="share-actions">
-        ${P.voice ? `<button class="mic" type="button" data-act="mic" aria-pressed="${S.listening}">
+        ${canSpeak() ? `<button class="mic" type="button" data-act="mic" aria-pressed="${S.listening}">
           <span class="mic-ring">${ic("mic")}</span>
-          <span>${S.listening ? "Tap to stop" : "Tap to speak"}</span>
+          <span>${S.listening ? "Tap to stop" : "Speak"}</span>
           <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         </button>` : ""}
         <button class="btn btn-primary" type="button" data-act="story-save">Share</button>
       </div>
+      ${canSpeak() ? `<p class="voice-note">Speaking uses your browser's speech service (Google on Chrome and Android, Apple on iPhone) to turn your voice into text. Check the text, then share it.</p>` : ""}
       <div class="stories">
         <h3 class="sub-title">Your stories <span class="count">${S.stories.length}</span></h3>
         <ul class="story-list">${stories}</ul>
@@ -756,15 +797,16 @@
     if (act === "howto") { S.howto = !S.howto; renderMilestones(); const h = $('[data-act="howto"]'); if (h) h.focus(); return; }
     if (act === "prompt-next") { S.promptIdx = (S.promptIdx + 1) % ME.storyPrompts.length; renderShare(true); $('[data-act="prompt-next"]').focus(); return; }
     if (act === "mic") {
-      S.listening = !S.listening; if (S.listening) S.spoke = true; S.storyErr = "";
-      renderShare(true); $('[data-act="mic"]').focus();
+      if (S.listening) stopListening(); else startListening();
+      renderShare(true); focusEl('[data-act="mic"]');
       return;
     }
     if (act === "story-save") {
+      if (S.listening) stopListening();
       const text = $("#story-text").value.trim();
       if (text.length < 10) { S.storyErr = !text && S.listening ? "We didn't catch anything yet. Keep talking, or type it instead." : text ? "Write a few more words first." : "Write a few words first."; renderShare(true); $("#story-text").focus(); return; }
       b.disabled = true;
-      try { if (!applyView(await call({ intent: "story", prompt: ME.storyPrompts[S.promptIdx] || ME.storyPrompts[0], text }))) return; }
+      try { if (!applyView(await call({ intent: "story", prompt: ME.storyPrompts[S.promptIdx] || ME.storyPrompts[0], text, spoken: S.spoke }))) return; }
       catch (e) { S.storyErr = e.message; renderShare(true); $("#story-text").focus(); return; }
       S.listening = false; S.spoke = false; S.storyErr = ""; S.promptIdx = 0;
       renderShare(false); focusEl("#share .story");
