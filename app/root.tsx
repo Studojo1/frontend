@@ -20,7 +20,8 @@ import { applyPostHogConsent, capturePostHog, identifyPostHogUser, initPostHog, 
 import { clearTokenCache } from "./lib/control-plane";
 import { grantMetaConsent, initMetaPixel, metaExcludedPath, revokeMetaConsent, trackMetaPageView } from "./lib/meta-pixel";
 import { onConsentChange, trackingAllowed } from "./lib/consent";
-import { track } from "./lib/analytics";
+import { trackSignedUpOnce } from "./lib/analytics";
+import { installJoinTracking } from "./lib/journey-client";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
 import { isB2cRequest } from "./lib/b2c-home";
 import { googleOnlyEnabled } from "./lib/google-only";
@@ -207,6 +208,9 @@ function AnalyticsInit() {
     initMetaPixel();
   }, []);
 
+  // Every join or start CTA: clicked_join to our own /api/journey and PostHog, Meta Lead (app/lib/journey-client.ts).
+  useEffect(() => installJoinTracking(), []);
+
   // EU/UK cookie choice (HP-N13): accepting switches on PostHog storage and
   // recording and starts the Meta pixel on this page; rejecting or withdrawing
   // switches them off.
@@ -295,13 +299,12 @@ function AnalyticsInit() {
         const u = session.user as any;
         if (u.createdAt) {
           const ageMs = Date.now() - new Date(u.createdAt).getTime();
-          const key = `ph_signed_up_${u.id}`;
-          if (ageMs >= 0 && ageMs < 10 * 60 * 1000 && !localStorage.getItem(key)) {
+          if (ageMs >= 0 && ageMs < 10 * 60 * 1000) {
             // track() maps signed_up -> Meta CompleteRegistration. Meta optimises
             // delivery against it, so it must fire exactly once per real account;
-            // the recency + localStorage guard above is what guarantees that.
-            track("signed_up", { email: u.email, name: u.name });
-            localStorage.setItem(key, "1");
+            // the recency check and trackSignedUpOnce's per-user flag (shared
+            // with /auth's email sign-up) are what guarantee that.
+            trackSignedUpOnce({ id: u.id, email: u.email, name: u.name });
           }
         }
       } catch {

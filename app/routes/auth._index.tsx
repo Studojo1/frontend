@@ -10,6 +10,7 @@ import { useGoogleOnly } from "~/lib/google-only";
 import { isOtherApp } from "~/lib/other-apps";
 import { chromeIntentUrl, detectInAppBrowser, isAndroid, type InAppBrowser } from "~/lib/in-app-browser";
 import { capturePostHog, featureFlagEnabled } from "~/lib/posthog";
+import { trackSignedUpOnce } from "~/lib/analytics";
 import { ResumeFirstCard } from "~/components/outreach/ResumeFirstCard";
 import { UPLOAD_BEFORE_SIGNUP_FLAG, headedToUpload, isAdVisitor } from "~/lib/outreach/resume-draft";
 import type { Route } from "./+types/auth._index";
@@ -474,6 +475,9 @@ export default function Auth() {
           utm_medium: urlParams.get("utm_medium") || undefined,
           utm_campaign: urlParams.get("utm_campaign") || undefined,
         });
+        // Meta CompleteRegistration (and PostHog signed_up) now, before the
+        // session effect hands the page on; the root's copy sees the same flag.
+        trackSignedUpOnce({ id: data.user.id, email: data.user.email, name: data.user.name });
       }
     } else {
       const { error: err, data } = await authClient.signIn.email(

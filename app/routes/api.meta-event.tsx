@@ -3,6 +3,7 @@ import { auth } from "~/lib/auth";
 import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured } from "~/lib/meta-capi.server";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { serverMayReportToMeta } from "~/lib/consent";
+import { parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
 
 /**
  * Server-side mirror for browser pixel events (Meta Conversions API).
@@ -33,6 +34,23 @@ const ALLOWED_EVENTS = new Set([
 
 // Only real when someone is signed in.
 const SESSION_EVENTS = new Set(["CompleteRegistration", "Lead"]);
+
+// RELAUNCH (2 Nov 2026): the new site's Lead is a click on a join or start CTA, made before any account exists
+// (journey-client.ts). Accepted without a session only from our own page (Sec-Fetch-Site same-origin) with a visitor
+// id this site issued (stu_vid), and once per visitor per half hour, so a script cannot pour Leads in.
+const ANON_LEAD_WINDOW_MS = 30 * 60 * 1000;
+const anonLeads = new Map<string, number>();
+function anonLeadAllowed(request: Request): boolean {
+  if (request.headers.get("sec-fetch-site") !== "same-origin") return false;
+  const vid = parseCookies(request.headers.get("cookie")).get(VISITOR_COOKIE);
+  if (!validVisitorId(vid)) return false;
+  const now = Date.now();
+  const at = anonLeads.get(vid);
+  if (at && now - at < ANON_LEAD_WINDOW_MS) return false;
+  if (anonLeads.size > 50_000) anonLeads.clear();
+  anonLeads.set(vid, now);
+  return true;
+}
 
 // Purchase is deliberately absent. It is the only event carrying a monetary
 // value, so accepting it here would let anyone POST fabricated revenue into the
@@ -93,7 +111,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
   // A registration or lead with no account behind it is not one; anyone could
   // POST these to inflate the conversions the ads optimise for (ST-N12).
-  if (!signedIn && SESSION_EVENTS.has(eventName)) return ok();
+  if (!signedIn && SESSION_EVENTS.has(eventName) && !(eventName === "Lead" && anonLeadAllowed(request))) return ok();
 
   await sendMetaEvent({
     eventName,

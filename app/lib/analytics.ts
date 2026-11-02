@@ -95,3 +95,19 @@ export function track(
     // Silently fail: analytics must never break the app
   }
 }
+
+/**
+ * signed_up (Meta CompleteRegistration) exactly once per account on this browser: the per-user localStorage flag is
+ * the guard. Meta optimises delivery against it, so a second copy would be a fake conversion. Called by /auth when an
+ * email sign-up succeeds, and by the root when a brand-new session first appears (Google sign-up). Never throws.
+ */
+export function trackSignedUpOnce(user: { id: string; email?: string | null; name?: string | null }): void {
+  try {
+    const key = `ph_signed_up_${user.id}`;
+    if (localStorage.getItem(key)) return;
+    track("signed_up", { email: user.email, name: user.name });
+    localStorage.setItem(key, "1");
+  } catch {
+    // analytics must never break the app
+  }
+}

@@ -139,8 +139,9 @@ const PINNED = {
   // product host (productHref, app/lib/product-origin.ts) and nothing else changed
   "routes/reports.tsx": "3ff3d9a8bfd4b79d",
   "routes/terms.tsx": "e565ab6f9433ba94",
-  // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), nothing else changed
-  "routes/privacy.tsx": "07bd941d7e3867ba",
+  // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), and a row for the
+  // stu_vid, stu_src and stu_lt journey cookies (app/lib/journey.ts); nothing else changed
+  "routes/privacy.tsx": "571d8be33be1ddef",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
   "routes/contact.tsx": "fdd5914095deaa8a",
   "routes/about.tsx": "8df5740170b73da6",

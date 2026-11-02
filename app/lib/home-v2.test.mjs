@@ -57,11 +57,13 @@ assert.doesNotMatch(text, /ai job agent/i, "Stu is \"Stu, your career agent\"");
 for (const f of files) assert.doesNotMatch(read(f), /[\u2013\u2014]|&[mn]dash;/, `${f}: an em or en dash`);
 
 // ---------- 4. the live Stu is /join's own first step ----------
-const { JOIN_LINE, JOIN_AUDIO, lineVersion, CARRY, carried, signInLink, homeSignIn, joinHref, DESK, saidAt, wordsOf } = await import("../components/home-v2/agent.ts");
+const { JOIN_LINE, JOIN_AUDIO_PATH, joinAudioUrl, lineVersion, CARRY, carried, signInLink, homeSignIn, joinHref, DESK, saidAt, wordsOf } = await import("../components/home-v2/agent.ts");
 // career-agent app/lib/voice/lines.ts LINES.join, word for word, and the address its recording is kept under
 assert.equal(JOIN_LINE, "Hi! I'm Stu, your career agent at Studojo. I find the jobs that fit you, and get you in front of the people who hire. Let's start with a quick sign-up, so your account is ready.");
 assert.equal(lineVersion(JOIN_LINE), "1uyttif");
-assert.equal(JOIN_AUDIO, "/b2cnew/voice/say/join?v=1uyttif", "the same recording /join plays (spoken.ts clip)");
+assert.equal(JOIN_AUDIO_PATH, "/voice/say/join?v=1uyttif", "the same recording /join plays (spoken.ts clip)");
+assert.equal(joinAudioUrl(""), "/b2cnew/voice/say/join?v=1uyttif", "no PRODUCT_ORIGIN: under /b2cnew on this host");
+assert.equal(joinAudioUrl("https://platform.studojo.com"), "https://platform.studojo.com/voice/say/join?v=1uyttif", "RELAUNCH: straight from the product host (CORS, no credentials)");
 // career-agent app/lib/voice/sign-in-link.ts, its own test's vectors (tests/stu-embed.test.ts)
 assert.deepEqual([...CARRY], ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "fbclid", "via", "how"]);
 {
@@ -104,7 +106,7 @@ assert.match(spoken, /if \(c\.state !== "running"\) \{\s*setAt\(all\);\s*return;
 assert.match(spoken, /const t = c\.currentTime \+ 0\.05;/);
 assert.match(spoken, /const READ_AHEAD_S = 0\.3;/);
 assert.match(spoken, /\(end - c\.currentTime\) \* 1000 \+ 1500/);
-assert.match(spoken, /fetch\(JOIN_AUDIO\)/);
+assert.match(spoken, /fetch\(joinAudioUrl\(\), \{ mode: "cors", credentials: "omit" \}\)/);
 
 // the order is /join's: the tap, her line, then the card; the card's two buttons both go to the sign-in link
 const start = code(read("start.tsx"));

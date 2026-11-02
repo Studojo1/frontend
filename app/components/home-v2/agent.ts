@@ -6,10 +6,11 @@
 // order, with the same recording, the same words and the same links. Each piece below is a copy of career-agent's
 // own (Studojo1/career-agent), named where it comes from, so a change there is a change here:
 //   JOIN_LINE, lineVersion   app/lib/voice/lines.ts (LINES.join, lineVersion)
-//   JOIN_AUDIO               app/lib/voice/spoken.ts clip(): `${BASE}voice/say/join?v=...`, BASE "/b2cnew/"
+//   JOIN_AUDIO_PATH          app/lib/voice/spoken.ts clip(): `${BASE}voice/say/join?v=...`
 //   CARRY, carried, signInLink  app/lib/voice/sign-in-link.ts (the /join loader's signIn)
 //   BACKED                   app/routes/join.tsx (the card's "Backed by")
 import { STU_HOME, startHref } from "../home-b2c/links";
+import { productHref, productOrigin } from "../../lib/product-origin";
 
 /** Stu's line on /b2cnew/join, word for word (career-agent lines.ts LINES.join). */
 export const JOIN_LINE =
@@ -22,8 +23,19 @@ export function lineVersion(text: string): string {
   return h.toString(36);
 }
 
-/** The very recording /b2cnew/join plays: the call service's WAV of the line, cached under its words' address. */
-export const JOIN_AUDIO = `/b2cnew/voice/say/join?v=${lineVersion(JOIN_LINE)}`;
+/** The very recording /join plays: the call service's WAV of the line, cached under its words' address (its path in the
+ * product, spoken.ts clip()). */
+export const JOIN_AUDIO_PATH = `/voice/say/join?v=${lineVersion(JOIN_LINE)}`;
+
+/**
+ * Where the homepage fetches it (RELAUNCH, 2 Nov 2026): straight from the product's host, PRODUCT_ORIGIN
+ * (platform.studojo.com, staging platform.studojo.pro), whose voice server allows studojo.com, www and studojo.pro
+ * across origins with no credentials. /b2cnew/voice/... on this host now answers 301 there, and a redirect to another
+ * origin with no CORS failed. Without PRODUCT_ORIGIN (local runs, tests) it stays under /b2cnew on this host.
+ */
+export function joinAudioUrl(origin: string = productOrigin()): string {
+  return productHref(JOIN_AUDIO_PATH, origin);
+}
 
 /** The visit's attribution keys that ride on to sign-in and the call (sign-in-link.ts CARRY). */
 export const CARRY = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "fbclid", "via", "how"] as const;

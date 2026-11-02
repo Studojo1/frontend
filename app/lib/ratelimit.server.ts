@@ -71,7 +71,7 @@ export const PUBLIC_FORM_PATHS = new Set([
 ]);
 
 function getEndpointType(path: string): string {
-  if (path === "/api/funnel-event" || path === "/api/meta-event") {
+  if (path === "/api/funnel-event" || path === "/api/meta-event" || path === "/api/journey") {
     return "tracking";
   }
   if (PUBLIC_FORM_PATHS.has(path)) {

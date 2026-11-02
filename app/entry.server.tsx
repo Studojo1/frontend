@@ -11,6 +11,7 @@ import { isB2cRequest } from "./lib/b2c-home";
 import { Sv2HostContext } from "./components/site-b2c/host";
 import { lookCookieSecure, lookForRequest, lookSetCookie } from "./lib/look";
 import { LookContext } from "./components/look/look-context";
+import { journeyOnPage } from "./lib/journey.server";
 
 export const streamTimeout = 5_000;
 
@@ -73,6 +74,10 @@ export default function handleRequest(
   const b2c = isB2cRequest(request);
   const look = lookForRequest(request, b2c);
   if (look?.store) responseHeaders.append("Set-Cookie", lookSetCookie(look.store, lookCookieSecure(request.headers.get("host"))));
+
+  // FIRST-PARTY JOURNEY (app/lib/journey.ts): stu_vid, stu_src and stu_lt on the parent domain before the visitor can
+  // click through to the platform, and visited_home on a landing page (written in the background, never waited on).
+  journeyOnPage(request, responseHeaders);
 
   return new Promise((resolve, reject) => {
     let shellRendered = false;

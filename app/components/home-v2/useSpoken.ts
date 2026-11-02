@@ -13,7 +13,7 @@
 // tap also plays one silent sample through the speaker, which older iPhones need to start it.
 // Nothing here runs on the server but the first, silent render.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { JOIN_AUDIO, JOIN_LINE, saidAt } from "./agent";
+import { JOIN_LINE, joinAudioUrl, saidAt } from "./agent";
 
 let shared: AudioContext | null = null;
 
@@ -164,7 +164,9 @@ let bytes: Promise<ArrayBuffer> | null = null;
 /** The recording, fetched once per visit (the browser keeps it: its address changes only with its words). */
 export function fetchLine(): Promise<ArrayBuffer> {
   if (!bytes) {
-    bytes = fetch(JOIN_AUDIO).then((r) => {
+    // Across origins to the product's voice server (agent.ts joinAudioUrl), no cookies. Any failure is the same
+    // silent fallback as before: her words still show.
+    bytes = fetch(joinAudioUrl(), { mode: "cors", credentials: "omit" }).then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.arrayBuffer();
     });
