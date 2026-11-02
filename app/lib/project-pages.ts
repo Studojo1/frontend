@@ -19,10 +19,10 @@ export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,58})[a-z0-9]$/;
 export const RESERVED: ReadonlySet<string> = new Set(
   `about account admin api apidashboard apidocs app assets assignments auth autoapply b2cnew blog bob brand build
 campus-ambassador careers cc clips connect-linkedin contact content crm dashboard docs dojos explore extension
-extension-auth favicon flow fonts forgot-password go help home images insider install-extension internships jernew
-jrs legal linkedin lkot login logout maps mcpdocs media mesa meta msl my-applications new no-one-is-hiring official
+extension-auth favicon flow fonts forgot-password go help home humanizer images insider install-extension internships jernew
+join jrs legal linkedin lkot login logout maps mcpdocs media mesa meta msl my-applications new no-one-is-hiring official
 old oldui onboarding outreach partners partners-phone payment payment-success pb pbadmin playbook pricing privacy
-profile projects refund-policy register reports reset-password ressources resume-maker resumes revision robots security sensei
+profile projects refund-policy register reports reset-password ressources resume resume-maker resumes revision robots rsb security sensei
 settings sign-in signin signup sitemap sites start static status studojo support team terms test test123 time-machine toolkit
 u user users webinar well-known www`
     .split(/\s+/)

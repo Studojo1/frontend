@@ -29,11 +29,16 @@ export const RETIRED_PREFIXES: readonly string[] = Object.freeze([
   // Career coach and the job readiness coach
   "cc",
   "jrs",
-  // Assignments, the resume builder, revision
+  // Assignments, the resume builder, revision, the humanizer
   "assignments",
   "resume-maker",
   "resumes",
+  "resume",
+  "rsb",
   "revision",
+  "humanizer",
+  // The old site's join page (the product's own /join lives on platform.studojo.com)
+  "join",
   // AutoApply, the browser extension, the LinkedIn tool
   "autoapply",
   "extension",
