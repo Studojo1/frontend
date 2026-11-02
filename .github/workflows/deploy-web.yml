@@ -211,8 +211,15 @@ jobs:
             '{AUTH_COOKIE_PREFIX: "stu", AUTH_COOKIE_DOMAIN: $d, AUTH_TRUSTED_ORIGINS: $o, PRODUCT_ORIGIN: $p}')
           # Only when frontend has none: the control plane in this namespace, in-cluster.
           DEFAULTS='{"CONTROL_PLANE_URL": "http://control-plane:8080"}'
+          # META-TEST (2 Nov 2026), production only: Meta's Test events code for the Conversions API copies
+          # (app/lib/meta-capi.server.ts withTestEventCode), an optional secret reference, so no key means no code.
+          # On: put the code in app-secrets key meta-test-event-code and restart web. Off: delete the key and restart.
+          REFS='[]'
+          if [ "$NS" = "studojo" ]; then
+            REFS='[{"name": "META_TEST_EVENT_CODE", "valueFrom": {"secretKeyRef": {"name": "app-secrets", "key": "meta-test-event-code", "optional": true}}}]'
+          fi
           jq --arg img "$IMAGE" --argjson drop "$(cat k8s/web/retired-env.json)" \
-            --argjson set "$SET" --argjson defaults "$DEFAULTS" \
+            --argjson set "$SET" --argjson defaults "$DEFAULTS" --argjson refs "$REFS" \
             -f k8s/web/deployment-from-frontend.jq "$RUNNER_TEMP/frontend.json" > "$RUNNER_TEMP/web.json"
           rm -f "$RUNNER_TEMP/frontend.json"
           echo "web in $NS, image $IMAGE"

@@ -50,6 +50,19 @@ export function isMetaCapiConfigured(): boolean {
 }
 
 /**
+ * META-TEST (2 Nov 2026): Meta's "Test events" tab only shows a server event that carries its test code. With
+ * META_TEST_EVENT_CODE set (production: app-secrets meta-test-event-code, optional), every Conversions API payload
+ * carries it as test_event_code; unset or blank, the payload is exactly as before. Read on every call. Pure.
+ */
+export function withTestEventCode<P extends { data: unknown[] }>(
+  payload: P,
+  env: Record<string, string | undefined> = process.env,
+): P | (P & { test_event_code: string }) {
+  const code = env.META_TEST_EVENT_CODE?.trim();
+  return code ? { ...payload, test_event_code: code } : payload;
+}
+
+/**
  * Fire one server-side event. Never throws: analytics must not be able to fail
  * a signup or a payment webhook.
  */
@@ -93,7 +106,7 @@ export async function sendMetaEvent(opts: {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(withTestEventCode(payload)),
         signal: AbortSignal.timeout(5000),
       }
     );

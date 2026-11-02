@@ -6,16 +6,20 @@
 #        --argjson drop  k8s/web/retired-env.json         names left out (the retired services)
 #        --argjson set   {"NAME": "value", ...}           plain settings for web, replacing any copy
 #        --argjson defaults {"NAME": "value", ...}        plain settings added only when frontend has none
+#        --argjson refs [{name, valueFrom}, ...]           optional, secret references for web only, replacing any copy
 # Output: a clean Deployment named web, label app=web: frontend's container settings (ports, probes, resources,
 # volumes) and its env, every secret still a secretKeyRef to app-secrets.
+def refs: ($ARGS.named.refs // []);
 def envlist($env):
   ($env // [])
   | map(select(.name as $n | ($drop | index($n)) == null))
   | map(select(.name as $n | ($set | has($n)) | not))
+  | map(select(.name as $n | (refs | map(.name) | index($n)) == null))
   | . as $kept
   | $kept
     + ($set | to_entries | map({ name: .key, value: .value }))
-    + ($defaults | to_entries | map(select(.key as $k | ($kept | map(.name) | index($k)) == null)) | map({ name: .key, value: .value }));
+    + ($defaults | to_entries | map(select(.key as $k | ($kept | map(.name) | index($k)) == null)) | map({ name: .key, value: .value }))
+    + refs;
 {
   apiVersion: "apps/v1",
   kind: "Deployment",
