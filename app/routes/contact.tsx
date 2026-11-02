@@ -3,15 +3,17 @@ import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import type { Route } from "./+types/contact";
-import { FiMail, FiMessageCircle, FiClock, FiChevronDown } from "react-icons/fi";
+import { FiMail, FiClock, FiChevronDown } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa6";
 import { useSiteB2c } from "~/components/site-b2c/host";
 import { ContactB2C } from "~/components/site-b2c/pages/ContactB2C";
+import { useSignedInSite } from "~/components/site-b2c/ui";
+import { productOrigin } from "~/lib/product-origin";
 
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Contact Us | Studojo" },
-    { name: "description", content: "Questions about Stu? Write to us or use the chat." },
+    { name: "description", content: "Questions about Stu? Write to us or ask Stu or send us a message." },
     { tagName: "link", rel: "canonical", href: "https://studojo.com/contact" },
   ];
 }
@@ -27,11 +29,11 @@ const SUBJECT_OPTIONS = [
 const FAQ_ITEMS = [
   {
     question: "How do I reset my password?",
-    answer: "Password reset emails are paused for a few days. Open the chat bubble in the bottom-left corner, or write to admin@studojo.com, and we'll reset it for you.",
+    answer: "Password reset emails are paused for a few days. Signed in, ask Stu under Help. Signed out, send us the form below or write to admin@studojo.com, and we'll reset it for you.",
   },
   {
     question: "How do refunds work?",
-    answer: "All purchases are final. We refund payment errors (failed, duplicate or unauthorised charges), anything you paid for that we never delivered, and campaigns that stopped completely because of a fault on our side. Unused credits don't expire, so you can use them any time. Raise a ticket from the support chat with your payment ID.",
+    answer: "All purchases are final. We refund payment errors (failed, duplicate or unauthorised charges), anything you paid for that we never delivered, and campaigns that stopped completely because of a fault on our side. Unused credits don't expire, so you can use them any time. Ask Stu under Help, or send us the form with your payment ID.",
     link: { to: "/refund-policy", label: "View Refund Policy" },
   },
   {
@@ -101,6 +103,9 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const b2c = useSiteB2c();
+  const signedIn = useSignedInSite();
+  // Stu handles help now (another app, so a plain link). Empty product origin: the legacy /b2cnew path on this host.
+  const askStuHref = `${productOrigin() || "/b2cnew"}/?s=settings&sub=help`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,6 +139,8 @@ export default function Contact() {
       <ContactB2C
         subjects={SUBJECT_OPTIONS}
         faq={FAQ_ITEMS}
+        signedIn={signedIn}
+        askStuHref={askStuHref}
         formData={formData}
         setFormData={setFormData}
         trap={trap}
@@ -169,6 +176,23 @@ export default function Contact() {
           <div className="grid gap-8 md:grid-cols-3 md:gap-12">
             {/* Contact Form */}
             <div className="md:col-span-2">
+              {signedIn ? (
+                <div className="rounded-2xl border-2 border-neutral-900 bg-purple-50 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+                  <h2 className="mb-3 font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900">
+                    Ask Stu
+                  </h2>
+                  <p className="mb-6 font-['Satoshi'] text-base leading-7 text-neutral-700">
+                    Stu handles help now. Ask him in your desk, and if he can't fix it he opens a ticket with the team.
+                  </p>
+                  <a
+                    href={askStuHref}
+                    className="inline-flex h-12 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-6 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    Ask Stu
+                  </a>
+                </div>
+              ) : (
+              <>
               <h2 className="mb-6 font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900">
                 Send us a message
               </h2>
@@ -274,6 +298,8 @@ export default function Contact() {
                   {loading ? "Sending..." : "Send Message"}
                 </button>
               </form>
+              </>
+              )}
             </div>
 
             {/* Sidebar */}
@@ -315,20 +341,6 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-violet-500">
-                    <FiMessageCircle className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Live Chat</p>
-                    <p className="font-['Satoshi'] text-sm text-neutral-600 md:text-base">
-                      Click the chat bubble in the bottom-left corner
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               <div className="rounded-2xl border-2 border-neutral-900 bg-purple-50 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-violet-500">
@@ -365,7 +377,7 @@ export default function Contact() {
               Still need help?
             </h3>
             <p className="mb-6 font-['Satoshi'] text-base leading-7 text-white">
-              Our live chat is open. Click the bubble in the bottom-left corner.
+              Already using Stu? Ask him under Help. Otherwise send us a message above.
             </p>
             <Link
               to="/"

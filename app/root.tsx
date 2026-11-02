@@ -27,7 +27,6 @@ import { isB2cRequest, isPlatformHost } from "./lib/b2c-home";
 import { googleOnlyEnabled } from "./lib/google-only";
 import { mainOrigin, productOrigin, productOriginScript } from "./lib/product-origin";
 import { ErrorPage } from "./components/error-page";
-import { ChatWidget } from "./components/chat-widget";
 import { CookieNotice } from "./components/legal/cookie-notice";
 import { PolicyUpdateNotice } from "./components/legal/policy-update-notice";
 import "./app.css";
@@ -399,7 +398,7 @@ function suppressThirdPartyWarnings() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // Resolve the host on the SERVER so the global chat widget is never even
+  // Resolve the host on the SERVER so the cookie and policy notices are never even
   // rendered on Sensei subdomains (no SSR flash, no hydration mismatch).
   const host = (request.headers.get("host") || "").toLowerCase();
   // b2cHost: studojo.com, studojo.pro (and localhost) get the B2C homepage, header and footer (app/lib/b2c-home.ts).
@@ -455,34 +454,18 @@ export default function App() {
     if (attributionUserId) flushAttribution(attributionUserId);
   }, [attributionUserId]);
 
-  const { isSenseiHost, b2cHost } = useLoaderData<typeof loader>();
+  const { isSenseiHost } = useLoaderData<typeof loader>();
   const location = useLocation();
-  // The resume maker has its own coach chat, and Sensei has its own "Get
-  // support", so the global floating widget would just float over those UIs.
   const onSensei = isSenseiHost || location.pathname.startsWith("/bob");
-  // The launcher is fixed bottom-left at z-50, which on a 390px viewport lands
-  // squarely on top of the Confirm Password field and the submit button. Keep it
-  // off the routes where signing up is the only thing we need the user to finish.
-  const onAuth =
-    location.pathname.startsWith("/auth") ||
-    location.pathname.startsWith("/forgot-password") ||
-    location.pathname.startsWith("/reset-password");
-  // A student's public page (/profile/:slug) is for the people they share it with, not a place to ask Studojo for help.
-  const onStudentPage = /^\/profile\/[^/]/.test(location.pathname);
   // A student's launched project page (/:handle/:slug) carries no analytics and
   // none of the site's widgets: its CSP allows only its own scripts (contract
   // section 4, app/routes/$handle.$slug.tsx).
   const projectPage = useMatches().some((m) => (m.handle as { projectPage?: boolean } | undefined)?.projectPage === true);
-  // The B2C homepage (studojo.pro) has Stu, its own floating agent (components/home-b2c/stu-embed.tsx).
-  const onB2cHome = b2cHost && location.pathname === "/";
-  const hideGlobalChat =
-    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || location.pathname.startsWith("/jernew") || location.pathname.startsWith("/b2cnew") || location.pathname.startsWith("/pbadmin") || onSensei || onAuth || onStudentPage || projectPage || onB2cHome;
 
   return (
     <>
       {!projectPage && <AnalyticsInit />}
       <Outlet />
-      {!hideGlobalChat && <ChatWidget />}
       {!onSensei && !projectPage && <CookieNotice />}
       {!onSensei && !projectPage && <PolicyUpdateNotice />}
     </>

@@ -1,4 +1,7 @@
-import { getEmailerServiceUrl } from "~/lib/emailer";
+import { sql } from "drizzle-orm";
+import db from "~/lib/db";
+import { ensureTicketTables } from "~/lib/tickets.server";
+import { contactBody, contactCategory, contactPriority, overContactLimit } from "~/lib/contact-limit";
 import type { Route } from "./+types/api.contact";
 import { guardPublicForm } from "~/lib/ratelimit.server";
 
@@ -69,35 +72,45 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
-    const base = getEmailerServiceUrl();
-    const res = await fetch(`${base}/v1/email/events`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        routing_key: "event.contact.form-submitted",
-        event: {
-          name: name.trim(),
-          email: email.toLowerCase().trim(),
-          subject,
-          message: message.trim(),
-        },
-      }),
-    });
+    await ensureTicketTables();
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = name.trim().slice(0, 200);
+    const cleanSubject = subject.slice(0, 100);
 
-    if (!res.ok) {
-      console.error("[api.contact] Emailer service error:", res.status);
+    // Per-email cap on top of the per-IP one: at most 3 contact tickets from one address in an hour.
+    const recent = await db.execute(sql`
+      SELECT COUNT(*)::int AS n FROM tickets
+      WHERE source = 'contact_form' AND user_email = ${cleanEmail}
+        AND created_at > NOW() - INTERVAL '1 hour'
+    `);
+    if (overContactLimit(Number((recent.rows as any[])[0]?.n ?? 0))) {
       return new Response(
-        JSON.stringify({ error: "Failed to send message. Please try again." }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: "You have sent a few messages already. Please wait a while, or write to admin@studojo.com." }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
       );
     }
 
+    const category = contactCategory(cleanSubject);
+    const priority = contactPriority(category);
+    const context = JSON.stringify({ via: "contact_form", subject: cleanSubject });
+    const created = await db.execute(sql`
+      INSERT INTO tickets (user_id, user_email, user_name, category, priority, status, source, context)
+      VALUES ('visitor', ${cleanEmail}, ${cleanName}, ${category}, ${priority}, 'open', 'contact_form', ${context}::jsonb)
+      RETURNING id
+    `);
+    const ticketId = Number((created.rows as any[])[0]?.id);
+    await db.execute(sql`
+      INSERT INTO ticket_messages (ticket_id, author_type, author_email, body)
+      VALUES (${ticketId}, 'user', ${cleanEmail}, ${contactBody(cleanSubject, message)})
+    `);
+
+    // The team replies by hand. Nothing is emailed to the visitor or anyone else.
     return new Response(
-      JSON.stringify({ success: true, message: "Message sent! We'll get back to you within 24 hours." }),
+      JSON.stringify({ success: true, message: `Thanks. We got it and will reply to ${cleanEmail} soon.` }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("[api.contact] Error sending contact form:", error);
+    console.error("[api.contact] Error saving contact form:", error);
     return new Response(
       JSON.stringify({ error: "Failed to send message. Please try again." }),
       { status: 500, headers: { "Content-Type": "application/json" } }

@@ -16,6 +16,8 @@ type Faq = { question: string; answer: string; link?: { to: string; label: strin
 type Props = {
   subjects: readonly string[];
   faq: readonly Faq[];
+  signedIn: boolean;
+  askStuHref: string;
   formData: Form;
   setFormData: (next: Form) => void;
   trap: string;
@@ -57,7 +59,7 @@ function FaqRow({ item }: { item: Faq }) {
   );
 }
 
-export function ContactB2C({ subjects, faq, formData, setFormData, trap, setTrap, loading, result, onSubmit }: Props) {
+export function ContactB2C({ subjects, faq, signedIn, askStuHref, formData, setFormData, trap, setTrap, loading, result, onSubmit }: Props) {
   return (
     <>
       <Header />
@@ -70,87 +72,101 @@ export function ContactB2C({ subjects, faq, formData, setFormData, trap, setTrap
           </header>
 
           <div className="svc-grid">
-            <section className="sv-card svc-form" aria-labelledby="svc-form-h">
-              <h2 id="svc-form-h" className="sv-h3">
-                Send us a message
-              </h2>
+            {signedIn ? (
+              <section className="sv-card svc-form" aria-labelledby="svc-form-h">
+                <h2 id="svc-form-h" className="sv-h3">
+                  Ask Stu
+                </h2>
+                <p className="sv-body">
+                  Stu handles help now. Ask him in your desk, and if he can't fix it he opens a ticket with the team.
+                </p>
+                <a href={askStuHref} className="sv-btn svc-submit">
+                  Ask Stu
+                </a>
+              </section>
+            ) : (
+              <section className="sv-card svc-form" aria-labelledby="svc-form-h">
+                <h2 id="svc-form-h" className="sv-h3">
+                  Send us a message
+                </h2>
 
-              {result && <div className={`svc-result svc-result-${result.type}`}>{result.text}</div>}
+                {result && <div className={`svc-result svc-result-${result.type}`}>{result.text}</div>}
 
-              <form onSubmit={onSubmit} className="svc-fields">
-                <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
-                  <label htmlFor="sj_trap">Leave this empty</label>
-                  <input
-                    id="sj_trap"
-                    name="sj_trap"
-                    type="text"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={trap}
-                    onChange={(e) => setTrap(e.target.value)}
-                  />
-                </div>
-                <div className="svc-two">
-                  <div>
-                    <label htmlFor="name">Name</label>
+                <form onSubmit={onSubmit} className="svc-fields">
+                  <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+                    <label htmlFor="sj_trap">Leave this empty</label>
                     <input
-                      id="name"
+                      id="sj_trap"
+                      name="sj_trap"
                       type="text"
-                      required
-                      placeholder="Your name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      disabled={loading}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={trap}
+                      onChange={(e) => setTrap(e.target.value)}
                     />
                   </div>
+                  <div className="svc-two">
+                    <div>
+                      <label htmlFor="name">Name</label>
+                      <input
+                        id="name"
+                        type="text"
+                        required
+                        placeholder="Your name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        disabled={loading}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="email">Email</label>
+                      <input
+                        id="email"
+                        type="email"
+                        required
+                        placeholder="you@example.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label htmlFor="email">Email</label>
-                    <input
-                      id="email"
-                      type="email"
+                    <label htmlFor="subject">Subject</label>
+                    <select
+                      id="subject"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      disabled={loading}
+                    >
+                      {subjects.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="message">Message</label>
+                    <textarea
+                      id="message"
                       required
-                      placeholder="you@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      rows={6}
+                      placeholder="Tell us how we can help..."
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       disabled={loading}
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label htmlFor="subject">Subject</label>
-                  <select
-                    id="subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    disabled={loading}
-                  >
-                    {subjects.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="message">Message</label>
-                  <textarea
-                    id="message"
-                    required
-                    rows={6}
-                    placeholder="Tell us how we can help..."
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    disabled={loading}
-                  />
-                </div>
-
-                <button type="submit" disabled={loading} className="sv-btn svc-submit">
-                  {loading ? "Sending..." : "Send Message"}
-                </button>
-              </form>
-            </section>
+                  <button type="submit" disabled={loading} className="sv-btn svc-submit">
+                    {loading ? "Sending..." : "Send Message"}
+                  </button>
+                </form>
+              </section>
+            )}
 
             <aside className="svc-side" aria-labelledby="svc-side-h">
               <h2 id="svc-side-h" className="sv-h3">
@@ -182,8 +198,8 @@ export function ContactB2C({ subjects, faq, formData, setFormData, trap, setTrap
                   <FiMessageCircle />
                 </span>
                 <div>
-                  <p className="svc-way-t">Live Chat</p>
-                  <p className="svc-way-d">Click the chat bubble in the bottom-left corner</p>
+                  <p className="svc-way-t">Already using Stu?</p>
+                  <p className="svc-way-d">Ask him under Help</p>
                 </div>
               </div>
 
@@ -216,7 +232,7 @@ export function ContactB2C({ subjects, faq, formData, setFormData, trap, setTrap
 
             <div className="sv-card sv-card-soft svc-help">
               <h3 className="sv-h3">Still need help?</h3>
-              <p className="sv-body">Our live chat is open. Click the bubble in the bottom-left corner.</p>
+              <p className="sv-body">Already using Stu? Ask him under Help. Otherwise send us a message above.</p>
               <Link to="/" className="sv-btn-ghost">
                 Return to Home
               </Link>

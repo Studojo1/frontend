@@ -164,9 +164,10 @@ const PINNED = {
   // sj_tracking_consent row says it is also a cookie on studojo.com and its subdomains (app/lib/consent.ts), 1 year
   "routes/privacy.tsx": "77353e01b8b5d830",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
+  // SUPPORT-STU 2 Nov: contact.tsx lost the chat copy and gained the signed-in Ask Stu card (hash re-pinned).
   // QA-FIX 2 Nov: copy only (one sending promise, career agent, reset emails paused, chat bubble bottom left, About's
   // lines from the QA report); the same words on both looks
-  "routes/contact.tsx": "8257dc5c87a3ce44",
+  "routes/contact.tsx": "7e4e1dad3fb5e9b7",
   "routes/about.tsx": "535174f5c08fa082",
   "components/error-page.tsx": "99b6cfefb8352b47",
   "components/blog/blog-content.tsx": "4c28dd5648ab8edd",
