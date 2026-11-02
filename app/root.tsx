@@ -304,7 +304,8 @@ function AnalyticsInit() {
             // delivery against it, so it must fire exactly once per real account;
             // the recency check and trackSignedUpOnce's per-user flag (shared
             // with /auth's email sign-up) are what guarantee that.
-            trackSignedUpOnce({ id: u.id, email: u.email, name: u.name });
+            // META-FIX (B4): claimed on the server first, so a sign-up seen on both hosts is reported once.
+            void trackSignedUpOnce({ id: u.id, email: u.email, name: u.name });
           }
         }
       } catch {

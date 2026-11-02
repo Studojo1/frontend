@@ -45,10 +45,61 @@ export function consentRequired(): boolean {
 // The choice made on this page; survives blocked storage.
 let memo: Consent | null | undefined;
 
+// META-FIX (2 Nov 2026, B7): the choice is also a cookie on the parent domain (.studojo.com, staging .studojo.pro),
+// so the platform (Studojo1/career-agent on platform.studojo.com) honours an Accept made here, and this site honours
+// one made on its /auth on the platform host. The cookie is the latest choice on any of our hosts, so it wins over
+// this origin's localStorage; a choice held only in localStorage (made before the cookie existed) is copied to it.
+export const CONSENT_COOKIE = "sj_tracking_consent";
+const CONSENT_COOKIE_MAX_AGE_S = 365 * 24 * 60 * 60;
+
+/** The parent domain the consent cookie is set on for this host, or null (host-only). Pure. */
+export function consentCookieDomain(hostname: string): string | null {
+  const h = hostname.toLowerCase();
+  for (const d of ["studojo.com", "studojo.pro"]) if (h === d || h.endsWith(`.${d}`)) return `.${d}`;
+  return null;
+}
+
+/** The consent cookie's Set value for a choice (null clears it). Pure. */
+export function consentCookieString(choice: Consent | null, hostname: string, secure: boolean): string {
+  const domain = consentCookieDomain(hostname);
+  const parts = [`${CONSENT_COOKIE}=${choice ?? ""}`, "Path=/", `Max-Age=${choice ? CONSENT_COOKIE_MAX_AGE_S : 0}`, "SameSite=Lax"];
+  if (domain) parts.push(`Domain=${domain}`);
+  if (secure) parts.push("Secure");
+  return parts.join("; ");
+}
+
+/** The choice in a Cookie header (or document.cookie), or null. Pure. */
+export function consentFromCookie(cookie: string | null | undefined): Consent | null {
+  const m = (cookie ?? "").match(/(?:^|;\s*)sj_tracking_consent=([^;]*)/);
+  const v = m?.[1]?.trim();
+  return v === "granted" || v === "denied" ? v : null;
+}
+
+function writeConsentCookie(choice: Consent | null): void {
+  try {
+    document.cookie = consentCookieString(choice, window.location.hostname, window.location.protocol === "https:");
+  } catch {
+    // cookies blocked: localStorage still holds it here
+  }
+}
+
+let copied = false;
+
 export function readConsent(): Consent | null {
   try {
+    const c = consentFromCookie(document.cookie);
+    if (c) return c;
+  } catch {
+    // cookies blocked: localStorage below
+  }
+  try {
     const v = localStorage.getItem(CONSENT_KEY);
-    return v === "granted" || v === "denied" ? v : null;
+    const held = v === "granted" || v === "denied" ? v : null;
+    if (held && !copied) {
+      copied = true;
+      writeConsentCookie(held);
+    }
+    return held;
   } catch {
     return null;
   }
@@ -62,6 +113,7 @@ export function writeConsent(choice: Consent | null): void {
   } catch {
     // Storage blocked: the choice holds for this page only.
   }
+  writeConsentCookie(choice);
   memo = choice;
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: choice }));
 }

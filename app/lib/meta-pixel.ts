@@ -5,6 +5,18 @@
 // the pair into a single event instead of counting it twice.
 
 import { consentForServer, trackingAllowed } from "./consent";
+import { metaBrowserIds } from "./attribution";
+
+// META-FIX (2 Nov 2026), the event map (one meaning per name, one dataset for studojo.com and platform.studojo.com):
+//   PageView              every page change, browser only.
+//   Lead                  this site only: a join or start CTA click (journey-client.ts), browser + server, one random
+//                         event_id, once a tab session. The platform never fires Lead.
+//   CompleteRegistration  a new account, reg_<userId>, browser + server, once a person across both hosts: claimed on the
+//                         server first (claimMetaOnce, career_agent.career_tracking_once), so a second host sends nothing.
+//   OnboardingComplete    the platform's custom event (set up done); never sent from here.
+//   ViewContent, InitiateCheckout, AddPaymentInfo, Purchase: the old /outreach funnel (analytics.ts META_EVENT); the
+//                         server copies of InitiateCheckout and AddPaymentInfo carry value and currency too.
+// Every server copy also carries fbc (the _fbc cookie, else built from the stored fbclid) and fbp when _fbp exists.
 
 const PIXEL_ID = import.meta.env?.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
 
@@ -164,13 +176,23 @@ export function initMetaPixel() {
  * bootstrap stub queues calls that are never sent. This request goes to our own
  * origin, so it is not blocked, and the server sends the event instead.
  */
-function mirrorToServer(eventName: string, eventId: string) {
+/** The relay's body: the event, the page, the consent state, value and currency when the event has them, and the
+ * browser ids (B1: an fbc built from the stored fbclid when the pixel never wrote _fbc). Exported for tests. */
+export function relayBody(eventName: string, eventId: string, properties?: Record<string, unknown>, extra: Record<string, unknown> = {}): string {
+  const ids = metaBrowserIds();
+  const money: Record<string, unknown> = {};
+  if (typeof properties?.value === "number") money.value = properties.value;
+  if (typeof properties?.currency === "string") money.currency = properties.currency;
+  // HP-N13: the server checks consent again before it reports anything.
+  return JSON.stringify({ eventName, eventId, sourceUrl: window.location.href, ...consentForServer(), ...money, ...(ids.fbc ? { fbc: ids.fbc } : {}), ...extra });
+}
+
+function mirrorToServer(eventName: string, eventId: string, properties?: Record<string, unknown>) {
   try {
     fetch("/api/meta-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // HP-N13: the server checks consent again before it reports anything.
-      body: JSON.stringify({ eventName, eventId, sourceUrl: window.location.href, ...consentForServer() }),
+      body: relayBody(eventName, eventId, properties),
       // survives the page being navigated away mid-flight
       keepalive: true,
       // the session cookie is how the server gets a trustworthy email
@@ -213,8 +235,54 @@ export function trackMeta(
   } catch {
     // fall through to the server copy
   }
-  mirrorToServer(eventName, eventId);
+  mirrorToServer(eventName, eventId, properties);
   return eventId;
+}
+
+/** What the server's once claim answered: true first (fire), false already reported, null unknown. */
+export type OnceAnswer = { meta: boolean | null; posthog: boolean | null };
+
+/** The once answer from the relay's JSON; unknown when it is not one (an old server). Pure. */
+export function onceAnswer(json: unknown): OnceAnswer {
+  const once = (json as { once?: { meta?: unknown; posthog?: unknown } } | null)?.once;
+  return {
+    meta: typeof once?.meta === "boolean" ? once.meta : null,
+    posthog: typeof once?.posthog === "boolean" ? once.posthog : null,
+  };
+}
+
+/**
+ * B4: claim a once-a-person event (CompleteRegistration, reg_<userId>) on the server before anything fires. The server
+ * sends its own copy when the claim is the first; this fires the browser copy only then (or when the server cannot
+ * tell). posthog: also claim PostHog's signed_up. The request goes even when Meta may not be told (meta: false), so
+ * PostHog's claim still happens. Never throws.
+ */
+export async function claimMetaOnce(eventName: "CompleteRegistration", eventId: string, opts: { posthog?: boolean } = {}): Promise<OnceAnswer> {
+  if (typeof window === "undefined") return { meta: null, posthog: null };
+  const allowed = metaAllowed();
+  let answer: OnceAnswer = { meta: null, posthog: null };
+  try {
+    const r = await fetch("/api/meta-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: relayBody(eventName, eventId, undefined, { once: true, meta: allowed, posthog: opts.posthog === true }),
+      keepalive: true,
+      credentials: "same-origin",
+    });
+    answer = onceAnswer(await r.json().catch(() => null));
+  } catch {
+    // unknown: the caller's own flag decides
+  }
+  if (!allowed) return { meta: false, posthog: answer.posthog };
+  if (answer.meta !== false) {
+    initMetaPixel();
+    try {
+      if (isInitialized) fbq()?.("track", eventName, {}, { eventID: eventId });
+    } catch {
+      // the server copy already went
+    }
+  }
+  return answer;
 }
 
 /**

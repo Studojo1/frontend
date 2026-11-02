@@ -29,7 +29,19 @@ globalThis.document = {
   createElement: () => ({ setAttribute() {}, addEventListener() {} }),
   head: { appendChild() {} },
   getElementsByTagName: () => [{ parentNode: { insertBefore() {} } }],
-  cookie: "_fbp=fb.1.1.1; _fbc=fb.1.1.abc",
+  // A cookie jar, as a browser has: writeConsent sets the shared consent cookie (META-FIX B7) beside these.
+  jar: new Map([["_fbp", "fb.1.1.1"], ["_fbc", "fb.1.1.abc"]]),
+  get cookie() {
+    return [...this.jar].map(([k, v]) => `${k}=${v}`).join("; ");
+  },
+  set cookie(v) {
+    const [pair, ...attrs] = v.split(";");
+    const i = pair.indexOf("=");
+    const name = pair.slice(0, i).trim();
+    const value = pair.slice(i + 1).trim();
+    if (value === "" || attrs.some((a) => /max-age=0\b/i.test(a.trim()))) this.jar.delete(name);
+    else this.jar.set(name, value);
+  },
 };
 const bodies = [];
 globalThis.fetch = async (url, init) => {

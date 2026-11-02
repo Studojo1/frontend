@@ -137,8 +137,11 @@ assert.match(authPage, /trackSignedUpOnce\(\{ id: data\.user\.id/, "CompleteRegi
 // ── 9. CompleteRegistration's event_id is reg_<userId> on both copies (the platform uses the same), guard kept.
 const analytics = readFileSync(`${APP}lib/analytics.ts`, "utf8");
 assert.match(analytics, /return `reg_\$\{userId\}`;/);
-assert.match(analytics, /track\("signed_up", \{ email: user\.email, name: user\.name \}, \{ eventId: registrationEventId\(user\.id\) \}\)/);
-assert.match(analytics, /if \(localStorage\.getItem\(key\)\) return;/, "the per-user signed_up flag");
+// META-FIX (B4): claimed once a person on the server first (both hosts), PostHog's signed_up with it; the per-user
+// flag still guards this browser (meta-fix.test.mjs drives it).
+assert.match(analytics, /claimMetaOnce\("CompleteRegistration", registrationEventId\(user\.id\), \{ posthog: true \}\)/);
+assert.match(analytics, /if \(answer\.posthog !== false\) capturePostHog\("signed_up", \{ email: user\.email, name: user\.name \}\)/);
+assert.match(analytics, /if \(localStorage\.getItem\(key\)\) return Promise\.resolve\(\);/, "the per-user signed_up flag");
 const { registrationEventId } = await import("./analytics.ts").catch(() => ({}));
 if (registrationEventId) assert.equal(registrationEventId("u_123"), "reg_u_123");
 

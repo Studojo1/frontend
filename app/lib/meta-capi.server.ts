@@ -9,6 +9,8 @@
 // no-op, so a missing secret degrades attribution instead of breaking signup.
 
 import crypto from "node:crypto";
+import { buildFbc } from "./attribution";
+import { FIRST_TOUCH_COOKIE, LAST_TOUCH_COOKIE, parseCookies, readSource } from "./journey";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v21.0";
 const PIXEL_ID = process.env.META_PIXEL_ID || "1402801611979819";
@@ -97,7 +99,42 @@ export async function sendMetaEvent(opts: {
   }
 }
 
-/** Pull the identity signals Meta can match on out of an incoming request. */
+// META-FIX (2 Nov 2026, B5): events whose server copy carries value and currency (INR), as the browser copy does.
+// Lead carries none; Purchase is not taken from a browser at all (api.meta-event.tsx).
+const VALUE_EVENTS = new Set(["InitiateCheckout", "AddPaymentInfo"]);
+
+/** value and currency from a relay body, for VALUE_EVENTS only, kept to sane numbers and a 3 letter code. Pure. */
+export function valueData(eventName: string, body: { value?: unknown; currency?: unknown }): { value: number; currency: string } | null {
+  if (!VALUE_EVENTS.has(eventName)) return null;
+  const value = typeof body.value === "number" ? body.value : Number.NaN;
+  const currency = typeof body.currency === "string" ? body.currency.toUpperCase() : "";
+  if (!Number.isFinite(value) || value < 0 || value > 1_000_000 || !/^[A-Z]{3}$/.test(currency)) return null;
+  return { value: Math.round(value * 100) / 100, currency };
+}
+
+/** META-FIX (2 Nov 2026, B1): an fbc a browser sent, kept only with Meta's shape. Pure. */
+export function cleanFbc(v: unknown): string | null {
+  return typeof v === "string" && /^fb\.\d\.\d{10,13}\.[A-Za-z0-9_-]{8,500}$/.test(v) ? v : null;
+}
+
+/**
+ * META-FIX (2 Nov 2026, B1): the fbc for a request with no _fbc cookie (the pixel blocked, or consent given after the
+ * landing page): built from the fbclid this site keeps in stu_lt (the latest click) else stu_src (the first touch),
+ * set server-side on every page load (journey.ts), as fb.1.<first_seen_ms>.<fbclid>. Null when neither holds one. Pure.
+ */
+export function fbcFromSourceCookies(cookieHeader: string | null | undefined): string | null {
+  const cookies = parseCookies(cookieHeader);
+  for (const name of [LAST_TOUCH_COOKIE, FIRST_TOUCH_COOKIE]) {
+    const s = readSource(cookies.get(name));
+    if (!s?.fbclid) continue;
+    const ms = Date.parse(s.first_seen_at);
+    if (Number.isFinite(ms) && /^[A-Za-z0-9_-]{8,500}$/.test(s.fbclid)) return buildFbc(s.fbclid, ms);
+  }
+  return null;
+}
+
+/** Pull the identity signals Meta can match on out of an incoming request. fbc: the _fbc cookie, else the stored
+ * fbclid (fbcFromSourceCookies). fbp: the _fbp cookie when it exists. */
 export function metaUserDataFromRequest(request: Request): MetaUserData {
   const cookieHeader = request.headers.get("cookie") || "";
   const readCookie = (name: string): string | null => {
@@ -112,7 +149,7 @@ export function metaUserDataFromRequest(request: Request): MetaUserData {
 
   return {
     fbp: readCookie("_fbp"),
-    fbc: readCookie("_fbc"),
+    fbc: readCookie("_fbc") || fbcFromSourceCookies(cookieHeader),
     clientIp,
     userAgent: request.headers.get("user-agent"),
   };

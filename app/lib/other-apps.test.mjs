@@ -17,6 +17,7 @@ for (const to of ["/", "/outreach", "/outreach/upload", "/crm", "/profile/kabir-
 const page = readFileSync(new URL("../routes/auth._index.tsx", import.meta.url), "utf8");
 assert.doesNotMatch(page, /\bnavigate\(redirectUrl/, "moves after sign-in go through goOn");
 assert.match(page, /if \(isOtherApp\(to\)\)/);
-assert.match(page, /!isPending && session\) goOn\(redirectUrl, true\)/);
+// META-FIX (B4): the move waits for a sign-up's tracking answer (signupReported, at most 1.5 s), still through goOn.
+assert.match(page, /if \(isPending \|\| !session\) return;[\s\S]{0,120}signupReported\(\)\.then\(\(\) => \{\s*if \(live\) goOn\(redirectUrl, true\);/);
 
 console.log("other-apps: ok");

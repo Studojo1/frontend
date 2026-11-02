@@ -12,12 +12,14 @@
 // oversight, and keeps the two systems provably in step.
 
 import { capturePostHog } from "./posthog";
-import { trackMeta } from "./meta-pixel";
+import { claimMetaOnce, trackMeta } from "./meta-pixel";
 
 const META_EVENT: Record<string, string | null> = {
   // --- the money funnel: these must agree with the admin funnel exactly ---
   signed_up: "CompleteRegistration",
-  resume_uploaded: "Lead",
+  // META-FIX (2 Nov 2026): Lead means a join or start CTA click only (journey-client.ts; the map is in
+  // meta-pixel.ts), so an uploaded resume is not a second kind of Lead.
+  resume_uploaded: null,
   pricing_viewed: "ViewContent",
   checkout_opened: "InitiateCheckout",
   pay_now_clicked: "AddPaymentInfo",
@@ -102,20 +104,41 @@ export function registrationEventId(userId: string): string {
   return `reg_${userId}`;
 }
 
+let pendingSignup: Promise<void> | null = null;
+
 /**
- * signed_up (Meta CompleteRegistration) exactly once per account on this browser: the per-user localStorage flag is
- * the guard, and the event_id is reg_<userId> (registrationEventId) on the pixel and the CAPI copy, so a copy from
- * the platform or another tab collapses into one. Meta optimises delivery against it, so a second copy would be a
- * fake conversion. Called by /auth when an email sign-up succeeds, and by the root when a brand-new session first
- * appears (Google sign-up). Never throws.
+ * signed_up (PostHog) and Meta CompleteRegistration exactly once per account, across both hosts (META-FIX B4). The
+ * per-origin localStorage flag alone let studojo.com and platform.studojo.com (this site's /auth runs on both) each
+ * report it. Now the server claims it first (api/meta-event once: true, career_agent.career_tracking_once): PostHog's
+ * signed_up is captured only when its claim is the first, and the pixel's copy only when Meta's is (the server sends
+ * the CAPI copy itself). When the server cannot tell (null), this browser's flag decides, as before. The event_id is
+ * reg_<userId> (registrationEventId) on both copies. Called by /auth when an email sign-up succeeds, and by the root
+ * when a brand-new session first appears (Google sign-up). Never throws.
  */
-export function trackSignedUpOnce(user: { id: string; email?: string | null; name?: string | null }): void {
+export function trackSignedUpOnce(user: { id: string; email?: string | null; name?: string | null }): Promise<void> {
+  const key = `ph_signed_up_${user.id}`;
   try {
-    const key = `ph_signed_up_${user.id}`;
-    if (localStorage.getItem(key)) return;
-    track("signed_up", { email: user.email, name: user.name }, { eventId: registrationEventId(user.id) });
+    if (localStorage.getItem(key)) return Promise.resolve();
     localStorage.setItem(key, "1");
   } catch {
-    // analytics must never break the app
+    // storage blocked: the server's claim still holds
   }
+  const run = (async () => {
+    try {
+      const answer = await claimMetaOnce("CompleteRegistration", registrationEventId(user.id), { posthog: true });
+      if (answer.posthog !== false) capturePostHog("signed_up", { email: user.email, name: user.name });
+    } catch {
+      // analytics must never break the app
+    }
+  })();
+  pendingSignup = run;
+  return run;
+}
+
+/** Resolves once a signed_up report started on this page has had its answer (or after maxMs), so /auth can wait for
+ * it before the page is left and the answer lost. Immediate when none is in flight. */
+export function signupReported(maxMs = 1500): Promise<void> {
+  const p = pendingSignup;
+  if (!p) return Promise.resolve();
+  return Promise.race([p, new Promise<void>((resolve) => setTimeout(resolve, maxMs))]);
 }

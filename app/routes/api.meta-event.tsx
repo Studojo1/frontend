@@ -1,6 +1,7 @@
 import type { Route } from "./+types/api.meta-event";
 import { auth } from "~/lib/auth";
-import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured } from "~/lib/meta-capi.server";
+import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured, cleanFbc, valueData } from "~/lib/meta-capi.server";
+import { claimOnce, POSTHOG_SIGNED_UP } from "~/lib/tracking-once.server";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { serverMayReportToMeta } from "~/lib/consent";
 import { parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
@@ -18,6 +19,24 @@ import { parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
  * a client-supplied address would let anyone poison the match data.
  *
  * Always returns 200. A failed analytics call must never surface to the user.
+ *
+ * META-FIX (2 Nov 2026). The event map, one meaning per name across studojo.com and platform.studojo.com (one dataset):
+ *   PageView              every page change, browser only.
+ *   Lead                  THIS SITE only: a click on a join or start CTA (journey-client.ts), browser + server, a
+ *                         random event_id, once a tab session. The platform never fires Lead.
+ *   CompleteRegistration  a new account, event_id reg_<userId>, browser + server, exactly once a person across both
+ *                         hosts: the body's once: true claims it (career_agent.career_tracking_once,
+ *                         tracking-once.server.ts) before either copy fires. Email sign-ups here (/auth), Google
+ *                         sign-ups on the platform.
+ *   OnboardingComplete    the platform's custom event (set up done), event_id onboarding_<userId>; not sent from here.
+ *   ViewContent, InitiateCheckout, AddPaymentInfo, Purchase: the old /outreach funnel (analytics.ts META_EVENT). The
+ *                         server copies of InitiateCheckout and AddPaymentInfo carry value and currency (INR) too.
+ * once: true answers {ok, once: {meta, posthog}}: true first (fire the browser copy), false already reported, null
+ * unknown (the browser's own flag decides). meta: false (the browser may not tell Meta) claims nothing for Meta;
+ * posthog: true also claims PostHog's signed_up, so it is captured once too. The claim is made even where this server
+ * does not send to Meta (staging, no token), so signed_up is once everywhere.
+ * fbc: the _fbc cookie, else built from the fbclid in stu_lt / stu_src (meta-capi.server.ts), else the fbc the browser
+ * sends when it has Meta's shape (attribution.ts metaBrowserIds). fbp from the _fbp cookie when it exists.
  */
 
 // Only events the app actually fires. Without this an attacker could post
@@ -59,8 +78,9 @@ function anonLeadAllowed(request: Request): boolean {
 // job-outreach-svc, which knows the real order amount and does not have to take
 // a caller's word for it.
 
-const ok = () =>
-  new Response(JSON.stringify({ ok: true }), {
+type OnceReply = { meta: boolean | null; posthog?: boolean | null };
+const ok = (once?: OnceReply) =>
+  new Response(JSON.stringify(once ? { ok: true, once } : { ok: true }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
@@ -73,9 +93,19 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  if (!isMetaCapiConfigured()) return ok();
-
-  let body: { eventName?: string; eventId?: string; sourceUrl?: string; tracking_consent?: unknown; time_zone?: unknown } = {};
+  let body: {
+    eventName?: string;
+    eventId?: string;
+    sourceUrl?: string;
+    tracking_consent?: unknown;
+    time_zone?: unknown;
+    once?: unknown;
+    meta?: unknown;
+    posthog?: unknown;
+    value?: unknown;
+    currency?: unknown;
+    fbc?: unknown;
+  } = {};
   try {
     body = await request.json();
   } catch {
@@ -87,7 +117,13 @@ export async function action({ request }: Route.ActionArgs) {
   // HP-N13: the browser holds these events for an EU/UK visitor who has not
   // accepted, and so does the server. No consent state from an EU/UK time
   // zone, or no time zone at all, is a no.
-  if (!serverMayReportToMeta(body.tracking_consent, body.time_zone)) return ok();
+  const consentOk = serverMayReportToMeta(body.tracking_consent, body.time_zone);
+
+  // B4: CompleteRegistration once a person, across both hosts (and PostHog's signed_up with it).
+  if (body.once === true && eventName === "CompleteRegistration") return claimRegistration(request, body, eventId, consentOk);
+
+  if (!isMetaCapiConfigured()) return ok();
+  if (!consentOk) return ok();
 
   // Per-IP cap, silent like everything else here (audit ST-N12).
   const limit = await checkRateLimit(request);
@@ -113,12 +149,55 @@ export async function action({ request }: Route.ActionArgs) {
   // POST these to inflate the conversions the ads optimise for (ST-N12).
   if (!signedIn && SESSION_EVENTS.has(eventName) && !(eventName === "Lead" && anonLeadAllowed(request))) return ok();
 
+  if (!user.fbc) user.fbc = cleanFbc(body.fbc);
+  const customData = valueData(eventName, body);
+
   await sendMetaEvent({
     eventName,
     eventId,
     eventSourceUrl: body.sourceUrl ?? request.headers.get("referer"),
     user,
+    ...(customData ? { customData } : {}),
   });
 
   return ok();
+}
+
+/**
+ * B4: the signed-in person's CompleteRegistration (reg_<their id>, never anyone else's), claimed before it is sent,
+ * and PostHog's signed_up with it when asked. Answers at once; the server copy goes on after.
+ */
+async function claimRegistration(
+  request: Request,
+  body: { sourceUrl?: string; meta?: unknown; posthog?: unknown; fbc?: unknown },
+  eventId: string,
+  consentOk: boolean,
+): Promise<Response> {
+  let userId: string | null = null;
+  let email: string | null = null;
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    userId = session?.user?.id ?? null;
+    email = session?.user?.email ?? null;
+  } catch {
+    userId = null;
+  }
+  if (!userId) return ok();
+  // analytics.ts registrationEventId (a browser module, so not imported here).
+  if (eventId !== `reg_${userId}`) return ok({ meta: false, posthog: false });
+  const limit = await checkRateLimit(request);
+  if (limit && !limit.allowed) return ok();
+  const host = new URL(request.url).host;
+  const metaClaim = body.meta !== false && consentOk ? await claimOnce(userId, "CompleteRegistration", host) : false;
+  const reply: OnceReply = { meta: metaClaim };
+  if (body.posthog === true) reply.posthog = await claimOnce(userId, POSTHOG_SIGNED_UP, host);
+  // Unknown (null) still sends: the same event id, so Meta keeps one.
+  if (metaClaim !== false && isMetaCapiConfigured()) {
+    const user = metaUserDataFromRequest(request);
+    if (!user.fbc) user.fbc = cleanFbc(body.fbc);
+    user.email = email;
+    user.externalId = userId;
+    void sendMetaEvent({ eventName: "CompleteRegistration", eventId, eventSourceUrl: body.sourceUrl ?? request.headers.get("referer"), user });
+  }
+  return ok(reply);
 }
