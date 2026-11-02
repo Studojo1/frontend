@@ -19,6 +19,11 @@ export const PAGE_HEADERS: Record<string, string> = {
     "frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'",
 };
 
+/** PAGE_HEADERS without the HTML content type, for the ".data" spelling of a fellow's address. */
+export const PAGE_DATA_HEADERS: Record<string, string> = Object.fromEntries(
+  Object.entries(PAGE_HEADERS).filter(([name]) => name !== "Content-Type"),
+);
+
 const ICONS = `<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
   <defs>
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2.5"/><path d="M15.5 8.5V6.5a2.5 2.5 0 0 0-2.5-2.5H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></symbol>
