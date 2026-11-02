@@ -186,7 +186,7 @@
           </div>
         </div>
         ${meta ? `<p class="p-meta">${esc(meta)}</p>` : ""}
-        <p class="p-org"><span class="mark mark-sm" aria-hidden="true">S</span>${esc(P.name)}, ${esc(ME.cohort)}</p>
+        <p class="p-org"><span class="mark mark-sm" aria-hidden="true">S</span>${esc(P.name)}${ME.cohort ? ", " + esc(ME.cohort) : ""}</p>
       </div>
       <dl class="stats">
         <div>
@@ -219,7 +219,7 @@
         <div class="ed-top">
           <div class="ed-issue" aria-hidden="true"><span class="ed-issue-cap">NO.</span><span class="ed-issue-no">${WEEK_NO}</span></div>
           <div>
-            <p class="ed-eyebrow">Your weekly edition · ${esc(ME.cohort)}</p>
+            <p class="ed-eyebrow">Your weekly edition${ME.cohort ? " · " + esc(ME.cohort) : ""}</p>
             <h2 class="ed-title" id="ed-title">Week ${WEEK_NO} edition</h2>
             <p class="ed-meta">${fmt(ME.thisWeek.start, false)} to ${fmt(addDays(ME.thisWeek.start, 6), false)} · Made for ${esc(ME.first)}</p>
           </div>
@@ -256,7 +256,7 @@
       <div class="ed-top">
         <div class="ed-issue" aria-hidden="true"><span class="ed-issue-cap">NO.</span><span class="ed-issue-no">${WEEK_NO}</span></div>
         <div>
-          <p class="ed-eyebrow">Your weekly edition · ${esc(ME.cohort)}</p>
+          <p class="ed-eyebrow">Your weekly edition${ME.cohort ? " · " + esc(ME.cohort) : ""}</p>
           <h2 class="ed-title" id="ed-title">Week ${WEEK_NO} edition</h2>
           <p class="ed-meta">${fmt(ME.thisWeek.start, false)} to ${fmt(addDays(ME.thisWeek.start, 6), false)} · Made for ${esc(ME.first)}</p>
         </div>
@@ -391,7 +391,7 @@
         </div>
         <div class="li-text">
           <div class="li-body ${p.expanded ? "" : "is-clamped"}" id="${bodyId}">${postHTML(p)}</div>
-          ${p.expanded ? "" : `<button class="see-more" type="button" data-act="more" data-id="${p.id}" aria-controls="${bodyId}" aria-expanded="false">&#8230;see more</button>`}
+          ${p.expanded ? "" : `<button class="see-more" type="button" data-act="more" data-id="${p.id}" aria-controls="${bodyId}" aria-expanded="false">&#8230;<span class="sm-full">see </span>more</button>`}
         </div>
       </div>
       ${footer}
@@ -410,6 +410,7 @@
   function renderPosts() {
     $("#posts").innerHTML = ORDER.map((id) => postCard(byId(id))).join("");
     fitSeeMore($("#posts"));
+    applySearch();
   }
   function rerenderPost(id, focusSel) {
     const el = $("#post-" + id);
@@ -417,6 +418,7 @@
     el.outerHTML = postCard(byId(id));
     const fresh = $("#post-" + id);
     fitSeeMore(fresh);
+    applySearch();
     if (focusSel) { const f = fresh.querySelector(focusSel); if (f) f.focus(); }
   }
 
@@ -560,10 +562,10 @@
       : `<li><span>Nothing new in the last 7 days.</span></li>`;
     $("#news").innerHTML = `
       <div class="card-head"><h2 class="card-title" id="news-title">Fellowship news</h2></div>
-      <p class="card-sub">What's happened in ${esc(ME.cohort)} over the last 7 days.</p>
+      <p class="card-sub">What's happened in ${ME.cohort ? esc(ME.cohort) : "the fellowship"} over the last 7 days.</p>
       <div class="news-hi">${ic("trend")}<div>${ME.cohortPosition ? `<b>${esc(ME.cohortPosition)}</b>` : ""}<span>${ME.cohortPostedThisWeek} of ${ME.cohortSize} ${ME.cohortSize === 1 ? "fellow has" : "fellows have"} posted this week</span></div></div>
       <div class="news-group">
-        <p class="kicker">Latest in ${esc(ME.cohort)}</p>
+        <p class="kicker">Latest in ${ME.cohort ? esc(ME.cohort) : "the fellowship"}</p>
         <ul class="news-list">${items}</ul>
       </div>`;
   }
@@ -702,6 +704,7 @@
 
     if (act === "goto-next") { const n = nextPost(); if (n) goTo(n.id); else toast(ME.thisWeek.due ? allPosts(ME.thisWeek.due, "done") + " this week." : NO_POSTS); return; }
     if (act === "goto") { goTo(id); return; }
+    if (act === "tab") { showTab(b.dataset.tab); return; }
     if (act === "more") { p.expanded = true; rerenderPost(id); const body = $("#body-" + id); if (body) { body.setAttribute("tabindex", "-1"); body.focus(); } return; }
     if (act === "copy") {
       const ok = await copyText(postText(p));
@@ -861,11 +864,50 @@
   let rz;
   window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => fitSeeMore(), 120); });
 
+  /* ---------- phones: the LinkedIn app's layout. A search box filters this week's posts; the bottom tabs
+     show one part of the page at a time (desktop shows everything, so the classes do nothing there). */
+  const phone = matchMedia("(max-width: 759px)");
+  const SECTIONS = {
+    home: ["#notice", "#ed-cover", ".feed-head", "#posts"],
+    stories: ["#share"], cohort: ["#news"], updates: ["#activity"], milestones: ["#milestones"], me: ["#profile"],
+  };
+  let tab = "home";
+  function showTab(t) {
+    tab = SECTIONS[t] ? t : "home";
+    const show = new Set(SECTIONS[tab]);
+    if (tab === "home" && $("#share").classList.contains("is-first")) show.add("#share");
+    for (const sel of Object.values(SECTIONS).flat()) { const el = $(sel); if (el) el.classList.toggle("m-off", !show.has(sel)); }
+    for (const box of [".rail-left", ".rail-right", "#main"]) {
+      const el = $(box);
+      if (el) el.classList.toggle("m-off", ![...el.children].some((c) => !c.classList.contains("m-off")));
+    }
+    document.querySelectorAll("#m-tabs [data-tab]").forEach((b) => { if (b.dataset.tab === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    if (phone.matches) window.scrollTo(0, 0);
+  }
+  function applySearch() {
+    const box = $("#m-search");
+    const q = box ? box.value.trim().toLowerCase() : "";
+    let shown = 0;
+    for (const p of S.posts) {
+      const el = $("#post-" + p.id); if (!el) continue;
+      const hit = !q || [p.title, p.body, p.ownLine].join(" ").toLowerCase().includes(q);
+      el.hidden = !hit; if (hit) shown++;
+    }
+    let none = $("#search-none");
+    if (!none) { none = document.createElement("p"); none.id = "search-none"; none.className = "search-none"; $("#posts").before(none); }
+    none.hidden = !q || shown > 0;
+    none.textContent = q ? `No post this week mentions "${box.value.trim()}".` : "";
+  }
+  $("#m-search").addEventListener("input", () => { if (tab !== "home") showTab("home"); applySearch(); });
+  phone.addEventListener("change", () => showTab(tab));
+  $("#m-avatar").textContent = ME.initials;
+
   /* ---------- first render */
   $("#week-pill").hidden = false;
   if (ME.paused) { const n = $("#notice"); n.textContent = "Your fellowship is paused for now. Message the Studojo team on WhatsApp to pick it back up."; n.hidden = false; }
   if (askingForStories()) { const share = $("#share"); $("#main").insertBefore(share, $("#ed-cover")); share.classList.add("is-first"); }
   renderTop(); renderProfile(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
+  showTab("home");
   $("#page").classList.add("is-ready");
   $("#main").removeAttribute("aria-busy");
   }

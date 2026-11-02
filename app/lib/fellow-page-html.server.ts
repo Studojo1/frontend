@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when public/fellowship/feed.css or feed.js changes, so browsers fetch the new files. */
-export const ASSET_VERSION = "20261102b";
+export const ASSET_VERSION = "20261102c";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -44,6 +44,10 @@ const ICONS = `<svg class="sprite" width="0" height="0" aria-hidden="true" focus
     <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.3v.2"/></symbol>
     <symbol id="i-edit-sm" viewBox="0 0 24 24"><path d="M4 20h4.2L19.3 8.9a2.3 2.3 0 0 0-3.2-3.2L5 16.8V20z"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.8l8.5 6.7"/><path d="M5.8 9v11h4.7v-5.8h3V20h4.7V9"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.2 16.8V11a5.8 5.8 0 0 1 11.6 0v5.8l1.7 2.2H4.5z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></symbol>
+    <symbol id="i-compose" viewBox="0 0 24 24"><path d="M12 4H6a2 2 0 0 0-2 2v14l4.5-3.5H18a2 2 0 0 0 2-2V12"/><path d="M14.5 10.2 20.3 4.4a1.5 1.5 0 0 0-2.1-2.1l-5.8 5.8-.6 2.7z"/></symbol>
     <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.2 14.6c1.9.9 3.3 2.8 3.3 5.4"/></symbol>
   </defs>
 </svg>`;
@@ -75,7 +79,10 @@ const LOGO = `<span class="mark" aria-hidden="true">S</span>
 const PAGE_TOP = `<a class="brand" href="#posts" aria-label="Studojo Growth Fellowship, this week's posts">
       ${LOGO}
     </a>
-    <button class="week-pill" id="week-pill" type="button" data-act="goto-next" hidden></button>`;
+    <button class="week-pill" id="week-pill" type="button" data-act="goto-next" hidden></button>
+    <button class="m-me" type="button" data-act="tab" data-tab="me" aria-label="Your profile"><span class="avatar" id="m-avatar" aria-hidden="true"></span></button>
+    <label class="m-search"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span class="sr-only">Search your posts</span><input id="m-search" type="search" placeholder="Search your posts" autocomplete="off" enterkeyhint="search"></label>
+    <button class="m-compose" type="button" data-act="tab" data-tab="stories" aria-label="Share a story"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compose"/></svg></button>`;
 
 // A message page has nothing to jump to, so its logo is not a link.
 const MESSAGE_TOP = `<span class="brand">
@@ -106,6 +113,14 @@ const PAGE = `
 
   <section class="activity card card-pad" id="activity" aria-labelledby="act-title"></section>
 </div>
+
+<nav class="m-tabs" id="m-tabs" aria-label="Sections">
+  <button type="button" data-act="tab" data-tab="home" aria-current="page"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>Home</span></button>
+  <button type="button" data-act="tab" data-tab="stories"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-mic"/></svg><span>Stories</span></button>
+  <button type="button" data-act="tab" data-tab="cohort"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-users"/></svg><span>Cohort</span></button>
+  <button type="button" data-act="tab" data-tab="updates"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"/></svg><span>Activity</span></button>
+  <button type="button" data-act="tab" data-tab="milestones"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-briefcase"/></svg><span>Milestones</span></button>
+</nav>
 
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <script src="/fellowship/feed.js?v=${ASSET_VERSION}" defer></script>

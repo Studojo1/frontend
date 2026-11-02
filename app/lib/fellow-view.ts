@@ -278,7 +278,10 @@ function milestonesOf(rules: ProgrammeRules | null): Milestone[] {
 
 // ---------------------------------------------------------------- the view
 
-const firstNameOf = (full: string) => (full.trim().split(/\s+/)[0] || "").slice(0, 40);
+/** A name as people write it on LinkedIn: words typed all in lower case get a capital ("veera allak" -> "Veera Allak"). */
+const displayName = (full: string) =>
+  full.trim().split(/\s+/).map((w) => (w && w === w.toLowerCase() ? w[0].toUpperCase() + w.slice(1) : w)).join(" ");
+const firstNameOf = (full: string) => (displayName(full).split(" ")[0] || "").slice(0, 40);
 
 function initialsOf(full: string): string {
   const parts = full.trim().split(/\s+/).filter(Boolean);
@@ -287,9 +290,10 @@ function initialsOf(full: string): string {
   return (first + last).toUpperCase() || "S";
 }
 
+/** "Cohort A", or "" when the team hasn't put the fellow in a cohort yet (the page then leaves it out). */
 function cohortLabel(c: string | null): string {
   const s = (c ?? "").trim();
-  if (!s) return "Growth Fellowship";
+  if (!s) return "";
   return /^cohort\b/i.test(s) ? s : `Cohort ${s}`;
 }
 
@@ -477,7 +481,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       uploads: false,
     },
     me: {
-      name: fellow.full_name.trim(),
+      name: displayName(fellow.full_name),
       first: firstNameOf(fellow.full_name),
       initials: initialsOf(fellow.full_name),
       headline,
