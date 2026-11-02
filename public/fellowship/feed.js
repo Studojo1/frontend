@@ -868,7 +868,8 @@
      show one part of the page at a time (desktop shows everything, so the classes do nothing there). */
   const phone = matchMedia("(max-width: 759px)");
   const SECTIONS = {
-    home: ["#notice", "#ed-cover", ".feed-head", "#posts"],
+    home: ["#notice", "#ed-cover", ".learn-teaser", ".feed-head", "#posts"],
+    learn: ["#learn"],
     stories: ["#share"], cohort: ["#news"], updates: ["#activity"], milestones: ["#milestones"], me: ["#profile"],
   };
   let tab = "home";

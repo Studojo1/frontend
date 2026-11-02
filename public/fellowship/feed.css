@@ -702,3 +702,28 @@ ul, ol { padding: 0; list-style: none; }
   .profile .cover { background: linear-gradient(110deg, #DCE6F1 0%, #C6D6EA 100%); }
   .avatar, .avatar-xl { background: #E8F3FF; color: #0A66C2; }
 }
+
+/* ---------- Understand LinkedIn's algorithm */
+.learn .card-head .chip { flex: none; }
+.learn .says { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-size: 11px; font-weight: 700; letter-spacing: .02em; vertical-align: 1px; }
+.learn-list { margin-top: 12px; border-top: 1px solid var(--line); }
+.learn-list details { border-bottom: 1px solid var(--line); }
+.learn-list summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 10px 0; cursor: pointer; list-style: none; font-size: 14px; font-weight: 600; line-height: 1.35; }
+.learn-list summary::-webkit-details-marker { display: none; }
+.learn-list summary::after { content: ""; flex: none; width: 8px; height: 8px; margin-right: 4px; border-right: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: rotate(45deg) translateY(-2px); transition: transform .15s; }
+.learn-list details[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+.learn-body { padding: 0 0 12px; display: grid; gap: 8px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.learn-body ul { display: grid; gap: 6px; padding-left: 18px; list-style: disc; }
+.learn-note { font-size: 12px; color: var(--ink-2); }
+.learn-src { margin-top: 12px; font-size: 11.5px; line-height: 1.5; color: var(--ink-2); }
+.learn-src a { color: inherit; }
+.learn-teaser { display: none; }
+@media (max-width: 759px) {
+  .learn-teaser { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; border: 0; text-align: left; background: #fff; color: var(--li-ink); }
+  .lt-ic { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 8px; background: var(--accent-soft); color: var(--accent-ink); }
+  .lt-text { display: grid; gap: 2px; flex: 1; min-width: 0; }
+  .lt-text b { font-size: 14px; font-weight: 600; }
+  .lt-text span { font-size: 12px; color: var(--li-ink-2); }
+  .learn-teaser > .ic { color: var(--li-ink-2); }
+  .learn-body { color: var(--li-ink); }
+}

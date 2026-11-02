@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when public/fellowship/feed.css or feed.js changes, so browsers fetch the new files. */
-export const ASSET_VERSION = "20261102c";
+export const ASSET_VERSION = "20261102d";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -48,6 +48,7 @@ const ICONS = `<svg class="sprite" width="0" height="0" aria-hidden="true" focus
     <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.2 16.8V11a5.8 5.8 0 0 1 11.6 0v5.8l1.7 2.2H4.5z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></symbol>
     <symbol id="i-compose" viewBox="0 0 24 24"><path d="M12 4H6a2 2 0 0 0-2 2v14l4.5-3.5H18a2 2 0 0 0 2-2V12"/><path d="M14.5 10.2 20.3 4.4a1.5 1.5 0 0 0-2.1-2.1l-5.8 5.8-.6 2.7z"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8.5 7.5h7M8.5 11h5"/></symbol>
     <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.2 14.6c1.9.9 3.3 2.8 3.3 5.4"/></symbol>
   </defs>
 </svg>`;
@@ -89,6 +90,89 @@ const MESSAGE_TOP = `<span class="brand">
       ${LOGO}
     </span>`;
 
+// "Understand LinkedIn's algorithm": a short read so fellows learn to post well on their own. Every "LinkedIn
+// says" line is something LinkedIn has published (sources at the end); the tips are labelled as creators' rules of
+// thumb. No numbers that LinkedIn hasn't published. Same for everyone, so it lives in the page itself.
+const SRC = (href: string, text: string) => `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+const LEARN = `
+    <section class="card card-pad learn" id="learn" aria-labelledby="learn-title">
+      <div class="card-head"><h2 class="card-title" id="learn-title">Understand LinkedIn's algorithm</h2><span class="chip">3 min read</span></div>
+      <p class="card-sub">How LinkedIn decides who sees a post, so you can post well on your own. Lines marked <span class="says">LinkedIn says</span> come from LinkedIn itself. The tips at the end are what tends to work for creators.</p>
+      <div class="learn-list">
+        <details open>
+          <summary>Your post starts with your own network</summary>
+          <div class="learn-body">
+            <p><span class="says">LinkedIn says</span> A new post goes to the people you're connected to and the people who follow you. When they react, comment or share, it travels on to their networks too.</p>
+            <p>So every connection is a door to another network. Growing your connections grows the first circle that sees you.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Every post gets a quick check</summary>
+          <div class="learn-body">
+            <p><span class="says">LinkedIn says</span> Within moments, its systems sort each post as spam, low quality or fine. Spam and low-quality posts can be shown to fewer people, kept to your own network, or hidden.</p>
+            <p><span class="says">LinkedIn says</span> The posts that travel furthest are the ones that add ideas, insight and inspiration.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Real conversations beat empty reactions</summary>
+          <div class="learn-body">
+            <p><span class="says">LinkedIn says</span> It promotes posts that spark conversations and discussion, and it gives more weight to meaningful comments than to empty ones.</p>
+            <p>A comment that responds to what you actually said is worth far more than a quick like or a "Great post!".</p>
+          </div>
+        </details>
+        <details>
+          <summary>Share what you know, as yourself</summary>
+          <div class="learn-body">
+            <p><span class="says">LinkedIn says</span> People value posts grounded in knowledge and advice, and posts from people they know. It also looks at whether you're writing about something you have real experience in.</p>
+            <p>Your internship, your setback, the lesson you learned the hard way: that's your expertise. It's why your posts here are written from the stories you share.</p>
+          </div>
+        </details>
+        <details>
+          <summary>The first two lines decide if people stop</summary>
+          <div class="learn-body">
+            <p><span class="says">LinkedIn says</span> It measures how long people spend on a post, and shows posts that people scroll straight past to fewer people.</p>
+            <p>So the lines people see before "…more" matter most. That's what <b>Add your line</b> is for: one line in your own words at the top gives people a reason to stop.</p>
+          </div>
+        </details>
+        <details>
+          <summary>You don't need a big following</summary>
+          <div class="learn-body">
+            <p><span class="says">LinkedIn says</span> The first few reactions and comments on a post matter most, and it deliberately moves some attention from the biggest accounts to everyone else.</p>
+            <p>A student with a few hundred connections can be seen. Showing up every week is what counts.</p>
+          </div>
+        </details>
+        <details>
+          <summary>What LinkedIn holds back</summary>
+          <div class="learn-body">
+            <p><span class="says">LinkedIn says</span> It won't promote posts that ask for likes or reactions just to boost reach ("Like if you agree", "Comment YES"), chain posts asking for shares, or repetitive and irrelevant comments. It can limit or remove them.</p>
+            <p><span class="says">LinkedIn says</span> Agreeing with friends to like or share each other's posts breaks its rules: it calls that artificial engagement.</p>
+          </div>
+        </details>
+        <details>
+          <summary>What tends to work</summary>
+          <div class="learn-body">
+            <p class="learn-note">Creators' rules of thumb, not LinkedIn's own words.</p>
+            <ul>
+              <li>Reply to comments, especially in the first hour after you post.</li>
+              <li>Post on a steady schedule rather than in bursts. Your weekly posts here do that for you.</li>
+              <li>Keep your profile complete: a clear photo, a headline that says what you do, and your college.</li>
+              <li>Short paragraphs and plain words. Write the way you talk.</li>
+              <li>Tag people only when they're really part of the story.</li>
+              <li>Keep "In partnership with Studojo" on Studojo posts. It's required, and being open about it builds trust. Add your own line instead of rewriting the post.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+      <p class="learn-src">Sources: LinkedIn Engineering on ${SRC("https://engineering.linkedin.com/publishing-platform/maximizing-our-publishing-platform-reach-network-distribution", "how posts spread")} (2014), ${SRC("https://www.linkedin.com/blog/engineering/feed/strategies-for-keeping-the-linkedin-feed-relevant", "keeping the feed relevant")} (2017), ${SRC("https://www.linkedin.com/blog/engineering/member-customer-experience/linkedin-feed-with-creator-side-optimization", "giving smaller creators a fair share")} (2018) and ${SRC("https://www.linkedin.com/blog/engineering/feed/understanding-feed-dwell-time", "time spent on posts")} (2020); the LinkedIn blog on ${SRC("https://www.linkedin.com/blog/member/product/keeping-your-feed-relevant-and-productive", "what it won't promote")} (May 2022) and ${SRC("https://www.linkedin.com/blog/member/product/mythbusting-the-feed-how-the-algorithm-works", "how the feed works")} (Aug 2022); LinkedIn's Alice Xiong and Dan Roth ${SRC("https://www.entrepreneur.com/science-technology/linkedin-changed-its-algorithms-heres-how-your-posts/454728", "in Entrepreneur")} (June 2023); LinkedIn Help on ${SRC("https://www.linkedin.com/help/linkedin/answer/a1338787", "spam")} and its ${SRC("https://www.linkedin.com/legal/professional-community-policies", "community policies")}.</p>
+    </section>`;
+
+const LEARN_TEASER = `
+    <button class="card learn-teaser" type="button" data-act="tab" data-tab="learn">
+      <span class="lt-ic" aria-hidden="true"><svg class="ic"><use href="#i-book"/></svg></span>
+      <span class="lt-text"><b>Understand LinkedIn's algorithm</b><span>How LinkedIn decides who sees your post · 3 min read</span></span>
+      <svg class="ic ic-sm" aria-hidden="true"><use href="#i-arrow"/></svg>
+    </button>`;
+
 const PAGE = `
 <div class="page" id="page">
   <aside class="rail-left" aria-label="Your profile">
@@ -97,7 +181,7 @@ const PAGE = `
 
   <main class="feed" id="main" aria-busy="true">
     <div class="notice" id="notice" hidden></div>
-    <section class="card ed-cover" id="ed-cover" aria-labelledby="ed-title"></section>
+    <section class="card ed-cover" id="ed-cover" aria-labelledby="ed-title"></section>${LEARN_TEASER}
     <div class="feed-head">
       <div class="fh-row"><h2>This week's posts</h2><span class="chip" id="week-range"></span></div>
       <p id="feed-help">Loading your posts.</p>
@@ -105,10 +189,10 @@ const PAGE = `
     <div class="post-list" id="posts"></div>
   </main>
 
-  <aside class="rail-right" aria-label="Milestones, stories and fellowship news">
+  <aside class="rail-right" aria-label="Milestones, stories, fellowship news and how LinkedIn works">
     <section class="card card-pad" id="milestones" aria-labelledby="ms-title"></section>
     <section class="card card-pad share" id="share" aria-labelledby="share-title"></section>
-    <section class="card card-pad" id="news" aria-labelledby="news-title"></section>
+    <section class="card card-pad" id="news" aria-labelledby="news-title"></section>${LEARN}
   </aside>
 
   <section class="activity card card-pad" id="activity" aria-labelledby="act-title"></section>
