@@ -133,8 +133,18 @@ try {
   await refused(() => page.applyFellowChange(asha, { intent: "numbers", postId: ids.aThu, impressions: 1, reactions: 1, comments: 1 }), 409, "numbers before posting");
   await page.applyFellowChange(asha, { intent: "numbers", postId: ids.aTue, impressions: "1,240", reactions: 31, comments: "4" });
   assert.equal((await one(`SELECT impressions FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).impressions, 1240);
+  // "Did you post it?" can be answered without a link; the link can be added once, later.
+  await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.kTue }), 404, "posted without a link on another fellow's post");
+  await page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed });
+  const late = await one(`SELECT status, post_url, posted_at FROM ugc_creator_posts WHERE id = $1`, [ids.aMissed]);
+  assert.deepEqual([late.status, late.post_url], ["posted", null], "last week's post can be marked late, without a link");
+  await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed, url: "" }), 409, "marked again without a link");
+  await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed, url: "https://www.linkedin.com/posts/kiran-activity-2" }), 409, "a link already saved for another fellow's post");
   await page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed, url: "https://www.linkedin.com/posts/asha-late-activity-5" });
-  assert.equal((await one(`SELECT status FROM ugc_creator_posts WHERE id = $1`, [ids.aMissed])).status, "posted", "last week's post can be marked late");
+  const linked = await one(`SELECT status, post_url, posted_at FROM ugc_creator_posts WHERE id = $1`, [ids.aMissed]);
+  assert.equal(linked.post_url, "https://www.linkedin.com/posts/asha-late-activity-5", "the link is added later");
+  assert.equal(linked.posted_at.getTime(), late.posted_at.getTime(), "adding the link keeps the time it was marked as posted");
+  await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed, url: "https://www.linkedin.com/posts/asha-other-activity-6" }), 409, "a saved link can't be replaced");
 
   // The team puts a post on hold ('blocked'): the page shows a notice without its text, and every change is refused.
   await addPost("aHeld", 1, thu, "blocked", { body: `HELD-${SECRET}` });

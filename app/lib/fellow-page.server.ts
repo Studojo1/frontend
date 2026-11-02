@@ -192,20 +192,30 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
     }
     case "posted": {
       // A post from an earlier week can still be marked, late; the page lists those in Your activity.
+      // The link is optional ("Did you post it?" can be answered without one), and a post marked without
+      // a link can get its link later, once. The admin panel marks posts the same way.
       const id = postId(body.postId);
-      const url = cleanPostUrl(body.url);
-      if (!url) throw new FellowInputError("That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/");
+      const raw = typeof body.url === "string" ? body.url.trim() : "";
+      const url = raw ? cleanPostUrl(raw) : null;
+      if (raw && !url) throw new FellowInputError("That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/");
       await withFellowLock(fellow, async (tx) => {
         // One link, one post: a link already saved for another post can't complete this one as well.
-        const used = await tx.execute(sql`
-          SELECT 1 FROM ugc_creator_posts WHERE lower(post_url) = lower(${url}) AND id <> ${id} LIMIT 1
-        `);
-        if (used.rows.length) {
-          throw new FellowInputError("That link is already saved for another post. Open this post on LinkedIn and copy its own link.", 409);
+        if (url) {
+          const used = await tx.execute(sql`
+            SELECT 1 FROM ugc_creator_posts WHERE lower(post_url) = lower(${url}) AND id <> ${id} LIMIT 1
+          `);
+          if (used.rows.length) {
+            throw new FellowInputError("That link is already saved for another post. Open this post on LinkedIn and copy its own link.", 409);
+          }
         }
         const r = await tx.execute(sql`
-          UPDATE ugc_creator_posts SET status = 'posted', post_url = ${url}, posted_at = now(), updated_at = now()
-          WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
+          UPDATE ugc_creator_posts
+          SET post_url = COALESCE(${url}::text, post_url),
+              posted_at = CASE WHEN status = 'ready' THEN now() ELSE posted_at END,
+              status = 'posted', updated_at = now()
+          WHERE id = ${id} AND creator_id = ${fellow.id}
+            AND ((status = 'ready' AND due_date <= ${weekEnd}::date)
+              OR (status = 'posted' AND post_url IS NULL AND ${url}::text IS NOT NULL))
         `);
         if (!updated(r)) await refuseChange(tx, fellow, id, "This post is already marked as posted.");
       });

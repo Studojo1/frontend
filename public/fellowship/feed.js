@@ -162,7 +162,7 @@
     $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
     $("#feed-help").textContent = n >= due
       ? `${allPosts(due, "out")} this week. Add your numbers a week after each one.`
-      : "As they will look on LinkedIn. Copy a post, share it, then tap I posted it.";
+      : "As they will look on LinkedIn. Post on LinkedIn copies the post and opens LinkedIn; if the text isn't filled in there, paste it. You post it yourself: Studojo never posts for you.";
   }
 
   /* ---------- profile card */
@@ -308,9 +308,10 @@
 
     let actions = "";
     if (!posted) {
-      const copyPrimary = isNext && !p.copied, postPrimary = isNext && p.copied;
+      const sharePrimary = isNext && !p.copied, postPrimary = isNext && p.copied;
       actions = `<div class="actions" role="group" aria-label="${esc(dowLong(p.date))} post actions">
-        <button class="act ${p.copied ? "is-done" : copyPrimary ? "is-primary" : ""}" type="button" data-act="copy" data-id="${p.id}">${ic(p.copied ? "check" : "copy")}<span>${p.copied ? "Copied" : "Copy"}</span></button>
+        <a class="act act-share ${sharePrimary ? "is-primary" : ""}" href="${esc(composeUrl(p))}" target="_blank" rel="noopener noreferrer" data-act="share" data-id="${p.id}">${ic("share")}<span>Post on LinkedIn</span><span class="sr-only"> (copies the post and opens LinkedIn in a new tab)</span></a>
+        <button class="act ${p.copied ? "is-done" : ""}" type="button" data-act="copy" data-id="${p.id}">${ic(p.copied ? "check" : "copy")}<span>${p.copied ? "Copied" : "Copy"}</span></button>
         <button class="act" type="button" data-act="line" data-id="${p.id}" aria-expanded="${p.panel === "line"}" aria-controls="panel-${p.id}">${ic("pen")}<span>${p.ownLine ? "Edit your line" : "Add your line"}</span></button>
         <button class="act ${postPrimary ? "is-primary" : ""}" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}">${ic("send")}<span>I posted it</span></button>
       </div>`;
@@ -325,7 +326,10 @@
         ? `<div class="an-row"><span class="an-main">${ic("chart")}<span><b>${nf(m.impressions)}</b> impressions</span></span><button class="btn btn-ghost btn-sm" type="button" data-act="numbers" data-id="${p.id}" aria-expanded="${p.panel === "numbers"}" aria-controls="panel-${p.id}">Edit numbers</button></div>`
         : `<div class="an-row"><span class="an-main">${ic("calendar")}<span>Numbers due <b>${fmt(p.numbersDue)}</b></span></span><button class="btn btn-secondary btn-sm" type="button" data-act="numbers" data-id="${p.id}" aria-expanded="${p.panel === "numbers"}" aria-controls="panel-${p.id}">Add your numbers</button></div>
            ${dueIn > 0 ? `<p class="an-note">Numbers are taken a week after posting, once the count settles. Add them on ${dowLong(p.numbersDue)}.</p>` : ""}`;
-      footer = `${strip}<div class="an">${an}<div class="link-row">${ic("link", "ic-sm")}<span class="lt">${esc(shortUrl(p.url))}</span></div></div>`;
+      const link = p.url
+        ? `<span class="lt">${esc(shortUrl(p.url))}</span>`
+        : `<button class="btn-link" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}">Add the link to your post</button>`;
+      footer = `${strip}<div class="an">${an}<div class="link-row">${ic("link", "ic-sm")}${link}</div></div>`;
     }
 
     let panel = "";
@@ -343,13 +347,13 @@
       </div>`;
     } else if (p.panel === "posted") {
       panel = `<div class="panel" id="panel-${p.id}">
-        <label class="panel-label" for="url-${p.id}">Paste the link to your LinkedIn post</label>
-        <p class="panel-help" id="url-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post.</p>
+        <label class="panel-label" for="url-${p.id}">Paste the link to your LinkedIn post${posted ? "" : ` <span class="opt">(optional)</span>`}</label>
+        <p class="panel-help" id="url-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post.${posted ? "" : " You can add it later too."}</p>
         <div class="${p.err ? "has-err" : ""}"><input id="url-${p.id}" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="linkedin.com/posts/..." value="${esc(p.urlDraft || "")}" aria-describedby="url-help-${p.id} url-err-${p.id}" aria-invalid="${!!p.err}"></div>
         <p class="err" id="url-err-${p.id}">${p.err ? ic("alert") + esc(p.err) : ""}</p>
         <div class="panel-actions">
           <button class="btn btn-ghost" type="button" data-act="close" data-id="${p.id}">Cancel</button>
-          <button class="btn btn-primary" type="button" data-act="posted-save" data-id="${p.id}">Mark as posted</button>
+          <button class="btn btn-primary" type="button" data-act="posted-save" data-id="${p.id}">${posted ? "Save link" : "Mark as posted"}</button>
         </div>
       </div>`;
     } else if (p.panel === "numbers") {
@@ -632,8 +636,8 @@
   function histPanel(p) {
     if (S.histKind === "posted") {
       return `<div class="panel hist-panel" id="hpanel-${p.id}">
-        <label class="panel-label" for="hurl-${p.id}">Paste the link to your LinkedIn post</label>
-        <p class="panel-help" id="hurl-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post.</p>
+        <label class="panel-label" for="hurl-${p.id}">Paste the link to your LinkedIn post <span class="opt">(optional)</span></label>
+        <p class="panel-help" id="hurl-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post. You can add it later too.</p>
         <div class="${S.histErr ? "has-err" : ""}"><input id="hurl-${p.id}" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="linkedin.com/posts/..." value="${esc(S.histUrl || "")}" aria-describedby="hurl-help-${p.id} hurl-err-${p.id}" aria-invalid="${!!S.histErr}"></div>
         <p class="err" id="hurl-err-${p.id}">${S.histErr ? ic("alert") + esc(S.histErr) : ""}</p>
         <div class="panel-actions">
@@ -670,16 +674,56 @@
     setTimeout(() => t.remove(), 3600);
   }
 
-  async function copyText(text) {
-    try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+  function copyNow(text) {
     const ta = document.createElement("textarea");
     ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
-    document.body.appendChild(ta); ta.select();
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
     let ok = false; try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
     ta.remove();
     return ok;
   }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { return copyNow(text); }
+  }
 
+  /* ---------- Post on LinkedIn: LinkedIn's composer with the post filled in. The text parameter is not
+     documented by LinkedIn and phones often open the app without it, so the post is always copied as well.
+     A very long post opens the empty composer (LinkedIn's server takes about 8,000 characters of address). */
+  const COMPOSE = "https://www.linkedin.com/feed/?shareActive=true";
+  function composeUrl(p) {
+    const url = COMPOSE + "&text=" + encodeURIComponent(postText(p));
+    return url.length <= 8000 ? url : COMPOSE;
+  }
+  // When the fellow comes back from LinkedIn, ask whether the post went out.
+  function cameBack() {
+    if (!S.away || !S.away.left) return;
+    const p = byId(S.away.id); S.away = null;
+    if (!p || p.status !== "ready" || $("#ask").open) return;
+    S.asking = p.id;
+    $("#ask-sub").textContent = `${dowLong(p.date)}'s post: ${p.title}`;
+    $("#ask-url").value = ""; $("#ask-url").removeAttribute("aria-invalid"); $("#ask-err").innerHTML = "";
+    $('[data-act="ask-yes"]').disabled = false;
+    $("#ask").showModal();
+  }
+  function closeAsk() {
+    const id = S.asking; S.asking = null;
+    if ($("#ask").open) $("#ask").close();
+    focusEl(`#post-${id} [data-act="posted"]`);
+  }
+  document.addEventListener("visibilitychange", () => { if (!S.away) return; if (document.hidden) S.away.left = true; else cameBack(); });
+  window.addEventListener("blur", () => { if (S.away) S.away.left = true; });
+  window.addEventListener("focus", cameBack);
+  $("#ask").addEventListener("cancel", (ev) => { ev.preventDefault(); closeAsk(); });
+
+  function markedPosted(p) {
+    rerenderPost(p.id); refreshProgress(); renderNews();
+    // The next post is now "Up next". A card with a panel open keeps what's typed and catches up when it closes.
+    const nx = nextPost(); if (nx && !nx.panel) rerenderPost(nx.id);
+    focusEl("#post-" + p.id);
+    toast(weekDone()
+      ? `${ME.thisWeek.due === 1 ? "That's your post for this week." : `That's all ${ME.thisWeek.due} posts this week.`} Your weekly run is now ${plural(run(), "week")}.`
+      : `${dowLong(p.date)}'s post is marked as posted. Add your numbers on ${p.numbersDue ? fmt(p.numbersDue) : "in a week"}.`);
+  }
   function refreshProgress() { renderTop(); renderProfile(); renderCover(); renderMilestones(); }
   function goTo(id) {
     const el = $("#post-" + id);
@@ -704,8 +748,31 @@
 
     if (act === "goto-next") { const n = nextPost(); if (n) goTo(n.id); else toast(ME.thisWeek.due ? allPosts(ME.thisWeek.due, "done") + " this week." : NO_POSTS); return; }
     if (act === "goto") { goTo(id); return; }
-    if (act === "tab") { showTab(b.dataset.tab); return; }
+    if (act === "tab") { if (phone.matches) showTab(b.dataset.tab); else goToSection(b.dataset.tab); return; }
     if (act === "more") { p.expanded = true; rerenderPost(id); const body = $("#body-" + id); if (body) { body.setAttribute("tabindex", "-1"); body.focus(); } return; }
+    if (act === "share") {
+      // The link itself opens LinkedIn in a new tab; the copy runs first and synchronously, before that tab takes focus.
+      const text = postText(p);
+      b.href = composeUrl(p);
+      if (!copyNow(text) && navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+      S.away = { id, left: false };
+      if (!p.copied) { p.copied = true; call({ intent: "copied", postId: id }).catch(() => {}); setTimeout(() => { rerenderPost(id); renderCover(); }, 0); }
+      return;
+    }
+    if (act === "ask-no") { closeAsk(); toast("No problem. It stays here until you post it."); return; }
+    if (act === "ask-yes") {
+      const ap = byId(S.asking), raw = $("#ask-url").value.trim();
+      if (!ap) { closeAsk(); return; }
+      const askErr = (msg) => { $("#ask-err").innerHTML = ic("alert") + esc(msg); $("#ask-url").setAttribute("aria-invalid", "true"); $("#ask-url").focus(); };
+      if (raw && !LINK_OK.test(raw)) { askErr("That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/"); return; }
+      b.disabled = true;
+      try { if (!applyView(await call({ intent: "posted", postId: ap.id, url: raw }))) return; }
+      catch (e) { b.disabled = false; askErr(e.message); return; }
+      S.asking = null; $("#ask").close();
+      ap.panel = null; ap.err = ""; ap.urlDraft = "";
+      markedPosted(ap);
+      return;
+    }
     if (act === "copy") {
       const ok = await copyText(postText(p));
       if (!ok) { toast("Couldn't copy. Tap see more, then select the text.", "error"); return; }
@@ -731,20 +798,15 @@
       return;
     }
     if (act === "posted-save") {
-      const raw = $("#url-" + id).value.trim();
-      if (!raw) { p.err = "Paste the link to your post first."; rerenderPost(id, "input"); return; }
-      if (!LINK_OK.test(raw)) { p.err = "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/"; p.urlDraft = raw; rerenderPost(id, "input"); return; }
+      const raw = $("#url-" + id).value.trim(), adding = p.status === "posted";
+      if (!raw && adding) { p.err = "Paste the link to your post first."; rerenderPost(id, "input"); return; }
+      if (raw && !LINK_OK.test(raw)) { p.err = "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/"; p.urlDraft = raw; rerenderPost(id, "input"); return; }
       b.disabled = true;
       try { if (!applyView(await call({ intent: "posted", postId: id, url: raw }))) return; }
       catch (e) { p.err = e.message; p.urlDraft = raw; rerenderPost(id, "input"); return; }
       p.panel = null; p.err = ""; p.urlDraft = "";
-      rerenderPost(id); refreshProgress(); renderNews();
-      // The next post is now "Up next". A card with a panel open keeps what's typed and catches up when it closes.
-      const nx = nextPost(); if (nx && !nx.panel) rerenderPost(nx.id);
-      const el = $("#post-" + id); if (el) el.focus();
-      toast(weekDone()
-        ? `${ME.thisWeek.due === 1 ? "That's your post for this week." : `That's all ${ME.thisWeek.due} posts this week.`} Your weekly run is now ${plural(run(), "week")}.`
-        : `${dowLong(p.date)}'s post is marked as posted. Add your numbers on ${p.numbersDue ? fmt(p.numbersDue) : "in a week"}.`);
+      if (adding) { rerenderPost(id); focusEl("#post-" + id); toast("Link saved."); return; }
+      markedPosted(p);
       return;
     }
     if (act === "numbers-save") {
@@ -811,7 +873,7 @@
     }
     if (act === "hist-posted-save") {
       const raw = $("#hurl-" + id).value.trim();
-      const bad = !raw ? "Paste the link to your post first." : !LINK_OK.test(raw) ? "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/" : "";
+      const bad = raw && !LINK_OK.test(raw) ? "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/" : "";
       if (bad) { S.histErr = bad; S.histUrl = raw; renderActivity(); focusEl("#hurl-" + id); return; }
       b.disabled = true;
       try { if (!applyView(await call({ intent: "posted", postId: id, url: raw }))) return; }
@@ -849,6 +911,7 @@
     if (!t || !t.closest) return;
     if (ev.key === "Enter" && t.tagName === "INPUT") {
       if (t.id === "conn-input") { ev.preventDefault(); $('[data-act="conn-save"]').click(); return; }
+      if (t.id === "ask-url") { ev.preventDefault(); $('[data-act="ask-yes"]').click(); return; }
       const m = /^([a-z]+)-(\d+)$/.exec(t.id), save = m && SAVE_FOR[m[1]];
       if (save) { ev.preventDefault(); const b = $(`[data-act="${save}"][data-id="${m[2]}"]`); if (b) b.click(); }
       return;
@@ -882,8 +945,17 @@
       const el = $(box);
       if (el) el.classList.toggle("m-off", ![...el.children].some((c) => !c.classList.contains("m-off")));
     }
-    document.querySelectorAll("#m-tabs [data-tab]").forEach((b) => { if (b.dataset.tab === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    document.querySelectorAll("#m-tabs [data-tab], .d-nav [data-tab]").forEach((b) => { if (b.dataset.tab === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
     if (phone.matches) window.scrollTo(0, 0);
+  }
+  // Desktop shows every section at once, so its top nav scrolls to the section instead of switching.
+  const DESK_TARGET = { home: null, stories: "#share", cohort: "#news", updates: "#activity", milestones: "#milestones", me: "#profile", learn: "#learn" };
+  function goToSection(t) {
+    document.querySelectorAll(".d-nav [data-tab]").forEach((b) => { if (b.dataset.tab === t) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    const smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    const el = DESK_TARGET[t] && $(DESK_TARGET[t]);
+    if (!el) { window.scrollTo({ top: 0, behavior: smooth }); return; }
+    el.scrollIntoView({ behavior: smooth, block: "start" });
   }
   function applySearch() {
     const box = $("#m-search");
@@ -902,6 +974,7 @@
   $("#m-search").addEventListener("input", () => { if (tab !== "home") showTab("home"); applySearch(); });
   phone.addEventListener("change", () => showTab(tab));
   $("#m-avatar").textContent = ME.initials;
+  $("#d-avatar").textContent = ME.initials;
 
   /* ---------- first render */
   $("#week-pill").hidden = false;

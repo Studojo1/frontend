@@ -1,33 +1,34 @@
 :root {
-  /* Layout: LinkedIn-style rails. Profile rail left, this week's posts as a feed in the middle,
-     milestones, stories and fellowship news on the right. Phones: one column, posts first after a slim profile card. */
-  --canvas: #F3F2F6;
+  /* LinkedIn's layout and look: profile rail left, this week's posts as the feed in the middle, milestones,
+     news and the algorithm guide on the right; LinkedIn's grey canvas, white cards, blue and plain type.
+     Phones: one column with LinkedIn's top bar and bottom tabs. */
+  --canvas: #F4F2EE;
   --surface: #FFFFFF;
-  --surface-2: #F8F7FA;
-  --ink: #1B1922;
-  --ink-2: #585463;
-  --ink-3: #6E6979;
-  --line: #E6E3EC;
-  --line-strong: #D3CFDB;
-  --field: #8A8496;
-  --hover: #F1EFF5;
-  --accent: #6A3DE8;
-  --accent-hover: #5629D3;
-  --accent-ink: #5B30DA;
-  --accent-soft: #F1ECFF;
-  --accent-line: #D9CCFF;
+  --surface-2: #F9FAFB;
+  --ink: rgba(0, 0, 0, .9);
+  --ink-2: rgba(0, 0, 0, .6);
+  --ink-3: rgba(0, 0, 0, .6);
+  --line: #E8E8E8;
+  --line-strong: #C9C9C9;
+  --field: #8C8C8C;
+  --hover: #F3F3F3;
+  --accent: #0A66C2;
+  --accent-hover: #004182;
+  --accent-ink: #0A66C2;
+  --accent-soft: #E8F3FF;
+  --accent-line: #B9D5F2;
   --good: #0E7A4B;
   --good-soft: #E6F4EC;
   --warn: #965200;
   --warn-soft: #FDF0DC;
   --bad: #B3261E;
   --bad-soft: #FCEBEA;
-  --r-card: 10px;
+  --r-card: 8px;
   --r-sm: 8px;
-  --shadow-card: 0 0 0 1px rgba(27, 25, 34, .07), 0 1px 2px rgba(27, 25, 34, .05);
+  --shadow-card: 0 0 0 1px rgba(140, 140, 140, .2);
   --shadow-pop: 0 0 0 1px rgba(27, 25, 34, .08), 0 10px 28px rgba(27, 25, 34, .16);
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  --serif: "Iowan Old Style", Charter, "Bitstream Charter", Georgia, serif;
+  --serif: var(--font); /* LinkedIn uses one plain typeface throughout */
   --gutter-l: max(16px, env(safe-area-inset-left, 0px));
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
 }
@@ -231,7 +232,7 @@ ul, ol { padding: 0; list-style: none; }
 .avatar {
   border-radius: 50%; flex: none;
   display: grid; place-items: center;
-  background: #ECE6FF; color: #4A2BB8; font-weight: 600; letter-spacing: .01em;
+  background: #E8F3FF; color: #0A66C2; font-weight: 600; letter-spacing: .01em;
 }
 .av-48 { width: 48px; height: 48px; font-size: 17px; }
 .av-32 { width: 32px; height: 32px; font-size: 12px; }
@@ -240,16 +241,15 @@ ul, ol { padding: 0; list-style: none; }
 .profile { overflow: hidden; }
 .cover {
   height: 58px;
-  background-color: #ECE7FB;
+  background-color: #D6E4F2;
   background-image:
-    repeating-radial-gradient(circle at 88% 135%, rgba(106, 61, 232, .13) 0 1.5px, transparent 1.5px 13px),
-    linear-gradient(110deg, #F1EDFD 0%, #E6DEFC 100%);
+    linear-gradient(110deg, #DCE6F1 0%, #C6D6EA 100%);
 }
 .profile-body { padding: 0 16px 14px; }
 .avatar-xl {
   width: 72px; height: 72px; font-size: 26px;
   margin-top: -36px; border: 3px solid var(--surface);
-  background: #E4DBFF;
+  background: #E8F3FF;
 }
 .p-id { margin-top: 8px; }
 .p-name { font-size: 18px; font-weight: 600; line-height: 1.25; }
@@ -442,7 +442,7 @@ ul, ol { padding: 0; list-style: none; }
 .prompt-top .kicker .ic { width: 16px; height: 16px; color: var(--accent-ink); }
 .prompt-text { font-size: 14px; font-weight: 600; line-height: 1.4; margin-top: 4px; }
 .share textarea { margin-top: 12px; min-height: 96px; }
-.share.is-listening textarea { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: #FCFBFF; }
+.share.is-listening textarea { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: #F5FAFF; }
 .share-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
 .mic {
   display: inline-flex; align-items: center; gap: 10px;
@@ -658,12 +658,7 @@ ul, ol { padding: 0; list-style: none; }
   .feed-head p { font-size: 12px; color: var(--li-ink-2); }
   .search-none { padding: 12px 16px; background: #fff; }
 
-  /* a post: LinkedIn's context line on top, then the post exactly as the feed shows it */
   .post { scroll-margin-top: 60px; }
-  .pc-head { grid-template-columns: minmax(0, 1fr) auto; padding: 8px 16px; border-bottom: 1px solid var(--li-line); background: none !important; }
-  .pc-head .date-tile { display: none; }
-  .pc-title { font-size: 12px; font-weight: 600; color: var(--li-ink-2); }
-  .pc-sub { margin-top: 1px; font-size: 12px; color: var(--li-ink-2); }
   .li { padding: 12px 16px 0; }
   .li-head { gap: 8px; }
   .av-48 { width: 48px; height: 48px; }
@@ -726,4 +721,63 @@ ul, ol { padding: 0; list-style: none; }
   .lt-text span { font-size: 12px; color: var(--li-ink-2); }
   .learn-teaser > .ic { color: var(--li-ink-2); }
   .learn-body { color: var(--li-ink); }
+}
+
+/* ---------- LinkedIn's desktop look (and the shared post header) */
+.pc-head { grid-template-columns: minmax(0, 1fr) auto; padding: 8px 16px; border-bottom: 1px solid var(--line); background: none !important; }
+.pc-head .date-tile { display: none; }
+.pc-title { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.pc-sub { margin-top: 1px; font-size: 12px; color: var(--ink-2); }
+.week-pill { display: none !important; }
+.d-nav { display: none; }
+@media (min-width: 760px) {
+  .topbar { box-shadow: 0 0 0 1px rgba(140, 140, 140, .2); border-bottom: 0; }
+  .topbar-in { height: 52px; gap: 8px; }
+  .brand .mark { width: 34px; height: 34px; border-radius: 4px; font-size: 21px; }
+  .m-search { display: flex; align-items: center; gap: 8px; width: 280px; height: 34px; padding: 0 10px; border-radius: 4px; background: #EDF3F8; color: var(--ink-2); }
+  .m-search:focus-within { box-shadow: 0 0 0 2px var(--ink); }
+  .m-search .ic { width: 18px; height: 18px; }
+  .m-search input { flex: 1; min-width: 0; height: 100%; border: 0; padding: 0; background: none; font-size: 14px; color: var(--ink); outline: none; }
+  .m-search input::placeholder { color: var(--ink-2); }
+  .d-nav { display: flex; margin-left: auto; height: 100%; }
+  .d-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 80px; height: 100%; padding: 0 6px; border: 0; background: none; color: var(--ink-2); font-size: 12px; line-height: 1.2; }
+  .d-nav button:hover { color: var(--ink); }
+  .d-nav button .ic { width: 24px; height: 24px; stroke-width: 1.7; }
+  .d-nav button[aria-current="page"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); }
+  .d-nav .avatar { width: 24px; height: 24px; font-size: 10px; }
+  .d-nav .d-me { border-left: 1px solid var(--line); margin-left: 4px; }
+  .act { color: var(--ink-2); }
+  .act.is-primary { color: var(--accent); }
+  .act.is-done { color: var(--good); }
+  .actions { gap: 0; padding: 0 8px; margin-top: 8px; }
+  .li-body mark.own { background: #E8F3FF; }
+  .ed-title { font-weight: 600; letter-spacing: 0; }
+  .ed-line-title { font-weight: 500; }
+  .share.is-asking { box-shadow: 0 0 0 1px rgba(140, 140, 140, .2), inset 0 3px 0 var(--accent); }
+  #share, #news, #activity, #milestones, #profile, #learn { scroll-margin-top: 68px; }
+}
+@media (min-width: 760px) and (max-width: 1099px) {
+  .m-search { width: auto; flex: 1; max-width: 280px; }
+  .d-nav button { min-width: 56px; }
+  .d-nav button span { display: none; }
+}
+
+/* ---------- Post on LinkedIn, and the "Did you post it?" popup when the fellow comes back */
+.actions { display: flex; justify-content: space-between; }
+.act { flex: 1 1 auto; gap: 6px; padding-left: 4px; padding-right: 4px; font-size: 13px; white-space: nowrap; }
+a.act { text-decoration: none; }
+.ask {
+  width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto;
+  padding: 20px; border: 0; border-radius: var(--r-card); background: var(--surface); color: var(--ink);
+  box-shadow: var(--shadow-pop);
+}
+.ask::backdrop { background: rgba(0, 0, 0, .45); }
+.ask-title { font-size: 18px; font-weight: 600; line-height: 1.3; }
+.ask-sub { margin: 4px 0 16px; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.ask .field { width: 100%; margin-top: 8px; }
+.ask .panel-actions { margin-top: 16px; }
+@media (max-width: 759px) {
+  .act { flex: 1 1 0; min-width: 0; justify-content: flex-start; padding: 8px 2px 4px; font-size: 11.5px; white-space: normal; text-align: center; }
+  .ask .field { font-size: 16px; min-height: 44px; }
+  .ask .btn { min-height: 44px; }
 }
