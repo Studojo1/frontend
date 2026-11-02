@@ -21,9 +21,9 @@ export const RESERVED: ReadonlySet<string> = new Set(
 campus-ambassador careers cc clips connect-linkedin contact content crm dashboard docs dojos explore extension
 extension-auth favicon flow fonts forgot-password go help home images insider install-extension internships jernew
 jrs legal linkedin lkot login logout maps mcpdocs media mesa meta msl my-applications new no-one-is-hiring official
-oldui onboarding outreach partners partners-phone payment payment-success pb pbadmin playbook pricing privacy
+old oldui onboarding outreach partners partners-phone payment payment-success pb pbadmin playbook pricing privacy
 profile projects refund-policy register reports reset-password ressources resume-maker resumes revision robots security sensei
-settings sign-in signin signup sitemap sites start static status studojo support team terms test test123 toolkit
+settings sign-in signin signup sitemap sites start static status studojo support team terms test test123 time-machine toolkit
 u user users webinar well-known www`
     .split(/\s+/)
     .filter(Boolean),
