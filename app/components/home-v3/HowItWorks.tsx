@@ -47,7 +47,7 @@ export function HowItWorks() {
           <li className="hv-card hv3-step" data-reveal style={d(140)}>
             <span className="hv3-stepnum" aria-hidden="true">4</span>
             <h3 className="hv3-h3">Stu reaches out for you</h3>
-            <p className="hv3-p">Stu writes the email. It goes out from your own inbox, and Stu follows up if they don&apos;t reply.</p>
+            <p className="hv3-p">Stu writes the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             <MailExample />
           </li>
         </ol>

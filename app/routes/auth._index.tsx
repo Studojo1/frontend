@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { Footer, Header } from "~/components";
 import { PasswordInput } from "~/components/password-input";
 import { heldTrackingParams } from "~/lib/attribution";
+import { takeEmail } from "~/lib/carry-email";
 import { authClient } from "~/lib/auth-client";
 import { logFunnelStep } from "~/lib/funnel";
 import { useGoogleOnly } from "~/lib/google-only";
@@ -309,6 +310,18 @@ export default function Auth() {
   useEffect(() => {
     if (isLastEmail) setEmailFormOpen(true);
   }, [isLastEmail]);
+  // QA-FIX (2 Nov 2026): the email typed on the homepage's call screen (home-v3/JoinCard.tsx) comes here in this
+  // tab's sessionStorage, never the URL (lib/carry-email.ts). Read once on arrival: fill the field and open the form.
+  // The state is the field's defaultValue, so the form keeps it when a mode change remounts it.
+  const emailRef = useRef<HTMLInputElement>(null);
+  const [carriedEmail, setCarriedEmail] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    const carried = takeEmail();
+    if (!carried) return;
+    setCarriedEmail(carried);
+    if (emailRef.current && !emailRef.current.value) emailRef.current.value = carried;
+    setEmailFormOpen(true);
+  }, []);
   const passkeyAttemptedRef = useRef(false);
 
   // Get redirect URL from query params, validate it's same-origin, default to "/"
@@ -740,6 +753,8 @@ export default function Auth() {
                     Email
                   </label>
                   <input
+                    ref={emailRef}
+                    defaultValue={carriedEmail}
                     type="email"
                     id="email"
                     name="email"

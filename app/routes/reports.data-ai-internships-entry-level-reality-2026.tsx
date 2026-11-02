@@ -367,10 +367,6 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
 
             <div className="highlight"><strong>Key insight:</strong> One end-to-end project (question → data → analysis → decision) beats listing sklearn on your resume without context.</div>
 
-            <div className="pull-quote">
-              <p>{"\"I hire data interns who explain one decision their analysis changed. Most portfolios only show plots.\""}</p>
-              <span className="pq-source">{"Analytics manager, B2B SaaS (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -467,7 +463,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach data hiring managers directly"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the data hiring manager to write to and drafts the email. You add one project link before you are buried in a generic intern queue."}</p>
+                <p>{"Stu, Studojo's career agent, finds the data hiring manager to write to and drafts the email. You add one project link before you are buried in a generic intern queue."}</p>
                 <Link to={productHref("/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
@@ -503,10 +499,6 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
 
             <div className="highlight"><strong>Summary insight:</strong> Entry-level data and AI hiring is a data credibility game with an AI accent. Build the base, then add LLM literacy with measured projects.</div>
 
-            <div className="pull-quote">
-              <p>{"\"The intern who got the return offer explained one dashboard that changed a team's sprint priority. The others had pretty plots.\""}</p>
-              <span className="pq-source">{"Head of data, consumer marketplace (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -580,7 +572,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Land a paid data intern role with proof."}</h3>
-              <p>{"Stu, Studojo's job agent, finds data and analytics internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
+              <p>{"Stu, Studojo's career agent, finds data and analytics internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
             </div>
             <Link to={productHref("/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

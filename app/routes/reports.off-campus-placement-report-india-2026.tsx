@@ -618,7 +618,7 @@ export default function OffCampusPlacementReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Run your off-campus search with a system.</h3>
-              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, so your search does not depend on a campus drive.</p>
+              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, so your search does not depend on a campus drive.</p>
             </div>
             <Link to={productHref("/join?via=report-off-campus-placement-report-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

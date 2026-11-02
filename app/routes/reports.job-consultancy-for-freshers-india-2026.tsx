@@ -386,9 +386,9 @@ export default function JobConsultancyForFreshersReport() {
               <div className="sc-source">Fortune, 25 March 2026 (reported)</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">28,000+</div>
-              <div className="sc-label">personal emails sent from students' own Gmail, with no middleman in between</div>
-              <div className="sc-source">Studojo's own records, September 2026</div>
+              <div className="sc-num">8,700+</div>
+              <div className="sc-label">students have signed up to Studojo</div>
+              <div className="sc-source">Studojo's own records, November 2026</div>
             </div>
           </div>
 
@@ -578,7 +578,7 @@ export default function JobConsultancyForFreshersReport() {
               </div>
             </div>
             <p>What works is emailing the person who actually hires: the hiring manager or team lead. Keep it short, personal and specific, send it from your own email address, and follow up once. No fee, no middleman, and you decide who sees you and what they read.</p>
-            <p>Studojo does this for you. It finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed, and nobody honest will promise you one.</p>
+            <p>Studojo does this for you. It finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. 8,700+ students have signed up to Studojo. Replies are not guaranteed, and nobody honest will promise you one.</p>
             <div className="pull-quote">
               <p>"If someone has to be paid to stand between you and the hiring manager, ask why they need to be there at all."</p>
               <span className="pq-source">The Studojo view on middlemen</span>

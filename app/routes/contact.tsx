@@ -11,7 +11,7 @@ import { ContactB2C } from "~/components/site-b2c/pages/ContactB2C";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Contact Us | Studojo" },
-    { name: "description", content: "Get in touch with the Studojo team. We're here to help with any questions about our products and services." },
+    { name: "description", content: "Questions about Stu? Write to us or use the chat." },
     { tagName: "link", rel: "canonical", href: "https://studojo.com/contact" },
   ];
 }
@@ -27,7 +27,7 @@ const SUBJECT_OPTIONS = [
 const FAQ_ITEMS = [
   {
     question: "How do I reset my password?",
-    answer: 'Go to the login page and click "Forgot password." You\'ll receive an email with a reset link. If you don\'t see it, check your spam folder.',
+    answer: "Password reset emails are paused for a few days. Open the chat bubble in the bottom-left corner, or write to admin@studojo.com, and we'll reset it for you.",
   },
   {
     question: "How do refunds work?",
@@ -36,7 +36,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "What does Stu do?",
-    answer: "Stu is Studojo's job agent. It finds jobs and internships that fit you, finds the right person to write to and drafts the email. Emails go from your own mailbox, and only when you press Send.",
+    answer: "Stu is your career agent at Studojo. Stu finds jobs and internships that fit you, finds the right person to write to and writes the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.",
     link: { to: "/b2cnew/join?via=contact&how=voice", label: "Start with Stu" },
   },
   {
@@ -46,7 +46,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "How is my data handled?",
-    answer: "We take privacy seriously. Your data is encrypted, never sold to third parties, and you can request deletion at any time. Read our privacy policy for the full details.",
+    answer: "Your data is encrypted and never sold. You can delete your account any time. Read our privacy policy for the full details.",
     link: { to: "/privacy", label: "View Privacy Policy" },
   },
 ];
@@ -323,7 +323,7 @@ export default function Contact() {
                   <div>
                     <p className="font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Live Chat</p>
                     <p className="font-['Satoshi'] text-sm text-neutral-600 md:text-base">
-                      Click the chat bubble in the bottom-right corner
+                      Click the chat bubble in the bottom-left corner
                     </p>
                   </div>
                 </div>
@@ -365,7 +365,7 @@ export default function Contact() {
               Still need help?
             </h3>
             <p className="mb-6 font-['Satoshi'] text-base leading-7 text-white">
-              Our live chat is available | click the bubble in the bottom-right corner to start a conversation.
+              Our live chat is open. Click the bubble in the bottom-left corner.
             </p>
             <Link
               to="/"

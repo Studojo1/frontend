@@ -46,7 +46,7 @@ const QA: { q: string; a: string }[] = [
   },
   {
     q: "Do you read my inbox?",
-    a: "No. Studojo only reads the replies to emails you send through it. Stu checks for them every few minutes and stops following up as soon as someone answers.",
+    a: "Only the replies to emails Stu sent for you. Nothing else. Stu checks for them every few minutes and stops following up as soon as someone answers.",
   },
   {
     q: "What's free, and what do I pay for?",

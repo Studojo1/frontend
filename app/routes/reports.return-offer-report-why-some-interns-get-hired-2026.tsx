@@ -369,10 +369,6 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
 
             <div className="highlight"><strong>Key insight:</strong> Managers hire interns they can imagine staffing again without dread. Reliability is a form of performance.</div>
 
-            <div className="pull-quote">
-              <p>{"\"I gave the return offer to the intern who sent me a one-page Friday update for eight weeks straight. The other candidate had a flashier final deck but I spent half the summer chasing them.\""}</p>
-              <span className="pq-source">{"Engineering manager, product company (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -476,7 +472,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build parallel options before week eight"}</h4>
-                <p>{"Stu, Studojo's job agent, finds internships that fit you and the right person to write to at other companies, so one team's headcount cap does not define your pipeline."}</p>
+                <p>{"Stu, Studojo's career agent, finds internships that fit you and the right person to write to at other companies, so one team's headcount cap does not define your pipeline."}</p>
                 <Link to={productHref("/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
               </div>
             </div>
@@ -484,10 +480,6 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
 
             <div className="highlight"><strong>Key insight:</strong> The final demo is the closing argument, not the trial. Most jurors decided earlier.</div>
 
-            <div className="pull-quote">
-              <p>{"\"By July we knew who we wanted. August was paperwork and letting the others down gently.\""}</p>
-              <span className="pq-source">{"Campus recruiting lead, financial services (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -518,10 +510,6 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
 
             <div className="highlight"><strong>Summary insight:</strong> Win return offers by combining strong work, low-friction management, visible impact, and parallel options when headcount is not yours to command.</div>
 
-            <div className="pull-quote">
-              <p>{"\"I did not get the return offer but my manager introduced me to her former colleague. That full-time role was a better fit anyway.\""}</p>
-              <span className="pq-source">{"Analyst intern, consulting firm (Studojo community, 2026)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -604,7 +592,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Land the internship that can convert."}</h3>
-              <p>{"Stu, Studojo's job agent, finds internships that fit you, best fit first, and drafts the email to the right person at each company. One team's headcount cap is not your only option."}</p>
+              <p>{"Stu, Studojo's career agent, finds internships that fit you, best fit first, and drafts the email to the right person at each company. One team's headcount cap is not your only option."}</p>
             </div>
             <Link to={productHref("/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

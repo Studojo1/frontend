@@ -367,10 +367,6 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
 
             <div className="highlight"><strong>Key insight:</strong>{" Managers do not reward \"I used AI.\" They reward \"I used AI, here is what I checked, and here is what I changed because it was wrong.\""}</div>
 
-            <div className="pull-quote">
-              <p>{"\"I don't care if they used AI. I care if they can explain what's wrong with the output when I poke it.\""}</p>
-              <span className="pq-source">{"Marketing director, B2B SaaS (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -430,10 +426,6 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
 
             <div className="highlight"><strong>Key insight:</strong> The fastest way to lose trust is submitting AI output you have not read. The second fastest is hiding that you used it.</div>
 
-            <div className="pull-quote">
-              <p>{"\"We sent an intern back to the drawing board after a client caught a stat that didn't exist. The deck looked great. That made it worse.\""}</p>
-              <span className="pq-source">{"Associate partner, boutique consultancy (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -465,7 +457,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach hiring managers before the intern queue buries you"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the hiring manager to write to and drafts the email. You add one proof-of-work link, not a generic \"AI enthusiast\" pitch, and send it from your own mailbox."}</p>
+                <p>{"Stu, Studojo's career agent, finds the hiring manager to write to and drafts the email. You add one proof-of-work link, not a generic \"AI enthusiast\" pitch. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
                 <Link to={productHref("/join?via=report-ai-interns-using-ai-wont-replace-interns-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
@@ -508,10 +500,6 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
 
             <div className="highlight"><strong>Summary insight:</strong>{" AI won't replace interns. But interns who combine AI speed with human judgment will replace interns who bring neither."}</div>
 
-            <div className="pull-quote">
-              <p>{"\"The intern we kept used AI to get to v1 by Tuesday, then spent Wednesday talking to customers and fixing the story. Everyone else was still formatting slides.\""}</p>
-              <span className="pq-source">{"Founder, early-stage fintech (Studojo community, 2026)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -594,7 +582,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Become the intern managers fight to keep."}</h3>
-              <p>{"Stu, Studojo's job agent, finds internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
+              <p>{"Stu, Studojo's career agent, finds internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
             </div>
             <Link to={productHref("/join?via=report-ai-interns-using-ai-wont-replace-interns-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

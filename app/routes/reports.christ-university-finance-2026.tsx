@@ -254,7 +254,7 @@ export default function ChristUniversityFinanceReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find finance internships in Bangalore before placement season</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds finance roles that fit you from company career sites and job boards, best fit first.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds finance roles that fit you from company career sites and job boards, best fit first.</div>
               </div>
               <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
@@ -390,7 +390,7 @@ export default function ChristUniversityFinanceReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into a fintech finance role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume and cover letter to each finance role you go for.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's career agent, tailors your resume and cover letter to each finance role you go for.</div>
               </div>
               <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
@@ -453,7 +453,7 @@ export default function ChristUniversityFinanceReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Fix your resume before you apply</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume to each finance role, so the words match the job.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume to each finance role, so the words match the job.</div>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
@@ -506,7 +506,7 @@ export default function ChristUniversityFinanceReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Find your first Bangalore finance internship</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds finance internships that fit you, best fit first.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds finance internships that fit you, best fit first.</div>
                 </div>
                 <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
               </div>
@@ -580,14 +580,14 @@ export default function ChristUniversityFinanceReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The direct outreach system that works</div>
-              <p>Find the finance hiring manager or team lead at your target company on LinkedIn. Send a short, specific message: what you study, one concrete thing you have built or analysed, and one specific reason this company over others. Not a generic "I am interested in opportunities." A real signal. Stu, Studojo's job agent, finds the right person to write to and drafts the email. It goes from your own mailbox, and only when you press Send.</p>
+              <p>Find the finance hiring manager or team lead at your target company on LinkedIn. Send a short, specific message: what you study, one concrete thing you have built or analysed, and one specific reason this company over others. Not a generic "I am interested in opportunities." A real signal. Stu, Studojo's career agent, finds the right person to write to and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
 
             <div className="rpt-inline-cta">
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Reach Zerodha, Groww, and GCC hiring managers directly</div>
-                  <div className="rpt-inline-cta-sub">Stu finds the hiring manager or recruiter to write to and drafts the email you send from your own mailbox.</div>
+                  <div className="rpt-inline-cta-sub">Stu finds the hiring manager or recruiter to write to and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</div>
                 </div>
                 <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find the right person</Link>
               </div>
@@ -621,7 +621,7 @@ export default function ChristUniversityFinanceReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">The gap between a 5 LPA campus placement and a 10 LPA fintech role is not talent. It is preparation, timing, and knowing where to apply. Stu, Studojo's job agent, finds roles that fit you, tailors your resume to each one and gets you ready for interviews.</p>
+            <p className="rpt-final-cta-sub">The gap between a 5 LPA campus placement and a 10 LPA fintech role is not talent. It is preparation, timing, and knowing where to apply. Stu, Studojo's career agent, finds roles that fit you, tailors your resume to each one and gets you ready for interviews.</p>
             <div className="rpt-final-cta-btns">
               <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
               <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>

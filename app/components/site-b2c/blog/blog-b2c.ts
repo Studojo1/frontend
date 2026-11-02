@@ -28,7 +28,7 @@ const ARROW_SVG =
   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
 /** The one line on every Stu card in a post (React card and HTML card alike). */
-export const STU_CARD_LINE = "Stu, Studojo's job agent, finds jobs that fit you after one short call.";
+export const STU_CARD_LINE = "Stu, Studojo's career agent, finds jobs that fit you after one short call.";
 
 function escAttr(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -54,6 +54,41 @@ export function stuCardHtml(href: string): string {
   );
 }
 
+// QA-FIX (2 Nov 2026): the blog's posts live in the database (production only) and still carry the retired product's
+// claims: "8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent..." (old
+// counts; the account count is about 8,700), "a one-time payment, not a subscription" (old pricing), and "people
+// sourced from 20,000+ databases" (unproven). They are rewritten as the page renders, so every post is fixed without
+// editing 46 rows by hand. Pure, for tests (app/lib/site-v2.test.mjs). Competitors' own pricing lines are kept.
+export const SIGNED_UP_LINE = "8,700+ students have signed up to Studojo.";
+export const PRICE_LINE =
+  "Talking to Stu is free, and so are your top matches every day. You pay to see every match, and emailing the people hiring uses credits.";
+const APOS = "(?:'|&#39;|&#x27;|&rsquo;|\u2019)";
+const OLD_COUNTS = new RegExp(
+  `(?:(?:So far|(?:Our|The) (?:numbers|counts?|scale) so far)[,:]\\s*)?8,500\\+ students (?:have )?signed up, 4,000\\+ (?:have been )?matched with hiring managers and 28,000\\+ personal emails (?:sent|have gone out) from students${APOS} own Gmail \\(Studojo${APOS}s own records, September 2026\\)\\.`,
+  "gi",
+);
+
+export function fixBlogClaims(html: string): string {
+  if (!html) return html;
+  let out = html.replace(OLD_COUNTS, SIGNED_UP_LINE);
+  // A sentence on Studojo's old one-time price: the 20,000+ databases ones go, the rest say what is paid for today.
+  // A dropped sentence that followed a colon (a link's "...with Studojo</a>: setup takes...") leaves a period instead.
+  out = out.replace(/(:?)([^.<>:]*\bone-time payment\b[^.<>]*\.)/gi, (all, colon: string, m: string) => {
+    if (/subscription, not a one-time payment/i.test(m)) return all; // a competitor's own pricing
+    if (/20,000\+ databases/i.test(m)) return colon ? "." : "";
+    const lead = /^\s/.test(m) ? " " : "";
+    return `${colon}${lead}${PRICE_LINE}${/replies are not guaranteed/i.test(m) ? " Replies are not guaranteed." : ""}`;
+  });
+  // a comparison table's cell
+  out = out.replace(/>(\s*)One-time payment, not a subscription(\s*)</gi, ">$1Free to start, then credits to email the people hiring$2<");
+  // "People sourced from 20,000+ databases": as its own sentence it goes; as a trailing clause it is cut
+  out = out.replace(/[^.<>:]*\b(?:people|sourced)\b[^.<>]*\bsourced from 20,000\+ databases\b[^.<>]*\./gi, (m) =>
+    /^\s*(?:The people|People)\b/i.test(m) ? "" : m.replace(/,? with people sourced from 20,000\+ databases/i, ""),
+  );
+  out = out.replace(/,? with people sourced from 20,000\+ databases/gi, "");
+  return out;
+}
+
 /**
  * Post HTML for B2C hosts: job.studojo.com links go to the job agent (not /outreach), every Outreach CTA placeholder
  * (and an already rendered Outreach CTA saved into a post) becomes the Stu card, links to /outreach go to the job
@@ -68,7 +103,7 @@ export function processBlogHtmlB2c(html: string, startHref: string): string {
   out = out.replace(/<div[^>]*data-studojo-cta="outreach"[^>]*>[\s\S]*?<\/div>/gi, card);
   // a writer's own link to the retired Outreach page (studojo.com/outreach or /outreach) goes to the job agent too
   out = out.replace(/(href\s*=\s*["'])(?:https?:\/\/(?:www\.)?studojo\.com)?\/outreach(?:[/?#][^"']*)?(["'])/gi, `$1${jobLink}$2`);
-  return processBlogContentHtml(out);
+  return processBlogContentHtml(fixBlogClaims(out));
 }
 
 /**

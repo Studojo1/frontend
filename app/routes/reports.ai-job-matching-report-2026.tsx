@@ -277,7 +277,7 @@ const FAQ = [
   },
   {
     q: "What is the best AI job matching platform?",
-    a: "The best match is a match to a person, not a posting. We built Studojo to match you with the hiring manager for the role, verify their email, write a personal email for that one person and send it from your own Gmail. 4,000+ students have been matched with hiring managers so far (Studojo's own records, September 2026).",
+    a: "The best match is a match to a person, not a posting. We built Studojo to match you with the hiring manager for the role, verify their email, write a personal email for that one person and send it from your own Gmail.",
   },
   {
     q: "Should I apply to every job with a high match score?",
@@ -378,7 +378,7 @@ export default function AiJobMatchingReport() {
               <div className="kf-item"><span className="kf-check">✓</span><span>A match score is <strong>useful for shortlisting where to aim</strong>. It is not a prediction that anyone will read your application.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>A high score <strong>still ends at the apply button</strong>, where an average opening draws about 242 applications (The Interview Guys, April 2026, citing Business Insider data).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Keyword stuffing <strong>helps the software, not the reader</strong>. A recruiter's first resume scan takes about 6 to 7 seconds (Ladders, 2018).</span></div>
-              <div className="kf-item"><span className="kf-check">✓</span><span>The better match is <strong>to a person, not a posting</strong>. Studojo matches you with the hiring manager for the role and emails them from your own Gmail: 4,000+ matched with hiring managers (Studojo's own records, September 2026).</span></div>
+              <div className="kf-item"><span className="kf-check">✓</span><span>The better match is <strong>to a person, not a posting</strong>. Studojo matches you with the hiring manager for the role and emails them from your own Gmail.</span></div>
             </div>
           </div>
 
@@ -395,9 +395,9 @@ export default function AiJobMatchingReport() {
               <div className="sc-source">The Interview Guys, April 2026 (reported)</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">4,000+</div>
-              <div className="sc-label">students matched with hiring managers through Studojo</div>
-              <div className="sc-source">Studojo's own records, September 2026</div>
+              <div className="sc-num">8,700+</div>
+              <div className="sc-label">students have signed up to Studojo</div>
+              <div className="sc-source">Studojo's own records, November 2026</div>
             </div>
           </div>
 
@@ -567,7 +567,7 @@ export default function AiJobMatchingReport() {
               </div>
             </div>
             <div className="highlight">
-              8,500+ students signed up, <strong>4,000+ matched with hiring managers</strong> and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed. The difference is that your email lands with a person, not in a queue.
+              <strong>8,700+ students have signed up to Studojo.</strong> Replies are not guaranteed. The difference is that your email lands with a person, not in a queue.
             </div>
             <div className="pull-quote">
               <p>"A posting cannot hire you. A person can. Match to the person."</p>

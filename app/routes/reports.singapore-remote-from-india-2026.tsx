@@ -408,10 +408,6 @@ export default function Report_SingaporeRemoteFromIndia2026() {
 
             <div className="highlight"><strong>Key insight:</strong> Singapore companies are not paying you a favour by hiring you remote. They are saving 40 to 50 percent on payroll for the same engineering output. The arbitrage works for both sides.</div>
 
-            <div className="pull-quote">
-              <p>"We pay our Bangalore engineers 60 percent of the Singapore band. Same hiring bar. Same scope. Cheaper for us. Three times more for them. Nobody loses."</p>
-              <span className="pq-source">Head of Engineering, Series B SaaS, Singapore HQ (Studojo community interview, 2026)</span>
-            </div>
 
             <div className="blist">
               <div className="blist-item">
@@ -494,7 +490,7 @@ export default function Report_SingaporeRemoteFromIndia2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Find the roles that fit you</h4>
-                <p>Stu, Studojo's job agent, finds jobs that fit you from company career sites and job boards, best fit first.</p>
+                <p>Stu, Studojo's career agent, finds jobs that fit you from company career sites and job boards, best fit first.</p>
                 <Link to={productHref("/join?via=report-singapore-remote-from-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
               </div>
             </div>
@@ -598,10 +594,6 @@ export default function Report_SingaporeRemoteFromIndia2026() {
 
             <div className="highlight"><strong>Key insight:</strong> The headline pay is two to three times your Indian peers. After 30 to 35 percent effective tax, it is still 1.7 to 2.2 times. The deal still works. Just budget for the tax accurately from month one.</div>
 
-            <div className="pull-quote">
-              <p>"I assumed direct USD into my account meant no Indian tax. The notice arrived 18 months later with interest. Cost me four months of salary to clean up."</p>
-              <span className="pq-source">Senior engineer, India remote at a Singapore fintech (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
               <div className="blist-item">
@@ -629,7 +621,7 @@ export default function Report_SingaporeRemoteFromIndia2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Steps two and three, with Stu</h4>
-                <p>Stu finds the hiring manager at each company and drafts a specific email. You send it from your own mailbox, only when you press Send.</p>
+                <p>Stu finds the hiring manager at each company and drafts a specific email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
                 <Link to={productHref("/join?via=report-singapore-remote-from-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
@@ -718,7 +710,7 @@ export default function Report_SingaporeRemoteFromIndia2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach Singapore hiring teams directly.</h3>
-              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-singapore-remote-from-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

@@ -389,9 +389,9 @@ export default function FindHiringManagerEmailReport() {
               <div className="sc-source">The Interview Guys, April 2026 (reported)</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">4,000+</div>
-              <div className="sc-label">students matched with hiring managers through Studojo, out of 8,500+ signed up</div>
-              <div className="sc-source">Studojo's own records, September 2026</div>
+              <div className="sc-num">8,700+</div>
+              <div className="sc-label">students have signed up to Studojo</div>
+              <div className="sc-source">Studojo's own records, November 2026</div>
             </div>
           </div>
 
@@ -577,7 +577,7 @@ export default function FindHiringManagerEmailReport() {
               </tbody>
             </table>
             <div className="callout">
-              <strong>We built Studojo to do exactly this.</strong> It finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. So far: 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed, but you are writing to a person, not a pile.
+              <strong>We built Studojo to do exactly this.</strong> It finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. So far, 8,700+ students have signed up to Studojo. Replies are not guaranteed, but you are writing to a person, not a pile.
             </div>
           </div>
 

@@ -48,7 +48,7 @@ export function AboutB2C({ parts, principles, markets }: { parts: readonly Part[
               who mean business.
             </h1>
             <p className="sv-lead">
-              Studojo is a job agent for students. Stu cuts through the noise so ambitious students can spend their time on work that genuinely moves the needle.
+              Stu is your career agent at Studojo. Stu finds the jobs worth your time, so you can spend it on work that matters.
             </p>
             <StartPill place="about" className="sva-start" />
           </div>
@@ -73,7 +73,7 @@ export function AboutB2C({ parts, principles, markets }: { parts: readonly Part[
                 The tools that existed were either built to help recruiters filter applicants, or built to extract money from students in exchange for marginal improvements.
               </p>
               <p className="sv-body">
-                We flipped that. Stu, our job agent, finds the roles that fit you, tailors your resume to each one, and drafts the email to the right person that you send from your own mailbox.
+                We flipped that. Stu, your career agent, finds the roles that fit you, tailors your resume to each one, and writes the email to the right person. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.
               </p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export function AboutB2C({ parts, principles, markets }: { parts: readonly Part[
         {/* Who we serve */}
         <section className="sv-sec">
           <div className="sv-in">
-            <Head kicker="Who we serve" lead="Undergrad and postgrad students, 18-25, who are serious about building real careers. Not passive job seekers.">
+            <Head kicker="Who we serve" lead="You're a student or recent grad who wants real work, not just any job.">
               Ambitious students.
               <br />
               5 markets. One standard.

@@ -47,13 +47,17 @@ for (const must of [
   "Tell Stu what jobs you're looking for.",
   "Every day, Stu checks company career sites and job boards for new roles",
   "Usually that's the hiring manager or a recruiter",
-  "It goes out from your own inbox, and Stu follows up if they don't reply.",
+  "Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.",
   "Popular postings get hundreds of applicants.",
   "Talking to Stu is free, and so are your top matches every day.",
   "You pay to see every match Stu finds, and emailing the people who are hiring uses credits.",
   "One credit is one verified email of the right person. No email found, no credit used.",
   "Stu, your career agent",
 ]) assert.ok(text.includes(must), `copy: ${must}`);
+// QA-FIX (2 Nov 2026): one sending promise everywhere, no "you press Send"; the logo strip claims no user results.
+assert.doesNotMatch(text, /press Send|approve everything|connected with hiring managers|1,800,000|live roles/i, "QA-FIX claims");
+assert.ok(text.includes("Only the replies to emails Stu sent for you. Nothing else."), "inbox answer");
+assert.ok(text.includes("Stu finds the people hiring at companies like"), "logo strip label");
 // The hero's four cards are what Stu does, in order (owner 28 Oct: "animations that have functionality"), not
 // stand-alone figures like "86% match".
 assert.match(read("Hero.tsx"), /const STEPS = \["Learns what you want", "Finds jobs that fit you", "Finds who's hiring", "Reaches out for you"\] as const;/, "the hero's four steps");
@@ -70,7 +74,7 @@ for (const f of ["Hero.tsx", "HowItWorks.tsx", "WhyEmail.tsx", "Proof.tsx", "Hom
 }
 // Proof (owner 28 Oct): what our data covers, read from our own databases on 27 Oct 2026 and rounded down (Proof.tsx
 // keeps the definitions); no sign-up count and no footnotes under the numbers.
-for (const [n, label] of [["1,800,000+", "job postings in our data"], ["7,700+", "job boards and company career sites checked every day"], ["8,300+", "companies where we've found hiring managers"]]) {
+for (const [n, label] of [["1.9M", "roles indexed"], ["7,700+", "job boards and company career sites checked every day"], ["8,300+", "companies where we've found hiring managers"]]) {
   assert.ok(text.includes(`<b>${n}</b><span>${label}</span>`), `proof: ${n} ${label}`);
 }
 assert.doesNotMatch(code(read("Proof.tsx")), /signed up|as of September|not guaranteed/i, "proof: no sign-ups, no footnotes");

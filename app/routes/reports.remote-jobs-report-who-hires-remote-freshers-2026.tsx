@@ -396,7 +396,7 @@ export default function Report_RemoteJobsReportWhoHiresRemoteFreshers2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Reach the founders hiring remote teams"}</h3>
-              <p>{"Many remote startup roles are filled before they are posted. Stu, Studojo's job agent, finds the founder or hiring manager at each company and drafts an email with proof of your work, sent from your own mailbox."}</p>
+              <p>{"Many remote startup roles are filled before they are posted. Stu, Studojo's career agent, finds the founder or hiring manager at each company and drafts an email with proof of your work. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
             </div>
             <Link to={productHref("/join?via=report-remote-jobs-report-who-hires-remote-freshers-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find the right person →"}

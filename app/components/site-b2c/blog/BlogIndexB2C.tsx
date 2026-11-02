@@ -44,7 +44,7 @@ export function BlogIndexB2C({ posts, loading, page, totalPages, search, searchI
         <div className="sv-in">
           <header className="sv-pagehead sv-center sv-blog-pagehead">
             <Kicker>the studojo blog</Kicker>
-            <h1 className="sv-h1">short reads on getting hired.</h1>
+            <h1 className="sv-h1">straight answers on getting hired.</h1>
             <p className="sv-lead">Plain answers on finding work, applying and choosing an offer, from the Studojo team.</p>
             <form onSubmit={onSearch} className="sv-blog-search" role="search">
               <div className="sv-blog-search-box">

@@ -8,8 +8,9 @@ import { productHref } from "../../lib/product-origin";
 // studojo.com the root Layout adds no data-sv2 mark and links no SITE-V2 stylesheet, so its HTML is unchanged.
 // Pure helpers here, for tests (app/lib/site-v2.test.mjs).
 
-/** Where "how it works" goes: the homepage's first story section (h1.html, #what). */
-export const HOW_IT_WORKS = "/#what";
+/** Where "how it works" goes: the homepage's "How it works" section (HOMEPAGE V3, HowItWorks.tsx, #how). QA-FIX (2 Nov
+ * 2026): it was /#what, which V3 does not have, so every inner page's link landed at the top of the homepage. */
+export const HOW_IT_WORKS = "/#how";
 // RELAUNCH (2 Nov 2026): on the product's own host (PRODUCT_ORIGIN, app/lib/product-origin.ts), or under /b2cnew
 // on this host without one.
 export const STU_HOME = productHref("/");

@@ -597,7 +597,7 @@ export default function DoHiringManagersReadColdEmailsReport() {
             <p>Everything above takes time per email: finding the right person, getting an address that will not bounce, reading their work, writing a first line that is actually about them. That is the work that makes an email worth reading, and it is the work most people skip.</p>
             <p>We built Studojo to do exactly this. It finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. One person at a time, never a blast.</p>
             <div className="highlight">
-              So far: <strong>8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail</strong> (Studojo's own records, September 2026).
+              So far, <strong>8,700+ students have signed up to Studojo.</strong>
             </div>
             <p>Replies are not guaranteed. A specific email to the person who decides is still, in our view, the best shot you can take.</p>
           </div>

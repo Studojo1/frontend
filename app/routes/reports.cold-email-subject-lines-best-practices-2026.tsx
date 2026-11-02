@@ -335,10 +335,6 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
               </div>
             </div>
 
-            <div className="pull-quote">
-              <p>{"\"I open almost nothing that says 'opportunity' or 'partnership.' When the subject is my product name plus a real question, I at least skim.\""}</p>
-              <span className="pq-source">{"Engineering manager, fintech (Studojo community interview, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -504,7 +500,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Practice better subjects before you hit send"}</h3>
-              <p>{"Stu, Studojo's job agent, finds the right person to write to and drafts the email, subject line included. You edit it and send it from your own mailbox."}</p>
+              <p>{"Stu, Studojo's career agent, finds the right person to write to and drafts the email, subject line included. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
             </div>
             <Link to={productHref("/join?via=report-cold-email-subject-lines-best-practices-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

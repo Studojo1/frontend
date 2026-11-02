@@ -399,10 +399,6 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
 
             <div className="highlight"><strong>Key insight:</strong> Interview rate is the metric that explains emotional whiplash. Offer rate only matters after you clear the first gate.</div>
 
-            <div className="pull-quote">
-              <p>"We had four hundred applies in a week. Maybe eight got a phone screen. Most never hit my inbox."</p>
-              <span className="pq-source">Recruiter, growth-stage startup (Studojo community interview, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -497,7 +493,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Skip the queue that ends in silence</h4>
-                <p>Stu, Studojo's job agent, finds the hiring manager or recruiter for each role and drafts the email, so you are not just one more PDF in the pile.</p>
+                <p>Stu, Studojo's career agent, finds the hiring manager or recruiter for each role and drafts the email, so you are not just one more PDF in the pile.</p>
                 <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
@@ -533,10 +529,6 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
 
             <div className="highlight"><strong>Key insight:</strong> A ghost job wastes your time, not your talent. Detect early and archive.</div>
 
-            <div className="pull-quote">
-              <p>"We left the posting up because HR policy requires it even after we made an offer. External applicants had no way to know."</p>
-              <span className="pq-source">Hiring manager, enterprise software (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -609,10 +601,6 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
 
             <div className="highlight"><strong>Summary insight:</strong> The system is noisy by design. Your strategy is to shorten the silence-heavy paths and lengthen the conversation-heavy ones.</div>
 
-            <div className="pull-quote">
-              <p>"I built a spreadsheet of silences vs screens. Once I saw the ratio, I stopped taking ghosting personally and started fixing channels."</p>
-              <span className="pq-source">Early-career candidate, consulting track (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -686,7 +674,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Stop waiting on silence. Start conversations.</h3>
-              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

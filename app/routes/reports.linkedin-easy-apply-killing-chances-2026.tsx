@@ -478,7 +478,7 @@ export default function Report_LinkedinEasyApplyKillingChances2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Apply where your proof fits the role.</h3>
-              <p>Stu, Studojo's job agent, finds the roles that fit you and tailors your resume to each one, so Easy Apply becomes a last step, not a substitute for strategy.</p>
+              <p>Stu, Studojo's career agent, finds the roles that fit you and tailors your resume to each one, so Easy Apply becomes a last step, not a substitute for strategy.</p>
             </div>
             <Link to={productHref("/join?via=report-linkedin-easy-apply-killing-chances-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

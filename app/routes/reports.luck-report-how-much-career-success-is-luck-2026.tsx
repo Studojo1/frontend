@@ -333,10 +333,6 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
 
             <div className="highlight"><strong>Key insight:</strong> Luck is not the opposite of merit. It is the distribution of opportunities merit must attach to.</div>
 
-            <div className="pull-quote">
-              <p>{"\"I did the same projects as my roommate. She got a referral because her TA knew a PM. I cold-applied for six months. We were not equally talented. We were equally skilled with unequal luck surfaces.\""}</p>
-              <span className="pq-source">{"Final-year student, computer science (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -395,7 +391,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build discovery luck on purpose"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox."}</p>
+                <p>{"Stu, Studojo's career agent, finds the hiring manager or recruiter to write to and drafts a short email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
                 <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
@@ -472,10 +468,6 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
 
             <div className="highlight"><strong>Key insight:</strong> Control conversion. Expand discovery. Do not confuse the two when diagnosing a stalled search.</div>
 
-            <div className="pull-quote">
-              <p>{"\"Luck got me the intro. Skill got me the return offer. If either piece had been missing, I'd still be explaining gap years on my resume.\""}</p>
-              <span className="pq-source">{"Analyst, consulting (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -507,17 +499,13 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Increase your at-bats without spamming"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the roles that fit you, best fit first, and drafts an email to the right person at each company."}</p>
+                <p>{"Stu, Studojo's career agent, finds the roles that fit you, best fit first, and drafts an email to the right person at each company."}</p>
                 <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
               </div>
             </div>
 
             <div className="highlight"><strong>Summary insight:</strong> Career success is partly luck, partly skill, always path-dependent. The winning move is to respect the dice and rig the table: more surfaces, better conversion, honest diagnostics.</div>
 
-            <div className="pull-quote">
-              <p>{"\"The most useful career advice I got was: work hard, but also roll the dice more times. I stopped romanticising one perfect application and started treating luck as something you meet halfway.\""}</p>
-              <span className="pq-source">{"Product manager, Series B startup (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -591,7 +579,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Meet luck halfway with better discovery"}</h3>
-              <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox."}</p>
+              <p>{"Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
             </div>
             <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

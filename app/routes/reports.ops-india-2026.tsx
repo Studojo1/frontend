@@ -258,7 +258,7 @@ export default function OpsIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find ops internships in Bengaluru, Mumbai, and Delhi NCR</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds ops roles that fit you from company career sites and job boards, best fit first.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds ops roles that fit you from company career sites and job boards, best fit first.</div>
               </div>
               <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
             </div>
@@ -367,7 +367,7 @@ export default function OpsIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into an ops role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume to each ops role you apply for.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's career agent, tailors your resume to each ops role you apply for.</div>
               </div>
               <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
             </div>
@@ -529,7 +529,7 @@ export default function OpsIndiaReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Find ops internships paying ₹20k and above</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds the ops internships that fit you, best fit first.</div>
+                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds the ops internships that fit you, best fit first.</div>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
@@ -633,7 +633,7 @@ export default function OpsIndiaReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds the ops internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds the ops internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
             <div className="rpt-final-cta-btns">
               <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu →</Link>
               <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>

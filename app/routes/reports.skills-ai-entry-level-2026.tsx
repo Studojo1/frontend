@@ -357,7 +357,7 @@ export default function AISkillsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find AI internships and entry-level roles globally</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds AI roles that fit you from company career sites and job boards, best fit first.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds AI roles that fit you from company career sites and job boards, best fit first.</div>
               </div>
               <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
@@ -472,7 +472,7 @@ export default function AISkillsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that clears AI company ATS filters</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>AI companies use keyword-heavy ATS systems. Stu, Studojo's job agent, tailors your resume and cover letter to each role you go for.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>AI companies use keyword-heavy ATS systems. Stu, Studojo's career agent, tailors your resume and cover letter to each role you go for.</div>
               </div>
               <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
@@ -575,7 +575,7 @@ export default function AISkillsReport() {
                       ["Wellfound (Wellfound.com)", "Best for startup AI roles. Salary ranges shown upfront. Founder-posted roles often here 1-2 weeks before LinkedIn."],
                       ["Hugging Face Jobs", "AI-specific. Mostly ML engineering and research. Small volume but very high signal quality."],
                       ["Y Combinator job board", "YC companies post here. Strong for early-stage AI startup roles. roles.y-combinator.com"],
-                      ["Stu, Studojo's job agent", "Finds AI internships that fit you from company career sites and job boards, best fit first."],
+                      ["Stu, Studojo's career agent", "Finds AI internships that fit you from company career sites and job boards, best fit first."],
                     ].map(([name, note]) => (
                       <div key={name as string} style={{ display: "flex", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", flexShrink: 0, marginTop: 5 }}></div>
@@ -703,7 +703,7 @@ export default function AISkillsReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds AI internships and entry-level roles that fit you, then tailors your resume to each one.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds AI internships and entry-level roles that fit you, then tailors your resume to each one.</p>
             <div className="rpt-final-cta-btns">
               <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
               <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>

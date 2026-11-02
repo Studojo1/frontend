@@ -383,7 +383,7 @@ export default function Report_ServiceVsProductCompanyReport5YearsLater2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Build the evidence that gets you the better start"}</h3>
-              <p>{"Internships at product companies and startups are the fastest way to show product-ready skills before your first offer. Stu, Studojo's job agent, finds the ones that fit you, best fit first."}</p>
+              <p>{"Internships at product companies and startups are the fastest way to show product-ready skills before your first offer. Stu, Studojo's career agent, finds the ones that fit you, best fit first."}</p>
             </div>
             <Link to={productHref("/join?via=report-service-vs-product-company-report-5-years-later-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find roles →"}

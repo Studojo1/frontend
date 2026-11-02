@@ -367,10 +367,6 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
 
             <div className="highlight"><strong>Key insight:</strong> One documented experiment beats ten buzzwords. "Ran Meta ads" is weak. "Cut CPA 22% by testing three creatives and pausing one audience" is an interview.</div>
 
-            <div className="pull-quote">
-              <p>"I hire growth interns who walk in with a one-pager: hypothesis, channel, spend or time invested, result, next test. Most resumes only list tools."</p>
-              <span className="pq-source">Growth lead, B2B SaaS (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -467,7 +463,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Reach growth leads directly</h4>
-                <p>Stu, Studojo's job agent, finds the hiring manager or growth lead at each company and drafts the email, so your case link lands before you are one of two hundred generic marketing resumes.</p>
+                <p>Stu, Studojo's career agent, finds the hiring manager or growth lead at each company and drafts the email, so your case link lands before you are one of two hundred generic marketing resumes.</p>
                 <Link to={productHref("/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
@@ -503,10 +499,6 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
 
             <div className="highlight"><strong>Summary insight:</strong> Skills + measured proof + sector focus beats a generic marketing resume in 2026.</div>
 
-            <div className="pull-quote">
-              <p>"The candidates who get offers show me the numbers in the first five minutes. Everyone else lists Canva and 'passion for brands.'"</p>
-              <span className="pq-source">Director of growth, consumer fintech (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -580,7 +572,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach growth teams before the queue.</h3>
-              <p>Stu, Studojo's job agent, finds the growth roles that fit you and the hiring manager to write to, then drafts the email you send from your own mailbox, so you are not another generic marketing application.</p>
+              <p>Stu, Studojo's career agent, finds the growth roles that fit you and the hiring manager to write to, then drafts the email, so you are not another generic marketing application. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →

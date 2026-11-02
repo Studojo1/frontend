@@ -368,10 +368,6 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
 
             <div className="highlight"><strong>Key insight:</strong> US for-profit unpaid internships are narrow exceptions, not a default. Production work, sales quotas, and 40-hour weeks point toward employee status.</div>
 
-            <div className="pull-quote">
-              <p>"We stopped unpaid summer roles after legal review. If they do intern-level deliverables, they are on payroll."</p>
-              <span className="pq-source">People operations lead, US SaaS company (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -471,17 +467,13 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Prioritize paid pipelines</h4>
-                <p>Stu, Studojo's job agent, finds paid internships that fit you, so you are not defaulting to unpaid labour.</p>
+                <p>Stu, Studojo's career agent, finds paid internships that fit you, so you are not defaulting to unpaid labour.</p>
                 <Link to={productHref("/join?via=report-unpaid-internship-report-where-legal-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
               </div>
             </div>
 
             <div className="highlight"><strong>Key insight:</strong> If only unpaid doors open, fix proof and channel mix before you normalize free production work.</div>
 
-            <div className="pull-quote">
-              <p>"Our placement office now blocks zero-stipend corporate interns for credit. Students were doing employee hours."</p>
-              <span className="pq-source">Placement coordinator, Indian engineering college (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -592,7 +584,7 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Target paid internships first.</h3>
-              <p>Stu, Studojo's job agent, finds paid internships that fit you and the right person to write to at each company, so you are not relying on unlawful or exploitative unpaid work.</p>
+              <p>Stu, Studojo's career agent, finds paid internships that fit you and the right person to write to at each company, so you are not relying on unlawful or exploitative unpaid work.</p>
             </div>
             <Link to={productHref("/join?via=report-unpaid-internship-report-where-legal-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

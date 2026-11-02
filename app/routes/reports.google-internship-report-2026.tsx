@@ -481,7 +481,7 @@ export default function Report_GoogleInternshipReport2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Do not let one pool decide your season.</h3>
-              <p>Stu, Studojo's job agent, finds other roles that fit you and the hiring manager to write to at each company, then drafts the email you send from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, finds other roles that fit you and the hiring manager to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-google-internship-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →

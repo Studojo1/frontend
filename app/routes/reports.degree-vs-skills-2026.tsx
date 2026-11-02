@@ -395,10 +395,6 @@ export default function DegreeVsSkillsReport() {
               <strong>The gap between demonstrated work (9.2) and a degree (5.1) is not marginal.</strong> It is four points on a ten-point scale. For entry-level roles, a 20-minute portfolio review outweighs a four-year degree in the hiring decision more often than not. The problem is that most candidates do not have a portfolio. That is the gap, and it is solvable.
             </div>
             <p>The referral number (8.4) deserves separate attention. A referral from an existing employee compresses the hiring process on both sides. Referrals convert to hires at approximately 4x the rate of cold applications across all industries and markets surveyed.</p>
-            <div className="pull-quote">
-              <p>"I stopped looking at degrees for most roles about three years ago. What I look for is: did you build something? Did you quantify what it did? Can you explain your decisions? That tells me more than where you went to school."</p>
-              <span className="pq-source">Founding team member, B2B SaaS startup, Bangalore (Studojo research interview, 2025)</span>
-            </div>
           </div>
 
           <div className="rpt-section">
@@ -587,7 +583,7 @@ export default function DegreeVsSkillsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Build the skills signals that actually get you hired.</h3>
-              <p>Stu, Studojo's job agent, finds roles that fit you and tailors your resume to each one, so your demonstrated work is what gets you through the door.</p>
+              <p>Stu, Studojo's career agent, finds roles that fit you and tailors your resume to each one, so your demonstrated work is what gets you through the door.</p>
             </div>
             <Link to={productHref("/join?via=report-degree-vs-skills-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →

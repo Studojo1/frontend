@@ -98,7 +98,7 @@ export function ReportsIndexB2C({ reports, jsonLd, requestForm }: { reports: Rep
             <div className="sv-rx-stu-copy">
               <h2 className="sv-h3">find the roles these reports talk about.</h2>
               <p className="sv-body">
-                Stu, Studojo's AI job agent, finds roles that fit you, tailors your resume to each one and finds the right person to write to.
+                Stu, Studojo's career agent, finds roles that fit you, tailors your resume to each one and finds the right person to write to.
               </p>
             </div>
             <a href={HOW_IT_WORKS} className="sv-link sv-rx-stu-link">

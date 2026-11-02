@@ -461,7 +461,7 @@ export default function Report_InternshipVsExternshipCoopPracticum2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find the format that fits your actual question.</h3>
-              <p>Stu, Studojo's job agent, finds jobs and internships that fit you, best fit first, so you are comparing real terms instead of job titles.</p>
+              <p>Stu, Studojo's career agent, finds jobs and internships that fit you, best fit first, so you are comparing real terms instead of job titles.</p>
             </div>
             <Link to={productHref("/join?via=report-internship-vs-externship-coop-practicum-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →

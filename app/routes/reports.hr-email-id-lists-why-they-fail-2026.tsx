@@ -394,9 +394,9 @@ export default function HrEmailListsReport() {
               <div className="sc-source">The Interview Guys, April 2026, citing Business Insider (reported)</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">28,000+</div>
-              <div className="sc-label">personal emails sent one person at a time from students' own Gmail with Studojo</div>
-              <div className="sc-source">Studojo's own records, September 2026</div>
+              <div className="sc-num">8,700+</div>
+              <div className="sc-label">students have signed up to Studojo</div>
+              <div className="sc-source">Studojo's own records, November 2026</div>
             </div>
           </div>
 
@@ -558,7 +558,7 @@ export default function HrEmailListsReport() {
             </div>
             <p>Finding and verifying that one address is the slow part, so we built Studojo to do exactly this. Studojo finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.</p>
             <div className="highlight">
-              So far: <strong>8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail</strong> (Studojo's own records, September 2026). Replies are not guaranteed, and we will not pretend otherwise.
+              So far, <strong>8,700+ students have signed up to Studojo</strong>. Replies are not guaranteed, and we will not pretend otherwise.
             </div>
           </div>
 

@@ -399,10 +399,6 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
 
             <div className="highlight"><strong>Key insight:</strong> This is the only path where ₹1 lakh/month can arrive at graduation. It is also the path with the lowest admission rate and the highest prep intensity.</div>
 
-            <div className="pull-quote">
-              <p>{"\"The offer letter said ₹38 LPA. My first in-hand was ₹92,000. Close enough that I stopped doing the math and started doing the work.\""}</p>
-              <span className="pq-source">{"SDE-1, global product company India (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -467,10 +463,6 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
 
             <div className="highlight"><strong>Key insight:</strong> IT services is not a dead end. It is a slow lane that punishes people who stop preparing and rewards people who treat it as runway.</div>
 
-            <div className="pull-quote">
-              <p>{"\"Two years at Infosys, one side project with 2,000 users, one referral into a fintech. CTC went from ₹4.5L to ₹22L. That was the whole strategy.\""}</p>
-              <span className="pq-source">{"Software engineer, Bangalore (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -502,7 +494,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Build proof that wins international clients"}</h4>
-                <p>{"Stu, Studojo's job agent, tailors your resume and cover letter to each job, so it reads credibly to the people hiring, not just campus placement cells."}</p>
+                <p>{"Stu, Studojo's career agent, tailors your resume and cover letter to each job, so it reads credibly to the people hiring, not just campus placement cells."}</p>
                 <Link to={productHref("/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
               </div>
             </div>
@@ -545,10 +537,6 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
 
             <div className="highlight"><strong>Key insight:</strong> Sales is the fastest non-technical path to ₹1 lakh/month with uncapped upside, and the path most career offices never mention.</div>
 
-            <div className="pull-quote">
-              <p>{"\"My engineering friends were mock-interviewing for TCS. I was closing three college deals a month. I crossed ₹1 lakh in month seven. Different game.\""}</p>
-              <span className="pq-source">{"BD manager, EdTech SaaS (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -651,7 +639,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Find roles that pay what the path promises"}</h3>
-              <p>{"Stu, Studojo's job agent, finds jobs and internships that fit you on company career sites and job boards, best fit first, so you pick a lane with data, not guesswork."}</p>
+              <p>{"Stu, Studojo's career agent, finds jobs and internships that fit you on company career sites and job boards, best fit first, so you pick a lane with data, not guesswork."}</p>
             </div>
             <Link to={productHref("/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find roles →"}

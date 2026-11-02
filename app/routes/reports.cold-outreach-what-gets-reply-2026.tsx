@@ -328,10 +328,6 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
 
             <div className="highlight"><strong>Key insight:</strong> The subject and first line should read like a colleague forwarding context, not like marketing copy.</div>
 
-            <div className="pull-quote">
-              <p>"I stopped replying when the first line could have been sent to fifty people. When someone quoted our launch post back to me with a real question, I answered even if I had to say no."</p>
-              <span className="pq-source">Product lead, B2B SaaS (Studojo community interview, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -451,7 +447,7 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Turn outreach into structured practice, not guesswork</h3>
-              <p>Stu, Studojo's job agent, finds the right person to write to at each company and drafts the email. It goes from your own mailbox, and only when you press Send.</p>
+              <p>Stu, Studojo's career agent, finds the right person to write to at each company and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-cold-outreach-what-gets-reply-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →

@@ -337,7 +337,7 @@ export default function AustraliaInternshipsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find paid internships across Australia and Asia-Pacific</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds paid internships that fit you on company career sites and job boards, best fit first.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds paid internships that fit you on company career sites and job boards, best fit first.</div>
               </div>
               <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
             </div>
@@ -470,7 +470,7 @@ export default function AustraliaInternshipsReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that Australian ATS systems accept</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Australian employers use ATS filters that are strict about format. Stu, Studojo's job agent, tailors your resume and cover letter to each role you apply to.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Australian employers use ATS filters that are strict about format. Stu, Studojo's career agent, tailors your resume and cover letter to each role you apply to.</div>
               </div>
               <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
@@ -656,7 +656,7 @@ export default function AustraliaInternshipsReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds paid internships that fit you. Then it tailors your resume and cover letter to each one.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds paid internships that fit you. Then it tailors your resume and cover letter to each one.</p>
             <div className="rpt-final-cta-btns">
               <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
               <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>

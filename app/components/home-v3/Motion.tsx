@@ -19,16 +19,19 @@ const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefe
 
 function countUp(b: HTMLElement) {
   const text = b.textContent ?? "";
-  const m = /^([\d,]+)(.*)$/.exec(text.trim());
+  // "8,300+" or "1.9M": the digits count up with the same number of decimals, the rest stays as it is
+  const m = /^(\d[\d,]*(?:\.\d+)?)(.*)$/.exec(text.trim());
   if (!m) return;
   const target = Number(m[1].replace(/,/g, ""));
+  const decimals = m[1].split(".")[1]?.length ?? 0;
   const suffix = m[2];
   const t0 = performance.now();
   const dur = 1400;
   const step = (now: number) => {
     const k = Math.min(1, (now - t0) / dur);
     const eased = 1 - (1 - k) ** 3;
-    b.textContent = `${Math.round(target * eased).toLocaleString("en-US")}${suffix}`;
+    const n = target * eased;
+    b.textContent = `${decimals ? n.toFixed(decimals) : Math.round(n).toLocaleString("en-US")}${suffix}`;
     if (k < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);

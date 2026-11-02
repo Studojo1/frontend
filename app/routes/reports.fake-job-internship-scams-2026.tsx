@@ -672,7 +672,7 @@ export default function FakeJobScamsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Apply to real roles, direct from the company.</h3>
-              <p>Stu, Studojo's job agent, finds roles that fit you on company career sites and job boards, and the hiring manager or recruiter to write to. You send the email from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, finds roles that fit you on company career sites and job boards, and the hiring manager or recruiter to write to. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-fake-job-internship-scams-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →

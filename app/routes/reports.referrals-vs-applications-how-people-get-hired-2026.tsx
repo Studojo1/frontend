@@ -399,10 +399,6 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
 
             <div className="highlight"><strong>Key insight:</strong> Referrals are not magic. They are pre-qualified traffic. Someone with context vouched that you are worth a conversation, which collapses uncertainty early.</div>
 
-            <div className="pull-quote">
-              <p>"Referrals are not a cheat code. They are a risk reducer for the hiring manager. I still test you. I just do not wonder if you are random internet noise."</p>
-              <span className="pq-source">Hiring manager, B2B SaaS (Studojo community interview, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -432,7 +428,7 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's job agent, finds the hiring manager or recruiter for each role and drafts a short email with your proof link. You send it from your own mailbox.</p>
+                <p>Stu, Studojo's career agent, finds the hiring manager or recruiter for each role and drafts a short email with your proof link. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
                 <Link to={productHref("/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
@@ -609,10 +605,6 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
 
             <div className="highlight"><strong>Summary insight:</strong> Hiring is a portfolio problem. Volume channels discover roles. Trust channels convert roles. You need both, but not in equal proportion.</div>
 
-            <div className="pull-quote">
-              <p>"I stopped counting applications and started counting conversations that led to a second meeting. That one metric changed my offer rate within a semester."</p>
-              <span className="pq-source">Final-year student, engineering (Studojo community, 2025)</span>
-            </div>
 
             <div className="blist">
 
@@ -686,7 +678,7 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Turn channel data into conversations that convert</h3>
-              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

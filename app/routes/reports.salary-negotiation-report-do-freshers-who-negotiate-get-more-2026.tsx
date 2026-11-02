@@ -402,7 +402,7 @@ export default function Report_SalaryNegotiationReportDoFreshersWhoNegotiateGetM
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Leverage starts with a second option"}</h3>
-              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first, so the first offer is not your only one."}</p>
+              <p>{"Stu, Studojo's career agent, finds internships and early-career roles that fit you, best fit first, so the first offer is not your only one."}</p>
             </div>
             <Link to={productHref("/join?via=report-salary-negotiation-report-do-freshers-who-negotiate-get-more-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find roles →"}

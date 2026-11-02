@@ -667,7 +667,7 @@ export default function AmazonInternshipReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find roles like this, without the queue.</h3>
-              <p>Stu, Studojo&apos;s job agent, finds roles that fit you and the hiring manager to write to at each company, then drafts the email you send from your own mailbox.</p>
+              <p>Stu, Studojo&apos;s career agent, finds roles that fit you and the hiring manager to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-amazon-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

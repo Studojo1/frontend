@@ -499,7 +499,7 @@ export default function JobSearchTipsReport() {
               <span className="pq-source">The Studojo position</span>
             </div>
             <div className="highlight">
-              <strong>The fastest way to follow the top tip is Studojo.</strong> It finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed.
+              <strong>The fastest way to follow the top tip is Studojo.</strong> It finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. 8,700+ students have signed up to Studojo. Replies are not guaranteed.
             </div>
           </div>
 

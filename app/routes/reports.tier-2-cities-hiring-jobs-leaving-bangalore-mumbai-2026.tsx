@@ -334,10 +334,6 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
 
             <div className="highlight"><strong>Key insight:</strong> Match city to sector gravity. One strong employer in the right city beats five weak applies in a trendy one.</div>
 
-            <div className="pull-quote">
-              <p>{"\"We opened forty seats in Pune because Bangalore hiring time doubled and offer acceptance fell. Same stack, different city.\""}</p>
-              <span className="pq-source">{"Engineering director, global SaaS GCC (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -432,7 +428,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach hiring managers in your target city"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the recruiter or team lead for each role and drafts a short email with your proof link, not a Bangalore-generic blast."}</p>
+                <p>{"Stu, Studojo's career agent, finds the recruiter or team lead for each role and drafts a short email with your proof link, not a Bangalore-generic blast."}</p>
                 <Link to={productHref("/join?via=report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
@@ -468,10 +464,6 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
 
             <div className="highlight"><strong>Summary insight:</strong> Tier 2 hiring is a lane shift, not a downgrade by default. The winners treat city as part of sector strategy.</div>
 
-            <div className="pull-quote">
-              <p>{"\"I moved the search to Pune and closed an offer in six weeks. Same skills, half the rent, manager I actually meet.\""}</p>
-              <span className="pq-source">{"Software engineer, 2 YOE (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -545,7 +537,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Hire where the reqs actually are."}</h3>
-              <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox."}</p>
+              <p>{"Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
             </div>
             <Link to={productHref("/join?via=report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

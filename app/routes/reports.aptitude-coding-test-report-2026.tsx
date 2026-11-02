@@ -604,7 +604,7 @@ export default function AptitudeCodingTestReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Clear the test, then reach a human.</h3>
-              <p>A good score gets you in the room. Stu, Studojo's job agent, finds the hiring manager to write to and drafts the email, so you are not relying on the portal alone.</p>
+              <p>A good score gets you in the room. Stu, Studojo's career agent, finds the hiring manager to write to and drafts the email, so you are not relying on the portal alone.</p>
             </div>
             <Link to={productHref("/join?via=report-aptitude-coding-test-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →

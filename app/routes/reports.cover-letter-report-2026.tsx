@@ -599,7 +599,7 @@ export default function CoverLetterReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Get the resume right first.</h3>
-              <p>The letter is a bonus. The resume does the heavy lifting. Stu, Studojo's job agent, tailors your resume and cover letter to each job.</p>
+              <p>The letter is a bonus. The resume does the heavy lifting. Stu, Studojo's career agent, tailors your resume and cover letter to each job.</p>
             </div>
             <Link to={productHref("/join?via=report-cover-letter-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu tailor your resume →

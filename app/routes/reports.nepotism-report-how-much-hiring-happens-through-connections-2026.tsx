@@ -534,7 +534,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach the manager before the posting closes"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to and drafts a short email you send from your own mailbox."}</p>
+                <p>{"Stu, Studojo's career agent, finds the hiring manager or recruiter to write to and drafts a short email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
                 <Link to={productHref("/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
@@ -575,10 +575,6 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
 
             <div className="highlight"><strong>Summary insight:</strong> You cannot eliminate connection advantage from hiring. You can stop competing as if it does not exist.</div>
 
-            <div className="pull-quote">
-              <p>{"\"I had no family in tech. I had one professor willing to forward a paragraph and one repo that proved I could ship. That counted as a connection. The form was just paperwork.\""}</p>
-              <span className="pq-source">{"Final-year student, tier-2 engineering college (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -657,7 +653,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Start building the connections that convert"}</h3>
-              <p>{"Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox. You supply the proof."}</p>
+              <p>{"Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. You supply the proof. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
             </div>
             <Link to={productHref("/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

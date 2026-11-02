@@ -99,7 +99,7 @@ export const INTENTS: Intent[] = [
       "i want internships",
       "want internships",
     ],
-    response: "That's what Stu, Studojo's job agent, is for. It finds jobs and internships that fit you, tailors your resume and cover letter to each one, finds the right person to write to and sends your emails from your own mailbox. You approve everything before it goes.",
+    response: "That's what Stu, Studojo's job agent, is for. It finds jobs and internships that fit you, tailors your resume and cover letter to each one, finds the right person to write to and writes the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.",
     links: [START, DESK],
   },
 
@@ -560,7 +560,7 @@ export const INTENTS: Intent[] = [
       "brief about studojo",
       "tell me about how studojo",
     ],
-    response: "Studojo is one product: Stu, a job agent for students and early-career people. It finds jobs and internships that fit you, tailors your resume and cover letter, finds the right person and sends your emails from your own mailbox, and gets you ready for interviews. We're based in Bangalore.",
+    response: "Studojo is one product: Stu, a job agent for students and early-career people. It finds jobs and internships that fit you, tailors your resume and cover letter, finds the right person and, once you start a campaign, sends your emails from your own inbox, and gets you ready for interviews. We're based in Bangalore.",
     links: [{ label: "How Stu works", url: "/" }, START],
   },
 
@@ -676,8 +676,9 @@ India. Tagline: "Work on things that matter."
 - Setup takes a few minutes: a short voice call with Stu, or typing instead. The student uploads their resume.
 - Resume: kept on the Profile tab, made stronger and tailored into a version for each job. Cover letters too.
 - Applying: a tailored resume and cover letter for each job, and answers to the employer's form questions
-- Outreach tab: finds the right person at the company and drafts the email. Emails go from the student's own mailbox,
-  never from Studojo, and only when the student presses Send. Campaigns email many companies the same way.
+- Outreach tab: finds the right person at the company and writes the email. Nothing goes out until the student starts
+  a campaign. Then Stu sends from the student's own inbox (never from Studojo), follows up, and stops when someone
+  replies. A campaign emails many companies the same way.
 - Emails tab: connect a mailbox and see replies. Tracker tab: every application and where it stands.
 - Interview prep: a brief on the company and mock interviews
 - Starting: new students start at /b2cnew/join (voice) or /b2cnew/start (typing). A student already set up opens /b2cnew.

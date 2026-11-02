@@ -2,6 +2,7 @@ import { forwardRef, useMemo, useState } from "react";
 import { BACKED, JOIN_LINE, wordsOf } from "./agent";
 import { Arrow, Mail } from "./icons";
 import { useAgent, useSaid } from "./start";
+import { holdEmail } from "~/lib/carry-email";
 
 // HOMEPAGE V2: what /b2cnew/join shows around Stu, for the call takeover. Copies of career-agent's
 // app/routes/join.tsx and components/voice/SpokenText.tsx:
@@ -9,7 +10,7 @@ import { useAgent, useSaid } from "./start";
 //   Talking   while she talks: "turn your sound on"
 //   JoinCard  /join's sign-up card: "Create your account", Continue with Google, or with email, Continue, the
 //             terms line and "Backed by". Both buttons go where /join's continueIn() sends a signed-out visitor
-//             (agent.ts homeSignIn); the email typed is not used there either. Nothing asks for a resume here.
+//             (agent.ts homeSignIn); the email typed is held for /auth, which fills its field with it (lib/carry-email.ts). Nothing asks for a resume here.
 
 export function Said({ className = "hv-said" }: { className?: string }) {
   const at = useSaid();
@@ -73,6 +74,8 @@ export const JoinCard = forwardRef<HTMLElement, { idPrefix: string }>(function J
         onSubmit={(e) => {
           e.preventDefault();
           continueIn();
+          // QA-FIX (2 Nov 2026): the typed email rides to /auth in this tab's sessionStorage (never the URL)
+          holdEmail(email);
           window.location.href = signIn;
         }}
       >

@@ -620,7 +620,7 @@ export default function ProofOfWorkReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Put your best project first.</h3>
-              <p>Stu, Studojo's job agent, tailors your resume to each job and finds the right person to write to, then drafts the email with your project link. You send it from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, tailors your resume to each job and finds the right person to write to, then drafts the email with your project link. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-proof-of-work-report-projects-github-portfolio-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu tailor your resume →

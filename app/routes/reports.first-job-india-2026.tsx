@@ -364,7 +364,7 @@ export default function Report_FirstJobIndia2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Turn bands into conversations</h4>
-                <p>When you know your target CTC band, Stu, Studojo's job agent, finds the recruiter or hiring manager who can confirm real numbers for your cohort and drafts the email. You send it from your own mailbox.</p>
+                <p>When you know your target CTC band, Stu, Studojo's career agent, finds the recruiter or hiring manager who can confirm real numbers for your cohort and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
                 <Link to={productHref("/join?via=report-first-job-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
@@ -435,7 +435,7 @@ export default function Report_FirstJobIndia2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's job agent, finds the recruiter or hiring manager at each company and drafts a short email for you. It goes from your own mailbox, only when you press Send.</p>
+                <p>Stu, Studojo's career agent, finds the recruiter or hiring manager at each company and drafts a short email for you. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
                 <Link to={productHref("/join?via=report-first-job-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
               </div>
             </div>
@@ -542,7 +542,7 @@ export default function Report_FirstJobIndia2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach hiring managers for your first role in India, directly.</h3>
-              <p>Stu, Studojo's job agent, finds the hiring manager or recruiter behind each entry-level role and drafts a personal email. You send it from your own mailbox, only when you press Send.</p>
+              <p>Stu, Studojo's career agent, finds the hiring manager or recruiter behind each entry-level role and drafts a personal email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-first-job-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →

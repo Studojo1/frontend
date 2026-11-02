@@ -703,7 +703,7 @@ export default function GhostJobsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Stop applying into the void.</h3>
-              <p>Stu, Studojo's job agent, finds the roles that fit you and the right person to write to at each company, then drafts the email you send from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-ghost-jobs-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

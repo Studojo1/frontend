@@ -476,7 +476,7 @@ export default function Report_AppleInternshipReport202627() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach the team, not just the portal"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the right person to write to on the team you want, the hiring manager or recruiter, and drafts the email. You add a short proof link instead of a generic ask."}</p>
+                <p>{"Stu, Studojo's career agent, finds the right person to write to on the team you want, the hiring manager or recruiter, and drafts the email. You add a short proof link instead of a generic ask."}</p>
                 <Link to={productHref("/join?via=report-apple-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
@@ -563,7 +563,7 @@ export default function Report_AppleInternshipReport202627() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Apple hires by team. Reach the team."}</h3>
-              <p>{"Stu, Studojo's job agent, finds roles that fit you, tailors your resume to each one and drafts the email to the right person, sent from your own mailbox when you press Send."}</p>
+              <p>{"Stu, Studojo's career agent, finds roles that fit you, tailors your resume to each one and drafts the email to the right person. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
             </div>
             <Link to={productHref("/join?via=report-apple-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

@@ -593,7 +593,7 @@ export default function EmailHiringManagerVsApplyingReport() {
             <p>The direct path has one honest cost: effort. You have to work out who leads the team, find an email that will not bounce, and write something specific to that one person. Doing that by hand for twenty roles is a lot of evenings.</p>
             <p>We built Studojo to do exactly this. It finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.</p>
             <div className="highlight">
-              So far: <strong>8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail</strong> (Studojo's own records, September 2026).
+              So far, <strong>8,700+ students have signed up to Studojo.</strong>
             </div>
             <p>Replies are not guaranteed. What Studojo does is put a specific, personal email in front of the person who decides, which is where we think your effort belongs.</p>
           </div>

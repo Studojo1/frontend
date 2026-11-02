@@ -550,7 +550,7 @@ export default function LinkedinMessageVsEmailReport() {
               <p>"LinkedIn tells you who to write to. Email is where you write."</p>
               <span className="pq-source">The Studojo rule for reaching a hiring manager</span>
             </div>
-            <p>So far: 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed. A specific email to the right person gives you more room than a 200-character note waiting in a pending list.</p>
+            <p>8,700+ students have signed up to Studojo. Replies are not guaranteed. A specific email to the right person gives you more room than a 200-character note waiting in a pending list.</p>
           </div>
 
           {/* FAQ */}

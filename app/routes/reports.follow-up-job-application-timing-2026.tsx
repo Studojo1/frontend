@@ -393,9 +393,9 @@ export default function FollowUpTimingReport() {
               <div className="sc-source">Ladders eye-tracking study, 2018 (reported)</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">28,000+</div>
-              <div className="sc-label">personal emails sent from students' own Gmail through Studojo</div>
-              <div className="sc-source">Studojo's own records, September 2026</div>
+              <div className="sc-num">8,700+</div>
+              <div className="sc-label">students have signed up to Studojo</div>
+              <div className="sc-source">Studojo's own records, November 2026</div>
             </div>
           </div>
 
@@ -495,7 +495,7 @@ export default function FollowUpTimingReport() {
               </div>
             </div>
             <div className="callout">
-              <strong>This is why the first email matters.</strong> Studojo finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. Because it goes from your Gmail, the thread is yours, and your follow-up lands right under it. So far: 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026).
+              <strong>This is why the first email matters.</strong> Studojo finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. Because it goes from your Gmail, the thread is yours, and your follow-up lands right under it. So far, 8,700+ students have signed up to Studojo.
             </div>
           </div>
 

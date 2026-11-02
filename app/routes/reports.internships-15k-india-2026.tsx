@@ -199,7 +199,7 @@ export default function Internships15kReport() {
             <div className="r15-inline-cta-inner">
               <div>
                 <div className="r15-inline-cta-title">Find the amber and violet roles before everyone else</div>
-                <div className="r15-inline-cta-sub">Stu, Studojo's job agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
+                <div className="r15-inline-cta-sub">Stu, Studojo's career agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
               </div>
               <Link to={productHref("/join?via=report-internships-15k-india-2026&how=voice")} reloadDocument className="r15-btn-primary">Let Stu find roles</Link>
             </div>
@@ -336,7 +336,7 @@ export default function Internships15kReport() {
         {/* Final CTA */}
         <div className="r15-final-cta">
           <div className="r15-final-title">Work on things that matter.</div>
-          <div className="r15-final-sub">Stu, Studojo's job agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.</div>
+          <div className="r15-final-sub">Stu, Studojo's career agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.</div>
           <div className="r15-final-btns">
             <Link to={productHref("/join?via=report-internships-15k-india-2026&how=voice")} reloadDocument className="r15-btn-white">Let Stu find roles</Link>
             <Link to="/reports" className="r15-btn-outline">Read More Reports</Link>

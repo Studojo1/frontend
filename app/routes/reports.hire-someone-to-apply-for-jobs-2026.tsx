@@ -551,7 +551,7 @@ export default function HireSomeoneToApplyReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>5. Send it from your own address, then follow up once.</strong> It is your name and your voice, not an agency's.</span></div>
             </div>
             <div className="highlight">
-              We built Studojo to do exactly this. It <strong>finds the person who can actually hire you, verifies their email address, writes a personal email for that one person</strong> based on your background and their work, and <strong>sends it from your own Gmail</strong>. 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed, but your email reaches a person instead of a queue.
+              We built Studojo to do exactly this. It <strong>finds the person who can actually hire you, verifies their email address, writes a personal email for that one person</strong> based on your background and their work, and <strong>sends it from your own Gmail</strong>. 8,700+ students have signed up to Studojo. Replies are not guaranteed, but your email reaches a person instead of a queue.
             </div>
           </div>
 

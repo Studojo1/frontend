@@ -605,10 +605,6 @@ export default function LinkedInProfileReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>The referral inside the target company is the goal.</strong> You do not need to know the hiring manager directly. You need to know someone inside the company who is willing to submit a referral on your behalf. LinkedIn's second-degree connections are the map. Your outreach is the path.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Timing: outreach before the posting, not after.</strong> Once a job is posted, you are competing with hundreds of applicants. Reaching a hiring manager before the role is announced, or during early active search, positions you outside the application stack entirely. Follow companies and founders. When they post about team growth, that is the signal.</span></div>
             </div>
-            <div className="pull-quote">
-              <p>"I got my role without applying to a single job board. I messaged the founder directly after reading one of their posts. We talked for 20 minutes and they asked if I wanted to join the team."</p>
-              <span className="pq-source">Marketing hire at a Series A startup, Bangalore (shared in Studojo community, 2025)</span>
-            </div>
           </div>
 
           {/* Summary table */}
@@ -705,7 +701,7 @@ export default function LinkedInProfileReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Send the 20 outreach messages.</h3>
-              <p>Stu, Studojo's job agent, finds the right person to write to at your target companies and drafts each email. It goes from your own mailbox, only when you press Send.</p>
+              <p>Stu, Studojo's career agent, finds the right person to write to at your target companies and drafts each email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-linkedin-profile-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →

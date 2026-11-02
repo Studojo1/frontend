@@ -174,4 +174,65 @@ const go = readFileSync(`${APP}routes/go.$slug.tsx`, "utf8");
 assert.match(go, /target\.searchParams\.set\("utm_id", slug\)/);
 assert.match(go, /journeyCookiesForRedirect\(request, target\)/);
 
+// ── 11. visited_home once a visitor an IST day, across pods (QA-FIX, 2 Nov 2026: web runs 2 pods, and the per-process
+// guard alone wrote a second row when the visitor's next landing page hit the other pod about 45 s later).
+{
+  const { firstToday, istDay, insertVisitedOnce, visitedLockKey, VISITED_ONCE_SQL } = await import("./journey.server.ts");
+  assert.equal(istDay(new Date("2026-11-02T18:29:00Z")), "2026-11-02");
+  assert.equal(istDay(new Date("2026-11-02T18:31:00Z")), "2026-11-03", "the day turns at IST midnight");
+  const later = new Date(NOW.getTime() + 45_000);
+  const podA = new Map();
+  const podB = new Map();
+  assert.equal(firstToday(ID, NOW, podA), true);
+  assert.equal(firstToday(ID, later, podA), false, "a reload on the same pod stops in memory");
+  assert.equal(firstToday(ID, later, podB), true, "the other pod's memory lets it through, so the database must hold it");
+  // The database guard: lock, then insert only when that visitor has no visited_home since the IST day began.
+  assert.match(VISITED_ONCE_SQL, /WHERE NOT EXISTS \(/);
+  assert.match(VISITED_ONCE_SQL, /visitor_id = \$2 AND step = 'visited_home' AND env = \$1/);
+  assert.match(VISITED_ONCE_SQL, /date_trunc\('day', now\(\) AT TIME ZONE 'Asia\/Kolkata'\) AT TIME ZONE 'Asia\/Kolkata'/);
+  // A fake table shared by two pods, answering the INSERT the way Postgres does once the lock is held.
+  const table = [];
+  let clock = NOW;
+  const pod = () => {
+    const log = [];
+    return {
+      log,
+      async query(sql, values = []) {
+        if (sql === VISITED_ONCE_SQL) {
+          log.push("INSERT");
+          const [env, vid] = values;
+          const day = istDay(clock);
+          if (table.some((r) => r.env === env && r.vid === vid && r.day === day)) return { rowCount: 0 };
+          table.push({ env, vid, day, props: JSON.parse(values[2]) });
+          return { rowCount: 1 };
+        }
+        if (sql.includes("pg_advisory_xact_lock")) {
+          log.push(`LOCK ${values[0]}`);
+          return { rowCount: 1 };
+        }
+        log.push(sql);
+        return { rowCount: null };
+      },
+    };
+  };
+  const ev = (path) => ({ env: "prod", visitorId: ID, step: "visited_home", props: { path }, source: null });
+  const a = pod();
+  const b = pod();
+  assert.equal(await insertVisitedOnce(a, ev("/"), NOW), true, "the first landing writes the row");
+  assert.deepEqual(a.log, ["BEGIN", `LOCK ${visitedLockKey(ID, "2026-11-02")}`, "INSERT", "COMMIT"], "one transaction, the lock first");
+  clock = later;
+  assert.equal(await insertVisitedOnce(b, ev("/blog"), later), false, "the other pod, 45 s later: no second row");
+  assert.equal(table.length, 1);
+  clock = new Date("2026-11-02T19:00:00Z");
+  assert.equal(await insertVisitedOnce(b, ev("/"), clock), true, "the next IST day writes again");
+  assert.equal(table.length, 2);
+  // A database error rolls back and reaches the caller (insertVisited keeps it quiet).
+  const failing = { log: [], async query(sql) { this.log.push(sql.split(" ")[0]); if (sql === VISITED_ONCE_SQL) throw Object.assign(new Error("x"), { code: "42P01" }); return {}; } };
+  await assert.rejects(insertVisitedOnce(failing, ev("/"), NOW), { code: "42P01" });
+  assert.deepEqual(failing.log.at(-1), "ROLLBACK");
+  // The page render uses the cross-pod path, never the plain INSERT, for visited_home.
+  const srv = readFileSync(`${APP}lib/journey.server.ts`, "utf8");
+  assert.match(srv, /if \(!firstToday\(plan\.visitorId, now\)\) return;\s*recordVisitedHome\(/);
+}
+
 console.log("journey: ok");

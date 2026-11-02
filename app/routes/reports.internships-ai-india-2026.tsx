@@ -248,7 +248,7 @@ export default function InternshipsAIIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find internship roles that are still hiring humans</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
               </div>
               <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-primary" style={{ background: "#f59e0b", color: "#171717" }}>Let Stu find roles</Link>
             </div>
@@ -313,7 +313,7 @@ export default function InternshipsAIIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets past AI screening</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's job agent, tailors your resume and cover letter to each role you apply to.</div>
+                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's career agent, tailors your resume and cover letter to each role you apply to.</div>
               </div>
               <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
@@ -571,7 +571,7 @@ export default function InternshipsAIIndiaReport() {
           <div className="rpt-final-cta" style={{ background: "#f59e0b" }}>
             <div className="rpt-final-cta-title" style={{ color: "#171717" }}>Work on things that matter.</div>
             <div className="rpt-final-cta-sub" style={{ color: "rgba(23,23,23,0.75)" }}>
-              Stu, Studojo's job agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.
+              Stu, Studojo's career agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.
             </div>
             <div className="rpt-final-cta-btns">
               <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>

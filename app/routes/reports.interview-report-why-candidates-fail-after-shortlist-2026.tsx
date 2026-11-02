@@ -434,7 +434,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Sharpen the stories they will ask about"}</h4>
-                <p>{"Stu, Studojo's job agent, tailors your resume to each job and runs mock interviews with you, so your stories hold up in manager rounds."}</p>
+                <p>{"Stu, Studojo's career agent, tailors your resume to each job and runs mock interviews with you, so your stories hold up in manager rounds."}</p>
                 <Link to={productHref("/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
               </div>
             </div>
@@ -542,7 +542,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Turn shortlists into offers with proof that survives follow-ups."}</h3>
-              <p>{"Stu, Studojo's job agent, gets you ready for each interview with a brief on the company and mock interviews, and tailors your resume to the job."}</p>
+              <p>{"Stu, Studojo's career agent, gets you ready for each interview with a brief on the company and mock interviews, and tailors your resume to the job."}</p>
             </div>
             <Link to={productHref("/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

@@ -24,7 +24,9 @@ assert.equal(
 assert.equal(siteStartHref("?utm_source=a&utm_source=b"), "/b2cnew/join?utm_source=a&via=site&how=voice", "each key once");
 assert.equal(siteStartHref("", new URLSearchParams("gclid=held1&utm_source=google")), "/b2cnew/join?gclid=held1&utm_source=google&via=site&how=voice", "held first touch when the URL has none");
 assert.equal(siteStartHref("?fbclid=now", new URLSearchParams("gclid=held1")), "/b2cnew/join?fbclid=now&via=site&how=voice", "never mixes two touches");
-assert.equal(HOW_IT_WORKS, "/#what");
+assert.equal(HOW_IT_WORKS, "/#how");
+// QA-FIX (2 Nov 2026): the anchor must exist on the homepage that is served (V3 unless HOME_V3 is "0").
+assert.match(readFileSync(new URL("../components/home-v3/HowItWorks.tsx", import.meta.url), "utf8"), /id="how"/, "the homepage has #how");
 for (const [p, kind] of [
   ["/blog", "blog"], ["/blog/", "blog"], ["/blog/some-post", "blog"], ["/reports", "reports"], ["/reports/ghost-jobs-2026", "report"],
   ["/terms", "legal"], ["/privacy", "legal"], ["/refund-policy", "legal"], ["/contact", "contact"], ["/about", "about"],
@@ -144,8 +146,10 @@ const PINNED = {
   // sj_tracking_consent row says it is also a cookie on studojo.com and its subdomains (app/lib/consent.ts), 1 year
   "routes/privacy.tsx": "77353e01b8b5d830",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
-  "routes/contact.tsx": "fdd5914095deaa8a",
-  "routes/about.tsx": "8df5740170b73da6",
+  // QA-FIX 2 Nov: copy only (one sending promise, career agent, reset emails paused, chat bubble bottom left, About's
+  // lines from the QA report); the same words on both looks
+  "routes/contact.tsx": "8257dc5c87a3ce44",
+  "routes/about.tsx": "535174f5c08fa082",
   "components/error-page.tsx": "99b6cfefb8352b47",
   "components/blog/blog-content.tsx": "4c28dd5648ab8edd",
 };
@@ -199,5 +203,20 @@ for (const p of walk(cssDir)) {
 // Stu is the logo's own head, never drawn on a purple circle.
 assert.match(ui, /STU_HEAD : `\/stu\/head-\$\{face\}\.png`/);
 assert.doesNotMatch(read("components/site-b2c/site.css"), /\.sv-stu[^{]*\{[^}]*(border-radius:\s*50%|background:\s*#6e4b8e)/);
+
+// QA-FIX (2 Nov 2026): the database's posts lose the retired product's counts, price and "20,000+ databases" as they render.
+{
+  const { fixBlogClaims, processBlogHtmlB2c, SIGNED_UP_LINE, PRICE_LINE } = await import("../components/site-b2c/blog/blog-b2c.ts");
+  const old = "So far, 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed.";
+  assert.equal(fixBlogClaims(`<p>${old}</p>`), `<p>${SIGNED_UP_LINE} Replies are not guaranteed.</p>`);
+  assert.equal(fixBlogClaims("<p>The numbers so far: 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students&#39; own Gmail (Studojo&#39;s own records, September 2026).</p>"), `<p>${SIGNED_UP_LINE}</p>`);
+  assert.equal(fixBlogClaims("<p>Studojo writes it. The people come sourced from 20,000+ databases, and it is a one-time payment, not a subscription. Try it.</p>"), "<p>Studojo writes it. Try it.</p>");
+  assert.equal(fixBlogClaims("<p>Studojo sends it. It is a one-time payment, not a subscription, so there is no renewal date to race.</p>"), `<p>Studojo sends it. ${PRICE_LINE}</p>`);
+  assert.equal(fixBlogClaims("<td>One-time payment, not a subscription</td>"), "<td>Free to start, then credits to email the people hiring</td>");
+  assert.equal(fixBlogClaims("<p>It is a yearly subscription, not a one-time payment.</p>"), "<p>It is a yearly subscription, not a one-time payment.</p>", "a rival's own pricing stays");
+  assert.equal(fixBlogClaims('<p>Use <a href="/x">Studojo</a>: setup takes about 2 minutes, the people come sourced from 20,000+ databases, and it is a one-time payment, not a subscription. Next.</p>'), '<p>Use <a href="/x">Studojo</a>. Next.</p>');
+  assert.equal(fixBlogClaims("<p>It finds the team lead, with people sourced from 20,000+ databases. Good.</p>"), "<p>It finds the team lead. Good.</p>");
+  assert.doesNotMatch(processBlogHtmlB2c(`<p>${old}</p>`, "/b2cnew/join"), /8,500|4,000\+|28,000\+/, "the post page runs it");
+}
 
 console.log("site-v2: ok");

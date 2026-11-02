@@ -626,7 +626,7 @@ export default function AIJobSearchToolsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Point AI at the right roles.</h3>
-              <p>Stu, Studojo&apos;s job agent, finds roles that fit you, tailors your resume to each one and drafts the email. Nothing goes out until you press Send, so the words are still yours.</p>
+              <p>Stu, Studojo&apos;s career agent, finds roles that fit you, tailors your resume to each one and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-ai-job-search-tools-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Start with Stu →

@@ -16,7 +16,10 @@ import { companyLogoUrl, faviconUrl } from "~/lib/company-logo";
 // companies run past in two rows going opposite ways, and stop under the pointer (a still, wrapped list with reduced
 // motion; the second copy of each row is hidden from assistive tech). The company strip is as published on
 // studojo.com/outreach. No quotes or testimonials of any kind.
-// 1 Nov 2026, the founder: the label says "connected with", and each company shows its logo before its name, from
+// QA-FIX (2 Nov 2026): one job count everywhere, "1.9M roles indexed" (the gate says the same; prod's index is about
+// 1.93M rows). The strip's label says what Stu does, not "People using Studojo have connected with hiring managers
+// at": that line came from the retired /outreach page and no Stu user's result backs it.
+// 1 Nov 2026, the founder: the label said "connected with", and each company shows its logo before its name, from
 // Context.dev's free Logo Link CDN (app/lib/company-logo.ts, as the Sensei table does; Google's favicon when the client
 // id is not set or a logo fails, and no logo at all if that fails too). The logos are decoration (alt=""): the name
 // stays the label.
@@ -75,12 +78,12 @@ export function Proof() {
           <h2 className="hv3-h2" id="proof-h">We know where the jobs are, and who&apos;s hiring</h2>
         </header>
         <div className="hv3-stats">
-          <div className="hv-card hv3-stat" data-reveal data-count style={d(0)}><b>1,800,000+</b><span>job postings in our data</span></div>
+          <div className="hv-card hv3-stat" data-reveal data-count style={d(0)}><b>1.9M</b><span>roles indexed</span></div>
           <div className="hv-card hv3-stat" data-reveal data-count style={d(120)}><b>7,700+</b><span>job boards and company career sites checked every day</span></div>
           <div className="hv-card hv3-stat" data-reveal data-count style={d(240)}><b>8,300+</b><span>companies where we&apos;ve found hiring managers</span></div>
         </div>
         <div className="hv3-logos" data-reveal>
-          <p className="hv3-logos-label">People using Studojo have connected with hiring managers at</p>
+          <p className="hv3-logos-label">Stu finds the people hiring at companies like</p>
           {ROWS.map((row, i) => (
             <div className={`hv3-row${i ? " hv3-row-rev" : ""}`} key={i}>
               <ul>

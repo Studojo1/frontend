@@ -333,7 +333,7 @@ export default function SalesIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Build the resume that gets you into a sales role</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume and cover letter to each sales role you go for.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume and cover letter to each sales role you go for.</div>
               </div>
               <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
             </div>
@@ -652,7 +652,7 @@ export default function SalesIndiaReport() {
 
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds SDR, BDA, FMCG sales, and inside sales roles that fit you. It tailors your resume to each one, so it shows real skills, not just a degree.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds SDR, BDA, FMCG sales, and inside sales roles that fit you. It tailors your resume to each one, so it shows real skills, not just a degree.</p>
             <div className="rpt-final-cta-btns">
               <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
               <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>

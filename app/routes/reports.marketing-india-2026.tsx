@@ -304,7 +304,7 @@ export default function MarketingIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Find marketing internships that actually pay</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, finds marketing internships that fit you from company career sites and job boards, best fit first.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds marketing internships that fit you from company career sites and job boards, best fit first.</div>
               </div>
               <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-green">Let Stu find roles →</Link>
             </div>
@@ -411,7 +411,7 @@ export default function MarketingIndiaReport() {
             <div className="rpt-inline-cta-inner">
               <div>
                 <div className="rpt-inline-cta-title">Build a resume that actually reflects your marketing skills</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's job agent, tailors your resume to each marketing role you apply for.</div>
+                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume to each marketing role you apply for.</div>
               </div>
               <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-green">Let Stu tailor your resume →</Link>
             </div>
@@ -619,7 +619,7 @@ export default function MarketingIndiaReport() {
           {/* Final CTA */}
           <div className="rpt-final-cta rpt-final-cta-green">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's job agent, finds the marketing internships that fit you and tailors your resume to each one. Apply to the roles worth applying to.</p>
+            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds the marketing internships that fit you and tailors your resume to each one. Apply to the roles worth applying to.</p>
             <div className="rpt-final-cta-btns">
               <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu →</Link>
               <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>

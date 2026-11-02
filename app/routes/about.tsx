@@ -14,17 +14,17 @@ export function meta({}: Route.MetaArgs) {
     { title: "About Studojo | Work on Things That Matter" },
     {
       name: "description",
-      content: "Studojo is a job agent for students: Stu finds jobs and internships that fit you, tailors your resume and reaches the right people, so you can work on things that actually matter. Based in Bangalore, serving students worldwide.",
+      content: "Stu is your career agent at Studojo: Stu finds jobs and internships that fit you, tailors your resume and reaches the people hiring for you, so you can work on things that matter. Based in Bengaluru, serving students worldwide.",
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/about` },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "About Studojo | Work on Things That Matter" },
-    { property: "og:description", content: "Studojo is a job agent for students: Stu finds jobs and internships that fit you, tailors your resume and reaches the right people, so you can work on things that actually matter." },
+    { property: "og:description", content: "Stu is your career agent at Studojo: Stu finds jobs and internships that fit you, tailors your resume and reaches the people hiring for you, so you can work on things that matter." },
     { property: "og:url", content: `${BASE_URL}/about` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "About Studojo | Work on Things That Matter" },
-    { name: "twitter:description", content: "A job agent for students: Stu finds jobs and internships that fit you, tailors your resume and reaches the right people." },
+    { name: "twitter:description", content: "Stu is your career agent: Stu finds jobs and internships that fit you, tailors your resume and reaches the people hiring for you." },
   ];
 }
 
@@ -74,8 +74,8 @@ const PARTS = [
   },
   {
     title: "Reaches the right person",
-    description: "Stu finds the hiring manager or recruiter and drafts the email. It goes from your own mailbox, only when you press Send.",
-    checklist: ["The right person to write to", "Emails from your own mailbox", "You approve everything"],
+    description: "Stu finds the hiring manager or recruiter and writes the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.",
+    checklist: ["The right person to write to", "Sent from your own inbox", "Nothing goes out until you start"],
     accent: "bg-rose-500",
     iconBg: "bg-rose-200",
     iconColor: "text-rose-500",
@@ -97,7 +97,7 @@ const PRINCIPLES = [
   {
     number: "02",
     heading: "Built for students, not employers.",
-    body: "Most career tools are designed to help companies filter applicants. We flipped that. Every feature exists to help you stand out, not to make someone else's job easier.",
+    body: "Most career tools are designed to help companies filter applicants. Every feature of ours exists to help you stand out, not to make someone else's job easier.",
     bg: "bg-emerald-500",
   },
   {
@@ -110,7 +110,7 @@ const PRINCIPLES = [
 
 const MARKETS = [
   { flag: "🇮🇳", name: "India", detail: "DU, IIMs, IITs, NITs, BITS, Symbiosis, Christ, Manipal, and a strong tier-2 and tier-3 college base." },
-  { flag: "🇺🇸", name: "United States", detail: "Large state schools and private universities. Students navigating one of the most competitive internship markets in the world." },
+  { flag: "🇺🇸", name: "United States", detail: "Large state schools and private universities. Students in one of the most competitive internship markets in the world." },
   { flag: "🇬🇧", name: "United Kingdom", detail: "Russell Group and post-92 universities. Students looking at structured programmes and graduate schemes." },
   { flag: "🇦🇪", name: "Dubai and UAE", detail: "Expat and local university students. LinkedIn-heavy market with strong direct founder hiring." },
   { flag: "🇸🇬", name: "Singapore", detail: "NUS, NTU, and SMU students. Highly competitive, internationally focused, strong MNC and startup scene." },

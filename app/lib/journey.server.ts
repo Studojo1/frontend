@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { isbot } from "isbot";
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 import {
   cookieDomainFor,
   isLandingPath,
@@ -97,15 +97,98 @@ export function recordJourneyEvent(e: JourneyEvent): void {
   }
 }
 
-// visited_home once per visitor per day: held per process (a day key per visitor), so a reload or a walk through the
-// blog writes one row. A restart may write a second row that day, which a COUNT(DISTINCT visitor_id) absorbs.
+// visited_home once per visitor per day (an IST day, as the product counts its daily steps). Two guards:
+//   1. per process, a day key per visitor, so a reload or a walk through the blog never reaches the database;
+//   2. in the database (QA-FIX, 2 Nov 2026: web runs 2 pods, so the per-process guard alone wrote a second row when
+//      the same visitor's next landing page hit the other pod, about 45 s later). One transaction takes an advisory
+//      lock on (visitor, day), then inserts only when no visited_home row for that visitor exists since the IST day
+//      began (career_journey_events_visitor_idx on (visitor_id, at) answers it). The INSERT runs after the lock, so it
+//      sees a row another pod committed while this one waited: pods writing at once still keep one row.
 const seenToday = new Map<string, string>();
-function firstToday(visitorId: string, now: Date): boolean {
-  const day = now.toISOString().slice(0, 10);
-  if (seenToday.get(visitorId) === day) return false;
-  if (seenToday.size > 50_000) seenToday.clear();
-  seenToday.set(visitorId, day);
+
+/** The IST calendar day of an instant, "YYYY-MM-DD". Pure. */
+export function istDay(now: Date): string {
+  return new Date(now.getTime() + 330 * 60_000).toISOString().slice(0, 10);
+}
+
+/** The per-process guard: true the first time this process sees the visitor on that IST day. */
+export function firstToday(visitorId: string, now: Date, seen: Map<string, string> = seenToday): boolean {
+  const day = istDay(now);
+  if (seen.get(visitorId) === day) return false;
+  if (seen.size > 50_000) seen.clear();
+  seen.set(visitorId, day);
   return true;
+}
+
+/** The lock key's text for one visitor's day; hashed by Postgres (hashtextextended) into the advisory lock. */
+export function visitedLockKey(visitorId: string, day: string): string {
+  return `visited_home:${visitorId}:${day}`;
+}
+
+/** The database guard's INSERT: a visited_home row only if the visitor has none since the IST day began. */
+export const VISITED_ONCE_SQL = `INSERT INTO ${TABLE} (at, env, user_id, visitor_id, session_id, step, props, source)
+       SELECT now(), $1, NULL, $2, NULL, 'visited_home', $3::jsonb, $4::jsonb
+       WHERE NOT EXISTS (
+         SELECT 1 FROM ${TABLE}
+          WHERE visitor_id = $2 AND step = 'visited_home' AND env = $1
+            AND at >= (date_trunc('day', now() AT TIME ZONE 'Asia/Kolkata') AT TIME ZONE 'Asia/Kolkata')
+       )`;
+
+/** What insertVisitedOnce needs of a pg client (a pooled client, or a fake in the test). */
+export type QueryClient = { query: (sql: string, values?: unknown[]) => Promise<{ rowCount?: number | null }> };
+
+/**
+ * One transaction: lock the visitor's day, insert visited_home unless that day already has one. Returns true when a
+ * row was written. Throws what the database throws (the caller decides what is quiet); rolls back on any error.
+ */
+export async function insertVisitedOnce(client: QueryClient, e: JourneyEvent, now: Date): Promise<boolean> {
+  await client.query("BEGIN");
+  try {
+    await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [visitedLockKey(e.visitorId, istDay(now))]);
+    const r = await client.query(VISITED_ONCE_SQL, [
+      e.env,
+      e.visitorId,
+      JSON.stringify(e.props),
+      e.source ? JSON.stringify(e.source) : null,
+    ]);
+    await client.query("COMMIT");
+    return (r.rowCount ?? 0) > 0;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  }
+}
+
+async function insertVisited(e: JourneyEvent, now: Date): Promise<void> {
+  if (Date.now() < missingUntil) return;
+  const p = journeyPool();
+  if (!p) return;
+  let client: PoolClient | null = null;
+  try {
+    client = await p.connect();
+    await insertVisitedOnce(client, e, now);
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code === "42P01" || code === "3F000") {
+      missingUntil = Date.now() + 60_000;
+      return;
+    }
+    if (!warned) {
+      warned = true;
+      console.warn(`[journey] visited_home skipped (${code ?? "error"}); further failures are silent`);
+    }
+  } finally {
+    client?.release();
+  }
+}
+
+/** visited_home without waiting for it and without ever throwing (once a visitor a day, across pods). */
+export function recordVisitedHome(e: JourneyEvent, now: Date): void {
+  try {
+    void insertVisited(e, now).catch(() => {});
+  } catch {
+    // never
+  }
 }
 
 /** A crawler, or no browser at all. */
@@ -142,13 +225,16 @@ export function journeyOnPage(request: Request, responseHeaders: Headers): void 
     for (const c of plan.setCookies) responseHeaders.append("Set-Cookie", c);
     if (!isLandingPath(url.pathname) || isPrefetch(request.headers)) return;
     if (!firstToday(plan.visitorId, now)) return;
-    recordJourneyEvent({
-      env: journeyEnv(host),
-      visitorId: plan.visitorId,
-      step: "visited_home",
-      props: { path: url.pathname.slice(0, 200) },
-      source: plan.source,
-    });
+    recordVisitedHome(
+      {
+        env: journeyEnv(host),
+        visitorId: plan.visitorId,
+        step: "visited_home",
+        props: { path: url.pathname.slice(0, 200) },
+        source: plan.source,
+      },
+      now,
+    );
   } catch {
     // tracking must never break a page
   }

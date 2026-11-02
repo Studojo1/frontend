@@ -135,7 +135,7 @@ export function BlogPostB2C({ post, posterUrl, jsonLd }: Props) {
 /** The quiet Stu card in the middle of a post (the same look as the HTML card in site-blog.css). */
 function StuCard({ href, signedIn }: { href: string; signedIn: boolean }) {
   return (
-    <aside className="sv-blog-stu" aria-label="stu, the job agent">
+    <aside className="sv-blog-stu" aria-label="stu, your career agent">
       <StuHead size={52} className="sv-blog-stu-head" />
       <p className="sv-blog-stu-line">{STU_CARD_LINE}</p>
       <a href={href} className="sv-btn sv-btn-sm sv-blog-stu-go" data-start="blog-inline">

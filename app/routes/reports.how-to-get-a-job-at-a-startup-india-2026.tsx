@@ -572,7 +572,7 @@ export default function StartupJobReport() {
               </tbody>
             </table>
             <p>We built Studojo to do the hard part of that last route. At a startup, the person who can actually hire you is often a founder or team lead. Studojo finds that person, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. It is the fastest way we know to reach founders from your Gmail.</p>
-            <p>8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed. Writing to the right person gives you the best shot at one.</p>
+            <p>8,700+ students have signed up to Studojo. Replies are not guaranteed. Writing to the right person gives you the best shot at one.</p>
           </div>
 
           {/* FAQ */}

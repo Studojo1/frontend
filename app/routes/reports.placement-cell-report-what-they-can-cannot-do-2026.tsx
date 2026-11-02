@@ -331,10 +331,6 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
 
             <div className="highlight"><strong>Key insight:</strong>{" The placement cell's superpower is legitimate access to employers who refuse open-market chaos. Use it when those employers match your goals."}</div>
 
-            <div className="pull-quote">
-              <p>{"\"We can get the recruiter on campus. We cannot get you through the technical round if your projects are empty.\""}</p>
-              <span className="pq-source">{"Placement officer, private engineering college (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -439,17 +435,13 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Run the off-campus lane in parallel"}</h4>
-                <p>{"Stu, Studojo's job agent, finds the hiring manager or recruiter to write to at firms your placement cell never booked, and drafts the email you send from your own mailbox."}</p>
+                <p>{"Stu, Studojo's career agent, finds the hiring manager or recruiter to write to at firms your placement cell never booked, and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
                 <Link to={productHref("/join?via=report-placement-cell-report-what-they-can-cannot-do-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
               </div>
             </div>
 
             <div className="highlight"><strong>Key insight:</strong> High performers treat campus drives as one channel in a portfolio. They do not pause other channels until placement season ends.</div>
 
-            <div className="pull-quote">
-              <p>{"\"The students who stressed less treated placement season like exam season: calendar, mocks, and backups. The ones who waited for us to call them daily got surprised.\""}</p>
-              <span className="pq-source">{"Final-year student, commerce programme (Studojo community, 2026)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -481,10 +473,6 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
 
             <div className="highlight"><strong>Summary insight:</strong> Placement cells run the on-campus railroad. You still need a map for the territory outside the tracks.</div>
 
-            <div className="pull-quote">
-              <p>{"\"My offer came from a founder DM. I told placement office after signing so they could update records. Both paths can coexist.\""}</p>
-              <span className="pq-source">{"Graduate, tier-two engineering college (Studojo community, 2025)"}</span>
-            </div>
 
             <div className="blist">
 
@@ -567,7 +555,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Run campus and off-campus lanes together."}</h3>
-              <p>{"Stu, Studojo's job agent, finds internships that fit you and the right person to write to at firms your placement cell never scheduled, so you are not betting everything on one drive calendar."}</p>
+              <p>{"Stu, Studojo's career agent, finds internships that fit you and the right person to write to at firms your placement cell never scheduled, so you are not betting everything on one drive calendar."}</p>
             </div>
             <Link to={productHref("/join?via=report-placement-cell-report-what-they-can-cannot-do-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Start with Stu →"}

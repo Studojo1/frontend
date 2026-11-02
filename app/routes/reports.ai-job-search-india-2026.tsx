@@ -556,7 +556,7 @@ export default function AiJobSearchIndiaReport() {
             </div>
             <p>We built Studojo to do exactly this. It finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.</p>
             <div className="highlight">
-              <strong>8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail</strong> (Studojo's own records, September 2026). Replies are not guaranteed. The email still has to be worth answering, and that is the part we help you get right.
+              <strong>8,700+ students have signed up to Studojo.</strong> Replies are not guaranteed. The email still has to be worth answering, and that is the part we help you get right.
             </div>
           </div>
 

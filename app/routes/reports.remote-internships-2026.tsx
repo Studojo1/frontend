@@ -454,10 +454,6 @@ export default function RemoteInternshipsReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>Commission-only is not internship pay.</strong> A listing that describes a marketing or sales internship with "performance-based compensation" is offering a commission-only sales role with an internship label. The financial risk is entirely on the candidate. Legitimate internships do not structure compensation this way.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>The exception: pre-revenue startups and non-profits.</strong> A genuinely early-stage company or a registered non-profit may legitimately be unable to pay a stipend. In these cases, the other green flags become more important, not less. A real early-stage company will have a genuine product, a verifiable founding team, and a specific project for you. The absence of pay in this context should increase, not decrease, your verification effort.</span></div>
             </div>
-            <div className="pull-quote">
-              <p>"I did three unpaid remote internships in my second year. None of them had a structured project. None gave me a reference. By the time I applied to paid roles I had nothing to show for six months of work."</p>
-              <span className="pq-source">Marketing student, Delhi University (shared in Studojo community, 2025)</span>
-            </div>
           </div>
 
           {/* Section 5: Platforms */}
@@ -592,7 +588,7 @@ export default function RemoteInternshipsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find the remote internships that are actually real.</h3>
-              <p>Stu, Studojo's job agent, finds remote internships that fit you, from company career sites and job boards, best fit first. It also finds the right person to write to and drafts the email.</p>
+              <p>Stu, Studojo's career agent, finds remote internships that fit you, from company career sites and job boards, best fit first. It also finds the right person to write to and drafts the email.</p>
             </div>
             <Link to={productHref("/join?via=report-remote-internships-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →

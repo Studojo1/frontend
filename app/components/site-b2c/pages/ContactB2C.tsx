@@ -183,7 +183,7 @@ export function ContactB2C({ subjects, faq, formData, setFormData, trap, setTrap
                 </span>
                 <div>
                   <p className="svc-way-t">Live Chat</p>
-                  <p className="svc-way-d">Click the chat bubble in the bottom-right corner</p>
+                  <p className="svc-way-d">Click the chat bubble in the bottom-left corner</p>
                 </div>
               </div>
 
@@ -216,7 +216,7 @@ export function ContactB2C({ subjects, faq, formData, setFormData, trap, setTrap
 
             <div className="sv-card sv-card-soft svc-help">
               <h3 className="sv-h3">Still need help?</h3>
-              <p className="sv-body">Our live chat is available | click the bubble in the bottom-right corner to start a conversation.</p>
+              <p className="sv-body">Our live chat is open. Click the bubble in the bottom-left corner.</p>
               <Link to="/" className="sv-btn-ghost">
                 Return to Home
               </Link>

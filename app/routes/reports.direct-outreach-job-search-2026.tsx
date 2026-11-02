@@ -413,9 +413,9 @@ export default function DirectOutreachReport() {
               <div className="sc-source">The Interview Guys, April 2026 (reported)</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">28,000+</div>
-              <div className="sc-label">personal emails sent from students' own Gmail, with 8,500+ students signed up and 4,000+ matched with hiring managers</div>
-              <div className="sc-source">Studojo's own records, September 2026</div>
+              <div className="sc-num">8,700+</div>
+              <div className="sc-label">students have signed up to Studojo</div>
+              <div className="sc-source">Studojo's own records, November 2026</div>
             </div>
           </div>
 
@@ -607,7 +607,7 @@ export default function DirectOutreachReport() {
               <p>"Write to the person who decides, from your own address, about their work. Everything else is detail."</p>
               <span className="pq-source">The Studojo rule for direct outreach</span>
             </div>
-            <p>So far: 8,500+ students signed up, 4,000+ matched with hiring managers and 28,000+ personal emails sent from students' own Gmail (Studojo's own records, September 2026). Replies are not guaranteed. What you get is a specific email in front of the right person.</p>
+            <p>So far, 8,700+ students have signed up to Studojo. Replies are not guaranteed. What you get is a specific email in front of the right person.</p>
           </div>
 
           {/* FAQ */}

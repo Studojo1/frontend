@@ -375,7 +375,7 @@ export default function Report_GapYearReportHowRecruitersViewCareerBreaks2026() 
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Turn your gap into experience"}</h3>
-              <p>{"Stu, Studojo's job agent, finds the internships that fit you, best fit first, so you can build proof while you prepare, or restart quickly when you are ready."}</p>
+              <p>{"Stu, Studojo's career agent, finds the internships that fit you, best fit first, so you can build proof while you prepare, or restart quickly when you are ready."}</p>
             </div>
             <Link to={productHref("/join?via=report-gap-year-report-how-recruiters-view-career-breaks-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               {"Let Stu find roles →"}

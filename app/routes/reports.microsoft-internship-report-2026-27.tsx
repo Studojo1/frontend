@@ -580,7 +580,7 @@ export default function MicrosoftInternshipReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Reach the people behind the posting.</h3>
-              <p>Stu, Studojo's job agent, finds the right person to write to on the hiring team and drafts the email you send from your own mailbox, so your application does not sit alone in a portal.</p>
+              <p>Stu, Studojo's career agent, finds the right person to write to on the hiring team and drafts the email, so your application does not sit alone in a portal. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-microsoft-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find the right person →

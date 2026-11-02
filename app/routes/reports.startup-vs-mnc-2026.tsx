@@ -475,10 +475,6 @@ export default function StartupVsMncReport() {
               </tbody>
             </table>
             <p>The question is not which environment teaches more. It is which type of learning compounds better for the career you want. A candidate who wants to run their own company eventually benefits disproportionately from startup breadth. A candidate targeting a senior specialist role at a large institution benefits from MNC depth and process exposure.</p>
-            <div className="pull-quote">
-              <p>"I did three years at a Series A and learned more in the first six months than most of my batchmates did in two years at large companies. But they understood enterprise sales and procurement in ways I had to catch up on later."</p>
-              <span className="pq-source">Product Manager, Bangalore (shared in Studojo community, 2025)</span>
-            </div>
           </div>
 
           {/* Section 3: Brand name */}
@@ -663,7 +659,7 @@ export default function StartupVsMncReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find the roles worth choosing between.</h3>
-              <p>Stu, Studojo's job agent, finds the roles that fit you at startups and MNCs, best fit first, and the right person to write to at each one. You send the email from your own mailbox.</p>
+              <p>Stu, Studojo's career agent, finds the roles that fit you at startups and MNCs, best fit first, and the right person to write to at each one, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
             <Link to={productHref("/join?via=report-startup-vs-mnc-2026&how=voice")} reloadDocument className="rpt-cta-btn">
               Let Stu find roles →
