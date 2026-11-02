@@ -136,6 +136,19 @@ try {
   await page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed, url: "https://www.linkedin.com/posts/asha-late-activity-5" });
   assert.equal((await one(`SELECT status FROM ugc_creator_posts WHERE id = $1`, [ids.aMissed])).status, "posted", "last week's post can be marked late");
 
+  // The team puts a post on hold ('blocked'): the page shows a notice without its text, and every change is refused.
+  await addPost("aHeld", 1, thu, "blocked", { body: `HELD-${SECRET}` });
+  for (const change of [{ intent: "posted", url: "https://www.linkedin.com/posts/asha-held-activity-9" }, { intent: "line", line: "x" }, { intent: "numbers", impressions: 1, reactions: 1, comments: 1 }]) {
+    await assert.rejects(() => page.applyFellowChange(asha, { ...change, postId: ids.aHeld }), (e) => e.status === 409 && /on hold/.test(e.message), `${change.intent} on a held post`);
+  }
+  await page.applyFellowChange(asha, { intent: "copied", postId: ids.aHeld });
+  const heldRow = await one(`SELECT status, copied_at, own_line, post_url FROM ugc_creator_posts WHERE id = $1`, [ids.aHeld]);
+  assert.deepEqual([heldRow.status, heldRow.copied_at, heldRow.own_line, heldRow.post_url], ["blocked", null, null, null], "a held post is untouched");
+  const heldView = await page.loadFellowView(asha);
+  assert.equal(heldView.me.thisWeek.posts.find((p) => Number(p.id) === ids.aHeld)?.status, "blocked");
+  assert.ok(!JSON.stringify(heldView).includes(SECRET), "a held post's text never reaches the page");
+  await setup.query(`DELETE FROM ugc_creator_posts WHERE id = $1`, [ids.aHeld]);
+
   // The team pulls a post back (admin pullBack DELETEs it) while the page is open: the fellow is told, not misled.
   await page.applyFellowChange(asha, { intent: "copied", postId: ids.aThu });
   await setup.query(`DELETE FROM ugc_creator_posts WHERE id = $1 AND status <> 'posted'`, [ids.aThu]);

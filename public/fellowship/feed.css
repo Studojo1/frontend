@@ -120,7 +120,7 @@ ul, ol { padding: 0; list-style: none; }
 }
 
 /* ---------- this week's edition: the calendar card from the Weekly edition direction.
-   Rows on a phone; three columns once its own column is 500px or wider. */
+   Rows on a phone; one column per post once its own column is 500px or wider. */
 .ed-cover { container-type: inline-size; overflow: hidden; }
 .ed-in { padding: 16px 16px 0; }
 .ed-top { display: flex; gap: 14px; align-items: center; }
@@ -164,7 +164,7 @@ ul, ol { padding: 0; list-style: none; }
   .ed-title { font-size: 34px; }
   .ed-meta { font-size: 14px; }
   .ed-dek { display: block; }
-  .ed-lines { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 16px; border-top: 1px solid var(--line); }
+  .ed-lines { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); margin-top: 16px; border-top: 1px solid var(--line); }
   .ed-lines li + li { border-top: 0; border-left: 1px solid var(--line); }
   .ed-lines li:has(.is-next) + li, .ed-lines li:has(+ li .is-next) { border-color: var(--line); }
   .ed-line { grid-template-columns: 1fr; align-content: start; align-items: start; gap: 8px; width: 100%; height: 100%; margin: 0; padding: 14px 14px 16px; border-radius: 0; }
@@ -604,3 +604,7 @@ ul, ol { padding: 0; list-style: none; }
 .share.is-asking { box-shadow: 0 0 0 2px var(--accent), var(--shadow-card); }
 .share .card-head .chip { flex: none; }
 .voice-note { font-size: 12px; color: var(--ink-2); margin-top: 8px; line-height: 1.4; }
+/* A post the team has put on hold: a notice in place of the post, nothing to copy. */
+.post.is-held .date-tile .dt-dow { background: var(--warn); }
+.hold-note { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px 16px; background: var(--warn-soft); border-radius: 0 0 var(--r-card) var(--r-card); font-size: 14px; line-height: 1.45; }
+.hold-note .ic { color: var(--warn); flex: none; margin-top: 1px; }

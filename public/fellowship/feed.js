@@ -96,7 +96,8 @@
   function applyView(v) {
     const M = v.me;
     const ids = (list) => list.map((p) => p.id).sort().join();
-    if (v.program.today !== TODAY || ids(M.thisWeek.posts) !== ids(S.posts)) { location.reload(); return false; }
+    const held = (list) => list.filter((p) => p.status === "blocked").map((p) => p.id).sort().join();
+    if (v.program.today !== TODAY || ids(M.thisWeek.posts) !== ids(S.posts) || held(M.thisWeek.posts) !== held(S.posts)) { location.reload(); return false; }
     for (const sp of M.thisWeek.posts) {
       const p = byId(sp.id);
       if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null });
@@ -111,13 +112,18 @@
     ME.storyPrompts = M.storyPrompts;
     return true;
   }
+  // A post on hold ('blocked') is being fixed by the team: it's shown as a notice, never due, next or counted.
+  const onHold = (p) => p.status === "blocked";
+  const counted = () => S.posts.filter((p) => !onHold(p));
   const postedCount = () => S.posts.filter((p) => p.status === "posted").length;
   const weekDone = () => ME.thisWeek.due > 0 && postedCount() >= ME.thisWeek.due;
   const run = () => ME.weeklyRun + (weekDone() ? 1 : 0);
   const doneWeeks = () => ME.completedWeeks + (weekDone() ? 1 : 0);
-  const nextPost = () => S.posts.slice().sort((a, b) => a.date.localeCompare(b.date)).find((p) => p.status !== "posted");
+  const nextPost = () => counted().sort((a, b) => a.date.localeCompare(b.date)).find((p) => p.status !== "posted");
   // Feed order is fixed at load: what to do next first, then what is already posted.
+  const rank = (p) => (p.status === "posted" ? 2 : onHold(p) ? 1 : 0);
   const ORDER = S.posts.slice().sort((a, b) => {
+    if (rank(a) !== rank(b)) return rank(a) - rank(b);
     const pa = a.status === "posted", pb = b.status === "posted";
     if (pa !== pb) return pa ? 1 : -1;
     return pa ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date);
@@ -150,7 +156,7 @@
       $("#feed-help").textContent = ME.paused ? NO_POSTS : NO_POSTS + " They'll show here when they're ready.";
       return;
     }
-    const dots = S.posts.slice().sort((a, b) => a.date.localeCompare(b.date)).map((p) => `<i class="${p.status === "posted" ? "on" : ""}"></i>`).join("");
+    const dots = counted().sort((a, b) => a.date.localeCompare(b.date)).map((p) => `<i class="${p.status === "posted" ? "on" : ""}"></i>`).join("");
     $("#week-pill").innerHTML = `<span class="segs" aria-hidden="true">${dots}</span><span>This week: <b>${n} of ${due}</b> posted</span>`;
     $("#week-pill").setAttribute("aria-label", `This week: ${n} of ${due} posted. ${n < due ? "Go to your next post" : "All posts done"}`);
     $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
@@ -206,7 +212,7 @@
   /* ---------- this week's edition (the calendar card from the Weekly edition direction) */
   const WEEK_NO = ME.weekNo;
   function renderCover() {
-    const n = postedCount(), next = nextPost(), total = S.posts.length;
+    const n = postedCount(), next = nextPost(), total = counted().length;
     const away = (d) => diffDays(TODAY, d);
     if (!total) {
       $("#ed-cover").innerHTML = `<div class="ed-in ed-empty">
@@ -236,7 +242,8 @@
     const lines = S.posts.slice().sort((a, b) => a.date.localeCompare(b.date)).map((p) => {
       const done = p.status === "posted", isNext = next && p.id === next.id, a = away(p.date);
       let st;
-      if (done) st = `<span class="ed-state ok">${ic("check")}Posted</span>`;
+      if (onHold(p)) st = `<span class="ed-state late">On hold</span>`;
+      else if (done) st = `<span class="ed-state ok">${ic("check")}Posted</span>`;
       else if (isNext && p.copied) st = `<span class="ed-state next">Copied</span>`;
       else if (isNext) st = `<span class="ed-state next">Up next</span>`;
       else if (a < 0) st = `<span class="ed-state late">Was due ${dowLong(p.date)}</span>`;
@@ -257,15 +264,32 @@
       <p class="ed-dek">${dek}</p>
       <ol class="ed-lines" aria-label="This week's posts">${lines}</ol>
       <dl class="ed-stats">
-        <div><dt>Posted this week</dt><dd>${n} of ${total}<span class="ed-meter" aria-hidden="true">${S.posts.slice().sort((a, b) => a.date.localeCompare(b.date)).map((p) => `<i class="${p.status === "posted" ? "on" : ""}"></i>`).join("")}</span></dd></div>
+        <div><dt>Posted this week</dt><dd>${n} of ${total}<span class="ed-meter" aria-hidden="true">${counted().sort((a, b) => a.date.localeCompare(b.date)).map((p) => `<i class="${p.status === "posted" ? "on" : ""}"></i>`).join("")}</span></dd></div>
         <div><dt>Weekly run</dt><dd>${plural(run(), "week")}</dd></div>
         <div><dt>Completed</dt><dd>${plural(doneWeeks(), "week")}</dd></div>
       </dl>
     </div>`;
+    const ol = $("#ed-cover .ed-lines"); if (ol) ol.style.setProperty("--n", String(Math.max(1, S.posts.length)));
   }
 
   /* ---------- post cards */
+  function holdCard(p) {
+    const d = parseD(p.date);
+    return `<article class="card post is-held" id="post-${p.id}" tabindex="-1" aria-labelledby="title-${p.id}">
+      <header class="pc-head">
+        <span class="date-tile" aria-hidden="true"><span class="dt-dow">${DOW[d.getUTCDay()]}</span><span class="dt-num">${d.getUTCDate()}</span></span>
+        <div>
+          <h3 class="pc-title" id="title-${p.id}"><span class="sr-only">${dowLong(p.date)}: </span>${esc(p.title)}</h3>
+          <p class="pc-sub"><span>Was planned for ${dowLong(p.date)}</span></p>
+        </div>
+        <span class="chip chip-warn">On hold</span>
+      </header>
+      <div class="hold-note" role="note">${ic("alert")}<p><b>On hold: the team is updating this post.</b> Please don't post it yet. We'll let you know when it's back.</p></div>
+    </article>`;
+  }
+
   function postCard(p) {
+    if (onHold(p)) return holdCard(p);
     const posted = p.status === "posted";
     const next = nextPost();
     const isNext = !posted && next && next.id === p.id;

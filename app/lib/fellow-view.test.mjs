@@ -212,6 +212,22 @@ assert.equal(missed.me.history[0].complete, false);
 assert.equal(missed.me.history[0].posts.length, 1, "only posted posts are listed");
 assert.deepEqual(missed.me.history[0].missed.map((m) => [m.id, m.day, m.date, m.body]), [["3", "Tue", "2026-10-20", "Body 3"]], "the missed post can still be copied and marked");
 
+// A post the team put on hold ('blocked') shows as a notice: no text, not due, not missed, not next.
+const held = buildFellowView({ ...input, posts: [...posts, post(11, "2026-10-30", "blocked", { body: `HELD-${SECRET}`, own_line: SECRET }), post(12, "2026-10-21", "blocked")] }, NOW);
+const h = held.me.thisWeek.posts.find((p) => p.id === "11");
+assert.ok(h && h.status === "blocked", "the held post is on the page as a notice");
+assert.equal(h.body, "", "never its text");
+assert.equal(h.ownLine, null);
+assert.ok(!JSON.stringify(held).includes(SECRET), "nothing of a held post's content reaches the page");
+assert.equal(held.me.thisWeek.due, 3, "a held post isn't due");
+assert.ok(!held.me.history.some((w) => w.missed.some((m) => m.id === "12")), "a held post is never missed");
+assert.equal(held.me.weeklyRun, v.me.weeklyRun, "a held post doesn't break a week");
+assert.equal(held.me.completedWeeks, v.me.completedWeeks);
+// The programme's numbers come from the rules row, with five a week (two Studojo) as the default.
+assert.deepEqual([v.program.postsPerWeek, v.program.studojoPerWeek, v.program.postingDays.join()], [3, 2, "Tue,Thu,Sat"]);
+const noRules = buildFellowView({ ...input, rules: null }, NOW);
+assert.deepEqual([noRules.program.postsPerWeek, noRules.program.studojoPerWeek, noRules.program.postingDays.join()], [5, 2, "Mon,Tue,Wed,Thu,Fri"]);
+
 // Story questions: the basics first for someone new, unanswered ones before answered, and a new order each day.
 const order0 = promptOrder([], "2026-11-01");
 assert.equal(order0.length, STORY_PROMPTS.length);

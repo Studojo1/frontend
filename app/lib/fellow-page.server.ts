@@ -69,7 +69,7 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
     db.execute(sql`
       SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at
       FROM ugc_creator_posts
-      WHERE creator_id = ${fellow.id} AND status IN ('ready', 'posted')
+      WHERE creator_id = ${fellow.id} AND status IN ('ready', 'posted', 'blocked')
       ORDER BY due_date, id
     `).then((r) => rows<FellowPostRow>(r)),
     db.execute(sql`
@@ -135,6 +135,15 @@ const postId = (v: unknown) => {
 const updated = (r: { rowCount?: number | null }) => (r.rowCount ?? 0) > 0;
 
 const TAKEN_BACK = "The team has taken this post back for changes. Reload the page to see your latest posts.";
+const ON_HOLD = "This post is on hold while the team updates it. Please don't post it yet; we'll let you know when it's back.";
+
+/** A change that did nothing to one of the fellow's posts: say why (taken back, on hold) or fall through to `otherwise`. */
+async function refuseChange(exec: { execute: typeof db.execute }, fellow: FellowRow, id: number, otherwise: string): Promise<never> {
+  const status = await postStatus(exec, fellow, id);
+  if (status == null) throw new FellowInputError(TAKEN_BACK, 404);
+  if (status === "blocked") throw new FellowInputError(ON_HOLD, 409);
+  throw new FellowInputError(otherwise, 409);
+}
 
 /** Why a change to one of the fellow's posts did nothing: null when the post is gone (the team pulled it back), else its status. */
 async function postStatus(exec: { execute: typeof db.execute }, fellow: FellowRow, id: number): Promise<string | null> {
@@ -178,10 +187,7 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         UPDATE ugc_creator_posts SET own_line = ${line || null}, updated_at = now()
         WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
       `);
-      if (!updated(r)) {
-        if ((await postStatus(db, fellow, id)) == null) throw new FellowInputError(TAKEN_BACK, 404);
-        throw new FellowInputError("This post is already posted, so your line can't change now.", 409);
-      }
+      if (!updated(r)) await refuseChange(db, fellow, id, "This post is already posted, so your line can't change now.");
       return;
     }
     case "posted": {
@@ -201,10 +207,7 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
           UPDATE ugc_creator_posts SET status = 'posted', post_url = ${url}, posted_at = now(), updated_at = now()
           WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
         `);
-        if (!updated(r)) {
-          if ((await postStatus(tx, fellow, id)) == null) throw new FellowInputError(TAKEN_BACK, 404);
-          throw new FellowInputError("This post is already marked as posted.", 409);
-        }
+        if (!updated(r)) await refuseChange(tx, fellow, id, "This post is already marked as posted.");
       });
       return;
     }
@@ -221,10 +224,7 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         SET impressions = ${impressions}, reactions = ${reactions}, comments = ${comments}, metrics_at = now(), updated_at = now()
         WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'posted'
       `);
-      if (!updated(r)) {
-        if ((await postStatus(db, fellow, id)) == null) throw new FellowInputError(TAKEN_BACK, 404);
-        throw new FellowInputError("Numbers can be added once the post is marked as posted.", 409);
-      }
+      if (!updated(r)) await refuseChange(db, fellow, id, "Numbers can be added once the post is marked as posted.");
       return;
     }
     case "connections": {

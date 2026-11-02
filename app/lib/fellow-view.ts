@@ -86,6 +86,7 @@ export interface Milestone {
 export interface ProgrammeRules {
   postingDays?: string[];
   postsPerWeek?: number;
+  studojoPerWeek?: number;
   partnershipLabel?: string;
   milestones?: { id: string; weeks: number; name: string; detail: string }[];
   hiringPipeline?: { id: string; name: string; detail: string };
@@ -309,8 +310,10 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
   const thisWeek = weekOf(today);
   const label = rules?.partnershipLabel || DEFAULT_LABEL;
 
-  // Posts by the week they're due (only 'ready' and 'posted' rows ever arrive here).
+  // Posts by the week they're due ('ready' and 'posted'). A 'blocked' post is one the team has put on hold to
+  // fix: it shows as a notice this week, and never counts as due or missed in any week.
   const posts = input.posts.filter((p) => p.status === "ready" || p.status === "posted");
+  const onHold = input.posts.filter((p) => p.status === "blocked" && weekOf(dayOf(p.due_date)) === thisWeek);
   const byWeek = new Map<string, FellowPostRow[]>();
   for (const p of posts) {
     const w = weekOf(dayOf(p.due_date));
@@ -348,6 +351,11 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
     const postedMs = toMs(p.posted_at);
     const posted = isPosted(p) && Number.isFinite(postedMs);
     const hasNumbers = p.impressions != null && toMs(p.metrics_at) > 0;
+    if (p.status === "blocked") {
+      // On hold: the page shows only that it's being updated, never the text or the team's reason.
+      return { id: String(p.id), day: dowShort(due), date: due, kind: p.kind === "studojo" ? "studojo" : "personal", title: p.title, body: "",
+        status: "blocked", copiedAt: null, ownLine: null, postedAt: null, url: null, metrics: null, numbersDue: null };
+    }
     return {
       id: String(p.id),
       day: dowShort(due),
@@ -459,8 +467,9 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       cohort: cohortLabel(fellow.cohort),
       today,
       weekStart: thisWeek,
-      postingDays: rules?.postingDays ?? ["Tue", "Thu", "Sat"],
-      postsPerWeek: rules?.postsPerWeek ?? 3,
+      postingDays: Array.isArray(rules?.postingDays) ? rules.postingDays : ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      postsPerWeek: typeof rules?.postsPerWeek === "number" ? rules.postsPerWeek : 5,
+      studojoPerWeek: typeof rules?.studojoPerWeek === "number" ? rules.studojoPerWeek : 2,
       partnershipLabel: label,
       // Speaking a story uses the browser's own speech-to-text (the page shows it only where the browser has it).
       // Uploading a screenshot is not live yet.
@@ -491,7 +500,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
         start: thisWeek,
         due: thisWeekPosts.length,
         posted: thisWeekPosts.filter(isPosted).length,
-        posts: thisWeekPosts.map(postView),
+        posts: [...thisWeekPosts, ...onHold].sort((a, b) => dayOf(a.due_date).localeCompare(dayOf(b.due_date)) || a.id - b.id).map(postView),
       },
       history,
       storyPrompts: promptOrder(input.stories.map((s) => s.prompt), today),
