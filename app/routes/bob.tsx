@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiZap, FiSearch,
@@ -3325,7 +3325,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
               className="flex items-center gap-1.5 bg-neutral-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-violet-500 transition-colors"
             >
               {/* the original look's split pane has no room for the full label beside Enrich all and Export */}
-              <FiSend size={13} /> {fullWidth || ui === "new" ? "Send to Lemlist" : "Lemlist"}
+              <FiSend size={13} /> {fullWidth ? "Send to Lemlist" : "Lemlist"}
             </button>
           )}
           <button
@@ -3473,6 +3473,12 @@ const LEMLIST_FIELDS: [string, string, boolean][] = [
   ["linkedinUrl", "LinkedIn", false], ["phone", "Phone", false], ["openRole", "Open role", true],
   ["jobLink", "Job link", true], ["postedDate", "Posted", true], ["jobCity", "City", true], ["whyNow", "Why now", true],
 ];
+
+// A code such as "no_contact" as words: "No contact".
+function sentence(s: string): string {
+  const t = s.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  return t ? t[0].toUpperCase() + t.slice(1) : t;
+}
 
 // The server's reasons may come as codes ("no_contact"): those read as words.
 function lemlistReason(r: string): string {
