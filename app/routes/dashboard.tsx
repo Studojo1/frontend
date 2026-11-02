@@ -77,7 +77,7 @@ function fmtTime(s: string | null): string {
 }
 
 // ── Types ────────────────────────────────────────────────────────────────────
-interface Me { email: string | null; role: string; org: { id: number; name: string } | null }
+interface Me { email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { subscription_paused?: boolean } }
 interface Member { email: string; name: string; role: string; last_login_at: string | null; chats: number; phones_revealed: number; last_activity: string | null }
 interface Chat { id: number; title: string; owner_email: string | null; shared_org: boolean; updated_at: string | null; assigned_to: string | null }
 interface Activity { created_at: string | null; kind: string; delta: number; reason: string; email: string | null }
@@ -635,7 +635,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     try {
       const m = await api<Me>("/me");
       setMe(m);
-      if (m.role === "admin") setData(await api<DashData>("/org/analytics"));
+      if (m.role === "admin" && !m.capabilities?.subscription_paused) setData(await api<DashData>("/org/analytics"));
     } catch (e: any) {
       if (String(e.message).includes("401") || String(e.message).toLowerCase().includes("sign in")) {
         localStorage.removeItem(SESSION_STORAGE); onSignOut();
@@ -648,7 +648,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   // or any failure to read it, leaves the dashboard exactly as it was.
   const [lemlist, setLemlist] = useState<LemlistState | null>(null);
   useEffect(() => {
-    if (me?.role !== "admin") return;
+    if (me?.role !== "admin" || me?.capabilities?.subscription_paused) return;
     let stop = false;
     api<LemlistState>("/org/integrations/lemlist")
       .then((s) => { if (!stop) setLemlist(s); })
@@ -691,6 +691,26 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const [tab, setTab] = useState<"overview" | "team" | "credits" | "chats" | "activity" | "agent" | "integrations">("overview");
   const card = "bg-white border-2 border-neutral-900 rounded-2xl shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
   const str = (v: any) => (v == null || v === "" ? "" : String(v));
+
+  // A paused subscription (bob-svc /me capabilities.subscription_paused): only the paused notice.
+  if (me?.capabilities?.subscription_paused) {
+    return (
+      <div className="min-h-screen bg-[#faf7f2] font-['Satoshi'] flex items-center justify-center p-6 text-neutral-900">
+        <div className={`${card} p-8 max-w-md text-center`}>
+          <h1 className="font-['Clash_Display'] text-2xl font-bold mb-2">Subscription paused</h1>
+          <p className="text-neutral-700 mb-3">
+            Your Sensei subscription{me.org?.name ? ` for ${me.org.name}` : ""} is paused because the payment hasn't
+            come through yet. Kindly complete the payment and we can resume the subscription.
+          </p>
+          <p className="text-neutral-500 text-sm mb-6">Your team's chats and results are kept for when it resumes.</p>
+          <button onClick={() => window.location.reload()} className="bg-violet-600 text-white font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+            Check again
+          </button>
+          <button onClick={signOut} className="block mx-auto mt-4 text-sm text-neutral-400 hover:text-neutral-700">Sign out</button>
+        </div>
+      </div>
+    );
+  }
 
   // Non-admin members don't get the manager dashboard; send them to Sensei.
   if (me && me.role !== "admin") {
