@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Footer, Header } from "~/components";
 import { PasswordInput } from "~/components/password-input";
 import { heldTrackingParams } from "~/lib/attribution";
@@ -8,7 +8,7 @@ import { takeEmail } from "~/lib/carry-email";
 import { authClient } from "~/lib/auth-client";
 import { logFunnelStep } from "~/lib/funnel";
 import { useGoogleOnly } from "~/lib/google-only";
-import { isOtherApp } from "~/lib/other-apps";
+import { leavesByFullLoad } from "~/lib/other-apps";
 import { chromeIntentUrl, detectInAppBrowser, isAndroid, type InAppBrowser } from "~/lib/in-app-browser";
 import { capturePostHog, featureFlagEnabled } from "~/lib/posthog";
 import { signupReported, trackSignedUpOnce } from "~/lib/analytics";
@@ -18,6 +18,7 @@ import type { Route } from "./+types/auth._index";
 import { ConsentLine } from "~/components/auth/consent-line";
 import { useSiteB2c } from "~/components/site-b2c/host";
 import { AuthTop } from "~/components/site-b2c/auth-top";
+import { SiteLink } from "~/components/site-b2c/ui";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
@@ -222,6 +223,8 @@ export default function Auth() {
     document.title = titleFor(mode);
   }, [mode, searchParams]);
   const [error, setError] = useState<string | null>(null);
+  // QA-FIX (2 Nov 2026): /account/delete lands here after a delete (account.delete.tsx DELETED_LANDING).
+  const justDeleted = searchParams.get("deleted") === "1";
   const [submitting, setSubmitting] = useState(false);
   // EX-06: set after hydration, since the user agent is browser only.
   const [inApp, setInApp] = useState<InAppBrowser>(null);
@@ -345,10 +348,11 @@ export default function Auth() {
   const redirectUrl = getRedirectUrl();
 
   // Another app on this host (career-agent's /b2cnew/start, for one) opens as a page of its own: this site's router
-  // would ask that app for its data and show this site's error page (app/lib/other-apps.ts).
+  // would ask that app for its data and show this site's error page (app/lib/other-apps.ts). On the product's own host
+  // (platform.studojo.com or .pro) that is every address but this site's /auth pages: "/start" there is career-agent's.
   const goOn = useCallback(
     (to: string, replace = false) => {
-      if (isOtherApp(to)) {
+      if (leavesByFullLoad(to, window.location.host)) {
         if (replace) window.location.replace(to);
         else window.location.assign(to);
         return;
@@ -397,8 +401,11 @@ export default function Auth() {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    // Only attempt passkey autoFill once per mount, and only in signin mode (never with GOOGLE_ONLY on)
-    if (googleOnly || mode !== "signin" || passkeyAttemptedRef.current) return;
+    // Only attempt passkey autoFill once per mount, and only in signin mode (never with GOOGLE_ONLY on).
+    // QA-FIX (2 Nov 2026): and only once the email form shows. The browser offers passkeys in that field's autofill
+    // (autocomplete "email webauthn"); asking while it is hidden did nothing useful, and on every sign-in load it
+    // logged "[Better Auth] Error verifying passkey NotSupportedError" where conditional UI cannot run.
+    if (googleOnly || mode !== "signin" || !showEmailForm || passkeyAttemptedRef.current) return;
     
     // Only run in browser
     if (typeof window === "undefined") return;
@@ -430,7 +437,7 @@ export default function Auth() {
         });
       }
     });
-  }, [mode, googleOnly]);
+  }, [mode, googleOnly, showEmailForm]);
 
   if (!isPending && session) return null;
 
@@ -675,6 +682,14 @@ export default function Auth() {
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
+                {justDeleted && !error && (
+                  <div
+                    className="rounded-xl border-2 border-neutral-900 bg-emerald-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900"
+                    role="status"
+                  >
+                    Your account is deleted. Everything we kept about you is gone.
+                  </div>
+                )}
                 {error && (
                   <div
                     className="rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700"
@@ -707,9 +722,6 @@ export default function Auth() {
                     </svg>
                     Continue with Google
                   </button>
-                  <p {...b2cMark("fine")} className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
-                    <ConsentLine lead="By continuing" />
-                  </p>
                   {mode === "signin" && !googleOnly && (
                     <button
                       {...b2cMark("passkey")}
@@ -783,9 +795,10 @@ export default function Auth() {
                       <input type="checkbox" name="remember" defaultChecked className="h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500" />
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">Remember me</span>
                     </label>
-                    <Link to="/forgot-password" className="font-['Satoshi'] text-sm font-medium leading-5 text-purple-500 hover:text-purple-600">
+                    {/* On the product's own host this goes to the main site: there only /auth is this app. */}
+                    <SiteLink to="/forgot-password" className="font-['Satoshi'] text-sm font-medium leading-5 text-purple-500 hover:text-purple-600">
                       Forgot password?
-                    </Link>
+                    </SiteLink>
                   </div>
                 )}
 
@@ -796,12 +809,14 @@ export default function Auth() {
                 >
                   {submitting ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
                 </button>
-                <p {...b2cMark("fine")} className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
-                  <ConsentLine lead={mode === "signup" ? "By signing up" : "By continuing"} />
-                </p>
                 </div>
                 </>
                 )}
+
+                {/* QA-FIX (2 Nov 2026): one consent line, under both options (Google and the email form), not one under each. */}
+                <p {...b2cMark("fine")} className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
+                  <ConsentLine lead="By continuing" />
+                </p>
               </form>
 
               {mode === "signin" && !googleOnly && (

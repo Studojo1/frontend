@@ -14,20 +14,28 @@
 //
 // Pure, for tests (app/lib/b2c-home.test.mjs).
 
+// The product's own hosts: this app serves only their /auth and /api/auth (sign-in), in the new look. Everything else
+// on them (/, /join, /start) is career-agent's, so a page of this app there leaves with a full page load and links to
+// the main site's pages absolutely (QA-FIX, 2 Nov 2026: app/lib/other-apps.ts, product-origin.ts mainOriginFrom).
+const PLATFORM_HOSTS = new Set(["platform.studojo.com", "platform.studojo.pro"]);
+
 const B2C_HOSTS = new Set([
   "studojo.com",
   "www.studojo.com",
   "studojo.pro",
   "www.studojo.pro",
-  // The product's own hosts: this app serves only their /auth and /api/auth (sign-in), in the new look.
-  "platform.studojo.com",
-  "platform.studojo.pro",
+  ...PLATFORM_HOSTS,
   "localhost",
   "127.0.0.1",
 ]);
 
 function bareHost(host: string | null | undefined): string {
   return (host ?? "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "").replace(/\.$/, "");
+}
+
+/** Whether a Host is the product's own (platform.studojo.com or platform.studojo.pro). Pure. */
+export function isPlatformHost(host: string | null | undefined): boolean {
+  return PLATFORM_HOSTS.has(bareHost(host));
 }
 
 /** Whether this deployment may show the B2C homepage at all (its own address is one of the B2C hosts). */

@@ -18,3 +18,12 @@ export function useSiteB2c(): boolean {
   if (typeof window !== "undefined") return b2cHomeHost(window.location.host, undefined);
   return false;
 }
+
+/**
+ * On the product's own host (platform.studojo.com or .pro), where only /auth is this app, the main site's origin
+ * (https://studojo.com, staging https://studojo.pro), else "". From the root loader (mainOrigin); "" without it.
+ */
+export function useMainOrigin(): string {
+  const data = useRouteLoaderData("root") as { mainOrigin?: string } | undefined;
+  return typeof data?.mainOrigin === "string" ? data.mainOrigin : "";
+}

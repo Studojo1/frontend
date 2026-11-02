@@ -110,6 +110,24 @@ assert.match(delRoute, /if \(form\.get\("confirm"\) !== "DELETE"\)/);
 assert.match(delRoute, /await deleteAccount\(session\.user\.id\);/, "only the signed-in person's own account");
 assert.match(delRoute, /auth\.api\.signOut\(\{ headers: request\.headers, asResponse: true \}\)/, "the cookies are cleared");
 assert.doesNotMatch(delRoute.replace(/^\s*\/\/.*$/gm, ""), /outreachFetch|job-outreach/);
+// QA-FIX (2 Nov 2026): after a delete the loader does not run again (it sent the page to sign in with
+// redirect=/account/delete and no word); the page lands on sign in with the deleted line and no return.
+assert.match(delRoute, /export const DELETED_LANDING = "\/auth\?mode=signin&deleted=1";/);
+assert.match(delRoute, /if \(\(actionResult as DeleteResult \| undefined\)\?\.ok\) return false;/);
+assert.match(delRoute, /window\.location\.replace\(DELETED_LANDING\)/);
+assert.match(delRoute, /everything Stu learned about you/);
+assert.doesNotMatch(delRoute, /everything he learned/);
+{
+  const authPage = readFileSync(APP + "routes/auth._index.tsx", "utf8");
+  assert.match(authPage, /const justDeleted = searchParams\.get\("deleted"\) === "1";/);
+  assert.match(authPage, /Your account is deleted\. Everything we kept about you is gone\./);
+  // /settings: one name field, no old student fields, sentence case buttons.
+  const settings = readFileSync(APP + "routes/settings._index.tsx", "utf8");
+  assert.doesNotMatch(settings, /fullName|yearOfStudy|htmlFor="college"|htmlFor="course"|Full Name|Year of Study/);
+  assert.match(settings, /Your name\n/);
+  assert.doesNotMatch(settings, /"(Save Changes|Add Passkey|Change Password|Enable 2FA|Disable 2FA)"|\n\s+Change Password\n/);
+  for (const label of ["Save changes", "Add a passkey", "Change password", "Turn on 2FA"]) assert.ok(settings.includes(label), label);
+}
 const exportRoute = readFileSync(APP + "routes/api.account.export.tsx", "utf8");
 assert.match(exportRoute, /exportCareerData\(userId\)/);
 assert.match(exportRoute, /studojo_agent: stripSecrets\(career, CAREER_SECRET_COLUMNS\)/);

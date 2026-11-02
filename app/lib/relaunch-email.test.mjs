@@ -48,7 +48,7 @@ assert.match(auth, /\.\.\.cookieConfig\.trustedOrigins,\n\s+\],/, "the product's
 for (const v of [undefined, null, "", "0", "false", "off", "no", "maybe"]) assert.equal(googleOnlyFrom(v), false, String(v));
 for (const v of ["1", "true", "TRUE", "on", "yes", " 1 "]) assert.equal(googleOnlyFrom(v), true, v);
 const root = code("root.tsx");
-assert.match(root, /googleOnly: googleOnlyEnabled\(\) \};/, "the root loader hands the switch to the pages");
+assert.match(root, /googleOnly: googleOnlyEnabled\(\),\n/, "the root loader hands the switch to the pages");
 const authPage = code("routes/auth._index.tsx");
 assert.match(authPage, /const googleOnly = useGoogleOnly\(\);/);
 for (const gate of [/\{!googleOnly && \(\n\s+<div \{\.\.\.b2cMark\("tabs"\)\}/, /\{mode === "signin" && !googleOnly && \(\n\s+<button\n\s+\{\.\.\.b2cMark\("passkey"\)\}/, /\{!googleOnly && \(\n\s+<>\n\s+<div className="relative">/]) {

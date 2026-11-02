@@ -94,14 +94,18 @@ export async function action({ request }: Route.ActionArgs) {
         .where(eq(user.id, session.user.id));
     }
 
-    // Update or create profile
+    // Update or create profile. QA-FIX (2 Nov 2026): only when a profile field was sent. /settings now sends the name
+    // alone, and saving a name must not make an old-style profile row of "Not specified" values.
+    const profileSent = [fullName, college, yearOfStudy, course].some((v) => v !== undefined);
     const [existingProfile] = await db
       .select()
       .from(userProfile)
       .where(eq(userProfile.userId, session.user.id))
       .limit(1);
 
-    if (existingProfile) {
+    if (!profileSent) {
+      // Name only: nothing to write here.
+    } else if (existingProfile) {
       // Update existing profile
       const updateData: {
         fullName?: string;

@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
-import { PRODUCT_LEGACY_BASE, productHref, productOriginFrom, productOriginScript, productRedirect } from "./product-origin.ts";
+import { PRODUCT_LEGACY_BASE, mainOriginFrom, productHref, productOriginFrom, productOriginScript, productRedirect } from "./product-origin.ts";
 
 const APP = new URL("../", import.meta.url).pathname;
 const PROD = "https://platform.studojo.com";
@@ -31,6 +31,14 @@ assert.equal(productRedirect("https://studojo.com/b2cnew/a/b/c?x=%20y", PROD), `
 assert.equal(productRedirect("https://studojo.com/b2cnewx", PROD), null);
 assert.equal(productRedirect("https://studojo.com/blog", PROD), null);
 assert.equal(productRedirect("https://studojo.com/b2cnew/x", ""), null, "no origin, no redirect");
+// QA-FIX (2 Nov 2026): the main site, for this app's pages on the product's host. MAIN_ORIGIN wins; else the product's
+// origin without "platform."; else "" (links stay paths).
+assert.equal(mainOriginFrom(undefined, PROD), "https://studojo.com");
+assert.equal(mainOriginFrom("", STAGING), "https://studojo.pro");
+assert.equal(mainOriginFrom("https://www.studojo.com", PROD), "https://www.studojo.com");
+assert.equal(mainOriginFrom("javascript:alert(1)", STAGING), "https://studojo.pro", "a bad MAIN_ORIGIN is ignored");
+assert.equal(mainOriginFrom(undefined, ""), "");
+assert.equal(mainOriginFrom(undefined, "https://app.studojo.com"), "", "only a platform. host is derived");
 assert.equal(productOriginScript(PROD), `window.__STU_PRODUCT_ORIGIN__="${PROD}";`);
 assert.equal(productOriginScript("</script><script>x"), `window.__STU_PRODUCT_ORIGIN__="";`, "only an origin ever lands in the page");
 

@@ -7,14 +7,15 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import { authUrl } from "~/lib/return-to";
 import { BLOG, HOW_IT_WORKS, REPORTS, SETTINGS } from "./site-links";
-import { Brand, MenuIcon, StartPill, useSignedInSite } from "./ui";
+import { Brand, MenuIcon, SiteLink, StartPill, useSignedInSite } from "./ui";
 
 // SITE-V2 header (h1.html): on every studojo.pro page but the homepage (components/common/header.tsx picks it on B2C
 // hosts). The job agent only, no old products.
 //   desktop: wordmark | how it works, blog, reports | sign in, "start the call"
 //   phones:  wordmark | "start the call", menu (how it works, blog, reports, sign in)
 // Signed in, the pill is "my jobs" (/b2cnew) and "sign in" becomes the account menu (settings, sign out).
-// /b2cnew is another app: a plain <a>, a full page load.
+// /b2cnew is another app: a plain <a>, a full page load. The wordmark and the page links are SiteLinks: on the product's
+// own host (platform.studojo.com or .pro, where only /auth is this app) they go to the main site (QA-FIX, 2 Nov 2026).
 
 export function SiteHeader() {
   const { pathname } = useLocation();
@@ -99,15 +100,15 @@ export function SiteHeader() {
       <div className="sv-hdr-in">
         <Brand />
         <nav className="sv-nav sv-desk" aria-label="main">
-          <a href={HOW_IT_WORKS} className="sv-navlink">
+          <SiteLink to={HOW_IT_WORKS} className="sv-navlink">
             how it works
-          </a>
-          <Link to={BLOG} className="sv-navlink">
+          </SiteLink>
+          <SiteLink to={BLOG} className="sv-navlink">
             blog
-          </Link>
-          <Link to={REPORTS} className="sv-navlink">
+          </SiteLink>
+          <SiteLink to={REPORTS} className="sv-navlink">
             reports
-          </Link>
+          </SiteLink>
         </nav>
         <div className="sv-hdr-right">
           {signedIn ? (
@@ -154,9 +155,9 @@ export function SiteHeader() {
       </div>
       {menuOpen ? (
         <nav className="sv-menu sv-phone" id="sv-menu" aria-label="menu">
-          <a href={HOW_IT_WORKS}>how it works</a>
-          <Link to={BLOG}>blog</Link>
-          <Link to={REPORTS}>reports</Link>
+          <SiteLink to={HOW_IT_WORKS}>how it works</SiteLink>
+          <SiteLink to={BLOG}>blog</SiteLink>
+          <SiteLink to={REPORTS}>reports</SiteLink>
           {signedIn ? (
             <>
               <Link to={SETTINGS}>settings</Link>

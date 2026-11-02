@@ -4,7 +4,7 @@
 // settings link here too). The action deletes, in one transaction, the student's rows in the product's schema and
 // their sign-in (app/lib/career-data.server.ts), then clears the session cookies.
 import { useEffect, useState } from "react";
-import { data, redirect, useFetcher, useNavigate } from "react-router";
+import { data, redirect, useFetcher, useNavigate, type ShouldRevalidateFunctionArgs } from "react-router";
 import { Header } from "~/components";
 import { auth } from "~/lib/auth";
 import { authClient } from "~/lib/auth-client";
@@ -21,6 +21,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 type DeleteResult = { ok: boolean; error: string | null };
+
+/** Where a deleted account lands: sign in, with the "your account is deleted" line (auth._index.tsx), no return. */
+export const DELETED_LANDING = "/auth?mode=signin&deleted=1";
+
+// QA-FIX (2 Nov 2026): after a delete the loader must not run again. With the session gone it sent the page to
+// /auth?mode=signin&redirect=/account/delete, with no word about the delete and a sign-in that led back here.
+export function shouldRevalidate({ actionResult, defaultShouldRevalidate }: ShouldRevalidateFunctionArgs) {
+  if ((actionResult as DeleteResult | undefined)?.ok) return false;
+  return defaultShouldRevalidate;
+}
 
 const SUPPORT = "admin@studojo.com";
 
@@ -79,12 +89,15 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
 
   const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate("/"));
 
-  // Deleted: clear what the browser still holds.
+  // Deleted: clear what the browser still holds, then a full load of the sign-in page with the deleted line.
   useEffect(() => {
     if (!done) return;
     clearTokenCache();
     resetPostHog();
-    authClient.signOut().catch(() => {});
+    void authClient
+      .signOut()
+      .catch(() => {})
+      .finally(() => window.location.replace(DELETED_LANDING));
   }, [done]);
 
   const handleDelete = (e: React.FormEvent) => {
@@ -113,7 +126,7 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
                   Your account is deleted
                 </h2>
                 <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  Your data is gone. You can sign up again with the same email any time.
+                  Everything we kept about you is gone. You can sign up again with the same email any time.
                 </p>
                 <button
                   type="button"
@@ -144,7 +157,7 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
                   You are deleting the account <strong className="break-all font-medium text-neutral-900">{loaderData.email}</strong>.
                 </p>
                 <ul className="mb-4 list-disc space-y-2 pl-5 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  <li>Your profile, preferences and resumes, your calls with Stu and everything he learned about you.</li>
+                  <li>Your profile, preferences and resumes, your calls with Stu and everything Stu learned about you.</li>
                   <li>Your matches, liked jobs and followed companies, and your chats with Stu.</li>
                   <li>Your email campaign: the emails, follow-ups and replies. Anything still waiting to send stops.</li>
                   <li>Your page and your projects, your connected inbox, your credits and your plan.</li>

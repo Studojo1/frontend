@@ -28,6 +28,12 @@ export const STU_HEAD = "/stu/head-laugh.png";
 /** The bare doodle logo (transparent cutout) for the header and footer wordmark. */
 export const LOGO_DOODLE = "/stu/logo-doodle.png";
 
+/** A main-site path as a link: absolute to the main site when `origin` is set (on the product's own host, host.tsx
+ * useMainOrigin), else the path itself. Pure, for tests. */
+export function mainHref(path: string, origin: string): string {
+  return origin ? `${origin}${path.startsWith("/") ? path : `/${path}`}` : path;
+}
+
 /** Ad click keys carried from the page's URL onto the start link (mirrors PARAMS in app/lib/attribution.ts). */
 export const TRACKING_KEYS = ["fbclid", "gclid", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
 
@@ -55,7 +61,7 @@ export function siteStartHref(search: string | null | undefined, held?: URLSearc
   return `${STU_JOIN}?${out}`;
 }
 
-export type Sv2Page = "blog" | "reports" | "report" | "legal" | "contact" | "about" | "auth" | "profile" | "error";
+export type Sv2Page = "blog" | "reports" | "report" | "legal" | "contact" | "about" | "auth" | "profile" | "account" | "error";
 
 /**
  * Which SITE-V2 page a path is, or null for a path that keeps its own look (the homepage, the retired products, the
@@ -70,6 +76,9 @@ export function sv2PageFor(pathname: string): Sv2Page | null {
   if (p === "/contact") return "contact";
   if (p === "/about") return "about";
   if (p === "/auth" || p.startsWith("/auth/") || p === "/forgot-password" || p === "/reset-password") return "auth";
+  // The account pages keep their own body but wear the site header (QA-FIX, 2 Nov 2026: without the SITE-V2 stylesheet
+  // the header rendered unstyled at 1440 px).
+  if (p === "/settings" || p === "/account/delete") return "account";
   // A student's public page (/profile/:slug; components/student-page/b2c). Not /profile itself, the old account page.
   if (/^\/profile\/[^/]+$/.test(p)) return "profile";
   return null;

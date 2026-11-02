@@ -29,6 +29,28 @@ export function productOrigin(): string {
   return productOriginFrom(typeof process !== "undefined" ? process.env?.PRODUCT_ORIGIN : undefined);
 }
 
+/**
+ * The main site's origin, for this app's pages on the product's own host (QA-FIX, 2 Nov 2026). There only /auth is this
+ * app, so the header and footer link to the main site absolutely. MAIN_ORIGIN when it is an https origin; else
+ * PRODUCT_ORIGIN without its "platform." label (https://platform.studojo.pro gives https://studojo.pro); else "", and
+ * the links stay paths. Pure.
+ */
+export function mainOriginFrom(mainValue: string | null | undefined, productValue: string | null | undefined): string {
+  const set = productOriginFrom(mainValue);
+  if (set) return set;
+  const product = productOriginFrom(productValue);
+  if (!product) return "";
+  const u = new URL(product);
+  if (!u.hostname.startsWith("platform.")) return "";
+  u.hostname = u.hostname.slice("platform.".length);
+  return u.origin;
+}
+
+/** This server's main-site origin (MAIN_ORIGIN, else from PRODUCT_ORIGIN). Server only: the root loader hands it on. */
+export function mainOrigin(): string {
+  return mainOriginFrom(process.env.MAIN_ORIGIN, process.env.PRODUCT_ORIGIN);
+}
+
 /** A path inside the product ("/join?via=home", "/") as a link: on the product host, or under /b2cnew without one. */
 export function productHref(path: string, origin: string = productOrigin()): string {
   const p = path.startsWith("/") ? path : `/${path}`;

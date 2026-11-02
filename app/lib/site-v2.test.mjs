@@ -32,9 +32,27 @@ for (const [p, kind] of [
   ["/terms", "legal"], ["/privacy", "legal"], ["/refund-policy", "legal"], ["/contact", "contact"], ["/about", "about"],
   ["/auth", "auth"], ["/auth/2fa", "auth"], ["/forgot-password", "auth"], ["/reset-password", "auth"],
   ["/profile/riya-menon", "profile"], ["/profile/x/", "profile"],
+  // QA-FIX (2 Nov 2026): the account pages get the stylesheets for the site header (it rendered unstyled at 1440 px).
+  ["/settings", "account"], ["/settings/", "account"], ["/account/delete", "account"],
 ]) assert.equal(sv2PageFor(p), kind, p);
+{
+  const { mainHref } = await import("../components/site-b2c/site-links.ts");
+  assert.equal(mainHref("/blog", ""), "/blog", "on the main site a path");
+  assert.equal(mainHref("/#how", "https://studojo.pro"), "https://studojo.pro/#how");
+  assert.equal(mainHref("/", "https://studojo.com"), "https://studojo.com/");
+  assert.equal(mainHref("contact", "https://studojo.com"), "https://studojo.com/contact");
+  // On the product's host the header and footer links, the wordmark and "Forgot password?" go to the main site.
+  const ui = readFileSync(new URL("../components/site-b2c/ui.tsx", import.meta.url), "utf8");
+  assert.match(ui, /<SiteLink to="\/" className=\{`sv-brand/, "the wordmark");
+  for (const f of ["SiteHeader.tsx", "SiteFooter.tsx"]) {
+    const src = readFileSync(new URL(`../components/site-b2c/${f}`, import.meta.url), "utf8");
+    assert.doesNotMatch(src, /<Link to=\{(BLOG|REPORTS|TERMS|PRIVACY|CONTACT|REFUNDS)\}|<a href=\{HOW_IT_WORKS\}/, `${f}: every page link is a SiteLink`);
+  }
+  const root = readFileSync(new URL("../root.tsx", import.meta.url), "utf8");
+  assert.match(root, /mainOrigin: isPlatformHost\(host\) \? mainOrigin\(\) : "",/, "only the product's host gets the origin");
+}
 // the homepage (its own look), the retired products and the apps keep what they have
-for (const p of ["/", "/outreach", "/dojos/internships", "/resume-maker", "/cc", "/webinar", "/settings", "/b2cnew", "/profile", "/profile/x/photo", "/blogger", "/reportsx"]) {
+for (const p of ["/", "/outreach", "/dojos/internships", "/resume-maker", "/cc", "/webinar", "/settings/email", "/account", "/b2cnew", "/profile", "/profile/x/photo", "/blogger", "/reportsx"]) {
   assert.equal(sv2PageFor(p), null, p);
 }
 
@@ -173,7 +191,8 @@ for (const f of readdirSync(new URL("routes/", APP)).filter((x) => /^reports\..+
 // ---------- 2. the B2C header and footer, and no retired product anywhere in SITE-V2 ----------
 const siteHeader = read("components/site-b2c/SiteHeader.tsx");
 const siteFooter = read("components/site-b2c/SiteFooter.tsx");
-const linkTargets = (src) => [...src.matchAll(/<(?:Link to|a href)=\{([A-Z_a-z]+)\}/g)].map((m) => m[1]);
+// QA-FIX (2 Nov 2026): the page links are SiteLinks (main-site links, absolute on the product's host).
+const linkTargets = (src) => [...src.matchAll(/<(?:Link to|SiteLink to|a href)=\{([A-Z_a-z]+)\}/g)].map((m) => m[1]);
 assert.deepEqual([...new Set(linkTargets(siteHeader))].sort(), ["BLOG", "HOW_IT_WORKS", "REPORTS", "SETTINGS", "signIn"]);
 assert.match(siteHeader, /<StartPill size="sm" place="header" \/>/, "every page: start the call in the header");
 // Sign-in returns to a path on this host (same-origin returns only), which then 301s to the product (RELAUNCH).

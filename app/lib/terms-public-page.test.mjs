@@ -1,6 +1,8 @@
 // The owner's choice (22 Oct 2026): agreeing to the Terms is agreeing to the public Studojo page. Checks the Terms'
 // new section 5 says what the page really does, every section number and cross reference still lines up, the
 // Terms version is bumped (so signed-in users see the update notice), and every sign-in path shows the same line.
+// QA-FIX (2 Nov 2026): the sign-in line no longer promises the public page (no host serves /profile/<slug> now); the
+// Terms themselves are untouched, the owner's call. The line shows once on the card, under both options.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createElement } from "react";
@@ -49,13 +51,16 @@ for (const said of [
   "You must be 18 or older to have a public page, as for any Studojo account (section 2).",
 ]) assert.ok(five.includes(said), `section 5 says: ${said}`);
 
-// The sign-in line: the same words on every path, the 18+ phrase kept, three links.
+// The sign-in line: the same words on every path, the 18+ phrase kept, two links, no public page promise.
 const line = (lead) => renderToStaticMarkup(createElement(ConsentLine, { lead }));
-assert.equal(text(line("By continuing")), "By continuing, you confirm you are 18 or older and agree to Studojo's Terms and Privacy Policy, including your public Studojo page.");
-assert.equal(text(line("By signing up")), "By signing up, you confirm you are 18 or older and agree to Studojo's Terms and Privacy Policy, including your public Studojo page.");
-assert.deepEqual([...line("By continuing").matchAll(/href="([^"]+)"/g)].map((m) => m[1]), ["/terms", "/privacy", "/terms#your-page"]);
-assert.match(auth, /<ConsentLine lead="By continuing" \/>/, "under Continue with Google, in both modes");
-assert.match(auth, /<ConsentLine lead=\{mode === "signup" \? "By signing up" : "By continuing"\} \/>/, "under the email form, sign in and sign up");
+assert.equal(text(line("By continuing")), "By continuing, you confirm you are 18 or older and agree to Studojo's Terms and Privacy Policy.");
+assert.equal(text(line("By signing up")), "By signing up, you confirm you are 18 or older and agree to Studojo's Terms and Privacy Policy.");
+assert.deepEqual([...line("By continuing").matchAll(/href="([^"]+)"/g)].map((m) => m[1]), ["/terms", "/privacy"]);
+assert.doesNotMatch(line("By continuing"), /public|your-page/);
+assert.equal((auth.match(/<ConsentLine /g) ?? []).length, 1, "one line on the card, not one under each option");
+const consentAt = auth.indexOf('<ConsentLine lead="By continuing" />');
+assert.ok(consentAt > auth.indexOf("Continue with Google") && consentAt > auth.indexOf('b2cMark("email-form")'), "under Google and under the email form");
+assert.ok(consentAt < auth.indexOf("</form>"), "inside the form, in both modes and with GOOGLE_ONLY");
 assert.doesNotMatch(auth, /forJobSearch|Your Studojo page will be public/, "no longer only for /b2cnew redirects");
 
 console.log("terms-public-page: ok");

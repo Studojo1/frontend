@@ -17,6 +17,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   return null;
 }
 
+/** The name to show in "Your name": the stored name, or empty when it is only the email's handle (an email sign-up
+ * stores that as the name), so the field asks rather than showing "asha.k" as a name. Pure. */
+function shownName(name: string | null | undefined, email: string | null | undefined): string {
+  const n = (name ?? "").trim();
+  const handle = (email ?? "").split("@")[0].trim();
+  return n && n.toLowerCase() !== handle.toLowerCase() ? n : "";
+}
+
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Settings | Studojo" },
@@ -73,14 +81,9 @@ export default function Settings() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   
-  // Profile editing state
-  const [profileData, setProfileData] = useState<{
-    name: string;
-    fullName: string;
-    college: string;
-    yearOfStudy: string;
-    course: string;
-  } | null>(null);
+  // Profile editing state. QA-FIX (2 Nov 2026): one "Your name" field. The old student fields (full name, college,
+  // year of study, course) belonged to the retired products and are gone from this page.
+  const [profileData, setProfileData] = useState<{ name: string } | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -259,23 +262,11 @@ export default function Settings() {
         throw new Error("Failed to load profile");
       }
       const data = await response.json();
-      setProfileData({
-        name: data.user?.name || session.user.name || "",
-        fullName: data.profile?.fullName || "",
-        college: data.profile?.college || "",
-        yearOfStudy: data.profile?.yearOfStudy || "",
-        course: data.profile?.course || "",
-      });
+      setProfileData({ name: shownName(data.user?.name || session.user.name, session.user.email) });
     } catch (err: any) {
       setProfileError(err.message || "Failed to load profile");
       // Set defaults if load fails
-      setProfileData({
-        name: session.user.name || "",
-        fullName: "",
-        college: "",
-        yearOfStudy: "",
-        course: "",
-      });
+      setProfileData({ name: shownName(session.user.name, session.user.email) });
     } finally {
       setLoadingProfile(false);
     }
@@ -314,13 +305,7 @@ export default function Settings() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          name: profileData.name.trim(),
-          fullName: profileData.fullName.trim(),
-          college: profileData.college.trim(),
-          yearOfStudy: profileData.yearOfStudy.trim(),
-          course: profileData.course.trim(),
-        }),
+        body: JSON.stringify({ name: profileData.name.trim() }),
       });
 
       if (!response.ok) {
@@ -329,15 +314,9 @@ export default function Settings() {
       }
 
       const data = await response.json();
-      setProfileData({
-        name: data.user?.name || profileData.name,
-        fullName: data.profile?.fullName || profileData.fullName,
-        college: data.profile?.college || profileData.college,
-        yearOfStudy: data.profile?.yearOfStudy || profileData.yearOfStudy,
-        course: data.profile?.course || profileData.course,
-      });
-      setProfileSuccess("Profile updated successfully!");
-      toast.success("Profile updated successfully!");
+      setProfileData({ name: data.user?.name || profileData.name });
+      setProfileSuccess("Your name is saved.");
+      toast.success("Your name is saved.");
       
       // Refresh session to update user name in header
       // Better Auth's useSession() hook should automatically update, but we'll force a refresh
@@ -421,7 +400,7 @@ export default function Settings() {
     if (!session) return;
     
     showConfirmModal({
-      title: "Delete Passkey",
+      title: "Delete passkey",
       message: "Are you sure you want to delete this passkey? You won't be able to sign in with it anymore.",
       confirmText: "Delete",
       cancelText: "Cancel",
@@ -586,9 +565,9 @@ export default function Settings() {
     if (!session || !twoFactorPassword) return;
 
     showConfirmModal({
-      title: "Disable Two-Factor Authentication",
+      title: "Turn off two-factor authentication",
       message: "Are you sure you want to disable two-factor authentication? This will make your account less secure.",
-      confirmText: "Disable 2FA",
+      confirmText: "Turn off 2FA",
       cancelText: "Cancel",
       destructive: true,
       onConfirm: async () => {
@@ -674,7 +653,7 @@ export default function Settings() {
                   Profile
                 </h2>
                 <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  Update your personal information and profile details.
+                  The name Studojo and Stu use for you.
                 </p>
 
                 {profileError && (
@@ -701,72 +680,17 @@ export default function Settings() {
                   <form onSubmit={handleSaveProfile} className="space-y-4">
                     <div>
                       <label htmlFor="name" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                        Name
+                        Your name
                       </label>
                       <input
                         type="text"
                         id="name"
                         value={profileData.name}
-                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                        onChange={(e) => setProfileData({ name: e.target.value })}
                         required
+                        autoComplete="name"
                         className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                         placeholder="Your name"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="fullName" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        id="fullName"
-                        value={profileData.fullName}
-                        onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
-                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                        placeholder="Your full name"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="college" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                        College
-                      </label>
-                      <input
-                        type="text"
-                        id="college"
-                        value={profileData.college}
-                        onChange={(e) => setProfileData({ ...profileData, college: e.target.value })}
-                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                        placeholder="Your college or university"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="yearOfStudy" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                        Year of Study
-                      </label>
-                      <input
-                        type="text"
-                        id="yearOfStudy"
-                        value={profileData.yearOfStudy}
-                        onChange={(e) => setProfileData({ ...profileData, yearOfStudy: e.target.value })}
-                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                        placeholder="e.g., First Year, Second Year, etc."
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="course" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                        Course
-                      </label>
-                      <input
-                        type="text"
-                        id="course"
-                        value={profileData.course}
-                        onChange={(e) => setProfileData({ ...profileData, course: e.target.value })}
-                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                        placeholder="Your course or major"
                       />
                     </div>
 
@@ -775,7 +699,7 @@ export default function Settings() {
                       disabled={savingProfile}
                       className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                     >
-                      {savingProfile ? "Saving…" : "Save Changes"}
+                      {savingProfile ? "Saving…" : "Save changes"}
                     </button>
                   </form>
                 ) : null}
@@ -826,7 +750,7 @@ export default function Settings() {
                     disabled={addingPasskey}
                     className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                   >
-                    {addingPasskey ? "Adding…" : "Add Passkey"}
+                    {addingPasskey ? "Adding…" : "Add a passkey"}
                   </button>
                 </div>
 
@@ -886,7 +810,7 @@ export default function Settings() {
                     onClick={() => setPasswordModalOpen(true)}
                     className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
                   >
-                    Change Password
+                    Change password
                   </button>
                 ) : (
                   <div className="space-y-4">
@@ -900,7 +824,7 @@ export default function Settings() {
               {/* Two-Factor Authentication Section */}
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
-                  Two-Factor Authentication
+                  Two-factor authentication
                 </h2>
                 <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
                   Add an extra layer of security to your account. When enabled, you'll need to enter a code from your authenticator app in addition to your password.
@@ -934,7 +858,7 @@ export default function Settings() {
                           Two-factor authentication requires a password account.
                         </p>
                         <p className="mt-2 font-['Satoshi'] text-xs font-normal leading-4 text-amber-800">
-                          To enable 2FA, you'll need to create a password for your account. You can do this by using the "Forgot Password" flow or by adding a password in the Password section below.
+                          To enable 2FA, you'll need to create a password for your account. You can do this by using the "Forgot password" flow or by adding a password in the Password section below.
                         </p>
                       </div>
                     ) : (
@@ -958,7 +882,7 @@ export default function Settings() {
                           disabled={enabling2FA || !twoFactorPassword}
                           className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                         >
-                          {enabling2FA ? "Enabling…" : "Enable 2FA"}
+                          {enabling2FA ? "Turning on…" : "Turn on 2FA"}
                         </button>
                       </form>
                     )}
@@ -1018,7 +942,7 @@ export default function Settings() {
                         disabled={verifying2FA || twoFactorCode.length < 6}
                         className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-4 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        {verifying2FA ? "Verifying…" : "Verify & Enable"}
+                        {verifying2FA ? "Checking…" : "Check and turn on"}
                       </button>
                     </form>
                   </div>
@@ -1075,7 +999,7 @@ export default function Settings() {
                         disabled={generatingBackupCodes || !twoFactorPassword}
                         className="rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        {generatingBackupCodes ? "Generating…" : "Generate New Backup Codes"}
+                        {generatingBackupCodes ? "Making…" : "Make new backup codes"}
                       </button>
                       <button
                         type="button"
@@ -1083,7 +1007,7 @@ export default function Settings() {
                         disabled={disabling2FA || !twoFactorPassword}
                         className="rounded-2xl border-2 border-red-500 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        {disabling2FA ? "Disabling…" : "Disable 2FA"}
+                        {disabling2FA ? "Turning off…" : "Turn off 2FA"}
                       </button>
                     </div>
                   </div>
@@ -1218,7 +1142,7 @@ export default function Settings() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <h3 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
-                  Change Password
+                  Change password
                 </h3>
                 
                 {passwordError && (
@@ -1231,7 +1155,7 @@ export default function Settings() {
                   {hasPasswordAccount && (
                     <div>
                       <label htmlFor="current-password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                        Current Password
+                        Current password
                       </label>
                       <input
                         type="password"
@@ -1247,7 +1171,7 @@ export default function Settings() {
                   
                   <div>
                     <label htmlFor="new-password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                      New Password
+                      New password
                     </label>
                     <input
                       type="password"
@@ -1263,7 +1187,7 @@ export default function Settings() {
 
                   <div>
                     <label htmlFor="confirm-new-password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                      Confirm New Password
+                      Confirm new password
                     </label>
                     <input
                       type="password"
@@ -1296,7 +1220,7 @@ export default function Settings() {
                       disabled={changingPassword || !newPassword || !confirmNewPassword || (!!hasPasswordAccount && !currentPassword)}
                       className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                     >
-                      {changingPassword ? "Changing..." : "Change Password"}
+                      {changingPassword ? "Changing…" : "Change password"}
                     </button>
                   </div>
                 </form>

@@ -1,10 +1,10 @@
-import { Link } from "react-router";
 import { BLOG, CONTACT, HOW_IT_WORKS, PRIVACY, REFUNDS, REPORTS, TERMS } from "./site-links";
-import { Brand, StartPill, StuHead, useSignedInSite } from "./ui";
+import { Brand, SiteLink, StartPill, StuHead, useSignedInSite } from "./ui";
 
 // SITE-V2 footer (h1.html): on every studojo.pro page but the homepage (components/common/footer.tsx picks it on B2C
 // hosts). Stu's head, one closing line, the one button, then the wordmark, the line about Stu and the links.
 // `compact` (the sign-in and password pages): only the bottom row, no closing button.
+// Every link is a SiteLink: on the product's own host (platform.studojo.com or .pro) it goes to the main site.
 
 export function SiteFooter({ compact = false }: { compact?: boolean }) {
   const signedIn = useSignedInSite();
@@ -22,16 +22,16 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
         <Brand />
         <span className="sv-foot-line">Stu, your career agent at Studojo.</span>
         <nav className="sv-foot-links" aria-label="footer">
-          <a href={HOW_IT_WORKS}>how it works</a>
-          <Link to={BLOG}>blog</Link>
-          <Link to={REPORTS}>reports</Link>
-          <Link to={TERMS}>terms</Link>
-          <Link to={PRIVACY}>privacy</Link>
-          <Link to={CONTACT}>contact</Link>
+          <SiteLink to={HOW_IT_WORKS}>how it works</SiteLink>
+          <SiteLink to={BLOG}>blog</SiteLink>
+          <SiteLink to={REPORTS}>reports</SiteLink>
+          <SiteLink to={TERMS}>terms</SiteLink>
+          <SiteLink to={PRIVACY}>privacy</SiteLink>
+          <SiteLink to={CONTACT}>contact</SiteLink>
         </nav>
       </div>
       <p className="sv-legal">
-        Studojo Labs Private Limited <span aria-hidden="true">·</span> <Link to={REFUNDS}>refund policy</Link>
+        Studojo Labs Private Limited <span aria-hidden="true">·</span> <SiteLink to={REFUNDS}>refund policy</SiteLink>
       </p>
     </footer>
   );

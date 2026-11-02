@@ -23,9 +23,9 @@ import { onConsentChange, trackingAllowed } from "./lib/consent";
 import { trackSignedUpOnce } from "./lib/analytics";
 import { installJoinTracking } from "./lib/journey-client";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
-import { isB2cRequest } from "./lib/b2c-home";
+import { isB2cRequest, isPlatformHost } from "./lib/b2c-home";
 import { googleOnlyEnabled } from "./lib/google-only";
-import { productOrigin, productOriginScript } from "./lib/product-origin";
+import { mainOrigin, productOrigin, productOriginScript } from "./lib/product-origin";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import { CookieNotice } from "./components/legal/cookie-notice";
@@ -405,7 +405,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   // b2cHost: studojo.com, studojo.pro (and localhost) get the B2C homepage, header and footer (app/lib/b2c-home.ts).
   // Read by components/common/header.tsx and footer.tsx.
   // googleOnly: the GOOGLE_ONLY switch (app/lib/google-only.ts), read by /auth and /settings through useGoogleOnly.
-  return { isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host), b2cHost: isB2cRequest(request), googleOnly: googleOnlyEnabled() };
+  // mainOrigin: on the product's own host (platform.studojo.com or .pro) the main site's origin, else "": the header and
+  // footer there link to the main site absolutely (site-b2c/host.tsx useMainOrigin).
+  return {
+    isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host),
+    b2cHost: isB2cRequest(request),
+    googleOnly: googleOnlyEnabled(),
+    mainOrigin: isPlatformHost(host) ? mainOrigin() : "",
+  };
 }
 
 export default function App() {

@@ -41,6 +41,9 @@ assert.equal((src.match(/\{b2c && <Footer compact \/>\}/g) ?? []).length, 1);
 const ALLOWED = [
   /^import \{ useSiteB2c \} from "~\/components\/site-b2c\/host";$/,
   /^import \{ AuthTop \} from "~\/components\/site-b2c\/auth-top";$/,
+  // QA-FIX (2 Nov 2026): "Forgot password?" is a SiteLink, the one link that follows the host on purpose: on the
+  // product's own host (only /auth is this app there) it goes to the main site's page.
+  /^import \{ SiteLink \} from "~\/components\/site-b2c\/ui";$/,
   /^const b2c = useSiteB2c\(\);$/,
   /^const b2cMark = \(part: string\) => \(b2c \? \{ "data-b2c": part \} : \{\}\);$/,
   /^<main className=\{b2c \? "sv2-auth relative" : "relative min-h-screen overflow-hidden bg-purple-50"\}>$/,
@@ -74,7 +77,7 @@ assert.match(
 const marksOf = (text) => [...text.matchAll(/b2cMark\(("[a-z-]+"|mode === "(?:signin|signup)" \? "tab-on" : "tab")\)/g)].map((m) => m[1]);
 assert.deepEqual(
   marksOf(src).filter((m) => m.startsWith('"')).sort(),
-  ['"card"', '"email-form"', '"fine"', '"fine"', '"google"', '"link"', '"link"', '"link"', '"or"', '"passkey"', '"shell"', '"switch"', '"switch"', '"tabs"'],
+  ['"card"', '"email-form"', '"fine"', '"google"', '"link"', '"link"', '"link"', '"or"', '"passkey"', '"shell"', '"switch"', '"switch"', '"tabs"'],
 );
 // The same fields, button types and link targets on every host (one tree, so these are the page's whole set).
 const attrs = (text, re) => [...text.matchAll(re)].map((m) => m[1]).sort();
@@ -83,7 +86,7 @@ assert.deepEqual(attrs(src, /<input\s[^>]*?type="([^"]+)"/g), ["checkbox", "emai
 assert.equal((src.match(/type="submit"/g) ?? []).length, 1);
 assert.equal((src.match(/<form /g) ?? []).length, 1);
 assert.match(src, /<form onSubmit=\{handleSubmit\} className="space-y-6">/);
-assert.deepEqual(attrs(src, /<Link to="([^"]+)"/g), ["/forgot-password"]);
+assert.deepEqual(attrs(src, /<(?:Link|SiteLink) to="([^"]+)"/g), ["/forgot-password"]);
 // Redirects and query handling are untouched by the look: the same callbackURL and error return on every host.
 assert.match(src, /callbackURL: redirectUrl,\n\s+errorCallbackURL: `\/auth\?redirect=\$\{encodeURIComponent\(redirectUrl\)\}`,/);
 
@@ -92,6 +95,9 @@ assert.match(src, /callbackURL: redirectUrl,\n\s+errorCallbackURL: `\/auth\?redi
 const PW_ALLOWED = [
   /^import \{ useSiteB2c \} from "~\/components\/site-b2c\/host";$/,
   /^import \{ AuthTop \} from "~\/components\/site-b2c\/auth-top";$/,
+  // QA-FIX (2 Nov 2026): "Forgot password?" is a SiteLink, the one link that follows the host on purpose: on the
+  // product's own host (only /auth is this app there) it goes to the main site's page.
+  /^import \{ SiteLink \} from "~\/components\/site-b2c\/ui";$/,
   /^const b2c = useSiteB2c\(\);$/,
   /^const b2cMark = \(part: string\) => \(b2c \? \{ "data-b2c": part \} : \{\}\);$/,
   /^<div className=\{b2c \? "sv2-auth" : "min-h-screen bg-white"\}>$/,

@@ -98,6 +98,16 @@ body {
   margin-bottom: var(--sj-notice-h, 0px);
 }
 
+/* QA-FIX (2 Nov 2026): while the notice is open the page gets the same room at its foot, so its last controls (Sign Up
+   on /auth at 390 px, Cancel and Delete on /account/delete at 1440 px) can always scroll clear of it, and a field or
+   button that takes focus scrolls above it rather than under it. */
+body {
+  padding-bottom: var(--sj-notice-h, 0px);
+}
+html {
+  scroll-padding-bottom: var(--sj-notice-h, 0px);
+}
+
 /* Smooth scrolling for all scrollable containers */
 [data-scroll-container] {
   scroll-behavior: smooth;

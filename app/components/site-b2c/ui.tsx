@@ -1,8 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type AnchorHTMLAttributes, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { heldTrackingParams } from "~/lib/attribution";
-import { LOGO_DOODLE, STU_HEAD, STU_HOME, siteStartHref } from "./site-links";
+import { useMainOrigin } from "./host";
+import { LOGO_DOODLE, STU_HEAD, STU_HOME, mainHref, siteStartHref } from "./site-links";
 
 // SITE-V2 building blocks (site.css): the wordmark, Stu's head, the one purple pill and the small icons. Used by the
 // B2C header and footer and by every SITE-V2 page body. Links into /b2cnew are plain <a href> (another app).
@@ -31,12 +32,33 @@ export function useSiteStart(): { label: string; href: string; signedIn: boolean
   return { label: "start the call", href: siteStartHref(search, held), signedIn };
 }
 
+/**
+ * A link to a page of the main site ("/blog", "/#how"). On the main site a router link (a plain <a> for a hash, which
+ * the router would not scroll to). On the product's own host, where only /auth is this app, a plain <a> to the main
+ * site's address (QA-FIX, 2 Nov 2026: /blog, /reports and /contact there were career-agent's 404, "/" its home).
+ */
+export function SiteLink({ to, children, ...rest }: { to: string; children: ReactNode } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">) {
+  const origin = useMainOrigin();
+  if (origin || to.includes("#")) {
+    return (
+      <a href={mainHref(to, origin)} {...rest}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link to={to} {...rest}>
+      {children}
+    </Link>
+  );
+}
+
 export function Brand({ className = "" }: { className?: string }) {
   return (
-    <Link to="/" className={`sv-brand ${className}`.trim()} aria-label="studojo home">
+    <SiteLink to="/" className={`sv-brand ${className}`.trim()} aria-label="studojo home">
       <img src={LOGO_DOODLE} alt="" width={22} height={28} />
       <b>studojo</b>
-    </Link>
+    </SiteLink>
   );
 }
 
