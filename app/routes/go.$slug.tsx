@@ -1,6 +1,7 @@
 import { redirect } from "react-router";
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
+import { journeyCookiesForRedirect } from "~/lib/journey.server";
 import type { Route } from "./+types/go.$slug";
 
 /** GET /go/:slug, the short form of a link built in the admin UTM builder.
@@ -13,6 +14,14 @@ import type { Route } from "./+types/go.$slug";
  *
  * A click is counted on the server, so it is recorded even when the landing
  * page's analytics never load (ad blockers, in-app browsers, a closed tab).
+ *
+ * The redirect also carries utm_id=<slug>. The site keeps it in stu_src and
+ * stu_lt (app/lib/journey.ts) and in the journey events' source, and the
+ * product copies those cookies at sign-in, so every sign-up ties back to the
+ * exact link (the admin UTM report joins on utm_id = slug). When the
+ * destination is the product (platform.studojo.com), no page of ours renders
+ * on the way, so this response sets the stu_* cookies on the parent domain
+ * itself before redirecting.
  */
 
 const SLUG_RE = /^[a-z0-9][a-z0-9_-]{0,79}$/;
@@ -88,6 +97,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     const v = row[key];
     if (v) target.searchParams.set(key, v);
   }
+  // The link itself, so a sign-up can be tied to this exact slug.
+  target.searchParams.set("utm_id", slug);
   // Keep click ids the platform appended to the short link (Meta adds fbclid to
   // outbound links, Google adds gclid) so first-touch capture still sees them.
   const incoming = new URL(request.url).searchParams;
@@ -102,5 +113,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     console.error("[go] click record failed:", e);
   }
 
-  return redirect(target.toString(), { headers: { "Cache-Control": "no-store" } });
+  const headers = new Headers({ "Cache-Control": "no-store" });
+  for (const c of journeyCookiesForRedirect(request, target)) headers.append("Set-Cookie", c);
+  return redirect(target.toString(), { headers });
 }

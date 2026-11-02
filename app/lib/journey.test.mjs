@@ -142,4 +142,33 @@ assert.match(analytics, /if \(localStorage\.getItem\(key\)\) return;/, "the per-
 const { registrationEventId } = await import("./analytics.ts").catch(() => ({}));
 if (registrationEventId) assert.equal(registrationEventId("u_123"), "reg_u_123");
 
+// ── 10. Short links (2 Nov 2026): /go/<slug> adds utm_id=<slug>; the site keeps it in the source cookies; a product
+// destination gets the cookies on the redirect itself, a site destination from its own page render.
+const tagged = visitSource(new URL("http://studojo.com/?utm_source=linkedin&utm_medium=post&utm_campaign=launch-nov26&utm_id=li-post-launch"), null, "studojo.com", NOW);
+assert.equal(tagged.touch, true);
+assert.equal(tagged.source.utm_id, "li-post-launch");
+const idOnly = planCookies({ cookies: new Map(), url: new URL("http://studojo.com/?utm_id=x1"), referer: null, host: "studojo.com", domain: ".studojo.com", secure: true, now: NOW, newId: ID });
+assert.equal(JSON.parse(decodeURIComponent(idOnly.setCookies[1].split(";")[0].slice("stu_src=".length))).utm_id, "x1", "utm_id in stu_src");
+assert.equal(JSON.parse(decodeURIComponent(idOnly.setCookies[2].split(";")[0].slice("stu_lt=".length))).utm_id, "x1", "utm_id in stu_lt");
+process.env.AUTH_COOKIE_DOMAIN = ".studojo.com";
+const { journeyCookiesForRedirect } = await import("./journey.server.ts");
+const UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+const goReq = (headers) => new Request("https://studojo.com/go/li-dm", { headers: { host: "studojo.com", "user-agent": UA, ...headers } });
+const toProduct = new URL("https://platform.studojo.com/join?utm_source=linkedin&utm_medium=dm&utm_campaign=launch-nov26&utm_id=li-dm");
+const viaGo = journeyCookiesForRedirect(goReq({ referer: "https://www.linkedin.com/" }), toProduct);
+assert.equal(viaGo.length, 3, "a product destination: all three cookies on the redirect");
+assert.ok(viaGo.every((c) => c.includes("Domain=.studojo.com") && c.includes("Secure")));
+const goSrc = JSON.parse(decodeURIComponent(viaGo[1].split(";")[0].slice("stu_src=".length)));
+assert.equal(goSrc.utm_id, "li-dm");
+assert.equal(goSrc.utm_medium, "dm");
+assert.equal(goSrc.landing_path, "/join");
+assert.equal(goSrc.referrer, "https://www.linkedin.com/");
+assert.deepEqual(journeyCookiesForRedirect(goReq({}), new URL("https://studojo.com/?utm_id=li-dm")), [], "a site destination sets them on its own render");
+assert.deepEqual(journeyCookiesForRedirect(goReq({ "user-agent": "facebookexternalhit/1.1" }), toProduct), [], "no cookies for crawlers");
+const heldVid = journeyCookiesForRedirect(goReq({ cookie: `stu_vid=${ID}` }), toProduct);
+assert.ok(heldVid.every((c) => !c.startsWith("stu_vid=")), "a held visitor id is kept");
+const go = readFileSync(`${APP}routes/go.$slug.tsx`, "utf8");
+assert.match(go, /target\.searchParams\.set\("utm_id", slug\)/);
+assert.match(go, /journeyCookiesForRedirect\(request, target\)/);
+
 console.log("journey: ok");

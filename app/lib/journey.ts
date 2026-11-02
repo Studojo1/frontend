@@ -11,7 +11,8 @@ import { isExternalReferrer } from "./attribution";
 // All three on the parent domain (AUTH_COOKIE_DOMAIN: .studojo.com, staging .studojo.pro), Secure, SameSite=Lax, so
 // they already exist when the visitor clicks through to the platform. The JSON is URI-encoded in the cookie value
 // (decodeURIComponent, then JSON.parse). Source keys: utm_source, utm_medium, utm_campaign, utm_content, utm_term,
-// referrer (outside sites only), landing_path, first_seen_at (ISO), and fbclid, gclid, gbraid when present.
+// utm_id, referrer (outside sites only), landing_path, first_seen_at (ISO), and fbclid, gclid, gbraid when present.
+// utm_id is the short link's slug (studojo.com/go/<slug> adds it), so a sign-up ties back to the exact link.
 //
 // The site writes two steps of career_agent.career_journey_events itself (journey.server.ts): visited_home (once per
 // visitor per day, on /, the blog and the reports) and clicked_join (POST /api/journey, sent with sendBeacon on any
@@ -26,7 +27,7 @@ export const VISITOR_MAX_AGE_S = 365 * DAY_S;
 export const FIRST_TOUCH_MAX_AGE_S = 90 * DAY_S;
 export const LAST_TOUCH_MAX_AGE_S = 30 * DAY_S;
 
-export const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
+export const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id"] as const;
 export const CLICK_ID_KEYS = ["fbclid", "gclid", "gbraid"] as const;
 
 export type Source = {
@@ -35,6 +36,8 @@ export type Source = {
   utm_campaign?: string;
   utm_content?: string;
   utm_term?: string;
+  /** The admin short link's slug (utm_campaigns.slug), set by /go/<slug>. */
+  utm_id?: string;
   referrer?: string;
   landing_path: string;
   first_seen_at: string;

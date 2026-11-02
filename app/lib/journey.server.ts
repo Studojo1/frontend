@@ -153,3 +153,36 @@ export function journeyOnPage(request: Request, responseHeaders: Headers): void 
     // tracking must never break a page
   }
 }
+
+/** The bare host of a Host header or URL host (no port, no trailing dot, lower case). */
+function bareHost(host: string): string {
+  return host.split(",")[0].trim().toLowerCase().replace(/:\d+$/, "").replace(/\.$/, "");
+}
+
+/**
+ * The stu_* Set-Cookie values for a /go/<slug> short link whose destination is on another host (the product on
+ * platform.studojo.com). That page is not rendered here, so the cookies are planned from the tagged destination
+ * (its utm_*, utm_id and click ids; landing_path is the destination's path) and set on the parent domain by this
+ * redirect, before the visitor reaches the product. A destination on this host returns none: its own page render
+ * sets them (journeyOnPage) with the real landing path. Crawlers and non-GET requests get none. Never throws.
+ */
+export function journeyCookiesForRedirect(request: Request, target: URL): string[] {
+  try {
+    if (request.method.toUpperCase() !== "GET" || isBotRequest(request)) return [];
+    const url = new URL(request.url);
+    const host = request.headers.get("host") ?? url.host;
+    if (bareHost(target.host) === bareHost(host)) return [];
+    return planCookies({
+      cookies: parseCookies(request.headers.get("cookie")),
+      url: target,
+      referer: request.headers.get("referer"),
+      host,
+      domain: cookieDomainFor(host, process.env.AUTH_COOKIE_DOMAIN),
+      secure: cookieSecure(host),
+      now: new Date(),
+      newId: crypto.randomUUID(),
+    }).setCookies;
+  } catch {
+    return [];
+  }
+}
