@@ -53,10 +53,6 @@ function dashboardUrl(): string {
   return s ? `${base}${path}?s=${encodeURIComponent(s)}` : path === "/" ? base : base + path;
 }
 
-// bob-svc answers 402 subscription_paused for a workspace the owner has paused; the app then shows only the
-// paused screen (PausedScreen) until the owner resumes it.
-const PAUSED_EVENT = "sensei:subscription-paused";
-
 class BobError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -76,9 +72,6 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
   });
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
-  if (res.status === 402 && data?.detail === "subscription_paused" && typeof window !== "undefined") {
-    window.dispatchEvent(new Event(PAUSED_EVENT));
-  }
   if (!res.ok) throw new BobError(data?.detail || `Request failed (${res.status})`, res.status);
   return data as T;
 }
@@ -979,13 +972,6 @@ export function SenseiApp({ ui }: { ui?: Ui }) {
   const [mounted, setMounted] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
-  // Paused subscription (/me capabilities.subscription_paused, or any 402 subscription_paused).
-  const [paused, setPaused] = useState(false);
-  useEffect(() => {
-    const on = () => setPaused(true);
-    window.addEventListener(PAUSED_EVENT, on);
-    return () => window.removeEventListener(PAUSED_EVENT, on);
-  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -1018,7 +1004,6 @@ export function SenseiApp({ ui }: { ui?: Ui }) {
   const screen = !mounted ? <div className="min-h-screen bg-[#faf7f2]" />
     : resetToken ? <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />
     : !authed ? <Gate onSuccess={() => setAuthed(true)} />
-    : paused ? <PausedScreen onSignOut={() => { setPaused(false); setAuthed(false); }} />
     : <Workspace onAuthLost={() => setAuthed(false)} />;
   if (look !== "new") return screen;
   // The new look: the same screens inside a scope the stylesheet hangs off.
@@ -1030,47 +1015,6 @@ export function SenseiApp({ ui }: { ui?: Ui }) {
         {screen}
       </div>
     </UiContext.Provider>
-  );
-}
-
-// ── Subscription paused ──────────────────────────────────────────────────────
-// Shown instead of the workspace while the owner has paused this workspace's subscription. Chats and tables are
-// untouched; resuming is the owner's switch in bob-svc, after which "Check again" (or any reload) opens the workspace.
-
-function PausedScreen({ onSignOut }: { onSignOut: () => void }) {
-  const [orgName, setOrgName] = useState("");
-  useEffect(() => {
-    bobFetch<{ org: { name: string } | null }>("/me").then((m) => setOrgName(m?.org?.name || "")).catch(() => {});
-  }, []);
-  const signOut = () => {
-    bobFetch("/auth/logout", { method: "POST" }).catch(() => {});
-    localStorage.removeItem(SESSION_STORAGE);
-    localStorage.removeItem(KEY_STORAGE);
-    onSignOut();
-  };
-  return (
-    <main id="main" className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
-      <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
-        <p className="text-sm font-bold text-neutral-400">Sensei by Studojo{orgName ? ` · ${orgName}` : ""}</p>
-        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900 mt-2">Subscription paused</h1>
-        <p className="text-neutral-700 mt-3">
-          Your Sensei subscription is paused because the payment hasn't come through yet. Kindly complete the
-          payment and we can resume the subscription.
-        </p>
-        <p className="text-neutral-500 text-sm mt-3">
-          Your chats and results are kept, and they will all be here when the subscription resumes.
-        </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-6 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all"
-        >
-          Check again
-        </button>
-        <button onClick={signOut} className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700">
-          Sign out
-        </button>
-      </div>
-    </main>
   );
 }
 
@@ -1744,9 +1688,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const loadMe = useCallback(async () => {
     try {
-      const m = await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { subscription_paused?: boolean; candidate_sourcing?: boolean; projects?: boolean; lemlist?: boolean } }>("/me");
-      setMe(m);
-      if (m?.capabilities?.subscription_paused) window.dispatchEvent(new Event(PAUSED_EVENT));
+      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean; projects?: boolean; lemlist?: boolean } }>("/me"));
     } catch { /* identity is non-critical for legacy access-code sessions */ }
   }, []);
   useEffect(() => { loadMe(); }, [loadMe]);
