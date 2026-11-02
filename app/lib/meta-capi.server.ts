@@ -33,6 +33,18 @@ export type MetaUserData = {
   externalId?: string | null;
 };
 
+/**
+ * B8 (2 Nov 2026): the production host gate for the relay (api.meta-event.tsx). Only a request that came for
+ * studojo.com or www.studojo.com may reach the live dataset; staging (studojo.pro) and anything else never does,
+ * token or not. From the Host header the ingress routed on, not X-Forwarded-Host, which a client can set
+ * (staging-host.ts reads it the same way). The platform host's /api/meta-event goes to career-agent, which has its
+ * own gate. Pure.
+ */
+export function metaProdHost(host: string | null | undefined): boolean {
+  const h = (host ?? "").split(":")[0].trim().toLowerCase().replace(/\.$/, "");
+  return h === "studojo.com" || h === "www.studojo.com";
+}
+
 export function isMetaCapiConfigured(): boolean {
   return Boolean(ACCESS_TOKEN);
 }

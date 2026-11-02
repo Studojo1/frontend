@@ -1,6 +1,6 @@
 import type { Route } from "./+types/api.meta-event";
 import { auth } from "~/lib/auth";
-import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured, cleanFbc, valueData } from "~/lib/meta-capi.server";
+import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured, cleanFbc, valueData, metaProdHost } from "~/lib/meta-capi.server";
 import { claimOnce, POSTHOG_SIGNED_UP } from "~/lib/tracking-once.server";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { serverMayReportToMeta } from "~/lib/consent";
@@ -37,6 +37,11 @@ import { parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
  * does not send to Meta (staging, no token), so signed_up is once everywhere.
  * fbc: the _fbc cookie, else built from the fbclid in stu_lt / stu_src (meta-capi.server.ts), else the fbc the browser
  * sends when it has Meta's shape (attribution.ts metaBrowserIds). fbp from the _fbp cookie when it exists.
+ *
+ * B8: only a request that came for studojo.com or www.studojo.com (the Host header, metaProdHost) is read at all.
+ * Anywhere else (studojo.pro staging, a laptop) the answer is 204 and nothing is sent or claimed, so staging never
+ * writes to the live dataset even with the token set; a once claim there gets no answer and the browser's own flag
+ * decides.
  */
 
 // Only events the app actually fires. Without this an attacker could post
@@ -92,6 +97,9 @@ export async function action({ request }: Route.ActionArgs) {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  // B8: the production host gate. Not studojo.com or www.studojo.com: 204, nothing sent.
+  if (!metaProdHost(request.headers.get("host"))) return new Response(null, { status: 204 });
 
   let body: {
     eventName?: string;

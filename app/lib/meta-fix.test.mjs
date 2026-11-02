@@ -170,5 +170,27 @@ const leads = files(APP).filter((f) => /trackMeta\(\s*"Lead"|:\s*"Lead",/.test(r
 assert.deepEqual(leads.map((f) => f.slice(APP.length)), ["lib/journey-client.ts"], "Lead only from the CTA click");
 assert.match(readFileSync(`${APP}lib/meta-pixel.ts`, "utf8"), /OnboardingComplete {4}the platform's custom event/);
 
+// ── B8: the relay forwards to Meta only for studojo.com and www.studojo.com (the Host header); elsewhere 204, nothing.
+assert.equal(capi.metaProdHost("studojo.com"), true);
+assert.equal(capi.metaProdHost("www.studojo.com"), true);
+assert.equal(capi.metaProdHost("StudoJo.com:443"), true);
+assert.equal(capi.metaProdHost("studojo.pro"), false, "staging never writes to the live dataset");
+assert.equal(capi.metaProdHost("www.studojo.pro"), false);
+assert.equal(capi.metaProdHost("platform.studojo.com"), false, "that host's relay is career-agent's");
+assert.equal(capi.metaProdHost("studojo.com.evil.example"), false);
+assert.equal(capi.metaProdHost("localhost:5173"), false);
+assert.equal(capi.metaProdHost(null), false);
+{
+  const gate = route.indexOf('if (!metaProdHost(request.headers.get("host"))) return new Response(null, { status: 204 });');
+  assert.ok(gate > 0, "the relay has the host gate");
+  assert.ok(gate < route.indexOf("await request.json()"), "before the body is read");
+  assert.ok(gate < route.indexOf("claimRegistration(request"), "before any claim");
+  assert.ok(gate < route.indexOf("await sendMetaEvent("), "before anything is sent");
+  assert.doesNotMatch(route, /x-forwarded-host/i, "a client-set header never decides");
+}
+// The privacy page names the shared consent cookie (and its lock, site-v2.test.mjs, is re-pinned for it).
+const privacy = readFileSync(`${APP}routes/privacy.tsx`, "utf8");
+assert.match(privacy, /sj_tracking_consent \(local storage, and a cookie on studojo\.com and its subdomains\)/);
+
 tz = "Asia/Kolkata";
 console.log("meta-fix: ok");
