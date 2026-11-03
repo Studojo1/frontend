@@ -158,6 +158,10 @@ jobs:
           secret_adopt LEADSFORGE_API_KEY leadsforge-api-key
           # Career Coach / job-outreach-svc internal header (audit G1).
           secret_ref INTERNAL_API_SECRET INTERNAL_API_SECRET
+          # Azure OpenAI: the Growth Fellowship page reads each talk back to the
+          # fellow (app/lib/fellow-coach.server.ts). Unset = no feedback, stories still save.
+          secret_ref AZURE_OPENAI_ENDPOINT azure-openai-endpoint
+          secret_ref AZURE_OPENAI_API_KEY azure-openai-api-key
           secret_audit
 
       - name: Non-secret runtime env

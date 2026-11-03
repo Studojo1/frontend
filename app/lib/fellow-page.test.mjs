@@ -12,6 +12,8 @@ if (!process.env.DATABASE_URL) {
   console.log("fellow-page: skipped (DATABASE_URL not set)");
   process.exit(0);
 }
+// Read-backs use a stand-in model here; with no key the real one must say it's unavailable.
+delete process.env.AZURE_OPENAI_API_KEY;
 
 const SCHEMA = `fellow_page_test_${process.pid}`;
 const setup = new pg.Client({ connectionString: process.env.DATABASE_URL });
@@ -33,7 +35,8 @@ try {
 
   // Column for column as the admin panel creates them (ugc-creators.server.ts), secrets included.
   await setup.query(`
-    CREATE TABLE ugc_applications (id SERIAL PRIMARY KEY, full_name TEXT, email TEXT, whatsapp TEXT, course TEXT, year_of_study TEXT, city TEXT, team_notes TEXT);
+    CREATE TABLE ugc_applications (id SERIAL PRIMARY KEY, full_name TEXT, email TEXT, whatsapp TEXT, course TEXT, year_of_study TEXT, city TEXT, team_notes TEXT,
+      target_roles TEXT, looking_for TEXT, fellowship_goals JSONB, topics JSONB, avoid_topics TEXT);
     CREATE TABLE ugc_creators (
       id SERIAL PRIMARY KEY, application_id INTEGER, token TEXT NOT NULL, full_name TEXT NOT NULL, email TEXT, whatsapp TEXT,
       linkedin_url TEXT, college TEXT, field TEXT, cohort TEXT, status TEXT NOT NULL DEFAULT 'active', connections_at_join INTEGER,
@@ -47,12 +50,14 @@ try {
       photo_idea TEXT, photo_url TEXT, photo_help_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE TABLE ugc_creator_stories (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), prompt TEXT, text TEXT NOT NULL, spoken BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    CREATE TABLE ugc_creator_stories (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), prompt TEXT, text TEXT NOT NULL, spoken BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      coach JSONB, reply_to INTEGER);
     CREATE TABLE ugc_creator_connections (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), connections INTEGER NOT NULL, recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
     CREATE TABLE ugc_creator_drafts (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), title TEXT NOT NULL, body TEXT NOT NULL, due_date DATE NOT NULL);
     CREATE TABLE ugc_programme (id INTEGER PRIMARY KEY, rules JSONB NOT NULL);
   `);
-  await setup.query(`INSERT INTO ugc_applications (full_name, email, whatsapp, course, year_of_study, city, team_notes) VALUES ('Asha Testfellow', 'asha@example.com', '+910000000001', 'BBA', '3rd year', 'Pune', $1)`, [SECRET]);
+  await setup.query(`INSERT INTO ugc_applications (full_name, email, whatsapp, course, year_of_study, city, team_notes, target_roles, looking_for, topics, avoid_topics)
+    VALUES ('Asha Testfellow', 'asha@example.com', '+910000000001', 'BBA', '3rd year', 'Pune', $1, 'Brand manager', 'An internship', '["College life", "Internships"]', 'Politics')`, [SECRET]);
   await setup.query(`
     INSERT INTO ugc_creators (application_id, token, full_name, email, whatsapp, college, field, cohort, status, connections_at_join, joined_at, slug, team_notes, learnings, nudged_at) VALUES
       (1, $1, 'Asha Testfellow', 'asha@example.com', '+910000000001', 'Test College', 'Marketing', 'A', 'active', 500, now() - interval '10 days', 'asha-k3m9x2qa', $1, $1, now()),
@@ -243,6 +248,103 @@ try {
   assert.equal(stories, 30, "a burst can't go past 30 a day");
   assert.equal(burst.filter((r) => r.status === "rejected" && r.reason.status === 429).length, 7);
   assert.equal((await one(`SELECT count(*)::int AS n FROM ugc_creator_stories WHERE creator_id = 2`)).n, 0);
+
+  // ---------------------------------------------------------------- reading a talk back
+  const { CoachUnavailable, parseCoach } = await import("./fellow-coach.server.ts");
+  const READ = { heard: ["You talked about the Pune hackathon"], useful: ["Coming second at the hackathon"], skip: ["The hostel food: nothing to do with your work"], next: ["Who was on your team?", "What did the judges say?"], tip: "Name people and numbers." };
+  let calls = [];
+  const model = (answer = READ, wait = 0) => async (system, user) => { calls.push({ system, user }); if (wait) await new Promise((r) => setTimeout(r, wait)); return typeof answer === "string" ? answer : JSON.stringify(answer); };
+  const coachOn = async (id) => (await one(`SELECT coach FROM ugc_creator_stories WHERE id = $1`, [id])).coach;
+  const storyOf = async (fellow, id) => (await page.loadFellowView(fellow)).me.stories.find((x) => Number(x.id) === id);
+  const [p1, p2, p3] = (await setup.query(`SELECT id FROM ugc_creator_stories WHERE creator_id = 1 ORDER BY id DESC LIMIT 3`)).rows.map((r) => r.id).reverse();
+  await setup.query(`UPDATE ugc_creator_stories SET text = 'Part one: the hackathon in Pune, ' || id WHERE id = $1`, [p1]);
+  await setup.query(`UPDATE ugc_creator_stories SET text = 'Part two: we came second, ' || id WHERE id = $1`, [p2]);
+  // One talk saved in two parts is read once, as one text, and the read-back goes on its last part.
+  await page.coachTalk(asha, [String(p2), p1], model());
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].user, /Part one: the hackathon[\s\S]*Part two: we came second/, "the parts are read in order, as one talk");
+  assert.match(calls[0].user, /3rd year BBA at Test College/, "the read-back knows their course");
+  assert.match(calls[0].user, /roles like Brand manager/);
+  assert.match(calls[0].user, /topics: College life, Internships/, "the form's lists read as plain text");
+  assert.match(calls[0].user, /avoid: Politics/);
+  assert.ok(!calls[0].user.includes(SECRET) && !calls[0].user.includes("asha@example.com"), "no team notes or contact details go to the model");
+  assert.match(calls[0].user, /Stories they shared before[\s\S]*an earlier story today/, "earlier stories are listed, so questions don't repeat them");
+  const saved = await coachOn(p2);
+  assert.deepEqual(saved.next, READ.next);
+  assert.deepEqual(saved.parts, [p1, p2]);
+  assert.equal(await coachOn(p1), null);
+  // Read once: asking again doesn't call the model.
+  await page.coachTalk(asha, [p1, p2], model());
+  assert.equal(calls.length, 1, "a talk is read back once");
+  let sv = await storyOf(asha, p2);
+  assert.deepEqual(sv.coach, READ, "the page gets the read-back, and only its five parts");
+  assert.equal(sv.canCoach, false);
+  assert.equal((await storyOf(asha, p1)).canCoach, false, "a part the read-back covered doesn't offer its own");
+  assert.equal((await storyOf(asha, p3)).canCoach, true, "a story from today without one does");
+  assert.ok(!JSON.stringify(await page.loadFellowView(asha)).includes(SECRET));
+  // Only the fellow's own stories, from the last day, and a sensible number of parts.
+  const kiranStory = Number((await one(`INSERT INTO ugc_creator_stories (creator_id, text) VALUES (2, 'Kiran''s own story about his internship') RETURNING id`)).id);
+  await refused(() => page.coachTalk(asha, [kiranStory], model()), 404, "another fellow's story");
+  await refused(() => page.coachTalk(asha, [p3, kiranStory], model()), 404, "a talk with another fellow's story in it");
+  await setup.query(`UPDATE ugc_creator_stories SET created_at = now() - interval '25 hours' WHERE id = $1`, [p1]);
+  await setup.query(`UPDATE ugc_creator_stories SET coach = NULL WHERE id = $1`, [p2]);
+  await refused(() => page.coachTalk(asha, [p1, p2], model()), 404, "a story older than a day");
+  assert.equal((await storyOf(asha, p1)).canCoach, false, "an old story doesn't offer feedback");
+  for (const bad of [[], "12", [0], ["x"], [-3], Array.from({ length: 13 }, (_, i) => p3 + i)]) {
+    await refused(() => page.coachTalk(asha, bad, model()), 404, `story ids ${JSON.stringify(bad)}`);
+  }
+  assert.equal(calls.length, 1, "nothing refused reached the model");
+  // The model failing, or answering badly: the fellow is told, and can ask again straight away.
+  await refused(() => page.coachTalk(asha, [p3], async () => { throw new CoachUnavailable("down"); }), 503, "the model is down");
+  assert.equal(await coachOn(p3), null, "a failed read leaves no claim behind");
+  await refused(() => page.coachTalk(asha, [p3], model("not json")), 503, "an answer that isn't JSON");
+  await refused(() => page.coachTalk(asha, [p3], model({ heard: [], next: ["q"] })), 503, "an answer with nothing heard");
+  await refused(() => page.applyFellowChange(asha, { intent: "coach", storyIds: [p3] }), 503, "no model key on this environment");
+  assert.equal(await coachOn(p3), null);
+  // Two pages asking at once: one model call; the other sees it being read.
+  calls = [];
+  const slow = page.coachTalk(asha, [p3], model(READ, 300));
+  await new Promise((r) => setTimeout(r, 50));
+  sv = await storyOf(asha, p3);
+  assert.equal(sv.reading, true, "the page shows a story being read");
+  assert.equal(sv.canCoach, false);
+  await page.coachTalk(asha, [p3], model());
+  await slow;
+  assert.equal(calls.length, 1, "two asks at once, one model call");
+  assert.deepEqual((await storyOf(asha, p3)).coach, READ);
+  // A read that died mid-way can be taken again after two minutes.
+  await setup.query(`UPDATE ugc_creator_stories SET coach = jsonb_build_object('pending', true, 'at', now() - interval '3 minutes') WHERE id = $1`, [p3]);
+  assert.equal((await storyOf(asha, p3)).canCoach, true, "a stale read offers feedback again");
+  await page.coachTalk(asha, [p3], model());
+  assert.equal(calls.length, 2);
+  // Answering a follow-up question: the question comes from the stored read-back, never the request.
+  await page.coachTalk(kiran, [kiranStory], model());
+  await page.applyFellowChange(kiran, { intent: "story", text: "Riya and Dev were on my team, both in second year.", spoken: true, replyTo: String(kiranStory), q: 0 });
+  await page.applyFellowChange(kiran, { intent: "story", text: "An answer to a question that isn't there.", replyTo: kiranStory, q: 7, prompt: "Something you learned the hard way" });
+  await page.applyFellowChange(kiran, { intent: "story", text: "An answer pointed at someone else's story.", replyTo: p3, q: 0 });
+  const answers = (await setup.query(`SELECT prompt, reply_to FROM ugc_creator_stories WHERE creator_id = 2 AND id > $1 ORDER BY id`, [kiranStory])).rows;
+  // A follow-up answer is read with the story it follows up.
+  const firstAnswer = Number((await one(`SELECT id FROM ugc_creator_stories WHERE creator_id = 2 AND reply_to = $1`, [kiranStory])).id);
+  calls = [];
+  await page.coachTalk(kiran, [firstAnswer], model());
+  assert.match(calls[0].user, /follow-up question about this earlier story[\s\S]*Kiran's own story about his internship/, "the answer is read with the story it follows up");
+  assert.deepEqual(answers, [
+    { prompt: "Who was on your team?", reply_to: kiranStory },
+    { prompt: "Something you learned the hard way", reply_to: null },
+    { prompt: null, reply_to: null },
+  ], "a real question links the answer; anything else is an ordinary story");
+  await refused(() => page.applyFellowChange(kiran, { intent: "story", text: "An answer to a story id that isn't one.", replyTo: "abc", q: 0 }), 404, "a reply to a non-id");
+  const kv = (await page.loadFellowView(kiran)).me.stories;
+  assert.equal(kv.find((x) => x.prompt === "Who was on your team?").replyTo, String(kiranStory), "the page knows which story an answer follows up");
+  assert.ok(kv.every((x) => !JSON.stringify(x).includes("Part one")), "no other fellow's stories");
+  // The model's answer, cleaned: no dashes, capped lines, at most three questions.
+  const clean = parseCoach(JSON.stringify({ heard: "You talked about Pune \u2014 and the team", useful: ["a", "b", "c", "d", "e"], skip: null, next: ["one", "two", "three", "four"], tip: "x".repeat(400) }));
+  assert.deepEqual(clean.heard, ["You talked about Pune, and the team"]);
+  assert.equal(clean.useful.length, 4);
+  assert.deepEqual(clean.skip, []);
+  assert.equal(clean.next.length, 3);
+  assert.ok(clean.tip.length <= 240);
+  await setup.query(`DELETE FROM ugc_creator_stories WHERE creator_id = 2`);
 
   // ---------------------------------------------------------------- the API route
   const BASE = "https://studojo.com/api/fellowship-growth/";

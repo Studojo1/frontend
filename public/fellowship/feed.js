@@ -670,9 +670,45 @@
   const PART_AT = 7500;
   S.parts = { saved: 0, waiting: [], prompt: null };
   S.storyOpen = new Set();
+  // After each talk the page reads it back in writing (nothing is spoken back): what we heard, what can
+  // become a post, what we'll leave out, and follow-up questions to answer next. A follow-up answer is a
+  // story of its own, sent with the question it answers (S.reply). S.talkAt times the talk: 5 to 10
+  // minutes is the aim, and nothing stops them going on.
+  S.coachBusy = new Set(); S.coachErr = {}; S.coachOpen = new Set(); S.reply = null; S.talkAt = null;
+  const replyFields = () => (S.reply ? { replyTo: S.reply.to, q: S.reply.q } : {});
+  function requestCoach(ids) {
+    const key = String(Math.max.apply(null, ids.map(Number)));
+    S.coachBusy.add(key); delete S.coachErr[key];
+    renderStories();
+    call({ intent: "coach", storyIds: ids }).then((v) => {
+      S.coachBusy.delete(key);
+      if (!applyView(v)) return;
+      const st = S.stories.find((x) => x.id === key);
+      if (st && st.coach) { S.coachOpen.add(key); toast("Your feedback is ready."); }
+      else if (st && st.reading) setTimeout(() => call().then((w) => { if (applyView(w)) renderStories(); }, () => {}), 20000);
+      renderStories();
+    }, (e) => {
+      S.coachBusy.delete(key);
+      S.coachErr[key] = { msg: e.message, ids };
+      renderStories();
+    });
+  }
+  function talkHint(ms) {
+    const min = ms / 60000;
+    return min >= 10 ? "That's 10 minutes. Tap stop and Share to get your feedback, or keep going if there's more."
+      : min >= 5 ? "Good length. Finish the story when you're ready."
+      : "Aim for 5 to 10 minutes on one story.";
+  }
+  const clock = (ms) => { const t = Math.floor(ms / 1000); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+  setInterval(() => {
+    if (!S.listening || !S.talkAt) return;
+    const ms = Date.now() - S.talkAt, time = $("#talk-time"), hint = $("#talk-hint");
+    if (time) time.textContent = clock(ms);
+    if (hint && hint.textContent !== talkHint(ms)) hint.textContent = talkHint(ms);
+  }, 1000);
   function savePart(text) {
     if (!S.parts.prompt) S.parts.prompt = ME.storyPrompts[S.promptIdx] || ME.storyPrompts[0];
-    call({ intent: "story", prompt: S.parts.prompt, text, spoken: true }).then((v) => {
+    call(Object.assign({ intent: "story", prompt: S.parts.prompt, text, spoken: true }, replyFields())).then((v) => {
       S.parts.saved++;
       if (!applyView(v)) return;
       renderShare(true);
@@ -733,6 +769,7 @@
       rec = null; S.listening = false; renderShare(true);
     };
     rec = r; S.listening = true; S.storyErr = "";
+    if (!S.talkAt) S.talkAt = Date.now();
     try { r.start(); } catch (e) { rec = null; S.listening = false; S.storyErr = "We couldn't start the microphone. Type your story instead."; }
   }
   function renderShare(keepText) {
@@ -740,13 +777,7 @@
     const text = keepText && ta ? ta.value : "";
     const prompts = ME.storyPrompts;
     const pr = prompts[S.promptIdx] || prompts[0];
-    // A long story (a long talk saved in parts) shows its first lines until they ask for all of it.
-    const stories = S.stories.map((s) => `<li class="story" tabindex="-1">
-        <p class="st-prompt">${esc(s.prompt)}</p>
-        <p class="st-text ${s.text.length > 400 && !S.storyOpen.has(s.id) ? "is-clamped" : ""}" id="st-${esc(s.id)}">${esc(s.text)}</p>
-        ${s.text.length > 400 ? `<button class="btn-link st-more" type="button" data-act="story-more" data-story="${esc(s.id)}" aria-controls="st-${esc(s.id)}" aria-expanded="${S.storyOpen.has(s.id)}">${S.storyOpen.has(s.id) ? "Show less" : "Show all"}</button>` : ""}
-        <p class="st-meta">${ic(s.spoken ? "mic" : "keyboard")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
-      </li>`).join("");
+    const ms = S.talkAt ? Date.now() - S.talkAt : 0;
     const asking = askingForStories(), left = ME.storiesWanted - S.stories.length;
     $("#share").classList.toggle("is-listening", S.listening);
     $("#share").classList.toggle("is-asking", asking);
@@ -755,13 +786,18 @@
       <p class="card-sub">${asking
         ? `Your posts are written from what you share here, so this comes first. Share ${left === 1 ? "one more story" : left + " stories"} about your own life: real places, people and what happened next make the best posts.`
         : "Tell us what happened, in your own words. Your posts are written from these, so new stories mean better posts."}</p>
-      <div class="prompt-box">
+      <div class="prompt-box ${S.reply ? "is-reply" : ""}">
         <div class="prompt-top">
-          <span class="kicker">${ic("bulb")}Question ${S.promptIdx + 1} of ${prompts.length}</span>
-          <button class="btn-link" type="button" data-act="prompt-next">Another question${ic("arrow", "ic-sm")}</button>
+          ${S.reply
+            ? `<span class="kicker">${ic("comment")}Follow-up on your story</span>
+          <button class="btn-link" type="button" data-act="reply-cancel">Back to the questions</button>`
+            : `<span class="kicker">${ic("bulb")}Question ${S.promptIdx + 1} of ${prompts.length}</span>
+          <button class="btn-link" type="button" data-act="prompt-next">Another question${ic("arrow", "ic-sm")}</button>`}
         </div>
-        <p class="prompt-text" id="prompt-text">${esc(pr)}</p>
+        <p class="prompt-text" id="prompt-text">${esc(S.reply ? S.reply.question : pr)}</p>
       </div>
+      ${canSpeak() && !S.listening && !text && !S.parts.saved ? `<p class="talk-guide">Talk about one real moment for 5 to 10 minutes: where you were, who was there, what you did and what happened next. When you share it, you'll get written feedback on what we can use.</p>` : ""}
+      ${S.listening ? `<p class="talk-status"><span class="talk-time" id="talk-time">${clock(ms)}</span><span id="talk-hint" role="status">${talkHint(ms)}</span></p>` : ""}
       <label class="sr-only" for="story-text">Your story</label>
       <textarea id="story-text" rows="4" aria-describedby="prompt-text story-err" placeholder="${S.listening ? "Listening. Start talking and we'll write it here." : canSpeak() ? "Type your story, or tap Speak and talk. Where it happened, what you did, what came next." : "Type your story here: where it happened, what you did, what came next."}">${esc(text)}</textarea>
       <p class="err" id="story-err">${S.storyErr ? ic("alert") + esc(S.storyErr) : ""}</p>
@@ -775,10 +811,53 @@
         <button class="btn btn-primary" type="button" data-act="story-save">Share</button>
       </div>
       ${canSpeak() ? `<p class="voice-note">Speaking uses your browser's speech service (Google on Chrome and Android, Apple on iPhone) to turn your voice into text. Check the text, then share it.</p>` : ""}
-      <div class="stories">
-        <h3 class="sub-title">Your stories <span class="count">${S.stories.length}</span></h3>
-        <ul class="story-list">${stories}</ul>
+      <div class="stories" id="stories"></div>`;
+    renderStories();
+  }
+
+  // The list of stories, with each talk's read-back. Drawn on its own, so feedback arriving never
+  // disturbs a story being typed or spoken in the box above.
+  function coachBlock(s) {
+    const c = s.coach, id = esc(s.id);
+    const answered = (q) => S.stories.some((x) => x.replyTo === s.id && x.prompt === q);
+    const list = (lines) => `<ul>${lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`;
+    return `<div class="coach" id="coach-${id}">
+        <div class="coach-sec"><p class="coach-h">What we heard</p>${list(c.heard)}</div>
+        <div class="coach-sec is-use"><p class="coach-h">${ic("check-circle")}What we can use for posts</p>${c.useful.length ? list(c.useful) : `<p class="coach-none">Nothing we can post yet. The questions below will get us there.</p>`}</div>
+        ${c.skip.length ? `<div class="coach-sec is-skip"><p class="coach-h">${ic("x")}What we'll leave out</p>${list(c.skip)}</div>` : ""}
+        <div class="coach-sec is-next"><p class="coach-h">${ic("comment")}Tell us more</p>
+          <ol class="coach-q">${c.next.map((q, i) => `<li><span>${esc(q)}</span>${answered(q)
+            ? `<span class="chip chip-good">${ic("check", "ic-sm")}Answered</span>`
+            : `<button class="btn btn-secondary btn-sm" type="button" data-act="coach-answer" data-story="${id}" data-q="${i}">${canSpeak() ? ic("mic", "ic-sm") : ""}Answer</button>`}</li>`).join("")}</ol>
+        </div>
+        ${c.tip ? `<p class="coach-tip">${ic("bulb")}<span><b>Next time:</b> ${esc(c.tip)}</span></p>` : ""}
       </div>`;
+  }
+  function coachArea(s) {
+    const id = esc(s.id), err = S.coachErr[s.id];
+    if (S.coachBusy.has(s.id) || s.reading) return `<p class="coach-reading" role="status"><span class="coach-dot" aria-hidden="true"></span>Reading what you shared. Your feedback comes in a few seconds.</p>`;
+    if (s.coach) {
+      const open = S.coachOpen.has(s.id);
+      return `<button class="btn-link coach-toggle" type="button" data-act="coach-toggle" data-story="${id}" aria-expanded="${open}" aria-controls="coach-${id}">${ic("bulb", "ic-sm")}${open ? "Hide feedback" : "See feedback"}</button>${open ? coachBlock(s) : ""}`;
+    }
+    if (err) return `<p class="err coach-err">${ic("alert")}${esc(err.msg)} <button class="btn-link" type="button" data-act="coach-get" data-story="${id}">Try again</button></p>`;
+    if (s.canCoach) return `<button class="btn-link coach-toggle" type="button" data-act="coach-get" data-story="${id}">${ic("bulb", "ic-sm")}Get feedback</button>`;
+    return "";
+  }
+  function renderStories() {
+    const box = $("#stories");
+    if (!box) return;
+    // A long story (a long talk saved in parts) shows its first lines until they ask for all of it.
+    const stories = S.stories.map((s) => `<li class="story" tabindex="-1" data-story-id="${esc(s.id)}">
+        <p class="st-prompt">${s.replyTo ? `<span class="st-follow">Follow-up:</span> ` : ""}${esc(s.prompt)}</p>
+        <p class="st-text ${s.text.length > 400 && !S.storyOpen.has(s.id) ? "is-clamped" : ""}" id="st-${esc(s.id)}">${esc(s.text)}</p>
+        ${s.text.length > 400 ? `<button class="btn-link st-more" type="button" data-act="story-more" data-story="${esc(s.id)}" aria-controls="st-${esc(s.id)}" aria-expanded="${S.storyOpen.has(s.id)}">${S.storyOpen.has(s.id) ? "Show less" : "Show all"}</button>` : ""}
+        <p class="st-meta">${ic(s.spoken ? "mic" : "keyboard")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
+        ${coachArea(s)}
+      </li>`).join("");
+    box.innerHTML = `
+        <h3 class="sub-title">Your stories <span class="count">${S.stories.length}</span></h3>
+        <ul class="story-list">${stories}</ul>`;
   }
 
   /* ---------- fellowship news */
@@ -1142,6 +1221,31 @@
     }
     if (act === "howto") { S.howto = !S.howto; renderMilestones(); const h = $('[data-act="howto"]'); if (h) h.focus(); return; }
     if (act === "prompt-next") { S.promptIdx = (S.promptIdx + 1) % ME.storyPrompts.length; renderShare(true); $('[data-act="prompt-next"]').focus(); return; }
+    if (act === "reply-cancel") { S.reply = null; renderShare(true); focusEl('[data-act="prompt-next"]'); return; }
+    if (act === "coach-toggle") {
+      const sid = b.dataset.story;
+      if (S.coachOpen.has(sid)) S.coachOpen.delete(sid); else S.coachOpen.add(sid);
+      renderStories(); focusEl(`[data-act="coach-toggle"][data-story="${sid}"]`);
+      return;
+    }
+    if (act === "coach-get") {
+      const sid = b.dataset.story, err = S.coachErr[sid];
+      requestCoach(err && err.ids ? err.ids : [sid]);
+      return;
+    }
+    if (act === "coach-answer") {
+      // One talk at a time: an answer goes in an empty box, so it's sent with its question alone.
+      const st = S.stories.find((x) => x.id === b.dataset.story), q = Number(b.dataset.q);
+      if (!st || !st.coach || !st.coach.next[q]) return;
+      if (S.listening || S.parts.saved || S.parts.waiting.length || $("#story-text").value.trim()) { toast("Share what's in the box first, then answer this question."); return; }
+      S.reply = { to: st.id, q, question: st.coach.next[q] };
+      S.storyErr = "";
+      if (canSpeak()) { S.quietEnds = 0; startListening(); }
+      renderShare(true);
+      $("#share").scrollIntoView({ behavior: "smooth", block: "start" });
+      focusEl(canSpeak() ? '[data-act="mic"]' : "#story-text");
+      return;
+    }
     if (act === "mic") {
       if (S.listening) stopListening(); else { S.quietEnds = 0; startListening(); }
       renderShare(true); focusEl('[data-act="mic"]');
@@ -1150,7 +1254,7 @@
     if (act === "story-more") {
       const sid = b.dataset.story;
       if (S.storyOpen.has(sid)) S.storyOpen.delete(sid); else S.storyOpen.add(sid);
-      renderShare(true); focusEl(`[data-act="story-more"][data-story="${sid}"]`);
+      renderStories(); focusEl(`[data-act="story-more"][data-story="${sid}"]`);
       return;
     }
     if (act === "story-save") {
@@ -1162,16 +1266,19 @@
       b.disabled = true;
       try {
         while (S.parts.waiting.length) {
-          const v = await call({ intent: "story", prompt, text: S.parts.waiting[0], spoken: true });
+          const v = await call(Object.assign({ intent: "story", prompt, text: S.parts.waiting[0], spoken: true }, replyFields()));
           S.parts.waiting.shift(); S.parts.saved++;
           if (!applyView(v)) return;
         }
-        if (text.length >= 10 && !applyView(await call({ intent: "story", prompt, text, spoken: S.spoke }))) return;
+        if (text.length >= 10 && !applyView(await call(Object.assign({ intent: "story", prompt, text, spoken: S.spoke }, replyFields())))) return;
       } catch (e) { S.storyErr = e.message; renderShare(true); $("#story-text").focus(); return; }
       const parts = S.parts.saved + (text.length >= 10 ? 1 : 0);
       S.listening = false; S.spoke = false; S.storyErr = ""; S.promptIdx = 0; S.parts = { saved: 0, waiting: [], prompt: null };
+      S.reply = null; S.talkAt = null;
       renderShare(false); focusEl("#share .story");
       toast(parts > 1 ? `Story shared in ${parts} parts. Thank you, ${ME.first}.` : "Story shared. Thank you, " + ME.first + ".");
+      // The newest stories are this talk's parts: read them back together.
+      requestCoach(S.stories.slice(0, parts).map((x) => x.id));
       return;
     }
   });

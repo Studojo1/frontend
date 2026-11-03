@@ -59,6 +59,50 @@ export interface StoryRow {
   text: string;
   spoken: boolean;
   created_at: string | Date;
+  /** The talk's read-back (fellow-coach.server.ts), kept on its last saved part; { pending, at } while it's being read. */
+  coach?: unknown;
+  reply_to?: number | null;
+}
+
+/** How long a read-back may take before the page offers to ask again, and how long a story can still get one. */
+export const COACH_WAIT_MS = 2 * 60_000;
+export const COACH_WINDOW_MS = 24 * 3600_000;
+
+type StoryCoach = { heard: string[]; useful: string[]; skip: string[]; next: string[]; tip: string };
+const coachLines = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+
+/**
+ * A story as the page shows it, with its read-back. A long talk is saved in parts and read back once, on
+ * its last part; the other parts it covered don't offer feedback of their own.
+ */
+function storyViews(stories: StoryRow[], nowMs: number) {
+  const coachOf = (s: StoryRow) => (s.coach && typeof s.coach === "object" ? (s.coach as Record<string, unknown>) : null);
+  const covered = new Set(stories.flatMap((s) => {
+    const parts = coachOf(s)?.parts;
+    return Array.isArray(parts) ? parts.map(Number).filter((id) => id !== s.id) : [];
+  }));
+  return stories
+    .slice()
+    .sort((a, b) => toMs(b.created_at) - toMs(a.created_at))
+    .map((s) => {
+      const c = coachOf(s);
+      const done = c && Array.isArray(c.heard);
+      const reading = !!c && c.pending === true && nowMs - toMs(c.at as string) < COACH_WAIT_MS;
+      const coach: StoryCoach | null = done
+        ? { heard: coachLines(c.heard), useful: coachLines(c.useful), skip: coachLines(c.skip), next: coachLines(c.next), tip: typeof c.tip === "string" ? c.tip : "" }
+        : null;
+      return {
+        id: String(s.id),
+        prompt: s.prompt ?? "Your own topic",
+        text: s.text,
+        spoken: s.spoken,
+        createdAt: istDateTime(toMs(s.created_at)),
+        replyTo: s.reply_to ? String(s.reply_to) : null,
+        coach,
+        reading,
+        canCoach: !coach && !reading && !covered.has(s.id) && nowMs - toMs(s.created_at) < COACH_WINDOW_MS,
+      };
+    });
 }
 
 export interface ConnectionRow {
@@ -285,7 +329,7 @@ function milestonesOf(rules: ProgrammeRules | null): Milestone[] {
 /** A name as people write it on LinkedIn: words typed all in lower case get a capital ("veera allak" -> "Veera Allak"). */
 const displayName = (full: string) =>
   full.trim().split(/\s+/).map((w) => (w && w === w.toLowerCase() ? w[0].toUpperCase() + w.slice(1) : w)).join(" ");
-const firstNameOf = (full: string) => (displayName(full).split(" ")[0] || "").slice(0, 40);
+export const firstNameOf = (full: string) => (displayName(full).split(" ")[0] || "").slice(0, 40);
 
 // College, city and course as LinkedIn would show them, whatever case they were typed in. Words typed
 // with capitals stay exactly as typed; only all-lower-case words change ("amity university" -> "Amity University").
@@ -596,10 +640,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       history,
       storyPrompts: promptOrder(input.stories.map((s) => s.prompt), today),
       storiesWanted: STORIES_WANTED,
-      stories: input.stories
-        .slice()
-        .sort((a, b) => toMs(b.created_at) - toMs(a.created_at))
-        .map((s) => ({ id: String(s.id), prompt: s.prompt ?? "Your own topic", text: s.text, spoken: s.spoken, createdAt: istDateTime(toMs(s.created_at)) })),
+      stories: storyViews(input.stories, nowMs),
       cohortFeed: news.slice(0, 6).map((n) => ({ text: n.text, ago: agoLabel(n.t, nowMs) })),
     },
   };

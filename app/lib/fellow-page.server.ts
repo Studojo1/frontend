@@ -3,6 +3,7 @@ import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { proofStore } from "~/lib/fellow-proof.server";
+import { CoachUnavailable, readBack, type CoachAsk, type CoachProfile } from "~/lib/fellow-coach.server";
 import {
   buildFellowView,
   imageBlob,
@@ -17,6 +18,8 @@ import {
   type ImageKind,
   cleanPostUrl,
   cleanText,
+  COACH_WAIT_MS,
+  firstNameOf,
   istDate,
   weekOf,
   addDays,
@@ -86,7 +89,7 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
       ORDER BY due_date, id
     `).then((r) => rows<FellowPostRow>(r)),
     db.execute(sql`
-      SELECT id, prompt, text, spoken, created_at
+      SELECT id, prompt, text, spoken, created_at, coach, reply_to
       FROM ugc_creator_stories
       WHERE creator_id = ${fellow.id}
       ORDER BY created_at DESC
@@ -286,7 +289,17 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       const text = cleanText(body.text, STORY_MAX + 1);
       if (text.length < 10) throw new FellowInputError("Write a few more words first.");
       if (text.length > STORY_MAX) throw new FellowInputError("That's longer than one story can be (8,000 characters). Please share it in two parts.");
-      const prompt = STORY_PROMPTS.includes(String(body.prompt)) ? String(body.prompt) : null;
+      let prompt = STORY_PROMPTS.includes(String(body.prompt)) ? String(body.prompt) : null;
+      // An answer to one of a read-back's follow-up questions: the question is taken from the stored
+      // read-back (never from the request), and the answer remembers which story it follows up.
+      let replyTo: number | null = null;
+      if (body.replyTo != null) {
+        const parent = storyId(body.replyTo);
+        const row = rows<Row>(await db.execute(sql`SELECT coach FROM ugc_creator_stories WHERE id = ${parent} AND creator_id = ${fellow.id}`))[0];
+        const next = (row?.coach as { next?: unknown } | null | undefined)?.next;
+        const question = Array.isArray(next) && typeof body.q === "number" ? next[body.q] : undefined;
+        if (typeof question === "string" && question) { prompt = question; replyTo = parent; }
+      }
       // A page can't flood the team's queue: at most 30 stories a day, counted under the fellow's lock.
       await withFellowLock(fellow, async (tx) => {
         const today = await tx.execute(sql`
@@ -294,13 +307,106 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         `);
         if (Number(rows<Row>(today)[0]?.n ?? 0) >= 30) throw new FellowInputError("That's a lot of stories for one day. Try again tomorrow.", 429);
         await tx.execute(sql`
-          INSERT INTO ugc_creator_stories (creator_id, prompt, text, spoken) VALUES (${fellow.id}, ${prompt}, ${text}, ${body.spoken === true})
+          INSERT INTO ugc_creator_stories (creator_id, prompt, text, spoken, reply_to) VALUES (${fellow.id}, ${prompt}, ${text}, ${body.spoken === true}, ${replyTo})
         `);
       });
       return;
     }
+    case "coach":
+      await coachTalk(fellow, body.storyIds);
+      return;
     default:
       throw new FellowInputError("Unknown request.");
+  }
+}
+
+const storyId = (v: unknown) => {
+  const n = typeof v === "number" ? v : typeof v === "string" && /^\d{1,10}$/.test(v) ? Number(v) : NaN;
+  if (!Number.isInteger(n) || n <= 0 || n > 2147483647) throw new FellowInputError("That story isn't on your page.", 404);
+  return n;
+};
+
+// ---------------------------------------------------------------- reading a talk back
+
+/** A long talk is saved in parts of up to 8,000 characters; this many parts is well over an hour of talking. */
+const TALK_PARTS_MAX = 12;
+const FEEDBACK_DOWN = "Feedback isn't available right now. Your story is saved; try again in a minute.";
+
+/** What the read-back knows about the fellow: their course and what they want, from their application. */
+async function coachProfile(fellow: FellowRow): Promise<CoachProfile> {
+  const app = fellow.application_id
+    ? rows<Row>(await db.execute(sql`
+        SELECT course, year_of_study, target_roles, looking_for, fellowship_goals::text AS goals, topics::text AS topics, avoid_topics
+        FROM ugc_applications WHERE id = ${fellow.application_id}
+      `).catch(() => ({ rows: [] })))[0] ?? {}
+    : {};
+  // JSON lists from the application form read as plain comma lists.
+  const plain = (v: unknown) => String(v ?? "").replace(/^\[|\]$/g, "").replace(/"/g, "").replace(/\s+/g, " ").trim().slice(0, 300);
+  return {
+    first: firstNameOf(fellow.full_name),
+    course: [plain(app.year_of_study), plain(app.course)].filter(Boolean).join(" "),
+    college: fellow.college ?? "",
+    field: fellow.field ?? "",
+    wants: [plain(app.looking_for), plain(app.target_roles) && `roles like ${plain(app.target_roles)}`, plain(app.goals), plain(app.topics) && `topics: ${plain(app.topics)}`].filter(Boolean).join("; "),
+    avoid: plain(app.avoid_topics),
+  };
+}
+
+/**
+ * Reads one talk back to the fellow and keeps the read-back on the talk's last saved part. A talk is
+ * the stories the page saved for it, sent as their ids. A story is read once, and only within a day of
+ * being shared, so there is at most one model call per story (and stories are capped at 30 a day).
+ * Two pages asking at once: the first claims the talk and the other leaves it; a claim left by a read
+ * that died can be taken again after COACH_WAIT_MS. The model is never called inside a transaction.
+ */
+export async function coachTalk(fellow: FellowRow, rawIds: unknown, ask?: CoachAsk): Promise<void> {
+  const ids = Array.isArray(rawIds) ? [...new Set(rawIds.map(storyId))].sort((a, b) => a - b) : [];
+  if (!ids.length || ids.length > TALK_PARTS_MAX) throw new FellowInputError("That story isn't on your page.", 404);
+  const talk = rows<{ id: number; prompt: string | null; text: string; reply_to: number | null }>(await db.execute(sql`
+    SELECT id, prompt, text, reply_to FROM ugc_creator_stories
+    WHERE creator_id = ${fellow.id} AND id = ANY(${`{${ids.join(",")}}`}::int[]) AND created_at >= now() - interval '1 day'
+    ORDER BY id
+  `));
+  if (talk.length !== ids.length) throw new FellowInputError("Feedback is given within a day of sharing a story. Share a new one to get feedback.", 404);
+  const last = ids[ids.length - 1];
+  const claimed = await db.execute(sql`
+    UPDATE ugc_creator_stories SET coach = jsonb_build_object('pending', true, 'at', now())
+    WHERE id = ${last} AND creator_id = ${fellow.id}
+      AND (coach IS NULL OR (coach->>'pending' = 'true' AND (coach->>'at')::timestamptz < now() - ${`${COACH_WAIT_MS / 1000} seconds`}::interval))
+  `);
+  if (!updated(claimed)) return; // read already, or being read right now: the fresh view shows which
+  try {
+    const earlier = rows<{ prompt: string | null; text: string; coach: unknown }>(await db.execute(sql`
+      SELECT prompt, text, coach FROM ugc_creator_stories
+      WHERE creator_id = ${fellow.id} AND NOT (id = ANY(${`{${ids.join(",")}}`}::int[]))
+      ORDER BY created_at DESC LIMIT 8
+    `)).map((s) => {
+      const heard = (s.coach as { heard?: unknown } | null)?.heard;
+      return Array.isArray(heard) && typeof heard[0] === "string" ? heard[0] : `${s.prompt ? s.prompt + ": " : ""}${s.text.slice(0, 140)}`;
+    });
+    // A follow-up answer is read with the story it follows up (that talk's parts, as its read-back lists them).
+    let followsUp: string | null = null;
+    if (talk[0].reply_to) {
+      const parent = rows<{ coach: unknown }>(await db.execute(sql`SELECT coach FROM ugc_creator_stories WHERE id = ${talk[0].reply_to} AND creator_id = ${fellow.id}`))[0];
+      const parts = (parent?.coach as { parts?: unknown } | null | undefined)?.parts;
+      const partIds = (Array.isArray(parts) ? parts : [talk[0].reply_to]).map(Number).filter((n) => Number.isInteger(n) && n > 0).slice(0, TALK_PARTS_MAX);
+      followsUp = rows<{ text: string }>(await db.execute(sql`
+        SELECT text FROM ugc_creator_stories WHERE creator_id = ${fellow.id} AND id = ANY(${`{${partIds.join(",")}}`}::int[]) ORDER BY id
+      `)).map((r) => r.text).join("\n\n") || null;
+    }
+    const coach = await readBack({ profile: await coachProfile(fellow), asked: talk[0].prompt, talk: talk.map((t) => t.text).join("\n\n"), earlier, followsUp }, ask);
+    await db.execute(sql`
+      UPDATE ugc_creator_stories SET coach = ${JSON.stringify({ ...coach, parts: ids, at: new Date().toISOString() })}::jsonb
+      WHERE id = ${last} AND creator_id = ${fellow.id}
+    `);
+  } catch (e) {
+    // Let the fellow ask again straight away.
+    await db.execute(sql`UPDATE ugc_creator_stories SET coach = NULL WHERE id = ${last} AND creator_id = ${fellow.id} AND coach->>'pending' = 'true'`).catch(() => {});
+    if (e instanceof CoachUnavailable) {
+      console.warn("[fellow-coach]", e.message);
+      throw new FellowInputError(FEEDBACK_DOWN, 503);
+    }
+    throw e;
   }
 }
 

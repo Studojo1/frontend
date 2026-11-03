@@ -845,3 +845,37 @@ a.act { text-decoration: none; }
 }
 .st-text.is-clamped { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
 .st-more { justify-self: start; font-size: 13px; }
+
+/* A talk, timed (5 to 10 minutes is the aim), then read back in writing under the story. */
+.talk-guide { margin-top: 10px; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.talk-status { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); }
+.talk-time { font-size: 14px; font-weight: 700; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+.prompt-box.is-reply { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); }
+.prompt-box.is-reply .kicker .ic { color: var(--accent-ink); }
+.st-follow { color: var(--accent-ink); }
+.coach-toggle { justify-self: start; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; margin-top: 2px; }
+.coach-reading { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
+.coach-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: coach-dot 1s ease-in-out infinite alternate; flex: none; }
+@keyframes coach-dot { from { opacity: .3; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .coach-dot { animation: none; } }
+.coach-err { margin-top: 4px; }
+.coach { display: grid; gap: 10px; margin-top: 6px; padding: 12px; border-radius: 10px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+.coach-h { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650; color: var(--ink-2); letter-spacing: .02em; }
+.coach-h .ic { width: 14px; height: 14px; }
+.is-use .coach-h .ic { color: var(--good); }
+.is-skip .coach-h .ic { color: var(--ink-3); }
+.is-next .coach-h .ic { color: var(--accent-ink); }
+.coach ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px; font-size: 13px; line-height: 1.45; list-style: disc; }
+.coach-none { margin-top: 4px; font-size: 13px; color: var(--ink-2); }
+.coach-q { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.coach-q li { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; line-height: 1.4; font-weight: 600; }
+.coach-q li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.coach-q .btn, .coach-q .chip { flex: none; }
+.coach-q .btn .ic { width: 14px; height: 14px; margin-right: 4px; }
+.coach-tip { display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); padding-top: 8px; border-top: 1px solid var(--line); }
+.coach-tip .ic { width: 14px; height: 14px; flex: none; margin-top: 2px; color: var(--accent-ink); }
+.coach-tip b { color: var(--ink); font-weight: 650; }
+@media (max-width: 480px) {
+  .coach-q li { flex-direction: column; align-items: stretch; }
+  .coach-q .btn { min-height: 44px; justify-content: center; }
+}
