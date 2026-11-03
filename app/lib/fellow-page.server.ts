@@ -5,13 +5,16 @@ import { checkRateLimit } from "~/lib/ratelimit.server";
 import { proofStore } from "~/lib/fellow-proof.server";
 import {
   buildFellowView,
+  imageBlob,
+  imageTokens,
+  PHOTOS_PER_POST,
+  photoTokens,
   PROOF_CONTAINER,
-  shotBlob,
   shotEntries,
-  shotTokens,
   SHOT_TOKEN,
   SHOT_UNDO_MS,
   SHOTS_PER_POST,
+  type ImageKind,
   cleanPostUrl,
   cleanText,
   istDate,
@@ -76,7 +79,8 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
           .catch(() => null)
       : Promise.resolve(null),
     db.execute(sql`
-      SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at, screenshot_url
+      SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at, screenshot_url,
+        photo_idea, photo_url, photo_help_at
       FROM ugc_creator_posts
       WHERE creator_id = ${fellow.id} AND status IN ('ready', 'posted', 'blocked')
       ORDER BY due_date, id
@@ -171,6 +175,7 @@ function withFellowLock<T>(fellow: FellowRow, fn: (tx: Tx) => Promise<T>): Promi
 }
 
 const STORY_MAX = 8000;
+const NEEDS_PHOTO = "Add your own photo to this post first. Every post goes out with one.";
 
 /**
  * One change from the page. Throws FellowInputError with a message the page can
@@ -208,6 +213,13 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       const url = raw ? cleanPostUrl(raw) : null;
       if (raw && !url) throw new FellowInputError("That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/");
       await withFellowLock(fellow, async (tx) => {
+        // The hard rule: a post is never marked posted without a photo of the fellow's own (or one the team added).
+        const before = rows<Row>(await tx.execute(sql`
+          SELECT status, photo_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
+        `))[0];
+        if (before?.status === "ready" && !photoTokens((before.photo_url as string | null) ?? null, fellow.id, id).length) {
+          throw new FellowInputError(NEEDS_PHOTO, 409);
+        }
         // One link, one post: a link already saved for another post can't complete this one as well.
         if (url) {
           const used = await tx.execute(sql`
@@ -228,6 +240,16 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         `);
         if (!updated(r)) await refuseChange(tx, fellow, id, "This post is already marked as posted.");
       });
+      return;
+    }
+    case "photo-help": {
+      // The fellow has no photo of their own for this post: the team adds one. Adding a photo clears it.
+      const id = postId(body.postId);
+      const r = await db.execute(sql`
+        UPDATE ugc_creator_posts SET photo_help_at = COALESCE(photo_help_at, now()), updated_at = now()
+        WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
+      `);
+      if (!updated(r)) await refuseChange(db, fellow, id, "This post is already posted.");
       return;
     }
     case "numbers": {
@@ -282,46 +304,75 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
   }
 }
 
-// ---------------------------------------------------------------- analytics screenshots
+// ---------------------------------------------------------------- the fellow's own images
+// Analytics screenshots go on posted posts (the weekly proof); photos go on posts before they go out.
 
-const NOT_POSTED = "Add analytics screenshots once the post is marked as posted.";
-const NO_SHOT = "That screenshot isn't on this post.";
-export const MAX_SHOT_BYTES = 3 * 1024 * 1024;
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const RULES: Record<ImageKind, {
+  column: ReturnType<typeof sql.raw>;
+  most: number;
+  bytes: number;
+  none: string;
+  full: string;
+}> = {
+  shot: {
+    column: sql.raw("screenshot_url"),
+    most: SHOTS_PER_POST,
+    bytes: 3 * 1024 * 1024,
+    none: "That screenshot isn't on this post.",
+    full: `This post has ${SHOTS_PER_POST} screenshots, the most it can have. Remove one to add another.`,
+  },
+  photo: {
+    column: sql.raw("photo_url"),
+    most: PHOTOS_PER_POST,
+    bytes: MAX_IMAGE_BYTES,
+    none: "That photo isn't on this post.",
+    full: `This post has ${PHOTOS_PER_POST} photos, the most it can have. Remove one to add another.`,
+  },
+};
 
-/** The post's screenshot entries, once it's this fellow's and posted; otherwise why not. */
-async function postedShots(exec: { execute: typeof db.execute }, fellow: FellowRow, id: number): Promise<string[]> {
-  const r = await exec.execute(sql`SELECT status, screenshot_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
+/** The post's entries of one kind, once the post can take another; otherwise why not. */
+async function imageEntries(exec: { execute: typeof db.execute }, kind: ImageKind, fellow: FellowRow, id: number): Promise<string[]> {
+  const rule = RULES[kind];
+  const weekEnd = addDays(weekOf(istDate()), 6);
+  const r = await exec.execute(sql`
+    SELECT status, due_date <= ${weekEnd}::date AS open, ${rule.column} AS images
+    FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
+  `);
   const row = rows<Row>(r)[0];
   if (!row || !["ready", "posted", "blocked"].includes(String(row.status))) throw new FellowInputError(TAKEN_BACK, 404);
   if (row.status === "blocked") throw new FellowInputError(ON_HOLD, 409);
-  if (row.status !== "posted") throw new FellowInputError(NOT_POSTED, 409);
-  const raw = (row.screenshot_url as string | null) ?? null;
+  if (kind === "shot" && row.status !== "posted") throw new FellowInputError("Add analytics screenshots once the post is marked as posted.", 409);
+  if (kind === "photo" && row.status !== "ready") throw new FellowInputError("This post is already posted, so its photos can't change now.", 409);
+  if (kind === "photo" && !row.open) throw new FellowInputError("That post isn't on your page yet.", 404);
+  const raw = (row.images as string | null) ?? null;
   const entries = shotEntries(raw);
   // Something in the column the page doesn't recognise is kept, never dropped.
   if (raw?.trim() && !entries.length) entries.push(raw.trim());
-  if (shotTokens(raw, fellow.id, id).length >= SHOTS_PER_POST) {
-    throw new FellowInputError(`This post has ${SHOTS_PER_POST} screenshots, the most it can have. Remove one to add another.`, 409);
-  }
+  if (imageTokens(kind, raw, fellow.id, id).length >= rule.most) throw new FellowInputError(rule.full, 409);
   return entries;
 }
 
-/** Saves one analytics screenshot (a JPEG the page has already re-encoded) on one of the fellow's posted posts. */
-export async function addFellowShot(fellow: FellowRow, rawPostId: unknown, jpeg: Uint8Array, now = Date.now()): Promise<void> {
+/** Saves one image (a JPEG the page has already re-encoded) on one of the fellow's posts. */
+export async function addFellowImage(kind: ImageKind, fellow: FellowRow, rawPostId: unknown, jpeg: Uint8Array, now = Date.now()): Promise<void> {
   const id = postId(rawPostId);
+  if (jpeg.length > RULES[kind].bytes) throw new FellowInputError("That picture is too big to send.", 413);
   if (jpeg.length < 4 || jpeg[0] !== 0xff || jpeg[1] !== 0xd8 || jpeg[2] !== 0xff) {
-    throw new FellowInputError("That file isn't a picture the page can use. Take a screenshot and try again.", 415);
+    throw new FellowInputError("That file isn't a picture the page can use. Choose another one.", 415);
   }
-  await postedShots(db, fellow, id); // refuse early, before anything is stored
-  const blob = shotBlob(fellow.id, id, `${now}-${randomBytes(6).toString("hex")}`);
+  await imageEntries(db, kind, fellow, id); // refuse early, before anything is stored
+  const blob = imageBlob(kind, fellow.id, id, `${now}-${randomBytes(6).toString("hex")}`);
   await proofStore.put(blob, jpeg);
   try {
     await withFellowLock(fellow, async (tx) => {
-      const entries = await postedShots(tx, fellow, id);
+      const entries = await imageEntries(tx, kind, fellow, id);
       entries.push(`${PROOF_CONTAINER}/${blob}`);
-      await tx.execute(sql`
-        UPDATE ugc_creator_posts SET screenshot_url = ${JSON.stringify(entries)}, updated_at = now()
-        WHERE id = ${id} AND creator_id = ${fellow.id}
-      `);
+      // A photo also answers "I don't have a photo for this".
+      await tx.execute(kind === "photo"
+        ? sql`UPDATE ugc_creator_posts SET photo_url = ${JSON.stringify(entries)}, photo_help_at = NULL, updated_at = now()
+              WHERE id = ${id} AND creator_id = ${fellow.id}`
+        : sql`UPDATE ugc_creator_posts SET screenshot_url = ${JSON.stringify(entries)}, updated_at = now()
+              WHERE id = ${id} AND creator_id = ${fellow.id}`);
     });
   } catch (e) {
     await proofStore.remove(blob).catch(() => {});
@@ -329,38 +380,42 @@ export async function addFellowShot(fellow: FellowRow, rawPostId: unknown, jpeg:
   }
 }
 
-const shotToken = (v: unknown) => {
-  if (typeof v !== "string" || !SHOT_TOKEN.test(v)) throw new FellowInputError(NO_SHOT, 404);
+const imageToken = (kind: ImageKind, v: unknown) => {
+  if (typeof v !== "string" || !SHOT_TOKEN.test(v)) throw new FellowInputError(RULES[kind].none, 404);
   return v;
 };
 
-/** Removes a screenshot the fellow added in the last day; after that it stays as proof. */
-export async function removeFellowShot(fellow: FellowRow, rawPostId: unknown, rawToken: unknown, now = Date.now()): Promise<void> {
+/** Removes an image: a screenshot in its first day (after that it stays as proof), a photo until the post goes out. */
+export async function removeFellowImage(kind: ImageKind, fellow: FellowRow, rawPostId: unknown, rawToken: unknown, now = Date.now()): Promise<void> {
   const id = postId(rawPostId);
-  const token = shotToken(rawToken);
-  const blob = shotBlob(fellow.id, id, token);
+  const token = imageToken(kind, rawToken);
+  const blob = imageBlob(kind, fellow.id, id, token);
+  const rule = RULES[kind];
   await withFellowLock(fellow, async (tx) => {
-    const r = await tx.execute(sql`SELECT screenshot_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
-    const entries = shotEntries((rows<Row>(r)[0]?.screenshot_url as string | null) ?? null);
-    if (!entries.includes(`${PROOF_CONTAINER}/${blob}`)) throw new FellowInputError(NO_SHOT, 404);
-    if (now - Number(token.slice(0, 13)) > SHOT_UNDO_MS) {
+    const row = rows<Row>(await tx.execute(sql`
+      SELECT status, ${rule.column} AS images FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
+    `))[0];
+    const entries = shotEntries((row?.images as string | null) ?? null);
+    if (!entries.includes(`${PROOF_CONTAINER}/${blob}`)) throw new FellowInputError(rule.none, 404);
+    if (kind === "shot" && now - Number(token.slice(0, 13)) > SHOT_UNDO_MS) {
       throw new FellowInputError("A screenshot can be removed only in the first 24 hours. Ask the Studojo team if this one is wrong.", 409);
     }
+    if (kind === "photo" && row?.status !== "ready") throw new FellowInputError("This post is already posted, so its photos stay.", 409);
     const rest = entries.filter((e) => e !== `${PROOF_CONTAINER}/${blob}`);
-    await tx.execute(sql`
-      UPDATE ugc_creator_posts SET screenshot_url = ${rest.length ? JSON.stringify(rest) : null}, updated_at = now()
-      WHERE id = ${id} AND creator_id = ${fellow.id}
-    `);
+    const value = rest.length ? JSON.stringify(rest) : null;
+    await tx.execute(kind === "photo"
+      ? sql`UPDATE ugc_creator_posts SET photo_url = ${value}, updated_at = now() WHERE id = ${id} AND creator_id = ${fellow.id}`
+      : sql`UPDATE ugc_creator_posts SET screenshot_url = ${value}, updated_at = now() WHERE id = ${id} AND creator_id = ${fellow.id}`);
   });
   await proofStore.remove(blob);
 }
 
-/** One of the fellow's own screenshots, or null if it isn't on that post. */
-export async function readFellowShot(fellow: FellowRow, rawPostId: unknown, rawToken: unknown): Promise<Uint8Array | null> {
+/** One of the fellow's own images, or null if it isn't on that post. */
+export async function readFellowImage(kind: ImageKind, fellow: FellowRow, rawPostId: unknown, rawToken: unknown): Promise<Uint8Array | null> {
   const id = postId(rawPostId);
-  const token = shotToken(rawToken);
-  const r = await db.execute(sql`SELECT screenshot_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
-  const raw = (rows<Row>(r)[0]?.screenshot_url as string | null) ?? null;
-  if (!shotTokens(raw, fellow.id, id).includes(token)) return null;
-  return proofStore.get(shotBlob(fellow.id, id, token));
+  const token = imageToken(kind, rawToken);
+  const r = await db.execute(sql`SELECT ${RULES[kind].column} AS images FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
+  const raw = (rows<Row>(r)[0]?.images as string | null) ?? null;
+  if (!imageTokens(kind, raw, fellow.id, id).includes(token)) return null;
+  return proofStore.get(imageBlob(kind, fellow.id, id, token));
 }

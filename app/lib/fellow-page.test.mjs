@@ -44,6 +44,7 @@ try {
       kind TEXT NOT NULL DEFAULT 'personal', due_date DATE NOT NULL, status TEXT NOT NULL DEFAULT 'ready', copied_at TIMESTAMPTZ,
       own_line TEXT, posted_at TIMESTAMPTZ, post_url TEXT, impressions INTEGER, reactions INTEGER, comments INTEGER,
       screenshot_url TEXT, metrics_at TIMESTAMPTZ, review JSONB, insight TEXT, insight_at TIMESTAMPTZ,
+      photo_idea TEXT, photo_url TEXT, photo_help_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE TABLE ugc_creator_stories (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), prompt TEXT, text TEXT NOT NULL, spoken BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
@@ -121,6 +122,38 @@ try {
   assert.deepEqual([k.status, k.own_line, k.copied_at, k.post_url], ["ready", null, null, null], "Kiran's post is untouched");
   assert.equal((await one(`SELECT impressions FROM ugc_creator_posts WHERE id = $1`, [ids.kPosted])).impressions, null);
 
+  // ---------------------------------------------------------------- photos: no post goes out without one
+  const PHOTO = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 9, 8, 7, 6]);
+  const photosOn = async (id) => JSON.parse((await one(`SELECT photo_url FROM ugc_creator_posts WHERE id = $1`, [id])).photo_url ?? "[]");
+  await setup.query(`UPDATE ugc_creator_posts SET photo_idea = 'You at the fest stall' WHERE id = $1`, [ids.aTue]);
+  assert.equal((await page.loadFellowView(asha)).me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue).photoIdea, "You at the fest stall");
+  await assert.rejects(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aTue }), (e) => e.status === 409 && /own photo/.test(e.message), "no photo, no posting");
+  assert.equal((await one(`SELECT status FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).status, "ready");
+  await page.applyFellowChange(asha, { intent: "photo-help", postId: ids.aTue });
+  assert.ok((await one(`SELECT photo_help_at FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).photo_help_at, "asking the team for a photo is saved");
+  assert.equal((await page.loadFellowView(asha)).me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue).photoHelp, true);
+  await refused(() => page.applyFellowChange(asha, { intent: "photo-help", postId: ids.kTue }), 404, "help on another fellow's post");
+  await assert.rejects(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aTue }), (e) => e.status === 409, "asking for help doesn't unlock it");
+  await refused(() => page.addFellowImage("photo", asha, ids.kTue, PHOTO), 404, "a photo on another fellow's post");
+  await refused(() => page.addFellowImage("photo", asha, ids.aNext, PHOTO), 404, "a photo on next week's post");
+  await refused(() => page.addFellowImage("photo", asha, ids.aTue, Buffer.alloc(5 * 1024 * 1024 + 1, 0xff)), 413, "a photo over 5 MB");
+  const p0 = Date.now();
+  for (let i = 0; i < 4; i++) await page.addFellowImage("photo", asha, ids.aTue, PHOTO, p0 + i);
+  await refused(() => page.addFellowImage("photo", asha, ids.aTue, PHOTO, p0 + 9), 409, "a fifth photo");
+  let photos = await photosOn(ids.aTue);
+  assert.equal(photos.length, 4);
+  assert.match(photos[0], new RegExp(`^fellow-proof/1/${ids.aTue}/photo/${p0}-[0-9a-f]{12}\\.jpg$`), "photos live under /photo/");
+  assert.equal((await one(`SELECT photo_help_at FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).photo_help_at, null, "a photo answers the request for help");
+  assert.equal((await one(`SELECT screenshot_url FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).screenshot_url, null, "photos never mix with screenshots");
+  const ph0 = photos[0].split("/").pop().slice(0, -4);
+  assert.deepEqual([...(await page.readFellowImage("photo", asha, ids.aTue, ph0))], [...PHOTO]);
+  assert.equal(await page.readFellowImage("shot", asha, ids.aTue, ph0), null, "a photo isn't readable as a screenshot");
+  assert.equal(await page.readFellowImage("photo", kiran, ids.aTue, ph0), null, "another fellow can't see it");
+  await page.removeFellowImage("photo", asha, ids.aTue, ph0, p0 + 3 * 24 * 3600 * 1000);
+  photos = await photosOn(ids.aTue);
+  assert.equal(photos.length, 3, "a photo can be removed any time before the post goes out");
+  await refused(() => page.addFellowImage("shot", asha, ids.aTue, PHOTO), 409, "no screenshots before posting");
+
   // ---------------------------------------------------------------- the fellow's own posts
   await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aNext, url: "https://www.linkedin.com/posts/x-activity-10" }), 409, "next week's post can't be marked yet");
   assert.equal((await one(`SELECT status FROM ugc_creator_posts WHERE id = $1`, [ids.aNext])).status, "ready");
@@ -136,12 +169,17 @@ try {
   assert.ok(t.copied_at);
   assert.equal(t.post_url, "https://www.linkedin.com/posts/asha-tue-activity-3");
   await refused(() => page.applyFellowChange(asha, { intent: "line", postId: ids.aTue, line: "too late" }), 409, "the line can't change once posted");
+  await refused(() => page.addFellowImage("photo", asha, ids.aTue, PHOTO), 409, "photos can't change once posted");
+  await refused(() => page.removeFellowImage("photo", asha, ids.aTue, photos[1].split("/").pop().slice(0, -4)), 409, "a posted post's photos stay");
+  await refused(() => page.applyFellowChange(asha, { intent: "photo-help", postId: ids.aTue }), 409, "no help needed once posted");
   await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aTue, url: "https://www.linkedin.com/posts/asha-again-activity-4" }), 409, "posted twice");
   await refused(() => page.applyFellowChange(asha, { intent: "numbers", postId: ids.aThu, impressions: 1, reactions: 1, comments: 1 }), 409, "numbers before posting");
   await page.applyFellowChange(asha, { intent: "numbers", postId: ids.aTue, impressions: "1,240", reactions: 31, comments: "4" });
   assert.equal((await one(`SELECT impressions FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).impressions, 1240);
   // "Did you post it?" can be answered without a link; the link can be added once, later.
   await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.kTue }), 404, "posted without a link on another fellow's post");
+  // The team adds a photo from the admin panel (same column, same format): that unlocks it too.
+  await setup.query(`UPDATE ugc_creator_posts SET photo_url = $2 WHERE id = $1`, [ids.aMissed, JSON.stringify([`fellow-proof/1/${ids.aMissed}/photo/${p0}-abcdefabcdef.jpg`])]);
   await page.applyFellowChange(asha, { intent: "posted", postId: ids.aMissed });
   const late = await one(`SELECT status, post_url, posted_at FROM ugc_creator_posts WHERE id = $1`, [ids.aMissed]);
   assert.deepEqual([late.status, late.post_url], ["posted", null], "last week's post can be marked late, without a link");
@@ -246,41 +284,42 @@ try {
   // ---------------------------------------------------------------- analytics screenshots
   const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]);
   const shotsOn = async (id) => JSON.parse((await one(`SELECT screenshot_url FROM ugc_creator_posts WHERE id = $1`, [id])).screenshot_url ?? "[]");
-  await refused(() => page.addFellowShot(asha, ids.aThu, JPEG), 409, "a post not yet posted");
-  await refused(() => page.addFellowShot(asha, ids.kPosted, JPEG), 404, "another fellow's post");
-  await refused(() => page.addFellowShot(asha, ids.aTue, Buffer.from("GIF89a")), 415, "not a JPEG");
-  assert.equal(stored.size, 0, "nothing is stored for a refused screenshot");
+  await refused(() => page.addFellowImage("shot", asha, ids.aThu, JPEG), 409, "a post not yet posted");
+  await refused(() => page.addFellowImage("shot", asha, ids.kPosted, JPEG), 404, "another fellow's post");
+  await refused(() => page.addFellowImage("shot", asha, ids.aTue, Buffer.from("GIF89a")), 415, "not a JPEG");
+  const storedShots = () => [...stored.keys()].filter((k) => !k.includes("/photo/")).length;
+  assert.equal(storedShots(), 0, "nothing is stored for a refused screenshot");
   const t0 = Date.now();
-  await page.addFellowShot(asha, ids.aTue, JPEG, t0);
+  await page.addFellowImage("shot", asha, ids.aTue, JPEG, t0);
   let shots = await shotsOn(ids.aTue);
   assert.equal(shots.length, 1);
   assert.match(shots[0], new RegExp(`^fellow-proof/1/${ids.aTue}/${t0}-[0-9a-f]{12}\\.jpg$`), "the stored path names the fellow, the post and the time");
   assert.ok(stored.has(shots[0].slice("fellow-proof/".length)));
   const token0 = shots[0].split("/").pop().slice(0, -4);
-  assert.deepEqual([...(await page.readFellowShot(asha, ids.aTue, token0))], [...JPEG], "the fellow sees their own screenshot");
-  assert.equal(await page.readFellowShot(kiran, ids.aTue, token0), null, "another fellow can't");
-  await refused(() => page.readFellowShot(asha, ids.aTue, "../../etc/passwd"), 404, "a made-up token");
-  for (let i = 1; i < 6; i++) await page.addFellowShot(asha, ids.aTue, JPEG, t0 + i);
-  await refused(() => page.addFellowShot(asha, ids.aTue, JPEG, t0 + 9), 409, "a seventh screenshot");
-  assert.equal(stored.size, 6);
+  assert.deepEqual([...(await page.readFellowImage("shot", asha, ids.aTue, token0))], [...JPEG], "the fellow sees their own screenshot");
+  assert.equal(await page.readFellowImage("shot", kiran, ids.aTue, token0), null, "another fellow can't");
+  await refused(() => page.readFellowImage("shot", asha, ids.aTue, "../../etc/passwd"), 404, "a made-up token");
+  for (let i = 1; i < 6; i++) await page.addFellowImage("shot", asha, ids.aTue, JPEG, t0 + i);
+  await refused(() => page.addFellowImage("shot", asha, ids.aTue, JPEG, t0 + 9), 409, "a seventh screenshot");
+  assert.equal(storedShots(), 6);
   const shotView = await page.loadFellowView(asha);
   assert.equal(shotView.me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue).shots.length, 6, "the page lists them");
-  await refused(() => page.removeFellowShot(asha, ids.aTue, token0, t0 + 25 * 3600 * 1000), 409, "a day later a screenshot stays");
-  await refused(() => page.removeFellowShot(kiran, ids.aTue, token0, t0), 404, "another fellow can't remove it");
-  await page.removeFellowShot(asha, ids.aTue, token0, t0 + 60_000);
+  await refused(() => page.removeFellowImage("shot", asha, ids.aTue, token0, t0 + 25 * 3600 * 1000), 409, "a day later a screenshot stays");
+  await refused(() => page.removeFellowImage("shot", kiran, ids.aTue, token0, t0), 404, "another fellow can't remove it");
+  await page.removeFellowImage("shot", asha, ids.aTue, token0, t0 + 60_000);
   shots = await shotsOn(ids.aTue);
   assert.equal(shots.length, 5);
-  assert.ok(!shots.some((e) => e.includes(token0)) && stored.size === 5, "removed from the post and from storage");
+  assert.ok(!shots.some((e) => e.includes(token0)) && storedShots() === 5, "removed from the post and from storage");
   // A link the team saved in the column is kept.
   await setup.query(`UPDATE ugc_creator_posts SET screenshot_url = 'https://example.com/numbers.png' WHERE id = $1`, [ids.aDone]);
-  await page.addFellowShot(asha, ids.aDone, JPEG, t0);
+  await page.addFellowImage("shot", asha, ids.aDone, JPEG, t0);
   shots = await shotsOn(ids.aDone);
   assert.equal(shots[0], "https://example.com/numbers.png");
   assert.equal(shots.length, 2);
   // Storage failing leaves the post as it was.
   const realPut = proofStore.put;
   proofStore.put = async () => { throw new Error("storage down"); };
-  await assert.rejects(() => page.addFellowShot(asha, ids.aDone, JPEG, t0 + 1));
+  await assert.rejects(() => page.addFellowImage("shot", asha, ids.aDone, JPEG, t0 + 1));
   proofStore.put = realPut;
   assert.equal((await shotsOn(ids.aDone)).length, 2);
 
@@ -307,6 +346,19 @@ try {
   assert.equal((await shotsOn(ids.aDone)).length, 2, "removed again: the team's link and the first screenshot stay");
   res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "PUT", body: JPEG }) });
   assert.equal(res.status, 405);
+  // Photos go through the same route, by kind.
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&kind=photo`, { method: "POST", headers: { "content-type": "image/jpeg" }, body: JPEG }) });
+  assert.equal(res.status, 200);
+  const thuPost = (await res.json()).me.thisWeek.posts.find((p) => Number(p.id) === ids.aThu);
+  assert.deepEqual([thuPost.photos.length, thuPost.shots.length], [1, 0], "a photo, not a screenshot");
+  res = await proofRoute.loader({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&photo=${thuPost.photos[0]}`) });
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-type"), "image/jpeg");
+  res = await proofRoute.loader({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&shot=${thuPost.photos[0]}`) });
+  assert.equal(res.status, 404, "a photo's token doesn't open it as a screenshot");
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&photo=${thuPost.photos[0]}`, { method: "DELETE" }) });
+  assert.equal(res.status, 200);
+  assert.equal((await photosOn(ids.aThu)).length, 0);
 
   // ---------------------------------------------------------------- the page routes
   const PAGE = "https://studojo.com/fellowship-growth/";

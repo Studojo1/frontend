@@ -80,6 +80,7 @@
       id: p.id, day: p.day, date: p.date, kind: p.kind, title: p.title, body: p.body,
       status: p.status, copied: !!p.copiedAt, ownLine: p.ownLine || "", postedAt: p.postedAt,
       url: p.url, metrics: p.metrics, numbersDue: p.numbersDue || null, shots: p.shots || [],
+      photoIdea: p.photoIdea || "", photos: p.photos || [], photoHelp: !!p.photoHelp,
       panel: null, expanded: false, err: "", draft: null, lineDraft: null,
     })),
     conn: { now: ME.connections.now, atJoin: ME.connections.atJoin, history: ME.connections.history.slice(), editing: false, err: "" },
@@ -103,7 +104,8 @@
     if (v.program.today !== TODAY || ids(M.thisWeek.posts) !== ids(S.posts) || held(M.thisWeek.posts) !== held(S.posts)) { location.reload(); return false; }
     for (const sp of M.thisWeek.posts) {
       const p = byId(sp.id);
-      if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null, shots: sp.shots || [] });
+      if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null, shots: sp.shots || [],
+        photoIdea: sp.photoIdea || "", photos: sp.photos || [], photoHelp: !!sp.photoHelp });
     }
     ME.thisWeek.due = M.thisWeek.due;
     Object.assign(ME, {
@@ -165,7 +167,7 @@
     $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
     $("#feed-help").textContent = n >= due
       ? `${allPosts(due, "out")} this week. Add your numbers a week after each one.`
-      : "As they will look on LinkedIn. Post on LinkedIn copies the post and opens LinkedIn; if the text isn't filled in there, paste it. You post it yourself: Studojo never posts for you.";
+      : "As they will look on LinkedIn. Add your own photo to each post, then tap Post on LinkedIn: it copies the post and opens LinkedIn. Add the photo there too, and paste the text if it isn't filled in. You post it yourself: Studojo never posts for you.";
   }
 
   /* ---------- analytics screenshots: at the end of each week, a screenshot of LinkedIn's analytics for every post
@@ -173,9 +175,10 @@
   const shotUrl = (id, t) => `${API}/proof?post=${encodeURIComponent(id)}&shot=${encodeURIComponent(t)}`;
   // The server allows removing one for a day after it's added (the time is the token's first 13 digits).
   const shotFresh = (t) => Date.now() - Number(t.slice(0, 13)) < 23.5 * 3600 * 1000;
-  const shotPost = (id) => byId(id) || ME.history.flatMap((w) => w.posts).find((p) => p.id === id);
+  // Any post on the page with images: this week's, last weeks' posted ones, and ones that never went up.
+  const imagePost = (id) => byId(id) || ME.history.flatMap((w) => w.posts.concat(w.missed || [])).find((p) => p.id === id);
   function shotStrip(p) {
-    const busy = S.shotBusy && S.shotBusy.id === p.id;
+    const busy = S.shotBusy && S.shotBusy.id === p.id && S.shotBusy.kind === "shot";
     const thumbs = p.shots.map((t, i) => `<span class="shot">
         <a class="shot-img" href="${esc(shotUrl(p.id, t))}" target="_blank" rel="noopener"><img src="${esc(shotUrl(p.id, t))}" alt="Analytics screenshot ${i + 1}, ${esc(p.title)}" width="48" height="72" loading="lazy"></a>
         ${shotFresh(t) ? `<button class="shot-x" type="button" data-act="shot-remove" data-id="${p.id}" data-shot="${esc(t)}" aria-label="Remove analytics screenshot ${i + 1}, ${esc(p.title)}">${ic("x")}</button>` : ""}
@@ -204,8 +207,11 @@
     if (!shotsDue()) {
       $("#shots").className = "card card-pad shots";
       $("#shots").innerHTML = `
-        <h2 class="card-title" id="shots-title">${ic("image")}Analytics screenshots, every Sunday</h2>
-        <p class="card-sub">On Sunday, add a screenshot of LinkedIn's analytics for each post you put out that week. The team uses them to see how your posts did.</p>
+        <h2 class="card-title" id="shots-title">${ic("image")}Two things only you can add</h2>
+        <ol class="shots-steps">
+          <li><b>Your own photo on every post.</b> Add it on the post before you copy it: Copy and Post on LinkedIn unlock once it's there.</li>
+          <li><b>Every Sunday, analytics screenshots.</b> A screenshot of LinkedIn's analytics for each post you put out that week, so the team can see how your posts did.</li>
+        </ol>
         ${SHOTS_HOW}`;
       return;
     }
@@ -221,14 +227,55 @@
         <p class="shot-what"><b>${esc(p.day)}</b> ${esc(p.title)}${p.shots.length ? `<span class="chip chip-good">${ic("check", "ic-xs")}${p.shots.length}</span>` : ""}</p>
         ${shotStrip(p)}
       </li>`).join("")}</ul>
+      <p class="shots-photo">${ic("image", "ic-sm")}Every post also needs your own photo before you copy it.</p>
       ${SHOTS_HOW}`;
   }
   function refreshShots(id) { renderShots(); if (byId(id) && byId(id).status === "posted") rerenderPost(id); }
 
+  /* ---------- the fellow's own photo: every post goes out with one. Copy, Post on LinkedIn and I posted it
+     wait for it, and the server refuses to mark a post posted without one. LinkedIn's share link carries
+     only text, so the page reminds them to add the photo there too. */
+  const photoUrl = (id, t) => `${API}/proof?post=${encodeURIComponent(id)}&photo=${encodeURIComponent(t)}`;
+  const hasPhoto = (p) => !!(p.photos && p.photos.length);
+  const PHOTO_IDEA = "A photo you took yourself that fits this post: you, your desk, your college, or the place it happened.";
+  function photoBlock(p) {
+    const busy = S.shotBusy && S.shotBusy.id === p.id && S.shotBusy.kind === "photo";
+    const n = p.photos.length;
+    const thumbs = p.photos.map((t, i) => `<span class="shot">
+        <a class="shot-img ph-img" href="${esc(photoUrl(p.id, t))}" target="_blank" rel="noopener"><img src="${esc(photoUrl(p.id, t))}" alt="Your photo ${i + 1}, ${esc(p.title)}" width="64" height="64" loading="lazy"></a>
+        <button class="shot-x" type="button" data-act="photo-remove" data-id="${p.id}" data-photo="${esc(t)}" aria-label="Remove photo ${i + 1}, ${esc(p.title)}">${ic("x")}</button>
+      </span>`).join("");
+    const add = busy
+      ? `<span class="shot-add is-busy">Adding ${S.shotBusy.done + 1} of ${S.shotBusy.total}</span>`
+      : n >= P.photosPerPost ? ""
+      : `<button class="shot-add ${n ? "" : "is-primary"}" type="button" data-act="photo-add" data-id="${p.id}" aria-label="${n ? "Add another photo" : "Add your photo"}, ${esc(p.title)}">${ic("image")}<span>${n ? "Add another" : "Add your photo"}</span></button>`;
+    const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">I don't have a photo for this</button>` : "";
+    const note = n ? "On LinkedIn, add this photo to the post as well: the link only carries the text."
+      : p.photoHelp ? "You asked for a photo: the Studojo team will add one here. The post unlocks once it's here, or once you add your own."
+      : "Copy and Post on LinkedIn unlock once your own photo is added. Every post goes out with one.";
+    return `<div class="ph">
+      <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo for this post:</b> ${esc(p.photoIdea || PHOTO_IDEA)}</span></p>
+      <div class="shots-strip">${thumbs}${add}${help}</div>
+      <p class="ph-note ${n ? "" : "is-locked"}" id="phnote-${p.id}">${note}</p>
+    </div>`;
+  }
+  // The post as LinkedIn will show it: the photos under the text.
+  function liMedia(p) {
+    if (!hasPhoto(p)) return "";
+    const list = p.photos.slice(0, 4);
+    return `<div class="li-media n-${list.length}">${list.map((t) => `<img src="${esc(photoUrl(p.id, t))}" alt="" loading="lazy">`).join("")}</div>`;
+  }
+  function refreshPhoto(id) { if (byId(id)) { rerenderPost(id); renderCover(); } else renderActivity(); }
+
   // Every screenshot is redrawn as a JPEG before it's sent: that drops a photo's hidden details (like where it
   // was taken), turns iPhone HEIC into JPEG and keeps it small. A tall scrolling screenshot keeps its width,
   // so the numbers stay readable.
-  const UNREADABLE = "That file isn't a picture the page can read. Choose a screenshot.";
+  const UNREADABLE = "That file isn't a picture the page can read. Choose another one.";
+  // Screenshots: at most 1280 px wide and 8 megapixels, 3 MB. Photos: good enough for LinkedIn, 2048 px on the long side, 5 MB.
+  const IMAGE = {
+    shot: { scale: (w, h) => Math.min(1, 1280 / w, Math.sqrt(8e6 / (w * h))), qs: [0.85, 0.7, 0.55], bytes: 3 * 1024 * 1024, big: "That screenshot is too big to send. Try a shorter one." },
+    photo: { scale: (w, h) => Math.min(1, 2048 / Math.max(w, h)), qs: [0.85, 0.75], bytes: 5 * 1024 * 1024, big: "That photo is too big to send. Try another one." },
+  };
   function imageFromData(file) {
     return new Promise((resolve, reject) => {
       const r = new FileReader();
@@ -237,46 +284,52 @@
       r.readAsDataURL(file);
     });
   }
-  async function toJpeg(file) {
+  async function toJpeg(file, kind) {
     if (file.type && !file.type.startsWith("image/")) throw new Error(UNREADABLE);
     let img;
     try { img = await createImageBitmap(file); } catch (e) { img = await imageFromData(file); }
     const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
     if (!w0 || !h0) throw new Error(UNREADABLE);
-    const scale = Math.min(1, 1280 / w0, Math.sqrt(8e6 / (w0 * h0)));
+    const scale = IMAGE[kind].scale(w0, h0);
     const c = document.createElement("canvas");
     c.width = Math.max(1, Math.round(w0 * scale)); c.height = Math.max(1, Math.round(h0 * scale));
     const g = c.getContext("2d");
     g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
     g.drawImage(img, 0, 0, c.width, c.height);
     if (img.close) img.close();
-    for (const q of [0.85, 0.7, 0.55]) {
+    for (const q of IMAGE[kind].qs) {
       const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", q));
-      if (blob && blob.size <= 3 * 1024 * 1024) return blob;
+      if (blob && blob.size <= IMAGE[kind].bytes) return blob;
     }
-    throw new Error("That screenshot is too big to send. Try a shorter one.");
+    throw new Error(IMAGE[kind].big);
   }
   S.shotBusy = null;
-  let shotFor = null;
+  let pick = null; // which post and which kind the file picker is for
   $("#shot-file").addEventListener("change", async () => {
-    const input = $("#shot-file"), id = shotFor, files = [...input.files];
-    input.value = ""; shotFor = null;
-    const p = id && shotPost(id);
+    const input = $("#shot-file"), files = [...input.files], asked = pick;
+    input.value = ""; pick = null;
+    const p = asked && imagePost(asked.id);
     if (!p || !files.length || S.shotBusy) return;
-    const take = files.slice(0, P.shotsPerPost - p.shots.length);
-    S.shotBusy = { id, done: 0, total: take.length }; refreshShots(id);
+    const { id, kind } = asked, photo = kind === "photo";
+    const had = photo ? p.photos.length : p.shots.length;
+    const take = files.slice(0, (photo ? P.photosPerPost : P.shotsPerPost) - had);
+    const refresh = () => (photo ? refreshPhoto(id) : refreshShots(id));
+    S.shotBusy = { id, kind, done: 0, total: take.length }; refresh();
     let added = 0, err = "";
     for (const f of take) {
       try {
-        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}`, { method: "POST", headers: { Accept: "application/json", "Content-Type": "image/jpeg" }, body: await toJpeg(f) });
+        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}${photo ? "&kind=photo" : ""}`, { method: "POST", headers: { Accept: "application/json", "Content-Type": "image/jpeg" }, body: await toJpeg(f, kind) });
         if (!applyView(v)) return;
-        added++; S.shotBusy.done = added; refreshShots(id);
+        added++; S.shotBusy.done = added; refresh();
       } catch (e) { err = e.message; break; }
     }
-    S.shotBusy = null; refreshShots(id);
-    focusEl(`[data-act="shot-add"][data-id="${id}"]`);
-    if (err) toast(added ? `${plural(added, "screenshot")} added. ${err}` : err, "error");
-    else toast(files.length > take.length ? `${plural(added, "screenshot")} added. A post can have up to ${P.shotsPerPost}.` : `${added === 1 ? "Screenshot" : plural(added, "screenshot")} added. Thank you.`);
+    S.shotBusy = null; refresh();
+    focusEl(`[data-act="${photo ? "photo-add" : "shot-add"}"][data-id="${id}"]`);
+    const word = photo ? "photo" : "screenshot", most = photo ? P.photosPerPost : P.shotsPerPost;
+    if (err) toast(added ? `${plural(added, word)} added. ${err}` : err, "error");
+    else if (files.length > take.length) toast(`${plural(added, word)} added. A post can have up to ${most}.`);
+    else if (photo && !had) toast("Photo added. Copy and Post on LinkedIn are unlocked.");
+    else toast(`${added === 1 ? word[0].toUpperCase() + word.slice(1) : plural(added, word)} added. Thank you.`);
   });
 
   /* ---------- profile card */
@@ -345,7 +398,11 @@
     const when = (d) => (away(d) === 0 ? "today" : away(d) === 1 ? "tomorrow" : dowLong(d));
     let dek;
     if (!next) dek = `${allPosts(total, "up")}. <b>That's this week done.</b>`;
-    else if (next.copied) dek = `${dowLong(next.date)}'s post is copied. Paste it on LinkedIn, then tap <b>I posted it</b>.`;
+    else if (!hasPhoto(next)) {
+      dek = next.photoHelp
+        ? `<b>The Studojo team is adding a photo to ${dowLong(next.date)}'s post.</b> It unlocks once the photo is there, or once you add your own.`
+        : `<b>Add your own photo to ${dowLong(next.date)}'s post</b> to unlock it. Every post goes out with one.`;
+    } else if (next.copied) dek = `${dowLong(next.date)}'s post is copied. Paste it on LinkedIn, then tap <b>I posted it</b>.`;
     else if (away(next.date) < 0) {
       const ago = -away(next.date);
       dek = `<b>${dowLong(next.date)}'s post was due ${ago === 1 ? "yesterday" : ago + " days ago"}.</b> Copy it and post it when you can.`;
@@ -422,12 +479,16 @@
 
     let actions = "";
     if (!posted) {
-      const sharePrimary = isNext && !p.copied, postPrimary = isNext && p.copied;
+      // The hard rule: nothing goes out without the fellow's own photo, so these wait for one.
+      const locked = !hasPhoto(p), lock = locked ? ` disabled aria-describedby="phnote-${p.id}"` : "";
+      const sharePrimary = isNext && !p.copied && !locked, postPrimary = isNext && p.copied && !locked;
       actions = `<div class="actions" role="group" aria-label="${esc(dowLong(p.date))} post actions">
-        <a class="act act-share ${sharePrimary ? "is-primary" : ""}" href="${esc(composeUrl(p))}" target="_blank" rel="noopener noreferrer" data-act="share" data-id="${p.id}">${ic("share")}<span>Post on LinkedIn</span><span class="sr-only"> (copies the post and opens LinkedIn in a new tab)</span></a>
-        <button class="act ${p.copied ? "is-done" : ""}" type="button" data-act="copy" data-id="${p.id}">${ic(p.copied ? "check" : "copy")}<span>${p.copied ? "Copied" : "Copy"}</span></button>
+        ${locked
+          ? `<button class="act act-share" type="button"${lock}>${ic("share")}<span>Post on LinkedIn</span></button>`
+          : `<a class="act act-share ${sharePrimary ? "is-primary" : ""}" href="${esc(composeUrl(p))}" target="_blank" rel="noopener noreferrer" data-act="share" data-id="${p.id}">${ic("share")}<span>Post on LinkedIn</span><span class="sr-only"> (copies the post and opens LinkedIn in a new tab)</span></a>`}
+        <button class="act ${p.copied ? "is-done" : ""}" type="button" data-act="copy" data-id="${p.id}"${lock}>${ic(p.copied ? "check" : "copy")}<span>${p.copied ? "Copied" : "Copy"}</span></button>
         <button class="act" type="button" data-act="line" data-id="${p.id}" aria-expanded="${p.panel === "line"}" aria-controls="panel-${p.id}">${ic("pen")}<span>${p.ownLine ? "Edit your line" : "Add your line"}</span></button>
-        <button class="act ${postPrimary ? "is-primary" : ""}" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}">${ic("send")}<span>I posted it</span></button>
+        <button class="act ${postPrimary ? "is-primary" : ""}" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}"${lock}>${ic("send")}<span>I posted it</span></button>
       </div>`;
     }
 
@@ -512,8 +573,10 @@
           <div class="li-body ${p.expanded ? "" : "is-clamped"}" id="${bodyId}">${postHTML(p)}</div>
           ${p.expanded ? "" : `<button class="see-more" type="button" data-act="more" data-id="${p.id}" aria-controls="${bodyId}" aria-expanded="false">&#8230;<span class="sm-full">see </span>more</button>`}
         </div>
+        ${liMedia(p)}
       </div>
       ${footer}
+      ${posted ? "" : photoBlock(p)}
       ${actions}
       ${panel}
     </article>`;
@@ -601,10 +664,37 @@
     const r = rec; rec = null; S.listening = false;
     if (r) { try { r.stop(); } catch (e) { /* already stopped */ } }
   }
+  // A long talk is never cut off: near a story's 8,000-character limit the part so far is saved as its own
+  // story and listening carries on into a new part. A part that can't be saved (no connection, or the day's
+  // limit) waits on the page and goes with the next Share.
+  const PART_AT = 7500;
+  S.parts = { saved: 0, waiting: [], prompt: null };
+  S.storyOpen = new Set();
+  function savePart(text) {
+    if (!S.parts.prompt) S.parts.prompt = ME.storyPrompts[S.promptIdx] || ME.storyPrompts[0];
+    call({ intent: "story", prompt: S.parts.prompt, text, spoken: true }).then((v) => {
+      S.parts.saved++;
+      if (!applyView(v)) return;
+      renderShare(true);
+    }, (e) => {
+      S.parts.waiting.push(text);
+      stopListening();
+      S.storyErr = `Part of your story isn't saved yet: ${e.message} It's kept on this page; tap Share to try again.`;
+      renderShare(true);
+    });
+  }
+  // Where to end a part: the last sentence (or else word) that fits, so no part ever passes the limit.
+  function partEnd(text) {
+    const room = text.slice(0, PART_AT);
+    const sentence = Math.max(room.lastIndexOf(". "), room.lastIndexOf("? "), room.lastIndexOf("! "));
+    if (sentence > PART_AT * 0.6) return sentence + 1;
+    const word = room.lastIndexOf(" ");
+    return word > PART_AT * 0.6 ? word : PART_AT;
+  }
   function startListening() {
     const box = $("#story-text");
-    const base = box && box.value.trim() ? box.value.trim() + " " : "";
-    let heard = "";
+    let base = box && box.value.trim() ? box.value.trim() + " " : "";
+    let heard = "", fatal = false, gotWords = false;
     const r = new SpeechRec();
     r.lang = "en-IN"; r.continuous = true; r.interimResults = true;
     r.onresult = (ev) => {
@@ -613,9 +703,14 @@
         const t = ev.results[i][0].transcript;
         if (ev.results[i].isFinal) heard += t.trim() + " "; else interim += t;
       }
+      while ((base + heard).length >= PART_AT) {
+        const all = (base + heard).trim(), cut = partEnd(all);
+        savePart(all.slice(0, cut).trim());
+        base = all.slice(cut).trim() + " "; heard = "";
+      }
       const ta = $("#story-text");
       if (ta) ta.value = (base + heard + interim).replace(/\s+$/, "");
-      if ((heard + interim).trim()) S.spoke = true;
+      if ((heard + interim).trim()) { S.spoke = true; S.quietEnds = 0; gotWords = true; }
     };
     r.onerror = (ev) => {
       const why = {
@@ -625,9 +720,18 @@
         "no-speech": "We didn't catch anything. Tap Speak and try again, or type it.",
         network: "Speaking needs an internet connection. Try again, or type it.",
       }[ev.error];
-      if (why) S.storyErr = why;
+      if (ev.error === "no-speech" || ev.error === "aborted") return; // counted when the session ends
+      if (why) { S.storyErr = why; fatal = true; }
     };
-    r.onend = () => { if (rec === r) { rec = null; S.listening = false; renderShare(true); } else if (S.storyErr) renderShare(true); };
+    r.onend = () => {
+      if (rec !== r) { if (S.storyErr) renderShare(true); return; }
+      // The browser ends a session on its own after a pause or a while: keep listening until they tap stop.
+      // Sessions that keep ending with nothing heard stop after three, with a message.
+      if (!gotWords) S.quietEnds = (S.quietEnds || 0) + 1;
+      if (!fatal && S.quietEnds >= 3) S.storyErr = S.spoke ? "Listening stopped after a quiet spell. Tap Speak to carry on, or Share." : "We didn't catch anything. Tap Speak and try again, or type it.";
+      else if (!fatal) { rec = null; startListening(); if (S.listening) return; }
+      rec = null; S.listening = false; renderShare(true);
+    };
     rec = r; S.listening = true; S.storyErr = "";
     try { r.start(); } catch (e) { rec = null; S.listening = false; S.storyErr = "We couldn't start the microphone. Type your story instead."; }
   }
@@ -636,9 +740,11 @@
     const text = keepText && ta ? ta.value : "";
     const prompts = ME.storyPrompts;
     const pr = prompts[S.promptIdx] || prompts[0];
+    // A long story (a long talk saved in parts) shows its first lines until they ask for all of it.
     const stories = S.stories.map((s) => `<li class="story" tabindex="-1">
         <p class="st-prompt">${esc(s.prompt)}</p>
-        <p class="st-text">${esc(s.text)}</p>
+        <p class="st-text ${s.text.length > 400 && !S.storyOpen.has(s.id) ? "is-clamped" : ""}" id="st-${esc(s.id)}">${esc(s.text)}</p>
+        ${s.text.length > 400 ? `<button class="btn-link st-more" type="button" data-act="story-more" data-story="${esc(s.id)}" aria-controls="st-${esc(s.id)}" aria-expanded="${S.storyOpen.has(s.id)}">${S.storyOpen.has(s.id) ? "Show less" : "Show all"}</button>` : ""}
         <p class="st-meta">${ic(s.spoken ? "mic" : "keyboard")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
       </li>`).join("");
     const asking = askingForStories(), left = ME.storiesWanted - S.stories.length;
@@ -659,6 +765,7 @@
       <label class="sr-only" for="story-text">Your story</label>
       <textarea id="story-text" rows="4" aria-describedby="prompt-text story-err" placeholder="${S.listening ? "Listening. Start talking and we'll write it here." : canSpeak() ? "Type your story, or tap Speak and talk. Where it happened, what you did, what came next." : "Type your story here: where it happened, what you did, what came next."}">${esc(text)}</textarea>
       <p class="err" id="story-err">${S.storyErr ? ic("alert") + esc(S.storyErr) : ""}</p>
+      ${S.parts.saved ? `<p class="parts-note" role="status">${ic("check-circle", "ic-sm")}${S.parts.saved === 1 ? "The first part of your story is saved." : `${S.parts.saved} parts of your story are saved.`}${S.listening ? " Keep talking." : " Share the rest when you're done."}</p>` : ""}
       <div class="share-actions">
         ${canSpeak() ? `<button class="mic" type="button" data-act="mic" aria-pressed="${S.listening}">
           <span class="mic-ring">${ic("mic")}</span>
@@ -709,9 +816,10 @@
             <p class="act-missed">Not marked as posted</p>
           </div>
           <p class="act-nums">
-            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}">${ic("copy")}Copy</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}">I posted it</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${hasPhoto(m) ? "" : ` disabled aria-describedby="phnote-${m.id}"`}>${ic("copy")}Copy</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${hasPhoto(m) ? "" : ` disabled aria-describedby="phnote-${m.id}"`}>I posted it</button>
           </p>
+          <div class="act-photo">${photoBlock(m)}</div>
           ${S.histOpen === m.id ? histPanel(m) : ""}
         </li>`).join("");
       const rows = w.posts.map((p) => {
@@ -866,6 +974,7 @@
     if (act === "tab") { if (phone.matches) showTab(b.dataset.tab); else goToSection(b.dataset.tab); return; }
     if (act === "more") { p.expanded = true; rerenderPost(id); const body = $("#body-" + id); if (body) { body.setAttribute("tabindex", "-1"); body.focus(); } return; }
     if (act === "share") {
+      if (!hasPhoto(p)) { ev.preventDefault(); return; }
       // The link itself opens LinkedIn in a new tab; the copy runs first and synchronously, before that tab takes focus.
       const text = postText(p);
       b.href = composeUrl(p);
@@ -874,7 +983,27 @@
       if (!p.copied) { p.copied = true; call({ intent: "copied", postId: id }).catch(() => {}); setTimeout(() => { rerenderPost(id); renderCover(); }, 0); }
       return;
     }
-    if (act === "shot-add") { if (S.shotBusy) return; shotFor = id; $("#shot-file").click(); return; }
+    if (act === "shot-add" || act === "photo-add") { if (S.shotBusy) return; pick = { id, kind: act === "photo-add" ? "photo" : "shot" }; $("#shot-file").click(); return; }
+    if (act === "photo-remove") {
+      b.disabled = true;
+      try {
+        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}&photo=${encodeURIComponent(b.dataset.photo)}`, { method: "DELETE", headers: { Accept: "application/json" } });
+        if (!applyView(v)) return;
+      } catch (e) { b.disabled = false; toast(e.message, "error"); return; }
+      refreshPhoto(id);
+      focusEl(`[data-act="photo-add"][data-id="${id}"]`);
+      toast(hasPhoto(imagePost(id) || {}) ? "Photo removed." : "Photo removed. The post is locked until it has a photo again.");
+      return;
+    }
+    if (act === "photo-help") {
+      b.disabled = true;
+      try { if (!applyView(await call({ intent: "photo-help", postId: id }))) return; }
+      catch (e) { b.disabled = false; toast(e.message, "error"); return; }
+      refreshPhoto(id);
+      focusEl(`[data-act="photo-add"][data-id="${id}"]`);
+      toast("Thanks. The Studojo team will add a photo to this post. You can still add your own.");
+      return;
+    }
     if (act === "shot-remove") {
       b.disabled = true;
       try {
@@ -901,6 +1030,7 @@
       return;
     }
     if (act === "copy") {
+      if (!hasPhoto(p)) return;
       const ok = await copyText(postText(p));
       if (!ok) { toast("Couldn't copy. Tap see more, then select the text.", "error"); return; }
       p.copied = true; rerenderPost(id, '[data-act="posted"]'); renderCover();
@@ -992,7 +1122,7 @@
     }
     if (act === "hist-copy") {
       const m = missedById(id);
-      if (!m) return;
+      if (!m || !hasPhoto(m)) return;
       if (!(await copyText(postText(m)))) { toast("Couldn't copy. Please try again.", "error"); return; }
       call({ intent: "copied", postId: id }).catch(() => {});
       toast("Copied. Post it on LinkedIn, then tap I posted it.");
@@ -1013,20 +1143,35 @@
     if (act === "howto") { S.howto = !S.howto; renderMilestones(); const h = $('[data-act="howto"]'); if (h) h.focus(); return; }
     if (act === "prompt-next") { S.promptIdx = (S.promptIdx + 1) % ME.storyPrompts.length; renderShare(true); $('[data-act="prompt-next"]').focus(); return; }
     if (act === "mic") {
-      if (S.listening) stopListening(); else startListening();
+      if (S.listening) stopListening(); else { S.quietEnds = 0; startListening(); }
       renderShare(true); focusEl('[data-act="mic"]');
+      return;
+    }
+    if (act === "story-more") {
+      const sid = b.dataset.story;
+      if (S.storyOpen.has(sid)) S.storyOpen.delete(sid); else S.storyOpen.add(sid);
+      renderShare(true); focusEl(`[data-act="story-more"][data-story="${sid}"]`);
       return;
     }
     if (act === "story-save") {
       if (S.listening) stopListening();
       const text = $("#story-text").value.trim();
-      if (text.length < 10) { S.storyErr = !text && S.listening ? "We didn't catch anything yet. Keep talking, or type it instead." : text ? "Write a few more words first." : "Write a few words first."; renderShare(true); $("#story-text").focus(); return; }
+      const prompt = S.parts.prompt || ME.storyPrompts[S.promptIdx] || ME.storyPrompts[0];
+      const earlier = S.parts.saved + S.parts.waiting.length;
+      if (text.length < 10 && !earlier) { S.storyErr = text ? "Write a few more words first." : "Write a few words first."; renderShare(true); $("#story-text").focus(); return; }
       b.disabled = true;
-      try { if (!applyView(await call({ intent: "story", prompt: ME.storyPrompts[S.promptIdx] || ME.storyPrompts[0], text, spoken: S.spoke }))) return; }
-      catch (e) { S.storyErr = e.message; renderShare(true); $("#story-text").focus(); return; }
-      S.listening = false; S.spoke = false; S.storyErr = ""; S.promptIdx = 0;
+      try {
+        while (S.parts.waiting.length) {
+          const v = await call({ intent: "story", prompt, text: S.parts.waiting[0], spoken: true });
+          S.parts.waiting.shift(); S.parts.saved++;
+          if (!applyView(v)) return;
+        }
+        if (text.length >= 10 && !applyView(await call({ intent: "story", prompt, text, spoken: S.spoke }))) return;
+      } catch (e) { S.storyErr = e.message; renderShare(true); $("#story-text").focus(); return; }
+      const parts = S.parts.saved + (text.length >= 10 ? 1 : 0);
+      S.listening = false; S.spoke = false; S.storyErr = ""; S.promptIdx = 0; S.parts = { saved: 0, waiting: [], prompt: null };
       renderShare(false); focusEl("#share .story");
-      toast("Story shared. Thank you, " + ME.first + ".");
+      toast(parts > 1 ? `Story shared in ${parts} parts. Thank you, ${ME.first}.` : "Story shared. Thank you, " + ME.first + ".");
       return;
     }
   });

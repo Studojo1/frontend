@@ -48,6 +48,9 @@ export interface FellowPostRow {
   comments: number | null;
   metrics_at: string | Date | null;
   screenshot_url?: string | null;
+  photo_idea?: string | null;
+  photo_url?: string | null;
+  photo_help_at?: string | Date | null;
 }
 
 export interface StoryRow {
@@ -306,14 +309,19 @@ export function tidyCourse(course: string): string {
   const rest = tidyWords(m ? t.slice(m[0].length) : t, true);
   return [degree, rest].filter(Boolean).join(" ");
 }
-// ---------------------------------------------------------------- analytics screenshots
-// Each week the fellow adds screenshots of LinkedIn's analytics for the posts they put out. They live in a
-// private blob container; ugc_creator_posts.screenshot_url holds a JSON array of "fellow-proof/<creatorId>/
-// <postId>/<token>.jpg", oldest first. A plain http(s) link the team saved there is kept as it was.
+// ---------------------------------------------------------------- the fellow's own images
+// Two kinds, both in one private blob container, each column a JSON array of refs, oldest first:
+// - analytics screenshots (screenshot_url): "fellow-proof/<creatorId>/<postId>/<token>.jpg", added each week
+//   for the posts that went out. A plain http(s) link the team saved there is kept as it was.
+// - the fellow's own photos for a post (photo_url): "fellow-proof/<creatorId>/<postId>/photo/<token>.jpg".
+//   Every post goes out with one; the team can add one from the admin panel in the same format.
 export const PROOF_CONTAINER = "fellow-proof";
 export const SHOT_TOKEN = /^\d{13}-[0-9a-f]{12}$/; // upload time in ms, then 12 random hex characters
 export const SHOTS_PER_POST = 6;
+export const PHOTOS_PER_POST = 4;
 export const SHOT_UNDO_MS = 24 * 60 * 60 * 1000; // after a day a screenshot stays: it's the proof
+export type ImageKind = "shot" | "photo";
+const KIND_DIR: Record<ImageKind, string> = { shot: "", photo: "photo/" };
 
 export function shotEntries(raw: string | null | undefined): string[] {
   const t = (raw ?? "").trim();
@@ -328,15 +336,19 @@ export function shotEntries(raw: string | null | undefined): string[] {
   }
   return /^https?:\/\//i.test(t) ? [t] : [];
 }
-export const shotBlob = (creatorId: number, postId: number, token: string) => `${creatorId}/${postId}/${token}.jpg`;
-/** The page's own screenshots on one post, by token. */
-export function shotTokens(raw: string | null | undefined, creatorId: number, postId: number): string[] {
-  const prefix = `${PROOF_CONTAINER}/${creatorId}/${postId}/`;
+export const imageBlob = (kind: ImageKind, creatorId: number, postId: number, token: string) =>
+  `${creatorId}/${postId}/${KIND_DIR[kind]}${token}.jpg`;
+export const shotBlob = (creatorId: number, postId: number, token: string) => imageBlob("shot", creatorId, postId, token);
+/** One post's images of one kind, by token (a screenshot list never includes photos, or the other way round). */
+export function imageTokens(kind: ImageKind, raw: string | null | undefined, creatorId: number, postId: number): string[] {
+  const prefix = `${PROOF_CONTAINER}/${creatorId}/${postId}/${KIND_DIR[kind]}`;
   return shotEntries(raw)
     .filter((e) => e.startsWith(prefix) && e.endsWith(".jpg"))
     .map((e) => e.slice(prefix.length, -".jpg".length))
     .filter((t) => SHOT_TOKEN.test(t));
 }
+export const shotTokens = (raw: string | null | undefined, creatorId: number, postId: number) => imageTokens("shot", raw, creatorId, postId);
+export const photoTokens = (raw: string | null | undefined, creatorId: number, postId: number) => imageTokens("photo", raw, creatorId, postId);
 
 // Year of study "Graduated" (or similar): the fellow is no longer a student, so the page never calls them one.
 const GRADUATED = /graduat|alumn|passed out|completed|working|professional/i;
@@ -416,7 +428,8 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
     if (p.status === "blocked") {
       // On hold: the page shows only that it's being updated, never the text or the team's reason.
       return { id: String(p.id), day: dowShort(due), date: due, kind: p.kind === "studojo" ? "studojo" : "personal", title: p.title, body: "",
-        status: "blocked", copiedAt: null, ownLine: null, postedAt: null, url: null, metrics: null, numbersDue: null, shots: [] as string[] };
+        status: "blocked", copiedAt: null, ownLine: null, postedAt: null, url: null, metrics: null, numbersDue: null, shots: [] as string[],
+        photoIdea: null as string | null, photos: [] as string[], photoHelp: false };
     }
     return {
       id: String(p.id),
@@ -433,6 +446,10 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       metrics: hasNumbers ? { impressions: p.impressions ?? 0, reactions: p.reactions ?? 0, comments: p.comments ?? 0 } : null,
       numbersDue: posted ? addDays(istDate(postedMs), 7) : null,
       shots: posted ? shotTokens(p.screenshot_url, fellow.id, p.id) : [],
+      photoIdea: p.photo_idea?.trim() || null,
+      photos: photoTokens(p.photo_url, fellow.id, p.id),
+      // Asked the team for a photo, and none has arrived yet.
+      photoHelp: Number.isFinite(toMs(p.photo_help_at)) && !photoTokens(p.photo_url, fellow.id, p.id).length,
     };
   };
 
@@ -453,7 +470,8 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
           .sort((a, b) => dayOf(a.due_date).localeCompare(dayOf(b.due_date)) || a.id - b.id)
           .map((p) => {
             const v = postView(p);
-            return { id: v.id, day: v.day, date: v.date, title: v.title, kind: v.kind, body: v.body, ownLine: v.ownLine };
+            return { id: v.id, day: v.day, date: v.date, title: v.title, kind: v.kind, body: v.body, ownLine: v.ownLine,
+              photoIdea: v.photoIdea, photos: v.photos, photoHelp: v.photoHelp };
           }),
         posts: ps
           .filter((p) => isPosted(p) && Number.isFinite(toMs(p.posted_at)))
@@ -547,6 +565,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       voice: true,
       uploads: true,
       shotsPerPost: SHOTS_PER_POST,
+      photosPerPost: PHOTOS_PER_POST,
     },
     me: {
       name: displayName(fellow.full_name),
