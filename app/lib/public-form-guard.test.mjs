@@ -85,4 +85,12 @@ assert.equal(ok, 30, `funnel-event burst let ${ok} through`);
   assert.equal(body.ok, true);
   assert.equal(body.success, true);
 }
+// A Growth Fellowship page address ends in a first name: "payal-..." and
+// "authora-..." must stay in the default bucket, not payment (10 a minute) or auth.
+for (const p of ["/fellowship-growth/payal-k3m9x2qa", "/api/fellowship-growth/payal-k3m9x2qa", "/api/fellowship-growth/authora-k3m9x2qa"]) {
+  const s = fakeRedis();
+  const r = await checkRateLimit(req(p), undefined, s);
+  assert.ok(r && r.allowed, `${p} was not counted`);
+  assert.deepEqual([...s.sets.keys()].map((k) => k.split(":")[1]), ["default"], `${p} went to the wrong bucket`);
+}
 console.log("public-form-guard: ok");
