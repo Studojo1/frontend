@@ -360,6 +360,12 @@ jobs:
           # so it needs no shell in the image.
           kubectl patch deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} --type strategic -p \
             '{"spec":{"template":{"spec":{"containers":[{"name":"${{ env.APP_NAME }}","lifecycle":{"preStop":{"sleep":{"seconds":10}}}}]}}}}'
+          # RIGHT-SIZE (4 Nov 2026, owner approved): the space the scheduler holds per pod, 150m/1Gi -> 100m/512Mi
+          # (use ~7-11m CPU, ~235-255Mi). Requests only: limits, replicas and the HPA stay as they are; the HPA's
+          # targets (CPU 70%, memory 80% of the request) now sit at 70m and ~410Mi, well above idle. Idempotent.
+          # web copies these from frontend on its next deploy (relaunch/site k8s/web/deployment-from-frontend.jq).
+          kubectl set resources deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            --containers=${{ env.APP_NAME }} --requests=cpu=100m,memory=512Mi
           kubectl set image deployment/${{ env.APP_NAME }} \
             ${{ env.APP_NAME }}=${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} \
             -n ${{ env.NAMESPACE }}
