@@ -276,6 +276,10 @@ const FAQ = [
     q: "Does the time you send a cold email for a job really matter?",
     a: "A little, and less than most people think. Landing in someone's working morning gives your email a fair chance to be seen, but the person you send it to and your first line matter far more. A well-timed email to a generic HR inbox still competes with a pile of applications, while a specific email to the hiring manager reaches the person who decides.",
   },
+  {
+    q: "Is 7pm too late to send a work email?",
+    a: "No, 7pm is not too late to send it, but it is often not the best time for it to be read. An email sent at 7pm usually sits unopened until the next morning, so it ends up competing with the overnight pile. If you can, write it now and schedule it for early the next working day. If you cannot schedule, send it at 7pm anyway: a slightly worse send time beats not sending, and who you reach matters far more than the hour.",
+  },
 ];
 
 export default function BestTimeToEmailReport() {
