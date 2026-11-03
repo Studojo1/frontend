@@ -461,6 +461,10 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
     if (completedWeeks >= m.weeks) return { ...m, status: "earned" as const, earnedOn: reachedOn[m.weeks - 1] ?? null };
     return { ...m, status: "later" as const, weeksToGo: m.weeks - completedWeeks };
   });
+  // Week 1 is the week of the first post the team approved onto the page, not the week they joined
+  // (the founder, 3 Nov 2026): the fellowship's clock starts when posts start arriving. Until then it's week 1.
+  const firstDue = input.posts.filter((p) => p.status === "ready" || p.status === "posted" || p.status === "blocked").map((p) => dayOf(p.due_date)).sort()[0];
+  const startWeek = firstDue ? weekOf(firstDue) : null;
   const firstOpen = milestones.find((m) => m.status === "later" && m.weeks != null);
   if (firstOpen) (firstOpen as { status: string }).status = "next";
 
@@ -621,7 +625,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       city: tidyWords(application?.city ?? ""),
       field: fellow.field ?? "",
       joined: joinedDay,
-      weekNo: Math.max(1, Math.floor(diffDays(weekOf(joinedDay), thisWeek) / 7) + 1),
+      weekNo: startWeek ? Math.max(1, Math.floor(diffDays(startWeek, thisWeek) / 7) + 1) : 1,
       cohort: cohortLabel(fellow.cohort),
       paused: fellow.status === "paused",
       connections: { now: hist.length ? hist[hist.length - 1].n : null, atJoin, history: hist },
