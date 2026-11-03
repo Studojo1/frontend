@@ -6,10 +6,13 @@
   const API = "/api/fellowship-growth/" + encodeURIComponent(SLUG);
 
   async function call(body) {
-    const opts = { headers: { Accept: "application/json" }, credentials: "omit", cache: "no-store" };
+    const opts = { headers: { Accept: "application/json" } };
     if (body) Object.assign(opts, { method: "POST", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    return send(API, opts);
+  }
+  async function send(url, opts) {
     let res;
-    try { res = await fetch(API, opts); } catch (e) { throw new Error("You seem to be offline. Check your connection and try again."); }
+    try { res = await fetch(url, Object.assign({ credentials: "omit", cache: "no-store" }, opts)); } catch (e) { throw new Error("You seem to be offline. Check your connection and try again."); }
     let data = null;
     try { data = await res.json(); } catch (e) { data = null; }
     if (!res.ok) {
@@ -76,7 +79,7 @@
     posts: ME.thisWeek.posts.map((p) => ({
       id: p.id, day: p.day, date: p.date, kind: p.kind, title: p.title, body: p.body,
       status: p.status, copied: !!p.copiedAt, ownLine: p.ownLine || "", postedAt: p.postedAt,
-      url: p.url, metrics: p.metrics, numbersDue: p.numbersDue || null,
+      url: p.url, metrics: p.metrics, numbersDue: p.numbersDue || null, shots: p.shots || [],
       panel: null, expanded: false, err: "", draft: null, lineDraft: null,
     })),
     conn: { now: ME.connections.now, atJoin: ME.connections.atJoin, history: ME.connections.history.slice(), editing: false, err: "" },
@@ -100,7 +103,7 @@
     if (v.program.today !== TODAY || ids(M.thisWeek.posts) !== ids(S.posts) || held(M.thisWeek.posts) !== held(S.posts)) { location.reload(); return false; }
     for (const sp of M.thisWeek.posts) {
       const p = byId(sp.id);
-      if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null });
+      if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null, shots: sp.shots || [] });
     }
     ME.thisWeek.due = M.thisWeek.due;
     Object.assign(ME, {
@@ -164,6 +167,117 @@
       ? `${allPosts(due, "out")} this week. Add your numbers a week after each one.`
       : "As they will look on LinkedIn. Post on LinkedIn copies the post and opens LinkedIn; if the text isn't filled in there, paste it. You post it yourself: Studojo never posts for you.";
   }
+
+  /* ---------- analytics screenshots: at the end of each week, a screenshot of LinkedIn's analytics for every post
+     that went out. Saved privately; only this page and the Studojo team can open them. */
+  const shotUrl = (id, t) => `${API}/proof?post=${encodeURIComponent(id)}&shot=${encodeURIComponent(t)}`;
+  // The server allows removing one for a day after it's added (the time is the token's first 13 digits).
+  const shotFresh = (t) => Date.now() - Number(t.slice(0, 13)) < 23.5 * 3600 * 1000;
+  const shotPost = (id) => byId(id) || ME.history.flatMap((w) => w.posts).find((p) => p.id === id);
+  function shotStrip(p) {
+    const busy = S.shotBusy && S.shotBusy.id === p.id;
+    const thumbs = p.shots.map((t, i) => `<span class="shot">
+        <a class="shot-img" href="${esc(shotUrl(p.id, t))}" target="_blank" rel="noopener"><img src="${esc(shotUrl(p.id, t))}" alt="Analytics screenshot ${i + 1}, ${esc(p.title)}" width="48" height="72" loading="lazy"></a>
+        ${shotFresh(t) ? `<button class="shot-x" type="button" data-act="shot-remove" data-id="${p.id}" data-shot="${esc(t)}" aria-label="Remove analytics screenshot ${i + 1}, ${esc(p.title)}">${ic("x")}</button>` : ""}
+      </span>`).join("");
+    const add = busy
+      ? `<span class="shot-add is-busy">Adding ${S.shotBusy.done + 1} of ${S.shotBusy.total}</span>`
+      : p.shots.length >= P.shotsPerPost ? ""
+      : `<button class="shot-add" type="button" data-act="shot-add" data-id="${p.id}" aria-label="${p.shots.length ? "Add more analytics screenshots" : "Add analytics screenshot"}, ${esc(p.title)}">${ic("image")}<span>${p.shots.length ? "Add more" : "Add screenshot"}</span></button>`;
+    return `<div class="shots-strip">${thumbs}${add}</div>`;
+  }
+  const SHOTS_HOW = `<details class="shots-how"><summary>How to take them</summary><ol>
+      <li>On LinkedIn, open the post and tap the impressions count under it (or View analytics).</li>
+      <li>Screenshot the whole analytics page. If it doesn't fit on one screen, scroll and take another: each post can have up to ${P.shotsPerPost}.</li>
+      <li>Come back here and tap Add screenshot next to that post.</li>
+    </ol></details>`;
+  // Saturday and Sunday ask for this week's posts; Monday to Friday for last week's, until they're in.
+  function shotWeek() {
+    const dow = parseD(TODAY).getUTCDay();
+    if (dow === 0 || dow === 6) return { weekend: true, sunday: dow === 0, posts: S.posts.filter((p) => p.status === "posted") };
+    const last = ME.history.find((w) => w.week === addDays(ME.thisWeek.start, -7));
+    return { weekend: false, sunday: false, posts: last ? last.posts : [] };
+  }
+  const shotsDue = () => { const w = shotWeek(); return w.posts.length > 0 && (w.weekend || w.posts.some((p) => !p.shots.length)); };
+  function renderShots() {
+    const w = shotWeek(), missing = w.posts.filter((p) => !p.shots.length).length;
+    if (!shotsDue()) {
+      $("#shots").className = "card card-pad shots";
+      $("#shots").innerHTML = `
+        <h2 class="card-title" id="shots-title">${ic("image")}Analytics screenshots, every Sunday</h2>
+        <p class="card-sub">On Sunday, add a screenshot of LinkedIn's analytics for each post you put out that week. The team uses them to see how your posts did.</p>
+        ${SHOTS_HOW}`;
+      return;
+    }
+    const title = w.weekend ? (w.sunday ? "Today: your analytics screenshots" : "Tomorrow: your analytics screenshots") : "Last week's analytics screenshots";
+    const sub = w.weekend
+      ? (missing ? `For each post you put out this week, add a screenshot of its LinkedIn analytics. ${missing} of ${w.posts.length} still ${missing === 1 ? "needs" : "need"} one.` : "Every post this week has a screenshot. Thank you. You can still add more.")
+      : `${missing} of ${w.posts.length} ${w.posts.length === 1 ? "post" : "posts"} from last week still ${missing === 1 ? "needs" : "need"} a screenshot of its LinkedIn analytics.`;
+    $("#shots").className = "card card-pad shots is-due";
+    $("#shots").innerHTML = `
+      <h2 class="card-title" id="shots-title">${ic("image")}${title}</h2>
+      <p class="card-sub">${sub}</p>
+      <ul class="shot-rows">${w.posts.map((p) => `<li class="shot-row" id="shotrow-${p.id}">
+        <p class="shot-what"><b>${esc(p.day)}</b> ${esc(p.title)}${p.shots.length ? `<span class="chip chip-good">${ic("check", "ic-xs")}${p.shots.length}</span>` : ""}</p>
+        ${shotStrip(p)}
+      </li>`).join("")}</ul>
+      ${SHOTS_HOW}`;
+  }
+  function refreshShots(id) { renderShots(); if (byId(id) && byId(id).status === "posted") rerenderPost(id); }
+
+  // Every screenshot is redrawn as a JPEG before it's sent: that drops a photo's hidden details (like where it
+  // was taken), turns iPhone HEIC into JPEG and keeps it small. A tall scrolling screenshot keeps its width,
+  // so the numbers stay readable.
+  const UNREADABLE = "That file isn't a picture the page can read. Choose a screenshot.";
+  function imageFromData(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => reject(new Error(UNREADABLE)); im.src = r.result; };
+      r.onerror = () => reject(new Error(UNREADABLE));
+      r.readAsDataURL(file);
+    });
+  }
+  async function toJpeg(file) {
+    if (file.type && !file.type.startsWith("image/")) throw new Error(UNREADABLE);
+    let img;
+    try { img = await createImageBitmap(file); } catch (e) { img = await imageFromData(file); }
+    const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+    if (!w0 || !h0) throw new Error(UNREADABLE);
+    const scale = Math.min(1, 1280 / w0, Math.sqrt(8e6 / (w0 * h0)));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(w0 * scale)); c.height = Math.max(1, Math.round(h0 * scale));
+    const g = c.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(img, 0, 0, c.width, c.height);
+    if (img.close) img.close();
+    for (const q of [0.85, 0.7, 0.55]) {
+      const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", q));
+      if (blob && blob.size <= 3 * 1024 * 1024) return blob;
+    }
+    throw new Error("That screenshot is too big to send. Try a shorter one.");
+  }
+  S.shotBusy = null;
+  let shotFor = null;
+  $("#shot-file").addEventListener("change", async () => {
+    const input = $("#shot-file"), id = shotFor, files = [...input.files];
+    input.value = ""; shotFor = null;
+    const p = id && shotPost(id);
+    if (!p || !files.length || S.shotBusy) return;
+    const take = files.slice(0, P.shotsPerPost - p.shots.length);
+    S.shotBusy = { id, done: 0, total: take.length }; refreshShots(id);
+    let added = 0, err = "";
+    for (const f of take) {
+      try {
+        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}`, { method: "POST", headers: { Accept: "application/json", "Content-Type": "image/jpeg" }, body: await toJpeg(f) });
+        if (!applyView(v)) return;
+        added++; S.shotBusy.done = added; refreshShots(id);
+      } catch (e) { err = e.message; break; }
+    }
+    S.shotBusy = null; refreshShots(id);
+    focusEl(`[data-act="shot-add"][data-id="${id}"]`);
+    if (err) toast(added ? `${plural(added, "screenshot")} added. ${err}` : err, "error");
+    else toast(files.length > take.length ? `${plural(added, "screenshot")} added. A post can have up to ${P.shotsPerPost}.` : `${added === 1 ? "Screenshot" : plural(added, "screenshot")} added. Thank you.`);
+  });
 
   /* ---------- profile card */
   function renderProfile() {
@@ -329,7 +443,8 @@
       const link = p.url
         ? `<span class="lt">${esc(shortUrl(p.url))}</span>`
         : `<button class="btn-link" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}">Add the link to your post</button>`;
-      footer = `${strip}<div class="an">${an}<div class="link-row">${ic("link", "ic-sm")}${link}</div></div>`;
+      footer = `${strip}<div class="an">${an}<div class="link-row">${ic("link", "ic-sm")}${link}</div>
+        <div class="an-shots"><p class="an-shots-label">${ic("image", "ic-sm")}Analytics screenshots</p>${shotStrip(p)}</div></div>`;
     }
 
     let panel = "";
@@ -759,6 +874,18 @@
       if (!p.copied) { p.copied = true; call({ intent: "copied", postId: id }).catch(() => {}); setTimeout(() => { rerenderPost(id); renderCover(); }, 0); }
       return;
     }
+    if (act === "shot-add") { if (S.shotBusy) return; shotFor = id; $("#shot-file").click(); return; }
+    if (act === "shot-remove") {
+      b.disabled = true;
+      try {
+        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}&shot=${encodeURIComponent(b.dataset.shot)}`, { method: "DELETE", headers: { Accept: "application/json" } });
+        if (!applyView(v)) return;
+      } catch (e) { b.disabled = false; toast(e.message, "error"); return; }
+      refreshShots(id);
+      focusEl(`[data-act="shot-add"][data-id="${id}"]`);
+      toast("Screenshot removed.");
+      return;
+    }
     if (act === "ask-no") { closeAsk(); toast("No problem. It stays here until you post it."); return; }
     if (act === "ask-yes") {
       const ap = byId(S.asking), raw = $("#ask-url").value.trim();
@@ -931,7 +1058,7 @@
      show one part of the page at a time (desktop shows everything, so the classes do nothing there). */
   const phone = matchMedia("(max-width: 759px)");
   const SECTIONS = {
-    home: ["#notice", "#ed-cover", ".learn-teaser", ".feed-head", "#posts"],
+    home: ["#notice", "#shots", "#ed-cover", ".learn-teaser", ".feed-head", "#posts"],
     learn: ["#learn"],
     stories: ["#share"], cohort: ["#news"], updates: ["#activity"], milestones: ["#milestones"], me: ["#profile"],
   };
@@ -980,7 +1107,9 @@
   $("#week-pill").hidden = false;
   if (ME.paused) { const n = $("#notice"); n.textContent = "Your fellowship is paused for now. Message the Studojo team on WhatsApp to pick it back up."; n.hidden = false; }
   if (askingForStories()) { const share = $("#share"); $("#main").insertBefore(share, $("#ed-cover")); share.classList.add("is-first"); }
-  renderTop(); renderProfile(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
+  // Screenshots that are due go first; the rest of the time the reminder sits under the story ask.
+  if (!shotsDue()) $("#main").insertBefore($("#shots"), $("#ed-cover"));
+  renderTop(); renderProfile(); renderShots(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
   showTab("home");
   $("#page").classList.add("is-ready");
   $("#main").removeAttribute("aria-busy");

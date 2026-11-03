@@ -47,6 +47,7 @@ export interface FellowPostRow {
   reactions: number | null;
   comments: number | null;
   metrics_at: string | Date | null;
+  screenshot_url?: string | null;
 }
 
 export interface StoryRow {
@@ -283,6 +284,63 @@ const displayName = (full: string) =>
   full.trim().split(/\s+/).map((w) => (w && w === w.toLowerCase() ? w[0].toUpperCase() + w.slice(1) : w)).join(" ");
 const firstNameOf = (full: string) => (displayName(full).split(" ")[0] || "").slice(0, 40);
 
+// College, city and course as LinkedIn would show them, whatever case they were typed in. Words typed
+// with capitals stay exactly as typed; only all-lower-case words change ("amity university" -> "Amity University").
+const SMALL_WORDS = new Set(["of", "and", "for", "in", "at", "the", "&"]);
+const ACRONYMS = new Set(["cse", "ece", "eee", "it", "ai", "ml", "ds", "hr"]);
+export function tidyWords(text: string, acronyms = false): string {
+  return text.trim().split(/\s+/).map((w, i) => {
+    if (acronyms && ACRONYMS.has(w.toLowerCase())) return w.toUpperCase();
+    if (!w || w !== w.toLowerCase()) return w;
+    if (i > 0 && SMALL_WORDS.has(w)) return w;
+    return w[0].toUpperCase() + w.slice(1);
+  }).join(" ");
+}
+// "Bsc", "BSC", "b.sc" -> "B.Sc."; "BTech", "B. Tech" -> "B.Tech"; "Bcom" -> "B.Com". Anything else is left as typed.
+const DEGREE = /^([bm])\.?\s?(tech|sc|com|des|e|a)\b\.?/i;
+const DEGREE_TAIL: Record<string, string> = { tech: ".Tech", sc: ".Sc.", com: ".Com", des: ".Des", e: ".E.", a: "A" };
+export function tidyCourse(course: string): string {
+  const t = course.trim();
+  const m = DEGREE.exec(t);
+  const degree = m ? m[1].toUpperCase() + DEGREE_TAIL[m[2].toLowerCase()] : "";
+  const rest = tidyWords(m ? t.slice(m[0].length) : t, true);
+  return [degree, rest].filter(Boolean).join(" ");
+}
+// ---------------------------------------------------------------- analytics screenshots
+// Each week the fellow adds screenshots of LinkedIn's analytics for the posts they put out. They live in a
+// private blob container; ugc_creator_posts.screenshot_url holds a JSON array of "fellow-proof/<creatorId>/
+// <postId>/<token>.jpg", oldest first. A plain http(s) link the team saved there is kept as it was.
+export const PROOF_CONTAINER = "fellow-proof";
+export const SHOT_TOKEN = /^\d{13}-[0-9a-f]{12}$/; // upload time in ms, then 12 random hex characters
+export const SHOTS_PER_POST = 6;
+export const SHOT_UNDO_MS = 24 * 60 * 60 * 1000; // after a day a screenshot stays: it's the proof
+
+export function shotEntries(raw: string | null | undefined): string[] {
+  const t = (raw ?? "").trim();
+  if (!t) return [];
+  if (t.startsWith("[")) {
+    try {
+      const list: unknown = JSON.parse(t);
+      return Array.isArray(list) ? list.filter((e): e is string => typeof e === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+  return /^https?:\/\//i.test(t) ? [t] : [];
+}
+export const shotBlob = (creatorId: number, postId: number, token: string) => `${creatorId}/${postId}/${token}.jpg`;
+/** The page's own screenshots on one post, by token. */
+export function shotTokens(raw: string | null | undefined, creatorId: number, postId: number): string[] {
+  const prefix = `${PROOF_CONTAINER}/${creatorId}/${postId}/`;
+  return shotEntries(raw)
+    .filter((e) => e.startsWith(prefix) && e.endsWith(".jpg"))
+    .map((e) => e.slice(prefix.length, -".jpg".length))
+    .filter((t) => SHOT_TOKEN.test(t));
+}
+
+// Year of study "Graduated" (or similar): the fellow is no longer a student, so the page never calls them one.
+const GRADUATED = /graduat|alumn|passed out|completed|working|professional/i;
+
 function initialsOf(full: string): string {
   const parts = full.trim().split(/\s+/).filter(Boolean);
   const first = parts[0]?.[0] ?? "";
@@ -358,7 +416,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
     if (p.status === "blocked") {
       // On hold: the page shows only that it's being updated, never the text or the team's reason.
       return { id: String(p.id), day: dowShort(due), date: due, kind: p.kind === "studojo" ? "studojo" : "personal", title: p.title, body: "",
-        status: "blocked", copiedAt: null, ownLine: null, postedAt: null, url: null, metrics: null, numbersDue: null };
+        status: "blocked", copiedAt: null, ownLine: null, postedAt: null, url: null, metrics: null, numbersDue: null, shots: [] as string[] };
     }
     return {
       id: String(p.id),
@@ -374,6 +432,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       url: posted ? p.post_url : null,
       metrics: hasNumbers ? { impressions: p.impressions ?? 0, reactions: p.reactions ?? 0, comments: p.comments ?? 0 } : null,
       numbersDue: posted ? addDays(istDate(postedMs), 7) : null,
+      shots: posted ? shotTokens(p.screenshot_url, fellow.id, p.id) : [],
     };
   };
 
@@ -401,7 +460,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
           .sort((a, b) => toMs(a.posted_at) - toMs(b.posted_at))
           .map((p) => {
             const v = postView(p);
-            return { id: v.id, day: v.day, title: v.title, kind: v.kind, postedAt: v.postedAt, metrics: v.metrics, numbersDue: v.numbersDue };
+            return { id: v.id, day: v.day, date: v.date, title: v.title, kind: v.kind, postedAt: v.postedAt, metrics: v.metrics, numbersDue: v.numbersDue, shots: v.shots };
           }),
       };
     });
@@ -456,14 +515,23 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
   }
   news.sort((a, b) => b.t - a.t);
 
-  const courseName = application?.course?.trim() ?? "";
-  const collegeName = fellow.college?.trim() ?? "";
-  const course = [courseName, application?.year_of_study?.trim()].filter(Boolean).join(", ");
-  const studying = courseName && collegeName ? `${courseName} student at ${collegeName}`
-    : courseName ? `${courseName} student`
-    : collegeName ? `Student at ${collegeName}`
-    : "Student";
-  const headline = [studying, "Growth Fellow at Studojo", fellow.field?.trim()].filter(Boolean).join(" | ");
+  const courseName = tidyCourse(application?.course ?? "");
+  const collegeName = tidyWords(fellow.college ?? "");
+  const year = application?.year_of_study?.trim() ?? "";
+  const graduated = GRADUATED.test(year);
+  const course = graduated ? (courseName ? `${courseName} graduate` : "Graduate") : [courseName, year].filter(Boolean).join(", ");
+  const studying = graduated
+    ? (courseName && collegeName ? `${courseName} graduate from ${collegeName}`
+      : courseName ? `${courseName} graduate`
+      : collegeName ? `Graduate of ${collegeName}`
+      : "Graduate")
+    : (courseName && collegeName ? `${courseName} student at ${collegeName}`
+      : courseName ? `${courseName} student`
+      : collegeName ? `Student at ${collegeName}`
+      : "Student");
+  // "Other" is a form choice, not something to show under their name.
+  const field = /^other$/i.test(fellow.field?.trim() ?? "") ? "" : fellow.field?.trim();
+  const headline = [studying, "Growth Fellow at Studojo", field].filter(Boolean).join(" | ");
 
   return {
     program: {
@@ -476,18 +544,18 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       studojoPerWeek: typeof rules?.studojoPerWeek === "number" ? rules.studojoPerWeek : 2,
       partnershipLabel: label,
       // Speaking a story uses the browser's own speech-to-text (the page shows it only where the browser has it).
-      // Uploading a screenshot is not live yet.
       voice: true,
-      uploads: false,
+      uploads: true,
+      shotsPerPost: SHOTS_PER_POST,
     },
     me: {
       name: displayName(fellow.full_name),
       first: firstNameOf(fellow.full_name),
       initials: initialsOf(fellow.full_name),
       headline,
-      college: fellow.college ?? "",
+      college: collegeName,
       course,
-      city: application?.city?.trim() ?? "",
+      city: tidyWords(application?.city ?? ""),
       field: fellow.field ?? "",
       joined: joinedDay,
       weekNo: Math.max(1, Math.floor(diffDays(weekOf(joinedDay), thisWeek) / 7) + 1),

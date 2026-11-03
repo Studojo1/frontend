@@ -1,8 +1,17 @@
+import { randomBytes } from "node:crypto";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 import { checkRateLimit } from "~/lib/ratelimit.server";
+import { proofStore } from "~/lib/fellow-proof.server";
 import {
   buildFellowView,
+  PROOF_CONTAINER,
+  shotBlob,
+  shotEntries,
+  shotTokens,
+  SHOT_TOKEN,
+  SHOT_UNDO_MS,
+  SHOTS_PER_POST,
   cleanPostUrl,
   cleanText,
   istDate,
@@ -67,7 +76,7 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
           .catch(() => null)
       : Promise.resolve(null),
     db.execute(sql`
-      SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at
+      SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at, screenshot_url
       FROM ugc_creator_posts
       WHERE creator_id = ${fellow.id} AND status IN ('ready', 'posted', 'blocked')
       ORDER BY due_date, id
@@ -271,4 +280,87 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
     default:
       throw new FellowInputError("Unknown request.");
   }
+}
+
+// ---------------------------------------------------------------- analytics screenshots
+
+const NOT_POSTED = "Add analytics screenshots once the post is marked as posted.";
+const NO_SHOT = "That screenshot isn't on this post.";
+export const MAX_SHOT_BYTES = 3 * 1024 * 1024;
+
+/** The post's screenshot entries, once it's this fellow's and posted; otherwise why not. */
+async function postedShots(exec: { execute: typeof db.execute }, fellow: FellowRow, id: number): Promise<string[]> {
+  const r = await exec.execute(sql`SELECT status, screenshot_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
+  const row = rows<Row>(r)[0];
+  if (!row || !["ready", "posted", "blocked"].includes(String(row.status))) throw new FellowInputError(TAKEN_BACK, 404);
+  if (row.status === "blocked") throw new FellowInputError(ON_HOLD, 409);
+  if (row.status !== "posted") throw new FellowInputError(NOT_POSTED, 409);
+  const raw = (row.screenshot_url as string | null) ?? null;
+  const entries = shotEntries(raw);
+  // Something in the column the page doesn't recognise is kept, never dropped.
+  if (raw?.trim() && !entries.length) entries.push(raw.trim());
+  if (shotTokens(raw, fellow.id, id).length >= SHOTS_PER_POST) {
+    throw new FellowInputError(`This post has ${SHOTS_PER_POST} screenshots, the most it can have. Remove one to add another.`, 409);
+  }
+  return entries;
+}
+
+/** Saves one analytics screenshot (a JPEG the page has already re-encoded) on one of the fellow's posted posts. */
+export async function addFellowShot(fellow: FellowRow, rawPostId: unknown, jpeg: Uint8Array, now = Date.now()): Promise<void> {
+  const id = postId(rawPostId);
+  if (jpeg.length < 4 || jpeg[0] !== 0xff || jpeg[1] !== 0xd8 || jpeg[2] !== 0xff) {
+    throw new FellowInputError("That file isn't a picture the page can use. Take a screenshot and try again.", 415);
+  }
+  await postedShots(db, fellow, id); // refuse early, before anything is stored
+  const blob = shotBlob(fellow.id, id, `${now}-${randomBytes(6).toString("hex")}`);
+  await proofStore.put(blob, jpeg);
+  try {
+    await withFellowLock(fellow, async (tx) => {
+      const entries = await postedShots(tx, fellow, id);
+      entries.push(`${PROOF_CONTAINER}/${blob}`);
+      await tx.execute(sql`
+        UPDATE ugc_creator_posts SET screenshot_url = ${JSON.stringify(entries)}, updated_at = now()
+        WHERE id = ${id} AND creator_id = ${fellow.id}
+      `);
+    });
+  } catch (e) {
+    await proofStore.remove(blob).catch(() => {});
+    throw e;
+  }
+}
+
+const shotToken = (v: unknown) => {
+  if (typeof v !== "string" || !SHOT_TOKEN.test(v)) throw new FellowInputError(NO_SHOT, 404);
+  return v;
+};
+
+/** Removes a screenshot the fellow added in the last day; after that it stays as proof. */
+export async function removeFellowShot(fellow: FellowRow, rawPostId: unknown, rawToken: unknown, now = Date.now()): Promise<void> {
+  const id = postId(rawPostId);
+  const token = shotToken(rawToken);
+  const blob = shotBlob(fellow.id, id, token);
+  await withFellowLock(fellow, async (tx) => {
+    const r = await tx.execute(sql`SELECT screenshot_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
+    const entries = shotEntries((rows<Row>(r)[0]?.screenshot_url as string | null) ?? null);
+    if (!entries.includes(`${PROOF_CONTAINER}/${blob}`)) throw new FellowInputError(NO_SHOT, 404);
+    if (now - Number(token.slice(0, 13)) > SHOT_UNDO_MS) {
+      throw new FellowInputError("A screenshot can be removed only in the first 24 hours. Ask the Studojo team if this one is wrong.", 409);
+    }
+    const rest = entries.filter((e) => e !== `${PROOF_CONTAINER}/${blob}`);
+    await tx.execute(sql`
+      UPDATE ugc_creator_posts SET screenshot_url = ${rest.length ? JSON.stringify(rest) : null}, updated_at = now()
+      WHERE id = ${id} AND creator_id = ${fellow.id}
+    `);
+  });
+  await proofStore.remove(blob);
+}
+
+/** One of the fellow's own screenshots, or null if it isn't on that post. */
+export async function readFellowShot(fellow: FellowRow, rawPostId: unknown, rawToken: unknown): Promise<Uint8Array | null> {
+  const id = postId(rawPostId);
+  const token = shotToken(rawToken);
+  const r = await db.execute(sql`SELECT screenshot_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
+  const raw = (rows<Row>(r)[0]?.screenshot_url as string | null) ?? null;
+  if (!shotTokens(raw, fellow.id, id).includes(token)) return null;
+  return proofStore.get(shotBlob(fellow.id, id, token));
 }

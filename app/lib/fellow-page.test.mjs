@@ -82,6 +82,13 @@ try {
   const api = await import("../routes/api.fellowship-growth.$slug.tsx");
   const pageRoute = await import("../routes/fellowship-growth.$slug.tsx");
   const splat = await import("../routes/fellowship-growth.$.tsx");
+  const proofRoute = await import("../routes/api.fellowship-growth.$slug_.proof.tsx");
+  // Screenshots go to an in-memory store here; the real one is Azure Blob (fellow-proof.server.ts).
+  const { proofStore } = await import("./fellow-proof.server.ts");
+  const stored = new Map();
+  proofStore.put = async (name, data) => { if (stored.has(name)) throw new Error("overwrite"); stored.set(name, Buffer.from(data)); };
+  proofStore.get = async (name) => stored.get(name) ?? null;
+  proofStore.remove = async (name) => { stored.delete(name); };
   appDb = (await import("./db.ts")).default;
   const { FellowInputError } = page;
   const one = async (q, params = []) => (await setup.query(q, params)).rows[0];
@@ -235,6 +242,71 @@ try {
   assert.equal(res.status, 200);
   assert.equal((await res.json()).me.thisWeek.posts.find((p) => Number(p.id) === ids.aThu).ownLine, "Thursday's line");
   assert.equal(api.headers({})["Cache-Control"], "no-store", "the .data spelling gets the same headers");
+
+  // ---------------------------------------------------------------- analytics screenshots
+  const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]);
+  const shotsOn = async (id) => JSON.parse((await one(`SELECT screenshot_url FROM ugc_creator_posts WHERE id = $1`, [id])).screenshot_url ?? "[]");
+  await refused(() => page.addFellowShot(asha, ids.aThu, JPEG), 409, "a post not yet posted");
+  await refused(() => page.addFellowShot(asha, ids.kPosted, JPEG), 404, "another fellow's post");
+  await refused(() => page.addFellowShot(asha, ids.aTue, Buffer.from("GIF89a")), 415, "not a JPEG");
+  assert.equal(stored.size, 0, "nothing is stored for a refused screenshot");
+  const t0 = Date.now();
+  await page.addFellowShot(asha, ids.aTue, JPEG, t0);
+  let shots = await shotsOn(ids.aTue);
+  assert.equal(shots.length, 1);
+  assert.match(shots[0], new RegExp(`^fellow-proof/1/${ids.aTue}/${t0}-[0-9a-f]{12}\\.jpg$`), "the stored path names the fellow, the post and the time");
+  assert.ok(stored.has(shots[0].slice("fellow-proof/".length)));
+  const token0 = shots[0].split("/").pop().slice(0, -4);
+  assert.deepEqual([...(await page.readFellowShot(asha, ids.aTue, token0))], [...JPEG], "the fellow sees their own screenshot");
+  assert.equal(await page.readFellowShot(kiran, ids.aTue, token0), null, "another fellow can't");
+  await refused(() => page.readFellowShot(asha, ids.aTue, "../../etc/passwd"), 404, "a made-up token");
+  for (let i = 1; i < 6; i++) await page.addFellowShot(asha, ids.aTue, JPEG, t0 + i);
+  await refused(() => page.addFellowShot(asha, ids.aTue, JPEG, t0 + 9), 409, "a seventh screenshot");
+  assert.equal(stored.size, 6);
+  const shotView = await page.loadFellowView(asha);
+  assert.equal(shotView.me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue).shots.length, 6, "the page lists them");
+  await refused(() => page.removeFellowShot(asha, ids.aTue, token0, t0 + 25 * 3600 * 1000), 409, "a day later a screenshot stays");
+  await refused(() => page.removeFellowShot(kiran, ids.aTue, token0, t0), 404, "another fellow can't remove it");
+  await page.removeFellowShot(asha, ids.aTue, token0, t0 + 60_000);
+  shots = await shotsOn(ids.aTue);
+  assert.equal(shots.length, 5);
+  assert.ok(!shots.some((e) => e.includes(token0)) && stored.size === 5, "removed from the post and from storage");
+  // A link the team saved in the column is kept.
+  await setup.query(`UPDATE ugc_creator_posts SET screenshot_url = 'https://example.com/numbers.png' WHERE id = $1`, [ids.aDone]);
+  await page.addFellowShot(asha, ids.aDone, JPEG, t0);
+  shots = await shotsOn(ids.aDone);
+  assert.equal(shots[0], "https://example.com/numbers.png");
+  assert.equal(shots.length, 2);
+  // Storage failing leaves the post as it was.
+  const realPut = proofStore.put;
+  proofStore.put = async () => { throw new Error("storage down"); };
+  await assert.rejects(() => page.addFellowShot(asha, ids.aDone, JPEG, t0 + 1));
+  proofStore.put = realPut;
+  assert.equal((await shotsOn(ids.aDone)).length, 2);
+
+  const PROOF = "https://studojo.com/api/fellowship-growth/";
+  const proofReq = (slug, qs, init) => new Request(`${PROOF}${slug}/proof?${qs}`, init);
+  const token1 = (await shotsOn(ids.aTue))[0].split("/").pop().slice(0, -4);
+  res = await proofRoute.loader({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aTue}&shot=${token1}`) });
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-type"), "image/jpeg");
+  assert.equal(res.headers.get("cache-control"), "private, no-store");
+  assert.equal(res.headers.get("cross-origin-resource-policy"), "same-origin");
+  res = await proofRoute.loader({ params: { slug: "kiran-p7w2m4tq" }, request: proofReq("kiran-p7w2m4tq", `post=${ids.aTue}&shot=${token1}`) });
+  assert.equal(res.status, 404, "Kiran's address can't open Asha's screenshot");
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "POST", headers: { "content-type": "multipart/form-data" }, body: JPEG }) });
+  assert.equal(res.status, 415, "image/jpeg only, so another site's form can't post here");
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "POST", headers: { "content-type": "image/jpeg" }, body: Buffer.alloc(3 * 1024 * 1024 + 1, 0xff) }) });
+  assert.equal(res.status, 413, "over 3 MB");
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "POST", headers: { "content-type": "image/jpeg" }, body: JPEG }) });
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).me.history.flatMap((w) => w.posts).find((p) => Number(p.id) === ids.aDone).shots.length, 2, "the answer is the fresh view");
+  const token2 = (await shotsOn(ids.aDone)).pop().split("/").pop().slice(0, -4);
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}&shot=${token2}`, { method: "DELETE" }) });
+  assert.equal(res.status, 200);
+  assert.equal((await shotsOn(ids.aDone)).length, 2, "removed again: the team's link and the first screenshot stay");
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "PUT", body: JPEG }) });
+  assert.equal(res.status, 405);
 
   // ---------------------------------------------------------------- the page routes
   const PAGE = "https://studojo.com/fellowship-growth/";

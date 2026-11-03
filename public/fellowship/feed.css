@@ -781,3 +781,33 @@ a.act { text-decoration: none; }
   .ask .field { font-size: 16px; min-height: 44px; }
   .ask .btn { min-height: 44px; }
 }
+
+/* ---------- analytics screenshots: the weekly card and the row on each posted post */
+.shots .card-title { display: flex; align-items: center; gap: 8px; }
+.shots .card-title .ic { color: var(--accent); flex: none; }
+.shots.is-due { box-shadow: 0 0 0 1px rgba(140, 140, 140, .2), inset 0 3px 0 var(--accent); }
+.shot-rows { margin-top: 12px; }
+.shot-row { padding: 12px 0; border-top: 1px solid var(--line); }
+.shot-what { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; line-height: 1.35; }
+.shot-what b { font-weight: 600; color: var(--ink-2); }
+.shots-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.shot { position: relative; display: block; }
+.shot-img { display: block; width: 48px; height: 72px; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px var(--line-strong); background: var(--surface-2); }
+.shot-img img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.shot-x { position: absolute; top: -8px; right: -8px; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: var(--ink); color: #fff; }
+.shot-x .ic { width: 14px; height: 14px; stroke-width: 2.4; }
+.shot-add { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px dashed var(--accent); border-radius: 999px; background: var(--surface); color: var(--accent); font-size: 14px; font-weight: 600; }
+.shot-add:hover { background: var(--accent-soft); }
+.shot-add.is-busy { border-style: solid; border-color: var(--line-strong); color: var(--ink-2); font-weight: 500; }
+.shot-add .ic { width: 18px; height: 18px; }
+.shots-how { margin-top: 12px; font-size: 13px; color: var(--ink-2); }
+.shots-how summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.shots-how ol { margin: 8px 0 0; padding-left: 20px; list-style: decimal; display: grid; gap: 4px; }
+.an-shots { padding: 10px 16px 14px; border-top: 1px solid var(--line); }
+.an-shots-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+@media (max-width: 759px) {
+  .shot-add { min-height: 44px; }
+  .shot-x { width: 28px; height: 28px; }
+  .an-shots { padding-left: 12px; padding-right: 12px; }
+  .shots-how summary { padding: 12px 0; }
+}

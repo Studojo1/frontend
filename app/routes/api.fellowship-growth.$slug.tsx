@@ -1,43 +1,17 @@
 import type { Route } from "./+types/api.fellowship-growth.$slug";
-import { normaliseSlug } from "~/lib/fellow-view";
-import { applyFellowChange, fellowRateLimit, findFellow, FellowInputError, loadFellowView } from "~/lib/fellow-page.server";
+import { API_HEADERS, fellowAt, json, logFailure, tooMany } from "~/lib/fellow-api.server";
+import { applyFellowChange, FellowInputError, loadFellowView } from "~/lib/fellow-page.server";
 
 // The Growth Fellowship student page's data: GET returns the fellow's view,
 // POST applies one change (copied, own line, posted, numbers, connections, a
 // story) and returns the fresh view. The slug in the address is the only key;
 // the fellow is never taken from the request body.
 
-const HEADERS: Record<string, string> = {
-  "Cache-Control": "no-store",
-  "X-Robots-Tag": "noindex",
-  "Referrer-Policy": "no-referrer",
-  "X-Content-Type-Options": "nosniff",
-};
-
 // The ".data" spelling of this address runs the same loader and action: send it the same headers.
-export const headers: Route.HeadersFunction = () => HEADERS;
+export const headers: Route.HeadersFunction = () => API_HEADERS;
 
 // A story is up to 8,000 characters, and one character can take up to 4 bytes.
 const MAX_BODY = 40 * 1024;
-
-const json = (data: unknown, status = 200) => Response.json(data, { status, headers: HEADERS });
-
-function logFailure(where: string, e: unknown) {
-  // Never log the error itself: the driver's message carries every bound value.
-  const err = e as { cause?: { code?: string }; code?: string; name?: string };
-  console.error(`[fellow-api] ${where} failed`, err?.cause?.code ?? err?.code ?? err?.name ?? "unknown");
-}
-
-async function tooMany(request: Request) {
-  const limit = await fellowRateLimit(request);
-  return limit && !limit.allowed ? json({ error: "Too many requests. Please wait a minute and try again." }, 429) : null;
-}
-
-async function fellowAt(rawSlug: string | undefined) {
-  const slug = normaliseSlug(rawSlug);
-  const fellow = slug ? await findFellow(slug) : null;
-  return fellow ?? json({ error: "This link isn't working. Ask the Studojo team for your link." }, 404);
-}
 
 /** The body as text, or null once it passes MAX_BODY: reading stops there, whatever the sender claims. */
 async function readCapped(request: Request): Promise<string | null> {

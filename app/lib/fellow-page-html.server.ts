@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when public/fellowship/feed.css or feed.js changes, so browsers fetch the new files. */
-export const ASSET_VERSION = "20261102f";
+export const ASSET_VERSION = "20261103a";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -35,6 +35,7 @@ const ICONS = `<svg class="sprite" width="0" height="0" aria-hidden="true" focus
     <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
     <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 16.5V12M12 16.5V7M17 16.5V9.5"/></symbol>
     <symbol id="i-share" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
     <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></symbol>
     <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 14h8"/></symbol>
@@ -195,6 +196,7 @@ const PAGE = `
 
   <main class="feed" id="main" aria-busy="true">
     <div class="notice" id="notice" hidden></div>
+    <section class="card card-pad shots" id="shots" aria-labelledby="shots-title"></section>
     <section class="card ed-cover" id="ed-cover" aria-labelledby="ed-title"></section>${LEARN_TEASER}
     <div class="feed-head">
       <div class="fh-row"><h2>This week's posts</h2><span class="chip" id="week-range"></span></div>
@@ -221,6 +223,7 @@ const PAGE = `
 </nav>
 
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<input class="sr-only" id="shot-file" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true">
 <dialog class="ask" id="ask" aria-labelledby="ask-title" aria-describedby="ask-sub">
   <h2 class="ask-title" id="ask-title">Did you post it on LinkedIn?</h2>
   <p class="ask-sub" id="ask-sub"></p>

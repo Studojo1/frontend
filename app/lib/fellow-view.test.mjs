@@ -16,6 +16,8 @@ import {
   weekOf,
   wholeNumber,
   cleanText,
+  tidyCourse,
+  tidyWords,
 } from "./fellow-view.ts";
 
 // ---------------------------------------------------------------- dates
@@ -174,6 +176,25 @@ const headlineOf = (college, course) => buildFellowView({ ...input, fellow: { ..
 assert.equal(headlineOf(null, "BBA"), "BBA student | Growth Fellow at Studojo", "no college: not 'Student at BBA'");
 assert.equal(headlineOf("Test College", null), "Student at Test College | Growth Fellow at Studojo");
 assert.equal(headlineOf(null, null), "Student | Growth Fellow at Studojo");
+
+// A graduate is never called a student, and details typed in lower case read as LinkedIn would show them.
+const meOf = (fellowBits, application) => buildFellowView({ ...input, fellow: { ...fellow, ...fellowBits }, application }, NOW).me;
+const harsh = meOf({ college: "amity university", field: "Sales / Business development" }, { course: "BSC", year_of_study: "Graduated", city: "gurugram" });
+assert.equal(harsh.headline, "B.Sc. graduate from Amity University | Growth Fellow at Studojo | Sales / Business development");
+assert.equal(harsh.course, "B.Sc. graduate");
+assert.equal(harsh.city, "Gurugram");
+assert.ok(!/student/i.test(JSON.stringify(harsh)), "a graduate's page never says student");
+assert.equal(meOf({ college: "Christ university", field: "Finance" }, { course: "Bcom financial analytics", year_of_study: "Graduated", city: "Pune" }).headline,
+  "B.Com Financial Analytics graduate from Christ University | Growth Fellow at Studojo | Finance");
+assert.equal(meOf({ college: "National institute of technology Calicut", field: "Other" }, { course: "B. Tech", year_of_study: "4th year", city: "Kozhikode" }).headline,
+  "B.Tech student at National Institute of Technology Calicut | Growth Fellow at Studojo", "'Other' isn't shown as a field");
+for (const [typed, shown] of [["Bsc", "B.Sc."], ["b.sc", "B.Sc."], ["BTech", "B.Tech"], ["B.Tech Cse", "B.Tech CSE"], ["B.E", "B.E."], ["BE", "B.E."],
+  ["BA", "BA"], ["BBA", "BBA"], ["BBA-CA", "BBA-CA"], ["MBA", "MBA"], ["M.Tech", "M.Tech"], ["BTech Electronics & Telecommunication", "B.Tech Electronics & Telecommunication"],
+  ["Bachelor of Arts", "Bachelor of Arts"], ["bachelor of arts", "Bachelor of Arts"]]) {
+  assert.equal(tidyCourse(typed), shown, typed);
+}
+assert.equal(tidyWords("KJ Somaiya Institute of Technology"), "KJ Somaiya Institute of Technology", "typed capitals stay");
+assert.equal(tidyWords("jain university banglore"), "Jain University Banglore");
 
 // Milestones the team saved in the wrong shape are skipped, never fatal.
 for (const bad of [{ trial: { weeks: 2, name: "x" } }, "2 weeks", 7, null]) {
