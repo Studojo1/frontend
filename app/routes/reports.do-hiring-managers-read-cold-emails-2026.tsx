@@ -282,6 +282,14 @@ const FAQ = [
     q: "How long should a cold email to a hiring manager be?",
     a: "Short enough to read on a phone without scrolling, roughly 60 to 120 words. That is room for one line about them, one proof point and one ask. Anything longer starts to read like a cover letter, and it gets skimmed.",
   },
+  {
+    q: "What is the success rate of cold emails?",
+    a: "There is no single reliable number, and we will not invent one. We have not found a cold email reply rate for job seekers that we can verify, so we do not quote one. For comparison, online applications are cited at roughly 0.1% to 2% success per application (The Interview Guys, April 2026). What we can say is that a short, specific email to the person who actually hires reaches a human inbox instead of a queue, and replies, while never guaranteed, have a real chance there.",
+  },
+  {
+    q: "Do cold emails still work in 2026?",
+    a: "Yes, when they are short, specific and sent to the right person. A hiring manager still owns the open seat on their team, so a relevant note that shows you understand the work is useful to them. Generic blasts and mass automated sends do not work and often land in spam. The method that holds up is one real person writing to one real person about one real role.",
+  },
 ];
 
 export default function DoHiringManagersReadColdEmailsReport() {

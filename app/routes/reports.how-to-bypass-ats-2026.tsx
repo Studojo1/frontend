@@ -290,6 +290,14 @@ const FAQ = [
     q: "Is emailing the hiring manager better than applying online?",
     a: "That is Studojo's position. A short, personal email to the person who hires puts you in front of a decision-maker instead of a queue where a typical application succeeds roughly 0.1% to 2% of the time (The Interview Guys, April 2026). Follow up once. Studojo finds the hiring manager, verifies their email, writes a personal email for that one person and sends it from your own Gmail.",
   },
+  {
+    q: "Is a 77% ATS score good?",
+    a: "It is fine, but the number matters less than you think. The match score a resume-checker tool shows is its own estimate of how your resume overlaps with one job post, not a gate a real employer runs. A 77% usually means you cover most of the role's key terms, which is good enough. Chasing a higher score by stuffing keywords makes the resume read worse to the human who actually decides.",
+  },
+  {
+    q: "How do I get a 100% ATS score?",
+    a: "You do not need to, and forcing it usually backfires. A 100% match on a checker tool means your resume mirrors one job post almost word for word, which reads as keyword stuffing to a recruiter. Cover the role's real must-have skills in plain language, keep the layout simple so the text parses cleanly, then spend your energy reaching the hiring manager directly, which no score can do for you.",
+  },
 ];
 
 export default function BypassAtsReport() {
