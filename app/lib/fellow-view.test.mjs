@@ -117,7 +117,7 @@ assert.ok(!json.includes("asha@example.com") && !json.includes("+910000000000"),
 
 assert.equal(v.program.today, "2026-10-29");
 assert.equal(v.program.weekStart, "2026-10-26");
-assert.equal(v.me.weekNo, 3, "joined in the week of 12 Oct, so this is week 3");
+assert.equal(v.me.weekNo, 3, "the first post was due in the week of 12 Oct, so this is week 3");
 assert.equal(v.me.completedWeeks, 2, "two finished weeks, not counting this one");
 assert.equal(v.me.weeklyRun, 2, "two in a row up to last week");
 assert.deepEqual(v.me.thisWeek.posts.map((p) => p.id), ["5", "6", "7"], "this week's posts in date order, no draft");
@@ -214,6 +214,14 @@ const fresh = buildFellowView({
   posts: [], connections: [], cohortFellows: [], cohortPosts: [],
 }, NOW);
 assert.equal(fresh.me.weekNo, 1, "the week they join is week 1");
+
+// Week 1 starts with the first approved post, not the day they joined (the founder, 3 Nov 2026).
+const early = { ...fellow, joined_at: "2026-10-05 10:00:00+05:30" };
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [] }, NOW).me.weekNo, 1, "joined three weeks ago with no posts yet: still week 1");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-29", "ready")] }, NOW).me.weekNo, 1, "the first post is this week: week 1");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-11-03", "ready")] }, NOW).me.weekNo, 1, "the first post is next week: still week 1");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-21", "posted"), post(21, "2026-10-29", "ready")] }, NOW).me.weekNo, 2, "the first post was last week: week 2");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-21", "draft")] }, NOW).me.weekNo, 1, "a draft doesn't start the clock");
 assert.equal(fresh.me.thisWeek.due, 0);
 assert.equal(fresh.me.weeklyRun, 0);
 assert.equal(fresh.me.completedWeeks, 0);
