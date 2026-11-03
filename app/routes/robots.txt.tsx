@@ -1,6 +1,7 @@
 import { stagingHost, STAGING_NOINDEX } from "~/lib/staging-host";
+import { robotsTxt } from "~/lib/crawl-policy";
 
-/** NOINDEX: studojo.pro (staging) asks every crawler to stay out; studojo.com's rules below are unchanged. */
+/** NOINDEX: studojo.pro (staging) asks every crawler to stay out; studojo.com's rules are app/lib/crawl-policy.ts. */
 const STAGING_ROBOTS = "User-agent: *\nDisallow: /\n";
 
 export async function loader({ request }: { request: Request }) {
@@ -9,21 +10,7 @@ export async function loader({ request }: { request: Request }) {
       headers: { "Content-Type": "text/plain", "Cache-Control": "public, max-age=3600", "X-Robots-Tag": STAGING_NOINDEX },
     });
   }
-  const baseUrl = "https://studojo.com";
-
-  const robotsTxt = `User-agent: *
-Allow: /
-
-Sitemap: ${baseUrl}/sitemap.xml
-
-# Disallow admin/API/auth routes
-Disallow: /api/
-Disallow: /auth
-Disallow: /settings
-Disallow: /account
-`;
-
-  return new Response(robotsTxt, {
+  return new Response(robotsTxt("https://studojo.com"), {
     headers: {
       "Content-Type": "text/plain",
       "Cache-Control": "public, max-age=86400, s-maxage=86400",

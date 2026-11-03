@@ -75,11 +75,8 @@ export async function loader() {
     { loc: "/reports/remote-jobs-report-who-hires-remote-freshers-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-scam-report-fake-internships-task-scams-students-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/background-verification-report-what-bgv-checks-2026", priority: "0.9", changefreq: "monthly" },
-    // Other pages. Only URLs that return 200 and robots.txt allows (no /auth).
+    // Other pages: only what app/lib/crawl-policy.ts lets search engines index (the legal pages).
     // The old products are retired and 301 to / (app/lib/retired-routes.ts).
-    { loc: "/sensei", priority: "0.6", changefreq: "monthly" },
-    { loc: "/about", priority: "0.6", changefreq: "monthly" },
-    { loc: "/contact", priority: "0.5", changefreq: "yearly" },
     { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
     { loc: "/terms", priority: "0.3", changefreq: "yearly" },
     { loc: "/refund-policy", priority: "0.3", changefreq: "yearly" },

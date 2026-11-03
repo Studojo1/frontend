@@ -7,6 +7,7 @@ import { isbot } from "isbot";
 import type { RenderToPipeableStreamOptions } from "react-dom/server";
 import { renderToPipeableStream } from "react-dom/server";
 import { markStaging } from "./lib/staging-host";
+import { markNoindex } from "./lib/crawl-policy";
 import { isB2cRequest } from "./lib/b2c-home";
 import { Sv2HostContext } from "./components/site-b2c/host";
 import { lookCookieSecure, lookForRequest, lookSetCookie } from "./lib/look";
@@ -58,8 +59,11 @@ export default function handleRequest(
     return new Response(null, { status: 301, headers: { Location: url.toString() } });
   }
 
-  // NOINDEX: on studojo.pro (staging) every page says noindex; studojo.com is untouched.
+  // NOINDEX: on studojo.pro (staging) every page says noindex, nofollow.
   markStaging(request, responseHeaders);
+  // CRAWL POLICY (app/lib/crawl-policy.ts): on studojo.com every page but the homepage, the blog, the reports and the
+  // legal pages says noindex.
+  markNoindex(request, responseHeaders);
 
   // https://httpwg.org/specs/rfc9110.html#HEAD
   if (request.method.toUpperCase() === "HEAD") {

@@ -339,7 +339,7 @@ assert.match(go, /journeyCookiesForRedirect\(request, target\)/);
   assert.equal(cleanBeacon({ step: "page_engaged", pv: PV, path: "/", sections: Array.from({ length: 40 }, (_, i) => `s${i}`) }).props.sections.length, 16);
 
   // One visitor's beacons an IST day: 200, then none until the next day.
-  const { readJourneyBeacon, underDailyCap, VISITOR_DAILY_CAP } = await import("./journey.server.ts");
+  const { isAutomatedRequest, readJourneyBeacon, underDailyCap, VISITOR_DAILY_CAP } = await import("./journey.server.ts");
   assert.equal(VISITOR_DAILY_CAP, 200);
   const capState = { day: "", counts: new Map() };
   let let_through = 0;
@@ -349,11 +349,13 @@ assert.match(go, /journeyCookiesForRedirect\(request, target\)/);
   assert.equal(underDailyCap(ID, new Date("2026-11-02T19:00:00Z"), capState), true, "a new IST day");
 
   // The route's decision, request by request.
-  const post = (body, { ua = IG_ANDROID, cookie = `stu_vid=${ID}`, site = "same-origin", host = "studojo.com" } = {}) =>
+  // A browser's sendBeacon also sends Accept-Language and Sec-Fetch-Mode (`browser: false` leaves them out).
+  const BROWSER = { "accept-language": "en-IN,en;q=0.9", "sec-fetch-mode": "no-cors" };
+  const post = (body, { ua = IG_ANDROID, cookie = `stu_vid=${ID}`, site = "same-origin", host = "studojo.com", browser = true, extra = {} } = {}) =>
     readJourneyBeacon(
       new Request(`https://${host}/api/journey`, {
         method: "POST",
-        headers: { host, "user-agent": ua, ...(cookie ? { cookie } : {}), ...(site ? { "sec-fetch-site": site } : {}), "content-type": "text/plain" },
+        headers: { host, "user-agent": ua, ...(cookie ? { cookie } : {}), ...(site ? { "sec-fetch-site": site } : {}), "content-type": "text/plain", ...(browser ? BROWSER : {}), ...extra },
         body: typeof body === "string" ? body : JSON.stringify(body),
       }),
     );
@@ -386,6 +388,32 @@ assert.match(go, /journeyCookiesForRedirect\(request, target\)/);
   const engaged = await post({ step: "page_engaged", pv: PV, path: "/", engaged_s: 12, scroll: 50, sections: ["hero"], why: "check" }, { cookie: `stu_vid=${ID}; stu_lt=${lastTouch}` });
   assert.equal(engaged.source, null, "page rows carry no source (the visitor's visited_home has it)");
   assert.equal(engaged.props.device, "mobile");
+
+  // NOT A VISIT (4 Nov 2026): a browser's user agent without what that browser always sends is a script. An app's own
+  // browser is judged by its user agent alone; Safari is not held to Sec-Fetch-Mode.
+  const CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+  assert.ok(await post(pvBody, { ua: CHROME }), "desktop Chrome with its headers");
+  assert.equal(await post(pvBody, { ua: CHROME, browser: false }), null, "Chrome's user agent, no browser headers");
+  assert.equal(await post(pvBody, { ua: CHROME, browser: false, extra: { "accept-language": "en" } }), null, "Chrome without Sec-Fetch-Mode");
+  assert.equal(await post(pvBody, { ua: CHROME, browser: false, extra: { "sec-fetch-mode": "no-cors" } }), null, "no Accept-Language");
+  assert.equal(await post(pvBody, { ua: `${CHROME} Puppeteer` }), null, "a scripted browser that says so");
+  assert.equal(await post(pvBody, { ua: CHROME.replace("Chrome/130", "HeadlessChrome/130") }), null);
+  assert.ok(await post(pvBody, { browser: false }), "Instagram's own browser: its user agent is enough");
+  assert.ok(await post(pvBody, { ua: SAFARI, browser: false, extra: { "accept-language": "en-GB" } }), "an older Safari sends no Sec-Fetch-Mode");
+  assert.ok(await post(pvBody, { ua: "Mozilla/5.0 (Linux; U; Android 10; en-US; RMX1911) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 UCBrowser/13.4.0.1306 Mobile Safari/537.36", browser: false }), "a proxy browser");
+  // A page load (visited_home) also needs an Accept with text/html.
+  const page = (headers, ua = CHROME) => isAutomatedRequest(new Request("https://studojo.com/blog/x", { headers: { host: "studojo.com", "user-agent": ua, ...headers } }), true);
+  const NAV = { accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "accept-language": "en-IN,en;q=0.9", "sec-fetch-mode": "navigate" };
+  assert.equal(page(NAV), false, "a person opening a blog post");
+  assert.equal(page({ ...NAV, accept: "*/*" }), true, "a script asking for anything");
+  assert.equal(page({ accept: "*/*" }), true, "Chrome's user agent and nothing else: 3 Nov's blog and report landings");
+  assert.equal(page({ ...NAV, "sec-fetch-mode": "" }), true);
+  assert.equal(page({}, IG_ANDROID), false, "in-app: the user agent alone");
+  assert.equal(page(NAV, "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"), true);
+  assert.match(srvSrc(), /isPrefetch\(request\.headers\) \|\| isAutomatedRequest\(request, true\)\) return;/, "visited_home uses it");
+  assert.match(srvSrc(), /if \(isAutomatedRequest\(request, false\)\) return null;/, "the beacons use it");
+  assert.match(srvSrc(), /if \(request\.method\.toUpperCase\(\) !== "GET" \|\| isBotRequest\(request\)\) return;\n\s+const url/, "the cookies keep the plain bot rule");
+  assert.match(readFileSync(`${APP}lib/journey-pages.ts`, "utf8"), /if \(navigator\.webdriver\) return;/, "a script-driven browser sends no page rows");
 
   // visited_home now says the device too; the page render passes the user agent.
   assert.match(srvSrc(), /props: \{ path: url\.pathname\.slice\(0, 200\), \.\.\.deviceProps\(request\.headers\.get\("user-agent"\)\) \}/);

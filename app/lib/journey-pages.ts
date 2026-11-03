@@ -82,6 +82,8 @@ function common(): { sw?: number; touch?: true } {
 export function sendJourney(body: Record<string, unknown>): void {
   try {
     if (readConsent() === "denied") return;
+    // A browser driven by a script (Selenium, Puppeteer, Playwright say so here) is not a visit.
+    if (navigator.webdriver) return;
     const text = JSON.stringify(body);
     let sent = false;
     try {

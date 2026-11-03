@@ -1,6 +1,6 @@
-// NOINDEX: studojo.pro (staging) says noindex on every page and asks crawlers to stay out in robots.txt;
-// studojo.com never does. The host is the request's Host header only. Calls the real handleRequest (HEAD) and the
-// real robots.txt loader.
+// NOINDEX: studojo.pro (staging) says noindex, nofollow on every page and asks crawlers to stay out in robots.txt;
+// studojo.com never gets staging's rule (its own is crawl-policy.ts, crawl-policy.test.mjs). The host is the request's
+// Host header only. Calls the real handleRequest (HEAD) and the real robots.txt loader.
 import assert from "node:assert/strict";
 import { markStaging, stagingHost, STAGING_NOINDEX } from "./staging-host.ts";
 
@@ -12,8 +12,8 @@ for (const h of ["studojo.com", "www.studojo.com", "api.studojo.com", "admin.stu
 
 const head = (host, extra = {}) => handleRequest(new Request(`https://${host}/profile/asha-rao`, { method: "HEAD", headers: { host, ...extra } }), 200, new Headers(), {}, {});
 assert.equal((await head("studojo.pro")).headers.get("x-robots-tag"), STAGING_NOINDEX, "staging pages say noindex");
-assert.equal((await head("studojo.com")).headers.get("x-robots-tag"), null, "studojo.com pages never do");
-assert.equal((await head("studojo.com", { "x-forwarded-host": "studojo.pro" })).headers.get("x-robots-tag"), null, "X-Forwarded-Host is not read");
+assert.equal((await head("studojo.com")).headers.get("x-robots-tag"), "noindex", "studojo.com pages never get staging's rule");
+assert.equal((await head("studojo.com", { "x-forwarded-host": "studojo.pro" })).headers.get("x-robots-tag"), "noindex", "X-Forwarded-Host is not read");
 assert.equal((await head("studojo.com")).headers.get("x-frame-options"), "SAMEORIGIN", "the other headers as before");
 
 const txt = async (host) => {
@@ -24,9 +24,9 @@ const pro = await txt("studojo.pro");
 assert.equal(pro.body, "User-agent: *\nDisallow: /\n");
 assert.equal(pro.tag, STAGING_NOINDEX);
 const com = await txt("studojo.com");
-assert.match(com.body, /^User-agent: \*\nAllow: \/\n/, "studojo.com still allows crawling");
+assert.notEqual(com.body, pro.body, "studojo.com never gets staging's robots.txt");
+assert.match(com.body, /\nUser-agent: \*\nAllow: \/\$\n/, "studojo.com lets search engines read the homepage");
 assert.match(com.body, /Sitemap: https:\/\/studojo\.com\/sitemap\.xml/);
-assert.doesNotMatch(com.body, /^Disallow: \/$/m, "never a blanket Disallow on studojo.com");
 assert.equal(com.tag, null);
 
 const hs = new Headers();

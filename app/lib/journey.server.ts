@@ -8,6 +8,7 @@ import {
   cookieDomainFor,
   deviceProps,
   FIRST_TOUCH_COOKIE,
+  inAppOf,
   isLandingPath,
   isPrefetch,
   journeyEnv,
@@ -231,17 +232,50 @@ export function isBotRequest(request: Request): boolean {
   return !ua || isbot(ua);
 }
 
+// A scripted browser that says so in its user agent, beyond isbot's list.
+const AUTOMATION_UA = /puppeteer|playwright|selenium|webdriver|phantomjs|headless|electron\/|lighthouse|cypress/i;
+// Browsers that load pages through their own servers or an old engine, so may not send a browser's usual headers.
+const PROXY_BROWSER_UA = /UCBrowser|UCWEB|Opera Mini|OPiOS|Puffin/i;
+
+/** Chrome 80+ or Firefox 90+ on a computer or Android: every one sends Sec-Fetch-Mode. */
+function sendsFetchMetadata(ua: string): boolean {
+  const chrome = /\bChrome\/(\d+)/.exec(ua);
+  if (chrome) return Number(chrome[1]) >= 80;
+  const firefox = /\bFirefox\/(\d+)/.exec(ua);
+  return !!firefox && Number(firefox[1]) >= 90;
+}
+
 /**
- * The event a POST /api/journey beacon asks for, or null when it is not to be written: a crawler, another site's page
- * posting here, a visitor who said no to tracking (the consent cookie the browser's rule reads), no stu_vid, or a body
- * that is not one of the allowed steps with its props (journey.ts cleanBeacon). device and inapp come from the user
- * agent; the source (stu_lt, else stu_src) goes on clicked_join only: page rows are many, and the visitor's
- * visited_home and clicked_join rows carry it (join a page row to them by visitor_id). Never throws. The route applies
- * the rate limits after this.
+ * NOT A VISIT (4 Nov 2026, the owner: "ban crawlers"): a request that is not a person's browser, so it is not counted.
+ * isBotRequest; a scripted browser's user agent; or a browser's user agent without what that browser always sends: no
+ * Accept-Language, a Chrome or Firefox with no Sec-Fetch-Mode, or (`page`, a page load) an Accept without text/html.
+ * On 3 Nov 42 desktop blog and report landings with no referrer were counted as visitors and 1 of them ran the page's
+ * script: scripts with a browser's user agent. An app's own browser (Instagram, Facebook, LinkedIn, an Android web
+ * view) or a proxy browser is judged by its user agent alone, so a person from an ad is never dropped for a header
+ * the app's view may not send. Gates visited_home and the beacons only: the stu_* cookies still go to every request
+ * isBotRequest lets through, so a person judged wrongly here keeps their source.
+ */
+export function isAutomatedRequest(request: Request, page: boolean): boolean {
+  if (isBotRequest(request)) return true;
+  const ua = request.headers.get("user-agent") ?? "";
+  if (AUTOMATION_UA.test(ua)) return true;
+  if (inAppOf(ua) !== "none" || PROXY_BROWSER_UA.test(ua)) return false;
+  if (!request.headers.get("accept-language")) return true;
+  if (!request.headers.get("sec-fetch-mode") && sendsFetchMetadata(ua)) return true;
+  return page && !(request.headers.get("accept") ?? "").includes("text/html");
+}
+
+/**
+ * The event a POST /api/journey beacon asks for, or null when it is not to be written: not a person's browser
+ * (isAutomatedRequest), another site's page posting here, a visitor who said no to tracking (the consent cookie the
+ * browser's rule reads), no stu_vid, or a body that is not one of the allowed steps with its props (journey.ts
+ * cleanBeacon). device and inapp come from the user agent; the source (stu_lt, else stu_src) goes on clicked_join
+ * only: page rows are many, and the visitor's visited_home and clicked_join rows carry it (join a page row to them by
+ * visitor_id). Never throws. The route applies the rate limits after this.
  */
 export async function readJourneyBeacon(request: Request): Promise<JourneyEvent | null> {
   try {
-    if (isBotRequest(request)) return null;
+    if (isAutomatedRequest(request, false)) return null;
     // A beacon from our own page says same-origin; anything else is someone else's page posting here.
     const site = request.headers.get("sec-fetch-site");
     if (site && site !== "same-origin") return null;
@@ -297,7 +331,7 @@ export function journeyOnPage(request: Request, responseHeaders: Headers): void 
       newId: crypto.randomUUID(),
     });
     for (const c of plan.setCookies) responseHeaders.append("Set-Cookie", c);
-    if (!isLandingPath(url.pathname) || isPrefetch(request.headers)) return;
+    if (!isLandingPath(url.pathname) || isPrefetch(request.headers) || isAutomatedRequest(request, true)) return;
     if (!firstToday(plan.visitorId, now)) return;
     recordVisitedHome(
       {
