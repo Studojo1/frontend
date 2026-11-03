@@ -1,9 +1,10 @@
 import { BlobServiceClient, StorageSharedKeyCredential, type ContainerClient } from "@azure/storage-blob";
 import { PROOF_CONTAINER } from "./fellow-view";
 
-// The fellows' LinkedIn analytics screenshots. They sit in their own container, which is private: no blob in
-// it has a public address, and the page streams each one only to its fellow (the admin panel reads them with
-// the same account key). The container is created private on first use. Each server checks it once, when it
+// The fellows' own files: their photos for posts, and LinkedIn's analytics export for each post (once,
+// analytics screenshots). They sit in their own container, which is private: no blob in it has a public
+// address, and the page streams each one only to its fellow (the admin panel reads them with the same
+// account key). The container is created private on first use. Each server checks it once, when it
 // first uses storage: if it has been opened to the public, every read and write here fails instead.
 // FELLOW_PROOF_BLOB_ENDPOINT is for a local storage emulator only; production uses the account's own address.
 
@@ -27,13 +28,13 @@ function container(): Promise<ContainerClient> {
   return ready;
 }
 
-/** Where screenshots are kept. Tests swap these three functions for an in-memory store. */
+/** Where the files are kept. Tests swap these three functions for an in-memory store. */
 export const proofStore = {
-  async put(blob: string, jpeg: Uint8Array): Promise<void> {
+  async put(blob: string, data: Uint8Array, contentType: string): Promise<void> {
     const box = await container();
     // Names are unique, so an existing blob is never overwritten.
-    await box.getBlockBlobClient(blob).uploadData(jpeg, {
-      blobHTTPHeaders: { blobContentType: "image/jpeg" },
+    await box.getBlockBlobClient(blob).uploadData(data, {
+      blobHTTPHeaders: { blobContentType: contentType },
       conditions: { ifNoneMatch: "*" },
     });
   },

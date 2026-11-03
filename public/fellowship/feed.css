@@ -783,14 +783,10 @@ a.act { text-decoration: none; }
   .ask .btn { min-height: 44px; }
 }
 
-/* ---------- analytics screenshots: the weekly card and the row on each posted post */
+/* ---------- the weekly LinkedIn analytics card, with the steps to export it (the upload buttons are shared with photos) */
 .shots .card-title { display: flex; align-items: center; gap: 8px; }
 .shots .card-title .ic { color: var(--accent); flex: none; }
 .shots.is-due { box-shadow: 0 0 0 1px rgba(140, 140, 140, .2), inset 0 3px 0 var(--accent); }
-.shot-rows { margin-top: 12px; }
-.shot-row { padding: 12px 0; border-top: 1px solid var(--line); }
-.shot-what { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; line-height: 1.35; }
-.shot-what b { font-weight: 600; color: var(--ink-2); }
 .shots-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .shot { position: relative; display: block; }
 .shot-img { display: block; width: 48px; height: 72px; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px var(--line-strong); background: var(--surface-2); }
@@ -801,16 +797,23 @@ a.act { text-decoration: none; }
 .shot-add:hover { background: var(--accent-soft); }
 .shot-add.is-busy { border-style: solid; border-color: var(--line-strong); color: var(--ink-2); font-weight: 500; }
 .shot-add .ic { width: 18px; height: 18px; }
-.shots-how { margin-top: 12px; font-size: 13px; color: var(--ink-2); }
-.shots-how summary { cursor: pointer; font-weight: 600; color: var(--accent); }
-.shots-how ol { margin: 8px 0 0; padding-left: 20px; list-style: decimal; display: grid; gap: 4px; }
-.an-shots { padding: 10px 16px 14px; border-top: 1px solid var(--line); }
-.an-shots-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.shots-steps { margin-top: 8px; padding-left: 20px; list-style: decimal; display: grid; gap: 6px; font-size: 14px; line-height: 1.4; color: var(--ink-2); }
+.shots-steps b { color: var(--ink); font-weight: 600; }
+.shots-steps .chip { margin-left: 4px; vertical-align: middle; }
+.an-upload { margin-top: 12px; }
+.an-totals { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.an-totals .ic { margin-top: 2px; flex: none; color: var(--accent); }
+.an-totals b { color: var(--ink); font-weight: 600; }
+.an-how { margin-top: 12px; font-size: 14px; color: var(--ink-2); }
+.an-how summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.an-steps { margin: 10px 0 0; padding-left: 22px; list-style: decimal; display: grid; gap: 14px; line-height: 1.45; }
+.an-steps b { color: var(--ink); font-weight: 600; }
+.an-shot { display: block; width: auto; max-width: 100%; height: auto; margin-top: 8px; border-radius: 6px; box-shadow: 0 0 0 1px var(--line-strong); background: var(--surface); }
+.an-phone { display: flex; gap: 6px; align-items: center; margin-top: 12px; font-size: 13px; }
 @media (max-width: 759px) {
   .shot-add { min-height: 44px; }
   .shot-x { width: 28px; height: 28px; }
-  .an-shots { padding-left: 12px; padding-right: 12px; }
-  .shots-how summary { padding: 12px 0; }
+  .an-how summary { padding: 12px 0; }
 }
 
 /* ---------- the fellow's own photo on each post (posts stay locked until there is one) */
@@ -835,9 +838,7 @@ a.act { text-decoration: none; }
 .act-item .act-photo { grid-column: 1 / -1; }
 .act-item .act-photo .ph { padding: 8px 0 0; border-top: 0; }
 .act-nums .btn[disabled] { pointer-events: none; }
-.shots-steps { margin-top: 8px; padding-left: 20px; list-style: decimal; display: grid; gap: 6px; font-size: 14px; line-height: 1.4; color: var(--ink-2); }
-.shots-steps b { color: var(--ink); font-weight: 600; }
-.shots-photo { display: flex; gap: 6px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--ink-2); }
+
 .parts-note { display: flex; gap: 6px; align-items: center; margin-top: 8px; font-size: 13px; color: var(--good); }
 @media (max-width: 759px) {
   .ph { padding-left: 12px; padding-right: 12px; }

@@ -79,7 +79,7 @@
     posts: ME.thisWeek.posts.map((p) => ({
       id: p.id, day: p.day, date: p.date, kind: p.kind, title: p.title, body: p.body,
       status: p.status, copied: !!p.copiedAt, ownLine: p.ownLine || "", postedAt: p.postedAt,
-      url: p.url, metrics: p.metrics, numbersDue: p.numbersDue || null, shots: p.shots || [],
+      url: p.url, metrics: p.metrics, numbersDue: p.numbersDue || null, analyticsAt: p.analyticsAt || null,
       photoIdea: p.photoIdea || "", photos: p.photos || [], photoHelp: !!p.photoHelp,
       panel: null, expanded: false, err: "", draft: null, lineDraft: null,
     })),
@@ -104,13 +104,14 @@
     if (v.program.today !== TODAY || ids(M.thisWeek.posts) !== ids(S.posts) || held(M.thisWeek.posts) !== held(S.posts)) { location.reload(); return false; }
     for (const sp of M.thisWeek.posts) {
       const p = byId(sp.id);
-      if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null, shots: sp.shots || [],
+      if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null, analyticsAt: sp.analyticsAt || null,
         photoIdea: sp.photoIdea || "", photos: sp.photos || [], photoHelp: !!sp.photoHelp });
     }
     ME.thisWeek.due = M.thisWeek.due;
     Object.assign(ME, {
       weeklyRun: M.weeklyRun, completedWeeks: M.completedWeeks, milestones: M.milestones, history: M.history,
       cohortPosition: M.cohortPosition, cohortPostedThisWeek: M.cohortPostedThisWeek, cohortSize: M.cohortSize, cohortFeed: M.cohortFeed,
+      analytics: M.analytics,
     });
     S.conn.now = M.connections.now; S.conn.atJoin = M.connections.atJoin; S.conn.history = M.connections.history.slice();
     S.stories = M.stories.slice();
@@ -166,71 +167,100 @@
     $("#week-pill").setAttribute("aria-label", `This week: ${n} of ${due} posted. ${n < due ? "Go to your next post" : "All posts done"}`);
     $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
     $("#feed-help").textContent = n >= due
-      ? `${allPosts(due, "out")} this week. Add your numbers a week after each one.`
+      ? `${allPosts(due, "out")} this week. On Sunday, upload each one's analytics from LinkedIn.`
       : "As they will look on LinkedIn. Add your own photo to each post, then tap Post on LinkedIn: it copies the post and opens LinkedIn. Add the photo there too, and paste the text if it isn't filled in. You post it yourself: Studojo never posts for you.";
   }
 
-  /* ---------- analytics screenshots: at the end of each week, a screenshot of LinkedIn's analytics for every post
-     that went out. Saved privately; only this page and the Studojo team can open them. */
-  const shotUrl = (id, t) => `${API}/proof?post=${encodeURIComponent(id)}&shot=${encodeURIComponent(t)}`;
-  // The server allows removing one for a day after it's added (the time is the token's first 13 digits).
-  const shotFresh = (t) => Date.now() - Number(t.slice(0, 13)) < 23.5 * 3600 * 1000;
-  // Any post on the page with images: this week's, last weeks' posted ones, and ones that never went up.
+  /* ---------- LinkedIn analytics: once a week, LinkedIn's analytics export for the fellow's whole account
+     (an .xlsx). Saved privately; only this page and the Studojo team can open it. Each post listed in it that
+     has its link here gets its impressions from it, so nothing needs typing. */
+  const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  // Any post on the page: this week's, last weeks' posted ones, and ones that never went up.
   const imagePost = (id) => byId(id) || ME.history.flatMap((w) => w.posts.concat(w.missed || [])).find((p) => p.id === id);
-  function shotStrip(p) {
-    const busy = S.shotBusy && S.shotBusy.id === p.id && S.shotBusy.kind === "shot";
-    const thumbs = p.shots.map((t, i) => `<span class="shot">
-        <a class="shot-img" href="${esc(shotUrl(p.id, t))}" target="_blank" rel="noopener"><img src="${esc(shotUrl(p.id, t))}" alt="Analytics screenshot ${i + 1}, ${esc(p.title)}" width="48" height="72" loading="lazy"></a>
-        ${shotFresh(t) ? `<button class="shot-x" type="button" data-act="shot-remove" data-id="${p.id}" data-shot="${esc(t)}" aria-label="Remove analytics screenshot ${i + 1}, ${esc(p.title)}">${ic("x")}</button>` : ""}
-      </span>`).join("");
-    const add = busy
-      ? `<span class="shot-add is-busy">Adding ${S.shotBusy.done + 1} of ${S.shotBusy.total}</span>`
-      : p.shots.length >= P.shotsPerPost ? ""
-      : `<button class="shot-add" type="button" data-act="shot-add" data-id="${p.id}" aria-label="${p.shots.length ? "Add more analytics screenshots" : "Add analytics screenshot"}, ${esc(p.title)}">${ic("image")}<span>${p.shots.length ? "Add more" : "Add screenshot"}</span></button>`;
-    return `<div class="shots-strip">${thumbs}${add}</div>`;
+  S.anBusy = false;
+  const upToDate = (since) => !!(ME.analytics && ME.analytics.at.slice(0, 10) >= since);
+  function analyticsButton(primary) {
+    if (S.anBusy) return `<span class="shot-add is-busy" role="status">Reading the file</span>`;
+    return `<button class="shot-add ${primary ? "is-primary" : ""}" type="button" data-act="analytics-add">${ic("upload")}<span>Upload this week's analytics</span></button>`;
   }
-  const SHOTS_HOW = `<details class="shots-how"><summary>How to take them</summary><ol>
-      <li>On LinkedIn, open the post and tap the impressions count under it (or View analytics).</li>
-      <li>Screenshot the whole analytics page. If it doesn't fit on one screen, scroll and take another: each post can have up to ${P.shotsPerPost}.</li>
-      <li>Come back here and tap Add screenshot next to that post.</li>
-    </ol></details>`;
-  // Saturday and Sunday ask for this week's posts; Monday to Friday for last week's, until they're in.
-  function shotWeek() {
+  // The steps, with LinkedIn's own screens (cropped to the buttons). The page's own copy: no link elsewhere.
+  const GUIDE = "/fellowship/guide/";
+  const shot = (file, w, h, alt) => `<img class="an-shot" src="${GUIDE}${file}" width="${w}" height="${h}" alt="${alt}" loading="lazy">`;
+  const howTo = (open) => `<details class="an-how" ${open ? "open" : ""}><summary>How to export it from LinkedIn</summary>
+      <ol class="an-steps">
+        <li><p>On a computer, open linkedin.com and go to your feed.</p></li>
+        <li><p>On the left, under your profile, click <b>Post impressions</b>.</p>${shot("export-1-impressions.png", 216, 156, "The Dashboard box on the left of the LinkedIn feed, with Post impressions marked")}</li>
+        <li><p>Click the date button at the top, choose <b>7 days</b>, then click <b>Show results</b>.</p>${shot("export-2-range.png", 347, 426, "The date menu on Content analytics, with 7 days chosen and Show results marked")}</li>
+        <li><p>Click <b>Export</b>.</p>${shot("export-3-export.png", 553, 137, "The top of Content analytics, with the Export button marked")}</li>
+        <li><p>Click <b>Confirm</b>. LinkedIn saves a file whose name ends in .xlsx.</p>${shot("export-4-confirm.png", 544, 188, "LinkedIn's Export box, with Confirm marked")}</li>
+        <li><p>Come back here, tap <b>Upload this week's analytics</b> and choose that file.</p></li>
+      </ol>
+      <p class="an-phone">${ic("info", "ic-sm")}These steps are for LinkedIn on a computer.</p>
+    </details>`;
+  function weekTotals() {
+    const a = ME.analytics;
+    if (!a || a.impressions == null) return "";
+    const span = a.periodStart && a.periodEnd ? `${fmt(a.periodStart, false)} to ${fmt(a.periodEnd, false)}` : "your last export";
+    const bits = [`<b>${nf(a.impressions)}</b> impressions`];
+    if (a.membersReached != null) bits.push(`<b>${nf(a.membersReached)}</b> people reached`);
+    if (a.newFollowers != null) bits.push(`<b>${nf(a.newFollowers)}</b> new ${a.newFollowers === 1 ? "follower" : "followers"}`);
+    return `<p class="an-totals">${ic("chart", "ic-sm")}<span>${span}: ${bits.join(", ")}</span></p>`;
+  }
+  // The weekend asks for this week's export; Monday to Friday for last week's, if it had posts and none came in since its Saturday.
+  function analyticsWeek() {
     const dow = parseD(TODAY).getUTCDay();
-    if (dow === 0 || dow === 6) return { weekend: true, sunday: dow === 0, posts: S.posts.filter((p) => p.status === "posted") };
+    if (dow === 0 || dow === 6) return { weekend: true, sunday: dow === 0, since: addDays(ME.thisWeek.start, 5), posts: S.posts.filter((p) => p.status === "posted").length };
     const last = ME.history.find((w) => w.week === addDays(ME.thisWeek.start, -7));
-    return { weekend: false, sunday: false, posts: last ? last.posts : [] };
+    return { weekend: false, sunday: false, since: addDays(ME.thisWeek.start, -2), posts: last ? last.posts.length : 0 };
   }
-  const shotsDue = () => { const w = shotWeek(); return w.posts.length > 0 && (w.weekend || w.posts.some((p) => !p.shots.length)); };
-  function renderShots() {
-    const w = shotWeek(), missing = w.posts.filter((p) => !p.shots.length).length;
-    if (!shotsDue()) {
-      $("#shots").className = "card card-pad shots";
-      $("#shots").innerHTML = `
-        <h2 class="card-title" id="shots-title">${ic("image")}Two things only you can add</h2>
+  const analyticsDue = () => { const w = analyticsWeek(); return w.posts > 0 && !upToDate(w.since); };
+  function renderAnalytics() {
+    const w = analyticsWeek(), box = $("#analytics");
+    if (!analyticsDue()) {
+      const done = w.posts > 0 && upToDate(w.since);
+      box.className = "card card-pad shots";
+      box.innerHTML = `
+        <h2 class="card-title" id="analytics-title">${ic("image")}Two things only you can add</h2>
         <ol class="shots-steps">
           <li><b>Your own photo on every post.</b> Add it on the post before you copy it: Copy and Post on LinkedIn unlock once it's there.</li>
-          <li><b>Every Sunday, analytics screenshots.</b> A screenshot of LinkedIn's analytics for each post you put out that week, so the team can see how your posts did.</li>
+          <li><b>Every Sunday, your LinkedIn analytics.</b> Export the last 7 days from LinkedIn and upload the file here. Your posts' numbers fill in from it.${done ? ` <span class="chip chip-good">${ic("check", "ic-xs")}Uploaded ${fmt(ME.analytics.at.slice(0, 10), false)}</span>` : ""}</li>
         </ol>
-        ${SHOTS_HOW}`;
+        ${weekTotals()}
+        <div class="an-upload">${analyticsButton(false)}</div>
+        ${howTo(false)}`;
       return;
     }
-    const title = w.weekend ? (w.sunday ? "Today: your analytics screenshots" : "Tomorrow: your analytics screenshots") : "Last week's analytics screenshots";
+    const title = w.weekend ? (w.sunday ? "Today: your LinkedIn analytics" : "Tomorrow: your LinkedIn analytics") : "Last week's LinkedIn analytics";
     const sub = w.weekend
-      ? (missing ? `For each post you put out this week, add a screenshot of its LinkedIn analytics. ${missing} of ${w.posts.length} still ${missing === 1 ? "needs" : "need"} one.` : "Every post this week has a screenshot. Thank you. You can still add more.")
-      : `${missing} of ${w.posts.length} ${w.posts.length === 1 ? "post" : "posts"} from last week still ${missing === 1 ? "needs" : "need"} a screenshot of its LinkedIn analytics.`;
-    $("#shots").className = "card card-pad shots is-due";
-    $("#shots").innerHTML = `
-      <h2 class="card-title" id="shots-title">${ic("image")}${title}</h2>
+      ? "Export the last 7 days from LinkedIn and upload the file here. Your posts' numbers fill in from it, and the team sees who they reached."
+      : "Last week's analytics haven't come in yet. Export the last 7 days from LinkedIn and upload the file here.";
+    box.className = "card card-pad shots is-due";
+    box.innerHTML = `
+      <h2 class="card-title" id="analytics-title">${ic("chart")}${title}</h2>
       <p class="card-sub">${sub}</p>
-      <ul class="shot-rows">${w.posts.map((p) => `<li class="shot-row" id="shotrow-${p.id}">
-        <p class="shot-what"><b>${esc(p.day)}</b> ${esc(p.title)}${p.shots.length ? `<span class="chip chip-good">${ic("check", "ic-xs")}${p.shots.length}</span>` : ""}</p>
-        ${shotStrip(p)}
-      </li>`).join("")}</ul>
-      <p class="shots-photo">${ic("image", "ic-sm")}Every post also needs your own photo before you copy it.</p>
-      ${SHOTS_HOW}`;
+      <div class="an-upload">${analyticsButton(true)}</div>
+      ${howTo(!ME.analytics)}
+      ${weekTotals()}`;
   }
-  function refreshShots(id) { renderShots(); if (byId(id) && byId(id).status === "posted") rerenderPost(id); }
+  $("#analytics-file").addEventListener("change", async () => {
+    const input = $("#analytics-file"), f = input.files[0];
+    input.value = "";
+    if (!f || S.anBusy) return;
+    // The server reads the file and says plainly if it isn't LinkedIn's export; only the size is checked here.
+    if (f.size > 5 * 1024 * 1024) { toast("That file is too big to be LinkedIn's analytics export.", "error"); return; }
+    S.anBusy = true; renderAnalytics();
+    let v;
+    try { v = await send(`${API}/analytics`, { method: "POST", headers: { Accept: "application/json", "Content-Type": XLSX }, body: f }); }
+    catch (e) { S.anBusy = false; renderAnalytics(); focusEl('[data-act="analytics-add"]'); toast(e.message, "error"); return; }
+    S.anBusy = false;
+    if (!applyView(v)) return;
+    renderAnalytics(); renderPosts(); renderActivity(); renderNews();
+    focusEl('[data-act="analytics-add"]');
+    const a = ME.analytics;
+    toast(a && a.impressions != null
+      ? `Analytics saved${a.periodStart && a.periodEnd ? ` for ${fmt(a.periodStart, false)} to ${fmt(a.periodEnd, false)}` : ""}: ${nf(a.impressions)} impressions. Thank you.`
+      : "Analytics saved. Thank you.");
+  });
 
   /* ---------- the fellow's own photo: every post goes out with one. Copy, Post on LinkedIn and I posted it
      wait for it, and the server refuses to mark a post posted without one. LinkedIn's share link carries
@@ -239,14 +269,14 @@
   const hasPhoto = (p) => !!(p.photos && p.photos.length);
   const PHOTO_IDEA = "A photo you took yourself that fits this post: you, your desk, your college, or the place it happened.";
   function photoBlock(p) {
-    const busy = S.shotBusy && S.shotBusy.id === p.id && S.shotBusy.kind === "photo";
+    const busy = S.photoBusy && S.photoBusy.id === p.id;
     const n = p.photos.length;
     const thumbs = p.photos.map((t, i) => `<span class="shot">
         <a class="shot-img ph-img" href="${esc(photoUrl(p.id, t))}" target="_blank" rel="noopener"><img src="${esc(photoUrl(p.id, t))}" alt="Your photo ${i + 1}, ${esc(p.title)}" width="64" height="64" loading="lazy"></a>
         <button class="shot-x" type="button" data-act="photo-remove" data-id="${p.id}" data-photo="${esc(t)}" aria-label="Remove photo ${i + 1}, ${esc(p.title)}">${ic("x")}</button>
       </span>`).join("");
     const add = busy
-      ? `<span class="shot-add is-busy">Adding ${S.shotBusy.done + 1} of ${S.shotBusy.total}</span>`
+      ? `<span class="shot-add is-busy">Adding ${S.photoBusy.done + 1} of ${S.photoBusy.total}</span>`
       : n >= P.photosPerPost ? ""
       : `<button class="shot-add ${n ? "" : "is-primary"}" type="button" data-act="photo-add" data-id="${p.id}" aria-label="${n ? "Add another photo" : "Add your photo"}, ${esc(p.title)}">${ic("image")}<span>${n ? "Add another" : "Add your photo"}</span></button>`;
     const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">I don't have a photo for this</button>` : "";
@@ -267,15 +297,9 @@
   }
   function refreshPhoto(id) { if (byId(id)) { rerenderPost(id); renderCover(); } else renderActivity(); }
 
-  // Every screenshot is redrawn as a JPEG before it's sent: that drops a photo's hidden details (like where it
-  // was taken), turns iPhone HEIC into JPEG and keeps it small. A tall scrolling screenshot keeps its width,
-  // so the numbers stay readable.
+  // Every photo is redrawn as a JPEG before it's sent: that drops its hidden details (like where it was
+  // taken), turns iPhone HEIC into JPEG and keeps it small: good enough for LinkedIn, 2048 px on the long side, 5 MB.
   const UNREADABLE = "That file isn't a picture the page can read. Choose another one.";
-  // Screenshots: at most 1280 px wide and 8 megapixels, 3 MB. Photos: good enough for LinkedIn, 2048 px on the long side, 5 MB.
-  const IMAGE = {
-    shot: { scale: (w, h) => Math.min(1, 1280 / w, Math.sqrt(8e6 / (w * h))), qs: [0.85, 0.7, 0.55], bytes: 3 * 1024 * 1024, big: "That screenshot is too big to send. Try a shorter one." },
-    photo: { scale: (w, h) => Math.min(1, 2048 / Math.max(w, h)), qs: [0.85, 0.75], bytes: 5 * 1024 * 1024, big: "That photo is too big to send. Try another one." },
-  };
   function imageFromData(file) {
     return new Promise((resolve, reject) => {
       const r = new FileReader();
@@ -284,52 +308,49 @@
       r.readAsDataURL(file);
     });
   }
-  async function toJpeg(file, kind) {
+  async function toJpeg(file) {
     if (file.type && !file.type.startsWith("image/")) throw new Error(UNREADABLE);
     let img;
     try { img = await createImageBitmap(file); } catch (e) { img = await imageFromData(file); }
     const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
     if (!w0 || !h0) throw new Error(UNREADABLE);
-    const scale = IMAGE[kind].scale(w0, h0);
+    const scale = Math.min(1, 2048 / Math.max(w0, h0));
     const c = document.createElement("canvas");
     c.width = Math.max(1, Math.round(w0 * scale)); c.height = Math.max(1, Math.round(h0 * scale));
     const g = c.getContext("2d");
     g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
     g.drawImage(img, 0, 0, c.width, c.height);
     if (img.close) img.close();
-    for (const q of IMAGE[kind].qs) {
+    for (const q of [0.85, 0.75]) {
       const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", q));
-      if (blob && blob.size <= IMAGE[kind].bytes) return blob;
+      if (blob && blob.size <= 5 * 1024 * 1024) return blob;
     }
-    throw new Error(IMAGE[kind].big);
+    throw new Error("That photo is too big to send. Try another one.");
   }
-  S.shotBusy = null;
-  let pick = null; // which post and which kind the file picker is for
-  $("#shot-file").addEventListener("change", async () => {
-    const input = $("#shot-file"), files = [...input.files], asked = pick;
+  S.photoBusy = null;
+  let pick = null; // which post the photo picker is for
+  $("#photo-file").addEventListener("change", async () => {
+    const input = $("#photo-file"), files = [...input.files], id = pick;
     input.value = ""; pick = null;
-    const p = asked && imagePost(asked.id);
-    if (!p || !files.length || S.shotBusy) return;
-    const { id, kind } = asked, photo = kind === "photo";
-    const had = photo ? p.photos.length : p.shots.length;
-    const take = files.slice(0, (photo ? P.photosPerPost : P.shotsPerPost) - had);
-    const refresh = () => (photo ? refreshPhoto(id) : refreshShots(id));
-    S.shotBusy = { id, kind, done: 0, total: take.length }; refresh();
+    const p = id && imagePost(id);
+    if (!p || !files.length || S.photoBusy) return;
+    const had = p.photos.length;
+    const take = files.slice(0, P.photosPerPost - had);
+    S.photoBusy = { id, done: 0, total: take.length }; refreshPhoto(id);
     let added = 0, err = "";
     for (const f of take) {
       try {
-        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}${photo ? "&kind=photo" : ""}`, { method: "POST", headers: { Accept: "application/json", "Content-Type": "image/jpeg" }, body: await toJpeg(f, kind) });
+        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}&kind=photo`, { method: "POST", headers: { Accept: "application/json", "Content-Type": "image/jpeg" }, body: await toJpeg(f) });
         if (!applyView(v)) return;
-        added++; S.shotBusy.done = added; refresh();
+        added++; S.photoBusy.done = added; refreshPhoto(id);
       } catch (e) { err = e.message; break; }
     }
-    S.shotBusy = null; refresh();
-    focusEl(`[data-act="${photo ? "photo-add" : "shot-add"}"][data-id="${id}"]`);
-    const word = photo ? "photo" : "screenshot", most = photo ? P.photosPerPost : P.shotsPerPost;
-    if (err) toast(added ? `${plural(added, word)} added. ${err}` : err, "error");
-    else if (files.length > take.length) toast(`${plural(added, word)} added. A post can have up to ${most}.`);
-    else if (photo && !had) toast("Photo added. Copy and Post on LinkedIn are unlocked.");
-    else toast(`${added === 1 ? word[0].toUpperCase() + word.slice(1) : plural(added, word)} added. Thank you.`);
+    S.photoBusy = null; refreshPhoto(id);
+    focusEl(`[data-act="photo-add"][data-id="${id}"]`);
+    if (err) toast(added ? `${plural(added, "photo")} added. ${err}` : err, "error");
+    else if (files.length > take.length) toast(`${plural(added, "photo")} added. A post can have up to ${P.photosPerPost}.`);
+    else if (!had) toast("Photo added. Copy and Post on LinkedIn are unlocked.");
+    else toast(`${added === 1 ? "Photo" : plural(added, "photo")} added. Thank you.`);
   });
 
   /* ---------- profile card */
@@ -495,17 +516,20 @@
     let footer = "";
     if (posted) {
       const m = p.metrics;
-      const strip = m ? `<div class="strip"><span class="reacts"><span class="r-dot" aria-hidden="true">${ic("thumb")}</span>${nf(m.reactions)} ${m.reactions === 1 ? "reaction" : "reactions"}</span><span>${plural(m.comments, "comment")}</span></div>` : "";
+      // Reactions and comments are unknown (null) when only impressions came in from the analytics export.
+      const strip = m && (m.reactions != null || m.comments != null) ? `<div class="strip">${m.reactions != null ? `<span class="reacts"><span class="r-dot" aria-hidden="true">${ic("thumb")}</span>${nf(m.reactions)} ${m.reactions === 1 ? "reaction" : "reactions"}</span>` : "<span></span>"}${m.comments != null ? `<span>${plural(m.comments, "comment")}</span>` : ""}</div>` : "";
       const dueIn = p.numbersDue ? diffDays(TODAY, p.numbersDue) : 0;
+      // The weekly analytics export fills the numbers in, for a post with its link; typing them is the fallback.
+      const numbersBtn = (label, cls) => `<button class="${cls}" type="button" data-act="numbers" data-id="${p.id}" aria-expanded="${p.panel === "numbers"}" aria-controls="panel-${p.id}">${label}</button>`;
       const an = m
-        ? `<div class="an-row"><span class="an-main">${ic("chart")}<span><b>${nf(m.impressions)}</b> impressions</span></span><button class="btn btn-ghost btn-sm" type="button" data-act="numbers" data-id="${p.id}" aria-expanded="${p.panel === "numbers"}" aria-controls="panel-${p.id}">Edit numbers</button></div>`
-        : `<div class="an-row"><span class="an-main">${ic("calendar")}<span>Numbers due <b>${fmt(p.numbersDue)}</b></span></span><button class="btn btn-secondary btn-sm" type="button" data-act="numbers" data-id="${p.id}" aria-expanded="${p.panel === "numbers"}" aria-controls="panel-${p.id}">Add your numbers</button></div>
-           ${dueIn > 0 ? `<p class="an-note">Numbers are taken a week after posting, once the count settles. Add them on ${dowLong(p.numbersDue)}.</p>` : ""}`;
+        ? `<div class="an-row"><span class="an-main">${ic("chart")}<span><b>${nf(m.impressions)}</b> impressions</span></span>${numbersBtn("Edit numbers", "btn btn-ghost btn-sm")}</div>
+           ${p.analyticsAt ? `<p class="an-note">From your LinkedIn analytics export, ${fmt(p.analyticsAt.slice(0, 10), false)}.</p>` : ""}`
+        : `<div class="an-row"><span class="an-main">${ic("calendar")}<span>Numbers fill in from your weekly LinkedIn export</span></span>${numbersBtn("Type them instead", "btn btn-ghost btn-sm")}</div>
+           ${p.url ? "" : `<p class="an-note">Add the link to your post below, so the export can find it.</p>`}`;
       const link = p.url
         ? `<span class="lt">${esc(shortUrl(p.url))}</span>`
         : `<button class="btn-link" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}">Add the link to your post</button>`;
-      footer = `${strip}<div class="an">${an}<div class="link-row">${ic("link", "ic-sm")}${link}</div>
-        <div class="an-shots"><p class="an-shots-label">${ic("image", "ic-sm")}Analytics screenshots</p>${shotStrip(p)}</div></div>`;
+      footer = `${strip}<div class="an">${an}<div class="link-row">${ic("link", "ic-sm")}${link}</div></div>`;
     }
 
     let panel = "";
@@ -911,8 +935,8 @@
           </div>
           ${m ? `<p class="act-nums">
             <span class="n-imp"><b>${nf(m.impressions)}</b> impressions</span>
-            <span class="n-small" title="Reactions">${ic("thumb", "ic-solid")}<span class="sr-only">Reactions:</span>${nf(m.reactions)}</span>
-            <span class="n-small" title="Comments">${ic("comment")}<span class="sr-only">Comments:</span>${nf(m.comments)}</span>
+            ${m.reactions != null ? `<span class="n-small" title="Reactions">${ic("thumb", "ic-solid")}<span class="sr-only">Reactions:</span>${nf(m.reactions)}</span>` : ""}
+            ${m.comments != null ? `<span class="n-small" title="Comments">${ic("comment")}<span class="sr-only">Comments:</span>${nf(m.comments)}</span>` : ""}
           </p>` : p.numbersDue && p.numbersDue <= TODAY
             ? `<p class="act-nums"><button class="btn btn-secondary btn-sm" type="button" data-act="hist-numbers" data-id="${p.id}" aria-expanded="${open(p.id, "numbers")}" aria-controls="hpanel-${p.id}" aria-label="Add your numbers for ${esc(p.title)}">Add your numbers</button></p>`
             : `<p class="act-nums">Numbers due ${p.numbersDue ? fmt(p.numbersDue, false) : ""}</p>`}
@@ -1062,7 +1086,8 @@
       if (!p.copied) { p.copied = true; call({ intent: "copied", postId: id }).catch(() => {}); setTimeout(() => { rerenderPost(id); renderCover(); }, 0); }
       return;
     }
-    if (act === "shot-add" || act === "photo-add") { if (S.shotBusy) return; pick = { id, kind: act === "photo-add" ? "photo" : "shot" }; $("#shot-file").click(); return; }
+    if (act === "photo-add") { if (S.photoBusy) return; pick = id; $("#photo-file").click(); return; }
+    if (act === "analytics-add") { if (!S.anBusy) $("#analytics-file").click(); return; }
     if (act === "photo-remove") {
       b.disabled = true;
       try {
@@ -1081,17 +1106,6 @@
       refreshPhoto(id);
       focusEl(`[data-act="photo-add"][data-id="${id}"]`);
       toast("Thanks. The Studojo team will add a photo to this post. You can still add your own.");
-      return;
-    }
-    if (act === "shot-remove") {
-      b.disabled = true;
-      try {
-        const v = await send(`${API}/proof?post=${encodeURIComponent(id)}&shot=${encodeURIComponent(b.dataset.shot)}`, { method: "DELETE", headers: { Accept: "application/json" } });
-        if (!applyView(v)) return;
-      } catch (e) { b.disabled = false; toast(e.message, "error"); return; }
-      refreshShots(id);
-      focusEl(`[data-act="shot-add"][data-id="${id}"]`);
-      toast("Screenshot removed.");
       return;
     }
     if (act === "ask-no") { closeAsk(); toast("No problem. It stays here until you post it."); return; }
@@ -1312,7 +1326,7 @@
      show one part of the page at a time (desktop shows everything, so the classes do nothing there). */
   const phone = matchMedia("(max-width: 759px)");
   const SECTIONS = {
-    home: ["#notice", "#shots", "#ed-cover", ".learn-teaser", ".feed-head", "#posts"],
+    home: ["#notice", "#analytics", "#ed-cover", ".learn-teaser", ".feed-head", "#posts"],
     learn: ["#learn"],
     stories: ["#share"], cohort: ["#news"], updates: ["#activity"], milestones: ["#milestones"], me: ["#profile"],
   };
@@ -1361,9 +1375,9 @@
   $("#week-pill").hidden = false;
   if (ME.paused) { const n = $("#notice"); n.textContent = "Your fellowship is paused for now. Message the Studojo team on WhatsApp to pick it back up."; n.hidden = false; }
   if (askingForStories()) { const share = $("#share"); $("#main").insertBefore(share, $("#ed-cover")); share.classList.add("is-first"); }
-  // Screenshots that are due go first; the rest of the time the reminder sits under the story ask.
-  if (!shotsDue()) $("#main").insertBefore($("#shots"), $("#ed-cover"));
-  renderTop(); renderProfile(); renderShots(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
+  // Analytics that are due go first; the rest of the time the reminder sits under the story ask.
+  if (!analyticsDue()) $("#main").insertBefore($("#analytics"), $("#ed-cover"));
+  renderTop(); renderProfile(); renderAnalytics(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
   showTab("home");
   $("#page").classList.add("is-ready");
   $("#main").removeAttribute("aria-busy");
