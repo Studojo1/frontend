@@ -303,7 +303,7 @@ assert.match(go, /journeyCookiesForRedirect\(request, target\)/);
   assert.equal(scrollMilestone(100, 0), 0);
 
   // The allow-list: the old clicked_join body still works; page_view and page_engaged keep only their own props.
-  assert.deepEqual([...BEACON_STEPS], ["clicked_join", "page_view", "page_engaged"]);
+  assert.deepEqual([...BEACON_STEPS], ["clicked_join", "page_view", "page_engaged", "inapp_seen", "inapp_escape_tried", "inapp_escape_sheet"]);
   const PV = "8c1d6b8e-6a3f-4c1b-9b7e-1a2b3c4d5e6f";
   assert.deepEqual(cleanBeacon({ cta: "start_hero", path: "/" }), { step: "clicked_join", props: { cta: "start_hero", path: "/" }, touch: false });
   assert.deepEqual(

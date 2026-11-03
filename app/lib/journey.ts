@@ -1,4 +1,5 @@
 import { isExternalReferrer } from "./attribution";
+import { INAPP_APPS } from "./inapp";
 
 // FIRST-PARTY JOURNEY (RELAUNCH, 2 Nov 2026). The contract shared with the product (Studojo1/career-agent on
 // platform.studojo.com, staging platform.studojo.pro) and the admin dashboards:
@@ -262,8 +263,16 @@ export function isJoinHref(href: string, pageOrigin: string, productOrigin: stri
 
 // ── SITE-TRACK (3 Nov 2026, the owner): page views, engagement and the device, the shared rules. ──
 
-/** The steps the browser may send to /api/journey (the allow-list). A body with no step is clicked_join. */
-export const BEACON_STEPS = ["clicked_join", "page_view", "page_engaged"] as const;
+/**
+ * The steps the browser may send to /api/journey (the allow-list). A body with no step is clicked_join.
+ * INAPP (4 Nov 2026, the owner: "for the users tapping inside Instagram or Facebook, inside of the built-in browser,
+ * instead redirect them to use it directly on Chrome or Safari"): the escape's three (components/inapp/InAppEscape.tsx),
+ * the product's names (its journey.ts): inapp_seen (a page of the site open in an app's browser, once a browser
+ * session), inapp_escape_tried (a call tap tried to open Chrome or Safari: how intent or safari) and inapp_escape_sheet
+ * (the steps shown: why manual or timeout). Their props: path, app (inapp.ts INAPP_APPS), os, cta, how, why; the
+ * server adds device and inapp as on every row.
+ */
+export const BEACON_STEPS = ["clicked_join", "page_view", "page_engaged", "inapp_seen", "inapp_escape_tried", "inapp_escape_sheet"] as const;
 export type BeaconStep = (typeof BEACON_STEPS)[number];
 
 export type Device = "mobile" | "tablet" | "desktop";
@@ -334,6 +343,9 @@ const PV_RE = /^[A-Za-z0-9_-]{8,40}$/;
 /** A data-section name: short, lower case. */
 export const SECTION_RE = /^[a-z][a-z0-9_]{0,23}$/;
 const NAVS = new Set(["load", "route", "back"]);
+const INAPP_OS = new Set(["android", "ios", "other"]);
+const INAPP_HOWS = new Set(["intent", "safari"]);
+const INAPP_WHYS = new Set(["manual", "timeout"]);
 const WHYS = new Set(["check", "hidden", "leave", "route"]);
 const MAX_ENGAGED_S = 3_600;
 
@@ -396,6 +408,16 @@ export function cleanBeacon(body: unknown): Beacon | null {
     props.nav = typeof b.nav === "string" && NAVS.has(b.nav) ? b.nav : "load";
     const ref = props.nav === "load" ? cleanRef(b.ref) : null;
     if (ref) props.ref = ref;
+  } else if (step === "inapp_seen" || step === "inapp_escape_tried" || step === "inapp_escape_sheet") {
+    // INAPP: the app and os the browser read, each from its own short list; nothing else.
+    if (typeof b.app !== "string" || !(INAPP_APPS as readonly string[]).includes(b.app)) return null;
+    props.path = path;
+    props.app = b.app;
+    if (typeof b.os === "string" && INAPP_OS.has(b.os)) props.os = b.os;
+    const cta = b.cta === undefined ? null : cleanCta(b.cta);
+    if (cta && step !== "inapp_seen") props.cta = cta;
+    if (step === "inapp_escape_tried" && typeof b.how === "string" && INAPP_HOWS.has(b.how)) props.how = b.how;
+    if (step === "inapp_escape_sheet" && typeof b.why === "string" && INAPP_WHYS.has(b.why)) props.why = b.why;
   } else {
     if (!pv) return null;
     props.pv = pv;

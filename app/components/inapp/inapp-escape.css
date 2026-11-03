@@ -1,0 +1,61 @@
+/* INAPP (4 Nov 2026, the owner: "redirect them to use it directly on Chrome or Safari"): the sheet that shows how to
+   leave an app's own browser (InAppEscape.tsx). The homepage's look (home-v3.css BORDERS-HOVER): a 1.5px ink edge on a
+   hard ink shadow, the purple pill, Satoshi, a mono purple kicker. Every rule sits under .sj-esc with its own --esc-*
+   tokens, so it looks the same on any page of the site and touches nothing else. Above the homepage's floating agent
+   (90) and the cookie notice. */
+.sj-esc {
+  --esc-ink: #171717; --esc-muted: #525252; --esc-faint: #8a8494; --esc-edge: #191a23; --esc-bw: 1.5px;
+  --esc-purple: #8b5cf6; --esc-purple-strong: #6d28d9; --esc-lilac: #f3eefc; --esc-lilac-bg: #faf5fe; --esc-hair: #e6e2ec;
+  --esc-hard: 3px 3px 0 var(--esc-edge); --esc-hard-up: 4px 4px 0 var(--esc-edge); --esc-hard-down: 1px 1px 0 var(--esc-edge);
+  --esc-cta-bg: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%);
+  --esc-cta-in: inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(76, 29, 149, .18);
+  position: fixed; inset: 0; z-index: 1000; display: flex; align-items: flex-end; justify-content: center; padding: 12px;
+  background: rgba(25, 26, 35, .45); font-family: Satoshi, system-ui, sans-serif; color: var(--esc-ink); -webkit-font-smoothing: antialiased;
+}
+@media (min-width: 641px) { .sj-esc { align-items: center; padding: 24px; } }
+.sj-esc-card {
+  position: relative; width: 100%; max-width: 440px; max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box;
+  background: #fff; border: var(--esc-bw) solid var(--esc-edge); border-radius: 22px; padding: 20px; box-shadow: var(--esc-hard);
+}
+@media (min-width: 641px) { .sj-esc-card { padding: 28px; } }
+.sj-esc-x {
+  position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 999px;
+  background: transparent; color: var(--esc-muted); cursor: pointer;
+}
+.sj-esc-x:hover { background: var(--esc-lilac); }
+.sj-esc-x:focus-visible, .sj-esc a:focus-visible, .sj-esc button:focus-visible { outline: 2px solid var(--esc-purple); outline-offset: 2px; }
+.sj-esc-who { display: flex; align-items: center; gap: 12px; padding-right: 40px; }
+.sj-esc-who img { width: 52px; height: 52px; flex: none; display: block; }
+.sj-esc-kicker {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; font-weight: 500; letter-spacing: .04em;
+  text-transform: lowercase; color: var(--esc-purple-strong);
+}
+.sj-esc-title { margin: 12px 0 0; font-size: 24px; font-weight: 500; line-height: 1.22; letter-spacing: -0.025em; text-wrap: balance; outline: none; }
+@media (min-width: 641px) { .sj-esc-title { font-size: 26px; } }
+.sj-esc-lead { margin: 8px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--esc-muted); }
+.sj-esc-steps { list-style: none; margin: 16px 0 0; padding: 16px; display: grid; gap: 10px; border-radius: 16px; background: var(--esc-lilac-bg); }
+.sj-esc-steps li { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; line-height: 1.4; color: var(--esc-ink); }
+.sj-esc-steps li span {
+  flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 999px; background: #fff;
+  box-shadow: inset 0 0 0 1px var(--esc-hair); font-size: 12.5px; font-weight: 600; color: var(--esc-purple-strong);
+}
+.sj-esc-copyline { margin: 16px 0 0; font-size: 14.5px; color: var(--esc-muted); }
+.sj-esc-acts { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 420px) { .sj-esc-acts { flex-direction: row; } }
+.sj-esc-btn, .sj-esc-btn2 {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 18px; border-radius: 999px;
+  font-family: inherit; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; text-decoration: none; cursor: pointer;
+  border: var(--esc-bw) solid var(--esc-edge); transition: transform .14s ease, box-shadow .14s ease, background-color .14s ease;
+}
+.sj-esc-btn2 { background: #fff; color: var(--esc-ink); box-shadow: var(--esc-hard); }
+.sj-esc-btn { background: var(--esc-cta-bg); color: #fff; box-shadow: var(--esc-cta-in), var(--esc-hard); }
+.sj-esc-btn2:hover { background: #f6f2ff; transform: translate(-1px, -1px); box-shadow: var(--esc-hard-up); }
+.sj-esc-btn:hover { transform: translate(-1px, -1px); box-shadow: var(--esc-cta-in), var(--esc-hard-up); }
+.sj-esc-btn2:active, .sj-esc-btn:active { transform: translate(2px, 2px); box-shadow: var(--esc-hard-down); }
+.sj-esc-err { margin: 8px 0 0; font-size: 13.5px; color: #dc2626; }
+.sj-esc-quiet { margin-top: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.sj-esc-quiet a, .sj-esc-quiet button {
+  padding: 0; border: 0; background: none; font-family: inherit; font-size: 14.5px; color: var(--esc-muted); cursor: pointer;
+  text-decoration: underline; text-decoration-color: rgba(82, 82, 82, .35); text-underline-offset: 4px;
+}
+.sj-esc-quiet a:hover, .sj-esc-quiet button:hover { color: var(--esc-ink); text-decoration-color: currentColor; }

@@ -23,6 +23,7 @@ import { onConsentChange, trackingAllowed } from "./lib/consent";
 import { trackSignedUpOnce } from "./lib/analytics";
 import { installJoinTracking } from "./lib/journey-client";
 import { installPageTracking, notePageView } from "./lib/journey-pages";
+import { InAppEscape } from "./components/inapp/InAppEscape";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
 import { isB2cRequest, isPlatformHost } from "./lib/b2c-home";
 import { googleOnlyEnabled } from "./lib/google-only";
@@ -478,6 +479,10 @@ export default function App() {
     <>
       {!projectPage && <AnalyticsInit pages={journeyPages && !onSensei} />}
       <Outlet />
+      {/* INAPP (4 Nov 2026, the owner: "redirect them to use it directly on Chrome or Safari"): in an app's own browser
+          (Instagram, Facebook...), a call start opens in Chrome or Safari instead (components/inapp/InAppEscape.tsx).
+          The site's own hosts only, as the page tracking. */}
+      {journeyPages && !onSensei && !projectPage && <InAppEscape />}
       {!onSensei && !projectPage && <CookieNotice />}
       {!onSensei && !projectPage && <PolicyUpdateNotice />}
     </>
