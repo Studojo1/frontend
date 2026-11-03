@@ -1,19 +1,29 @@
 import crypto from "node:crypto";
 import { isbot } from "isbot";
 import { Pool, type PoolClient } from "pg";
+import { consentFromCookie } from "./consent";
 import {
+  type BeaconStep,
+  cleanBeacon,
   cookieDomainFor,
+  deviceProps,
+  FIRST_TOUCH_COOKIE,
   isLandingPath,
   isPrefetch,
   journeyEnv,
+  LAST_TOUCH_COOKIE,
   parseCookies,
   planCookies,
+  readSource,
   type Source,
+  validVisitorId,
+  VISITOR_COOKIE,
 } from "./journey";
 
 // FIRST-PARTY JOURNEY, the server half (contract in app/lib/journey.ts). Two jobs:
 //   1. every page load (entry.server.tsx) sets stu_vid, stu_src and stu_lt on the parent domain;
-//   2. INSERTs visited_home and clicked_join into career_agent.career_journey_events.
+//   2. INSERTs visited_home, clicked_join and (SITE-TRACK) page_view and page_engaged into
+//      career_agent.career_journey_events.
 // An INSERT never throws and never holds a page: it runs after the response is under way, on its own small pool
 // with short timeouts, so a slow or missing database cannot take connections from sign-in. Until the product creates
 // the table (42P01) every write is skipped quietly, checked again at most once a minute.
@@ -45,7 +55,7 @@ let warned = false;
 export type JourneyEvent = {
   env: "prod" | "staging";
   visitorId: string;
-  step: "visited_home" | "clicked_join";
+  step: "visited_home" | BeaconStep;
   props: Record<string, unknown>;
   source: Source | null;
 };
@@ -191,10 +201,74 @@ export function recordVisitedHome(e: JourneyEvent, now: Date): void {
   }
 }
 
+// SITE-TRACK (3 Nov 2026, the owner): how many beacons one visitor may send an IST day (POST /api/journey). A real
+// visit sends a page_view and a few page_engaged a page; 200 is far above any person and stops a loop or a script
+// early. Per process, like firstToday: web runs 2 pods, so the most a visitor can write is twice this.
+export const VISITOR_DAILY_CAP = 200;
+const sentToday = { day: "", counts: new Map<string, number>() };
+
+/** Counts one beacon for the visitor; false once they have sent `cap` this IST day (on this process). */
+export function underDailyCap(
+  visitorId: string,
+  now: Date,
+  state: { day: string; counts: Map<string, number> } = sentToday,
+  cap: number = VISITOR_DAILY_CAP,
+): boolean {
+  const day = istDay(now);
+  if (state.day !== day || state.counts.size > 50_000) {
+    state.day = day;
+    state.counts.clear();
+  }
+  const n = state.counts.get(visitorId) ?? 0;
+  if (n >= cap) return false;
+  state.counts.set(visitorId, n + 1);
+  return true;
+}
+
 /** A crawler, or no browser at all. */
 export function isBotRequest(request: Request): boolean {
   const ua = request.headers.get("user-agent") ?? "";
   return !ua || isbot(ua);
+}
+
+/**
+ * The event a POST /api/journey beacon asks for, or null when it is not to be written: a crawler, another site's page
+ * posting here, a visitor who said no to tracking (the consent cookie the browser's rule reads), no stu_vid, or a body
+ * that is not one of the allowed steps with its props (journey.ts cleanBeacon). device and inapp come from the user
+ * agent; the source (stu_lt, else stu_src) goes on clicked_join only: page rows are many, and the visitor's
+ * visited_home and clicked_join rows carry it (join a page row to them by visitor_id). Never throws. The route applies
+ * the rate limits after this.
+ */
+export async function readJourneyBeacon(request: Request): Promise<JourneyEvent | null> {
+  try {
+    if (isBotRequest(request)) return null;
+    // A beacon from our own page says same-origin; anything else is someone else's page posting here.
+    const site = request.headers.get("sec-fetch-site");
+    if (site && site !== "same-origin") return null;
+    const cookieHeader = request.headers.get("cookie");
+    if (consentFromCookie(cookieHeader) === "denied") return null;
+    const cookies = parseCookies(cookieHeader);
+    const visitorId = cookies.get(VISITOR_COOKIE);
+    if (!validVisitorId(visitorId)) return null;
+    let body: unknown = null;
+    try {
+      body = JSON.parse((await request.text()).slice(0, 2_000));
+    } catch {
+      return null;
+    }
+    const beacon = cleanBeacon(body);
+    if (!beacon) return null;
+    const join = beacon.step === "clicked_join";
+    return {
+      env: journeyEnv(request.headers.get("host")),
+      visitorId,
+      step: beacon.step,
+      props: { ...beacon.props, ...deviceProps(request.headers.get("user-agent"), beacon.touch) },
+      source: join ? (readSource(cookies.get(LAST_TOUCH_COOKIE)) ?? readSource(cookies.get(FIRST_TOUCH_COOKIE))) : null,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function cookieSecure(host: string): boolean {
@@ -230,7 +304,8 @@ export function journeyOnPage(request: Request, responseHeaders: Headers): void 
         env: journeyEnv(host),
         visitorId: plan.visitorId,
         step: "visited_home",
-        props: { path: url.pathname.slice(0, 200) },
+        // SITE-TRACK (3 Nov 2026, the owner: "the device type isn't being saved"): device and in-app browser too.
+        props: { path: url.pathname.slice(0, 200), ...deviceProps(request.headers.get("user-agent")) },
         source: plan.source,
       },
       now,

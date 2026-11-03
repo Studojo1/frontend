@@ -1,12 +1,15 @@
 import { capturePostHog } from "./posthog";
 import { trackMeta } from "./meta-pixel";
 import { readConsent } from "./consent";
-import { isJoinHref } from "./journey";
+import { isJoinHref, widthBucket } from "./journey";
+import { noteJoinClick, sendJourney } from "./journey-pages";
 import { productOrigin } from "./product-origin";
 
 // FIRST-PARTY JOURNEY, the browser half (contract in app/lib/journey.ts): one listener for the whole site. A click on
 // any join or start CTA sends
-//   - clicked_join to our own /api/journey (navigator.sendBeacon, survives the page leaving), props {cta, path};
+//   - clicked_join to our own /api/journey (navigator.sendBeacon, survives the page leaving), props {cta, path}, and
+//     (SITE-TRACK, 3 Nov 2026) pv, the page view it happened on, cta_seen, whether a start button had been on screen
+//     before this click (journey-pages.ts), and sw, the viewport width bucket; the server adds device and inapp;
 //   - clicked_join to PostHog;
 //   - Meta Lead, once per browser session, browser pixel and the server copy (/api/meta-event) with one event_id so
 //     Meta keeps one. trackMeta applies the host gate (studojo.com, ?fbdebug elsewhere) and the consent rule.
@@ -44,16 +47,11 @@ export function reportJoin(cta: string): void {
   try {
     if (readConsent() === "denied") return;
     const path = window.location.pathname;
-    const body = JSON.stringify({ cta: cta.slice(0, 64), path });
-    let sent = false;
-    try {
-      sent = typeof navigator.sendBeacon === "function" && navigator.sendBeacon("/api/journey", new Blob([body], { type: "text/plain" }));
-    } catch {
-      sent = false;
-    }
-    if (!sent) {
-      void fetch("/api/journey", { method: "POST", body, keepalive: true, credentials: "same-origin", headers: { "Content-Type": "text/plain" } }).catch(() => {});
-    }
+    const seen = noteJoinClick(cta, cta.startsWith("start_"));
+    const sw = widthBucket(window.innerWidth);
+    const touch = (navigator.maxTouchPoints ?? 0) > 1;
+    // sendJourney: navigator.sendBeacon("/api/journey", ...), else a keepalive fetch (journey-pages.ts).
+    sendJourney({ cta: cta.slice(0, 64), path, ...seen, ...(sw !== null ? { sw } : {}), ...(touch ? { touch } : {}) });
     capturePostHog("clicked_join", { cta, path });
     let leadSent = false;
     try {

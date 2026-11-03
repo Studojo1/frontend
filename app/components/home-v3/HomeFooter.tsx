@@ -94,7 +94,7 @@ function FootItem({ label, href, icon }: FootLink) {
 
 export function HomeFooter() {
   return (
-    <footer className="hv-foot hv3-foot">
+    <footer className="hv-foot hv3-foot" data-section="footer">
       <link rel="stylesheet" href={footCss} precedence="default" />
       <div className="hv-foot-cta hv3-foot-cta" data-reveal>
         <StuArt />

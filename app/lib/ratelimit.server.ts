@@ -49,6 +49,9 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   // Anonymous analytics endpoints (/api/funnel-event writes a row per call,
   // /api/meta-event forwards to Meta), per IP (audit ST-N12).
   tracking: { requests: 30, window: 60 },
+  // SITE-TRACK (3 Nov 2026, the owner): /api/journey in a bucket of its own, per IP. A visit now sends a page_view and
+  // a few page_engaged a page as well as its clicks, and they must never use up the Meta relay's 30 a minute.
+  journey: { requests: 60, window: 60 },
   // Unauthenticated public forms (contact, newsletter, consultation, Sensei
   // ticket, campus ambassador, webinar), per IP and per route (audit AS-N05).
   // Generous enough for a campus of students on one wifi, far below a flood.
@@ -71,7 +74,10 @@ export const PUBLIC_FORM_PATHS = new Set([
 ]);
 
 function getEndpointType(path: string): string {
-  if (path === "/api/funnel-event" || path === "/api/meta-event" || path === "/api/journey") {
+  if (path === "/api/journey") {
+    return "journey";
+  }
+  if (path === "/api/funnel-event" || path === "/api/meta-event") {
     return "tracking";
   }
   if (PUBLIC_FORM_PATHS.has(path)) {

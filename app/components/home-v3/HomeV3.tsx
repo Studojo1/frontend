@@ -28,6 +28,9 @@ import { WhyEmail } from "./WhyEmail";
 // ?stu=circle puts Stu back on the h1 purple disc, for the owner to compare (hv-stu-circle); the default has none.
 // Its stylesheet is linked here, by this component (React hoists it into <head>, also in the server's HTML), not
 // imported into the route: so studojo.com's homepage, which never renders HomeV3, links no new stylesheet at all.
+// SITE-TRACK (3 Nov 2026, the owner: "what they looked at"): each part of the page names itself for the journey log,
+// data-section hero, how, why, proof, faq and footer (app/lib/journey-pages.ts records each one seen for a second);
+// an attribute only, nothing on screen changes.
 
 export function HomeV3() {
   const { search } = useLocation();

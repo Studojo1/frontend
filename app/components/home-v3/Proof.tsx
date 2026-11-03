@@ -72,7 +72,7 @@ function Company({ name, domain }: { name: string; domain: string }) {
 
 export function Proof() {
   return (
-    <section className="hv-sec hv3-sec" id="proof" aria-labelledby="proof-h">
+    <section className="hv-sec hv3-sec" id="proof" aria-labelledby="proof-h" data-section="proof">
       <div className="hv3-in">
         <header className="hv3-head" data-reveal>
           <h2 className="hv3-h2" id="proof-h">We know where the jobs are, and who&apos;s hiring</h2>

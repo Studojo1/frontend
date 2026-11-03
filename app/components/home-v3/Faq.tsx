@@ -60,7 +60,7 @@ const QA: { q: string; a: string }[] = [
 
 export function Faq() {
   return (
-    <section className="hv-sec hv3-sec" id="faq" aria-labelledby="faq-h">
+    <section className="hv-sec hv3-sec" id="faq" aria-labelledby="faq-h" data-section="faq">
       <div className="hv3-in hv3-narrow">
         <header className="hv3-head" data-reveal>
           <h2 className="hv3-h2" id="faq-h">Questions people ask</h2>

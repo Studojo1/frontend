@@ -22,6 +22,7 @@ import { grantMetaConsent, initMetaPixel, metaExcludedPath, revokeMetaConsent, t
 import { onConsentChange, trackingAllowed } from "./lib/consent";
 import { trackSignedUpOnce } from "./lib/analytics";
 import { installJoinTracking } from "./lib/journey-client";
+import { installPageTracking, notePageView } from "./lib/journey-pages";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
 import { isB2cRequest, isPlatformHost } from "./lib/b2c-home";
 import { googleOnlyEnabled } from "./lib/google-only";
@@ -198,7 +199,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AnalyticsInit() {
+function AnalyticsInit({ pages }: { pages: boolean }) {
   const { data: session } = authClient.useSession();
   const location = useLocation();
 
@@ -209,6 +210,14 @@ function AnalyticsInit() {
 
   // Every join or start CTA: clicked_join to our own /api/journey and PostHog, Meta Lead (app/lib/journey-client.ts).
   useEffect(() => installJoinTracking(), []);
+
+  // SITE-TRACK (3 Nov 2026, the owner: "how far they scrolled, how long they stayed, or what they looked at"):
+  // page_view on every load and route change, and page_engaged (time, scroll, sections, the start button seen) to our
+  // own /api/journey (app/lib/journey-pages.ts). The site's own hosts only (pages: the root loader's journeyPages).
+  useEffect(() => (pages ? installPageTracking() : undefined), [pages]);
+  useEffect(() => {
+    if (pages) notePageView(location.pathname);
+  }, [pages, location.pathname]);
 
   // EU/UK cookie choice (HP-N13): accepting switches on PostHog storage and
   // recording and starts the Meta pixel on this page; rejecting or withdrawing
@@ -411,6 +420,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     b2cHost: isB2cRequest(request),
     googleOnly: googleOnlyEnabled(),
     mainOrigin: isPlatformHost(host) ? mainOrigin() : "",
+    // SITE-TRACK: page views and engagement (journey-pages.ts) on the site's own hosts. Not Sensei's or the admin's,
+    // and not the product's (platform.*: only its sign-in pages reach this app, and its /api/journey is the product's).
+    journeyPages: isB2cRequest(request) && !isPlatformHost(host),
   };
 }
 
@@ -454,7 +466,7 @@ export default function App() {
     if (attributionUserId) flushAttribution(attributionUserId);
   }, [attributionUserId]);
 
-  const { isSenseiHost } = useLoaderData<typeof loader>();
+  const { isSenseiHost, journeyPages } = useLoaderData<typeof loader>();
   const location = useLocation();
   const onSensei = isSenseiHost || location.pathname.startsWith("/bob");
   // A student's launched project page (/:handle/:slug) carries no analytics and
@@ -464,7 +476,7 @@ export default function App() {
 
   return (
     <>
-      {!projectPage && <AnalyticsInit />}
+      {!projectPage && <AnalyticsInit pages={journeyPages && !onSensei} />}
       <Outlet />
       {!onSensei && !projectPage && <CookieNotice />}
       {!onSensei && !projectPage && <PolicyUpdateNotice />}

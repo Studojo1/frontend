@@ -19,7 +19,7 @@ const d = (ms: number) => ({ "--hv3-d": `${ms}ms` }) as CSSProperties;
 
 export function HowItWorks() {
   return (
-    <section className="hv-sec hv3-sec" id="how" aria-labelledby="how-h">
+    <section className="hv-sec hv3-sec" id="how" aria-labelledby="how-h" data-section="how">
       <link rel="stylesheet" href={howCss} precedence="default" />
       <div className="hv3-in">
         <header className="hv3-head" data-reveal>

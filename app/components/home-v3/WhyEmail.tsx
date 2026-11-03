@@ -44,7 +44,7 @@ export function WhyEmail() {
   return (
     <>
       <link rel="stylesheet" href={whyCss} precedence="default" />
-      <section className="hv-sec hv3-sec" id="why" aria-labelledby="why-h">
+      <section className="hv-sec hv3-sec" id="why" aria-labelledby="why-h" data-section="why">
         <div className="hv3-in">
           <header className="hv3-head" data-reveal>
             <h2 className="hv3-h2" id="why-h">

@@ -25,11 +25,19 @@ assert.ok(home.indexOf("<AgentProvider>") < home.indexOf("<Page />"), "one agent
 const SECTIONS = { HowItWorks: "how", WhyEmail: "why", Proof: "proof", Faq: "faq" };
 for (const [c, id] of Object.entries(SECTIONS)) {
   const src = read(`${c}.tsx`);
-  assert.match(src, new RegExp(`<section className="hv-sec hv3-sec" id="${id}" aria-labelledby="${id}-h">`), `${c} is #${id}`);
+  // SITE-TRACK (3 Nov 2026): each section names itself for the journey log (journey-pages.ts), by its own id
+  assert.match(src, new RegExp(`<section className="hv-sec hv3-sec" id="${id}" aria-labelledby="${id}-h" data-section="${id}">`), `${c} is #${id}`);
   // every section's title is an h2 of the one size (hv3-h2), named for the section
   assert.match(src, new RegExp(`<h2 className="hv3-h2" id="${id}-h">`), `${c}: its title`);
   // no per-section call to action (owner): only the hero, the floating agent and the footer start
   assert.doesNotMatch(src, /StartLink|data-start|hv-btn-start|\/b2cnew/, `${c}: no button of its own`);
+}
+// SITE-TRACK: the hero and the footer name themselves too; six names, each once, on the page in order.
+assert.match(read("Hero.tsx"), /<section className="hv-hero hv3-hero" aria-labelledby="hero-title" data-stage="idle" data-section="hero">/);
+assert.match(read("HomeFooter.tsx"), /<footer className="hv-foot hv3-foot" data-section="footer">/);
+{
+  const named = ["Hero", "HowItWorks", "WhyEmail", "Proof", "Faq", "HomeFooter"].flatMap((c) => [...read(`${c}.tsx`).matchAll(/data-section="([a-z_]+)"/g)].map((m) => m[1]));
+  assert.deepEqual(named, ["hero", "how", "why", "proof", "faq", "footer"], "the journey log's section names");
 }
 const starts = {};
 for (const f of files.filter((f) => f.endsWith(".tsx"))) {

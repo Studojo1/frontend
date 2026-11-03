@@ -122,12 +122,16 @@ assert.match(server, /career_agent\.career_journey_events/);
 assert.match(server, /"42P01"/, "a missing table is skipped quietly");
 assert.match(server, /void insert\(e\)\.catch/, "never awaited by a page");
 const beacon = readFileSync(`${APP}routes/api.journey.tsx`, "utf8");
-assert.match(beacon, /step: "clicked_join"/);
-assert.match(beacon, /sec-fetch-site/);
+assert.match(beacon, /const event = await readJourneyBeacon\(request\);/);
+assert.match(beacon, /if \(!underDailyCap\(event\.visitorId, new Date\(\)\)\) return done\(\);\s*recordJourneyEvent\(event\);/);
+assert.match(server, /sec-fetch-site/);
 const client = readFileSync(`${APP}lib/journey-client.ts`, "utf8");
-assert.match(client, /sendBeacon\("\/api\/journey"/);
+const pagesSrc = readFileSync(`${APP}lib/journey-pages.ts`, "utf8");
+assert.match(pagesSrc, /navigator\.sendBeacon\("\/api\/journey"/);
+assert.match(client, /sendJourney\(\{ cta: cta\.slice\(0, 64\), path, \.\.\.seen/);
 assert.match(client, /trackMeta\("Lead"/);
 assert.match(client, /readConsent\(\) === "denied"/);
+assert.match(pagesSrc, /if \(readConsent\(\) === "denied"\) return;/, "page events follow clicked_join's consent rule");
 const root = readFileSync(`${APP}root.tsx`, "utf8");
 assert.match(root, /installJoinTracking\(\)/);
 assert.match(root, /trackMetaPageView\(\)/, "PageView on every route change");
@@ -233,6 +237,169 @@ assert.match(go, /journeyCookiesForRedirect\(request, target\)/);
   // The page render uses the cross-pod path, never the plain INSERT, for visited_home.
   const srv = readFileSync(`${APP}lib/journey.server.ts`, "utf8");
   assert.match(srv, /if \(!firstToday\(plan\.visitorId, now\)\) return;\s*recordVisitedHome\(/);
+}
+
+// ── 12. SITE-TRACK (3 Nov 2026, the owner: "how far they scrolled, how long they stayed, or what they looked at ...
+// the device type isn't being saved"): device and in-app browser, the beacon allow-list, the daily cap, the wiring.
+{
+  const { BEACON_STEPS, cleanBeacon, deviceOf, inAppOf, scrollMilestone, widthBucket } = await import("./journey.ts");
+  const IG_ANDROID = "Mozilla/5.0 (Linux; Android 13; SM-A536E Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/119.0.6045.163 Mobile Safari/537.36 Instagram 309.0.0.40.113 Android (33/13; 450dpi; 1080x2177; samsung; SM-A536E; a53x; s5e8825; en_IN; 541635890)";
+  const IG_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 307.0.0.34.111 (iPhone14,5; iOS 17_1; en_IN; en; scale=3.00; 1170x2532; 532277994)";
+  const FB_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/440.0.0.33.116;FBBV/552000000;FBDV/iPhone14,5;FBMD/iPhone;FBSN/iOS;FBSV/17.1;FBSS/3;FBID/phone;FBLC/en_US;FBOP/5]";
+  const FB_ANDROID = "Mozilla/5.0 (Linux; Android 14; RMX3741 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.6099.193 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/446.0.0.33.112;]";
+  const LI_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 LinkedInApp/9.29.6";
+  const LI_ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 7 Build/UQ1A.240205.004; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/122.0.6261.64 Mobile Safari/537.36 LinkedInApp/4.1.912";
+  const WA = "Mozilla/5.0 (Linux; Android 13; SM-A536E Build/TP1A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/119.0.0.0 Mobile Safari/537.36 WhatsApp/2.24.1.6";
+  const SNAP = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Snapchat/12.60.0.43 (like Safari/8617.2.4.10.8, panda)";
+  const WEBVIEW = "Mozilla/5.0 (Linux; Android 12; M2101K6G Build/SKQ1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/118.0.0.0 Mobile Safari/537.36";
+  const SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+  const CHROME_ANDROID = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36";
+  const CHROME_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.90 Mobile/15E148 Safari/604.1";
+  const ANDROID_TAB = "Mozilla/5.0 (Linux; Android 13; SM-X200) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+  const IPAD = "Mozilla/5.0 (iPad; CPU OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1";
+  const MAC = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15";
+  const WIN = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+  for (const [ua, device, inapp] of [
+    [IG_ANDROID, "mobile", "instagram"],
+    [IG_IOS, "mobile", "instagram"],
+    [FB_IOS, "mobile", "facebook"],
+    [FB_ANDROID, "mobile", "facebook"],
+    [LI_IOS, "mobile", "linkedin"],
+    [LI_ANDROID, "mobile", "linkedin"],
+    [WA, "mobile", "whatsapp"],
+    [SNAP, "mobile", "other"],
+    [WEBVIEW, "mobile", "other"],
+    [SAFARI, "mobile", "none"],
+    [CHROME_ANDROID, "mobile", "none"],
+    [CHROME_IOS, "mobile", "none"],
+    [ANDROID_TAB, "tablet", "none"],
+    [IPAD, "tablet", "none"],
+    [MAC, "desktop", "none"],
+    [WIN, "desktop", "none"],
+    ["", "desktop", "none"],
+  ]) {
+    assert.equal(deviceOf(ua), device, `device: ${ua.slice(0, 70)}`);
+    assert.equal(inAppOf(ua), inapp, `inapp: ${ua.slice(0, 70)}`);
+  }
+  assert.equal(deviceOf(MAC, true), "tablet", "an iPad asking for the desktop site says Mac, with a touch screen");
+  assert.equal(deviceOf(WIN, true), "desktop", "a touch laptop is still a computer");
+
+  // Width buckets and scroll milestones.
+  assert.equal(widthBucket(320), 0);
+  assert.equal(widthBucket(360), 360);
+  assert.equal(widthBucket(375), 360);
+  assert.equal(widthBucket(393), 390);
+  assert.equal(widthBucket(430), 430);
+  assert.equal(widthBucket(820), 768);
+  assert.equal(widthBucket(1512), 1440);
+  assert.equal(widthBucket(2560), 1920);
+  for (const junk of [-1, NaN, Infinity, "390", null, undefined, 1e9]) assert.equal(widthBucket(junk), null, String(junk));
+  assert.equal(scrollMilestone(700, 6000), 0, "the first screen of a long page");
+  assert.equal(scrollMilestone(1500, 6000), 25);
+  assert.equal(scrollMilestone(3000, 6000), 50);
+  assert.equal(scrollMilestone(4700, 6000), 75);
+  assert.equal(scrollMilestone(5999, 6000), 100, "the last 2 px are the end");
+  assert.equal(scrollMilestone(800, 700), 100, "a page shorter than the screen");
+  assert.equal(scrollMilestone(100, 0), 0);
+
+  // The allow-list: the old clicked_join body still works; page_view and page_engaged keep only their own props.
+  assert.deepEqual([...BEACON_STEPS], ["clicked_join", "page_view", "page_engaged"]);
+  const PV = "8c1d6b8e-6a3f-4c1b-9b7e-1a2b3c4d5e6f";
+  assert.deepEqual(cleanBeacon({ cta: "start_hero", path: "/" }), { step: "clicked_join", props: { cta: "start_hero", path: "/" }, touch: false });
+  assert.deepEqual(
+    cleanBeacon({ cta: "start_hero", path: "/", pv: PV, cta_seen: true, sw: 393, touch: true, email: "x@y.z" }),
+    { step: "clicked_join", props: { cta: "start_hero", path: "/", pv: PV, cta_seen: true, sw: 390 }, touch: true },
+  );
+  assert.equal(cleanBeacon({ step: "signed_up", path: "/" }), null, "a step that is not the browser's");
+  assert.equal(cleanBeacon({ step: "paid", cta: "x", path: "/" }), null);
+  assert.equal(cleanBeacon({ step: "page_view", path: "/" }), null, "a page view has an id");
+  assert.equal(cleanBeacon({ step: "page_view", pv: "<script>", path: "/" }), null);
+  assert.equal(cleanBeacon({ step: "page_view", pv: PV, path: "https://evil.example/" }), null);
+  assert.equal(cleanBeacon(null), null);
+  assert.equal(cleanBeacon([]), null);
+  assert.deepEqual(
+    cleanBeacon({ step: "page_view", pv: PV, path: "/", title: "  Studojo\n | Stu ", nav: "load", ref: "https://l.instagram.com/?u=secret#x", sw: 412, extra: 1 }),
+    { step: "page_view", props: { pv: PV, path: "/", title: "Studojo | Stu", nav: "load", ref: "https://l.instagram.com/", sw: 390 }, touch: false },
+  );
+  assert.deepEqual(
+    cleanBeacon({ step: "page_view", pv: PV, path: "/blog", nav: "route", ref: "https://www.google.com/" }).props,
+    { pv: PV, path: "/blog", nav: "route" },
+    "the referrer on the load's page view only",
+  );
+  assert.equal(cleanBeacon({ step: "page_view", pv: PV, path: "/", nav: "teleport" }).props.nav, "load");
+  assert.equal(cleanBeacon({ step: "page_view", pv: PV, path: "/", ref: "javascript:alert(1)" }).props.ref, undefined);
+  assert.equal(cleanBeacon({ step: "page_view", pv: PV, path: "/", title: "x".repeat(500) }).props.title.length, 120);
+  assert.deepEqual(
+    cleanBeacon({ step: "page_engaged", pv: PV, path: "/", engaged_s: 42.4, scroll: 75, sections: ["hero", "how", "how", "Bad Name", 7, "proof"], cta_seen: true, cta_at: 0, clicked: "start_hero", why: "hidden", sw: 1300 }),
+    { step: "page_engaged", props: { pv: PV, path: "/", engaged_s: 42, scroll: 75, sections: ["hero", "how", "proof"], cta_seen: true, cta_at: 0, clicked: "start_hero", why: "hidden", sw: 1280 }, touch: false },
+  );
+  const odd = cleanBeacon({ step: "page_engaged", pv: PV, path: "/", engaged_s: 1e9, scroll: 60, sections: "hero", cta_seen: false, cta_at: 5, clicked: "<x>", why: "?" }).props;
+  assert.deepEqual(odd, { pv: PV, path: "/", engaged_s: 3600, scroll: 0, sections: [], cta_seen: false, why: "check" }, "clamped, and nothing that is not ours");
+  assert.equal(cleanBeacon({ step: "page_engaged", pv: PV, path: "/", engaged_s: -4 }).props.engaged_s, 0);
+  assert.equal(cleanBeacon({ step: "page_engaged", pv: PV, path: "/", sections: Array.from({ length: 40 }, (_, i) => `s${i}`) }).props.sections.length, 16);
+
+  // One visitor's beacons an IST day: 200, then none until the next day.
+  const { readJourneyBeacon, underDailyCap, VISITOR_DAILY_CAP } = await import("./journey.server.ts");
+  assert.equal(VISITOR_DAILY_CAP, 200);
+  const capState = { day: "", counts: new Map() };
+  let let_through = 0;
+  for (let i = 0; i < 250; i++) if (underDailyCap(ID, NOW, capState)) let_through++;
+  assert.equal(let_through, 200);
+  assert.equal(underDailyCap("another-visitor-1", NOW, capState), true, "per visitor");
+  assert.equal(underDailyCap(ID, new Date("2026-11-02T19:00:00Z"), capState), true, "a new IST day");
+
+  // The route's decision, request by request.
+  const post = (body, { ua = IG_ANDROID, cookie = `stu_vid=${ID}`, site = "same-origin", host = "studojo.com" } = {}) =>
+    readJourneyBeacon(
+      new Request(`https://${host}/api/journey`, {
+        method: "POST",
+        headers: { host, "user-agent": ua, ...(cookie ? { cookie } : {}), ...(site ? { "sec-fetch-site": site } : {}), "content-type": "text/plain" },
+        body: typeof body === "string" ? body : JSON.stringify(body),
+      }),
+    );
+  const pvBody = { step: "page_view", pv: PV, path: "/", title: "Studojo", nav: "load", sw: 393 };
+  const pvEvent = await post(pvBody);
+  assert.deepEqual(pvEvent, {
+    env: "prod",
+    visitorId: ID,
+    step: "page_view",
+    props: { pv: PV, path: "/", title: "Studojo", nav: "load", sw: 390, device: "mobile", inapp: "instagram" },
+    source: null,
+  });
+  assert.equal(await post(pvBody, { ua: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" }), null, "crawlers");
+  assert.equal(await post(pvBody, { ua: `${MAC} StudojoAudit-bot/1.0` }), null, "our own audit walks");
+  assert.equal(await post(pvBody, { ua: "" }), null, "no browser at all");
+  assert.equal(await post(pvBody, { site: "cross-site" }), null, "another site's page");
+  assert.equal(await post(pvBody, { cookie: "" }), null, "no visitor id");
+  assert.equal(await post(pvBody, { cookie: "stu_vid=a;b" }), null);
+  assert.equal(await post(pvBody, { cookie: `stu_vid=${ID}; sj_tracking_consent=denied` }), null, "said no to tracking");
+  assert.ok(await post(pvBody, { cookie: `stu_vid=${ID}; sj_tracking_consent=granted` }), "said yes");
+  assert.equal(await post("not json"), null);
+  assert.equal(await post({ step: "page_view", path: "/" }), null);
+  assert.equal((await post(pvBody, { host: "studojo.pro" })).env, "staging");
+  assert.equal((await post({ ...pvBody, touch: true }, { ua: MAC })).props.device, "tablet", "an iPad in desktop mode");
+  const lastTouch = encodeURIComponent(JSON.stringify({ utm_source: "instagram", landing_path: "/", first_seen_at: NOW.toISOString() }));
+  const join = await post({ cta: "start_hero", path: "/", pv: PV, cta_seen: true }, { cookie: `stu_vid=${ID}; stu_lt=${lastTouch}`, ua: SAFARI });
+  assert.equal(join.step, "clicked_join");
+  assert.deepEqual(join.props, { cta: "start_hero", path: "/", pv: PV, cta_seen: true, device: "mobile", inapp: "none" });
+  assert.equal(join.source.utm_source, "instagram", "clicked_join keeps its source");
+  const engaged = await post({ step: "page_engaged", pv: PV, path: "/", engaged_s: 12, scroll: 50, sections: ["hero"], why: "check" }, { cookie: `stu_vid=${ID}; stu_lt=${lastTouch}` });
+  assert.equal(engaged.source, null, "page rows carry no source (the visitor's visited_home has it)");
+  assert.equal(engaged.props.device, "mobile");
+
+  // visited_home now says the device too; the page render passes the user agent.
+  assert.match(srvSrc(), /props: \{ path: url\.pathname\.slice\(0, 200\), \.\.\.deviceProps\(request\.headers\.get\("user-agent"\)\) \}/);
+
+  // Wiring: root installs the page tracking on the site's own hosts and notes every route change.
+  assert.match(root, /useEffect\(\(\) => \(pages \? installPageTracking\(\) : undefined\), \[pages\]\);/);
+  assert.match(root, /if \(pages\) notePageView\(location\.pathname\);\n\s+\}, \[pages, location\.pathname\]\);/);
+  assert.match(root, /journeyPages: isB2cRequest\(request\) && !isPlatformHost\(host\),/);
+  assert.match(root, /<AnalyticsInit pages=\{journeyPages && !onSensei\} \/>/);
+  // clicked_join carries the page view (journey-pages.ts noteJoinClick) before Meta and PostHog are told.
+  assert.match(client, /const seen = noteJoinClick\(cta, cta\.startsWith\("start_"\)\);/);
+}
+function srvSrc() {
+  return readFileSync(`${APP}lib/journey.server.ts`, "utf8");
 }
 
 console.log("journey: ok");

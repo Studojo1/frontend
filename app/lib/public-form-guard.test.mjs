@@ -63,4 +63,15 @@ for (let i = 0; i < 50; i++) {
 }
 assert.equal(ok, 30, `funnel-event burst let ${ok} through`);
 
+// 5. SITE-TRACK (3 Nov 2026): /api/journey (page views, engagement, join clicks) has a bucket of its own, 60 a minute
+// an IP, so its beacons never use up the Meta relay's 30.
+store = fakeRedis();
+ok = 0;
+for (let i = 0; i < 100; i++) {
+  const r = await checkRateLimit(req("/api/journey"), undefined, store);
+  if (r?.allowed) ok++;
+}
+assert.equal(ok, 60, `journey burst let ${ok} through`);
+assert.equal((await checkRateLimit(req("/api/meta-event"), undefined, store))?.allowed, true, "the Meta relay is untouched by journey beacons");
+
 console.log("public-form-guard: ok");

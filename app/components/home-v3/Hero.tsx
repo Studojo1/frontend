@@ -45,7 +45,7 @@ export function Hero() {
   const [held, setHeld] = useState(false);
 
   return (
-    <section className="hv-hero hv3-hero" aria-labelledby="hero-title" data-stage="idle">
+    <section className="hv-hero hv3-hero" aria-labelledby="hero-title" data-stage="idle" data-section="hero">
       <link rel="stylesheet" href={moreCss} precedence="default" />
       <div className="hv-stage">
         <div className="hv3-stu-wrap">
