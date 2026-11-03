@@ -10,14 +10,18 @@ import { stripDashesDeep } from "~/lib/strip-dashes";
  * Azure OpenAI, as in app/workers/prescreen.ts (AZURE_OPENAI_ENDPOINT and
  * AZURE_OPENAI_API_KEY from app-secrets). On 3 Nov 2026 the OpenAI and
  * Anthropic keys on this deployment had both run out of credit; Azure hadn't.
- * The job is telling a real moment from filler, and a vague read-back is worse
- * than none, so it gets gpt-4o (gpt-5-mini read as well but often took over a
- * minute on this resource): one call per talk, text only, a couple of rupees. The answer comes back in a fixed JSON shape.
+ * The model is gpt-5-mini, the deployment the career coach (cc-backend) uses,
+ * on the founder's word (3 Nov 2026). With api-version 2025-04-01-preview and
+ * low reasoning it reads a talk in about 5 seconds, names the specifics a
+ * vague read-back would miss, and costs about 20 paise a talk (one call per
+ * talk, text only). The answer comes back in a fixed JSON shape.
  */
 
 const AZURE_ENDPOINT = (process.env.AZURE_OPENAI_ENDPOINT ?? "").replace(/\/+$/, "");
 const AZURE_KEY = process.env.AZURE_OPENAI_API_KEY ?? "";
-const DEPLOYMENT = process.env.FELLOW_COACH_DEPLOYMENT?.trim() || "gpt-4o";
+const DEPLOYMENT = process.env.FELLOW_COACH_DEPLOYMENT?.trim() || "gpt-5-mini";
+// The career coach's api-version. The older 2025-01-01-preview left gpt-5-mini hanging for over a minute.
+const API_VERSION = "2025-04-01-preview";
 
 /** Characters of talk sent; a longer talk (well over an hour) keeps its start and its end. */
 export const TALK_SENT_MAX = 60_000;
@@ -132,12 +136,13 @@ const askAzure: CoachAsk = async (system, user) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 45_000);
   try {
-    const res = await fetch(`${AZURE_ENDPOINT}/openai/deployments/${DEPLOYMENT}/chat/completions?api-version=2025-01-01-preview`, {
+    const res = await fetch(`${AZURE_ENDPOINT}/openai/deployments/${DEPLOYMENT}/chat/completions?api-version=${API_VERSION}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "api-key": AZURE_KEY },
       body: JSON.stringify({
         messages: [{ role: "system", content: system }, { role: "user", content: user }],
         max_completion_tokens: 4000,
+        reasoning_effort: "low",
         response_format: { type: "json_schema", json_schema: COACH_SHAPE },
       }),
       signal: controller.signal,
