@@ -108,7 +108,8 @@ const MESSAGE_TOP = `<span class="brand">
     </span>`;
 
 // "Understand LinkedIn's algorithm": a short read so fellows learn to post well on their own. Every "LinkedIn
-// says" line is something LinkedIn has published; the tips are labelled as creators' rules of thumb. No numbers
+// says" line is something LinkedIn has published; the tips are labelled as creators' rules of thumb. The page
+// script adds what we're seeing on the fellow's own posts at the top, and lifts one item out as this week's tip. No numbers
 // that LinkedIn hasn't published. Same for everyone, so it lives in the page itself. The page links nowhere
 // else, so the sources are named, not linked. For the team, they are:
 //   engineering.linkedin.com/publishing-platform/maximizing-our-publishing-platform-reach-network-distribution
@@ -122,9 +123,10 @@ const MESSAGE_TOP = `<span class="brand">
 const LEARN = `
     <section class="card card-pad learn" id="learn" aria-labelledby="learn-title">
       <div class="card-head"><span class="learn-ic" aria-hidden="true"><svg class="ic"><use href="#i-book"/></svg></span><h2 class="card-title" id="learn-title">Understand LinkedIn's algorithm</h2><span class="chip">3 min read</span></div>
-      <p class="card-sub">How LinkedIn decides who sees a post, so you can post well on your own. Lines marked <span class="says">LinkedIn says</span> come from LinkedIn itself. The tips at the end are what tends to work for creators.</p>
+      <div class="learn-you" id="learn-you"></div>
+      <div class="learn-tip" id="learn-tip" hidden></div>
       <div class="learn-list">
-        <details open>
+        <details>
           <summary>Your post starts with your own network</summary>
           <div class="learn-body">
             <p><span class="says">LinkedIn says</span> A new post goes to the people you're connected to and the people who follow you. When they react, comment or share, it travels on to their networks too.</p>
@@ -235,6 +237,13 @@ const PAGE = `
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <input class="sr-only" id="photo-file" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true">
 <input class="sr-only" id="analytics-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" tabindex="-1" aria-hidden="true">
+<dialog class="told" id="told" aria-labelledby="told-title">
+  <div class="told-head">
+    <h2 id="told-title">What you've told us</h2>
+    <button class="told-x" type="button" data-act="told-close" aria-label="Close"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="told-body" id="told-body"></div>
+</dialog>
 <dialog class="ask" id="ask" aria-labelledby="ask-title" aria-describedby="ask-sub">
   <h2 class="ask-title" id="ask-title">Did you post it on LinkedIn?</h2>
   <p class="ask-sub" id="ask-sub"></p>

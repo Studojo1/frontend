@@ -143,12 +143,13 @@ export interface ProgrammeRules {
   cohortNames?: boolean;
 }
 
-/** The fellow's latest LinkedIn analytics export (ugc_creator_analytics): when it came in, its period and totals. */
+/** The fellow's latest LinkedIn analytics export (ugc_creator_analytics): when it came in, its period, totals and demographics. */
 export interface AnalyticsRow {
   uploaded_at: string | Date;
   period_start: string | null;
   period_end: string | null;
   totals: unknown;
+  demographics?: unknown;
 }
 
 export interface FellowInput {
@@ -415,13 +416,22 @@ function analyticsAt(raw: unknown): number | null {
   return a?.metrics && Number.isFinite(ms) ? ms : null;
 }
 
-/** The latest export's totals the page shows: impressions, people reached and followers. */
+/**
+ * What the page shows from the latest export: its totals (impressions, people reached, followers) and the
+ * top job title, location and industry of the people who saw the posts. It's the fellow's own LinkedIn data.
+ */
 function analyticsView(row: AnalyticsRow | null | undefined) {
   const at = row ? toMs(row.uploaded_at) : NaN;
   if (!row || !Number.isFinite(at)) return null;
   const t = row.totals && typeof row.totals === "object" ? (row.totals as Record<string, unknown>) : {};
   const n = (k: string) => (typeof t[k] === "number" && Number.isFinite(t[k]) ? (t[k] as number) : null);
   const day = (d: string | null) => (d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null);
+  const demo = row.demographics && typeof row.demographics === "object" ? (row.demographics as Record<string, unknown>) : {};
+  const top = (category: RegExp) => {
+    const list = demo[Object.keys(demo).find((k) => category.test(k)) ?? ""];
+    const first = Array.isArray(list) ? (list as { value?: unknown; pct?: unknown }[]).find((e) => typeof e?.value === "string" && typeof e?.pct === "number") : null;
+    return first ? { value: (first.value as string).slice(0, 80), pct: first.pct as number } : null;
+  };
   return {
     at: istDateTime(at),
     periodStart: day(row.period_start),
@@ -429,6 +439,7 @@ function analyticsView(row: AnalyticsRow | null | undefined) {
     impressions: n("impressions"),
     membersReached: n("membersReached"),
     newFollowers: n("newFollowers"),
+    audience: { jobTitle: top(/job title|^titles?$/i), location: top(/location/i), industry: top(/industr/i) },
   };
 }
 

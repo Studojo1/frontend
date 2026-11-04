@@ -115,6 +115,7 @@
     });
     S.conn.now = M.connections.now; S.conn.atJoin = M.connections.atJoin; S.conn.history = M.connections.history.slice();
     S.stories = M.stories.slice();
+    renderLearn();
     ME.storyPrompts = M.storyPrompts;
     return true;
   }
@@ -231,13 +232,9 @@
       return;
     }
     const title = w.weekend ? (w.sunday ? "Today: your LinkedIn analytics" : "Tomorrow: your LinkedIn analytics") : "Last week's LinkedIn analytics";
-    const sub = w.weekend
-      ? "Export the last 7 days from LinkedIn and upload the file here. Your posts' numbers fill in from it, and the team sees who they reached."
-      : "Last week's analytics haven't come in yet. Export the last 7 days from LinkedIn and upload the file here.";
     box.className = "card card-pad shots is-due";
     box.innerHTML = `
       <h2 class="card-title" id="analytics-title">${ic("chart")}${title}</h2>
-      <p class="card-sub">${sub}</p>
       <div class="an-upload">${analyticsButton(true)}</div>
       ${howTo(!ME.analytics)}
       ${weekTotals()}`;
@@ -369,7 +366,7 @@
         <div class="p-top">
           <div class="avatar avatar-xl" aria-hidden="true">${esc(ME.initials)}</div>
           <div class="p-id">
-            <h1 class="p-name">${esc(ME.name)}</h1>
+            <h1 class="p-name"><button class="p-name-btn" type="button" data-act="told" aria-haspopup="dialog" aria-label="${esc(ME.name)}: read what you've told us">${esc(ME.name)}${ic("comment", "ic-sm")}</button></h1>
             <p class="p-headline">${esc(ME.headline)}</p>
           </div>
         </div>
@@ -648,7 +645,6 @@
         <div>
           <p class="tl-title">${esc(m.name)}${isNext ? `<span class="chip chip-next">Next</span>` : ""}</p>
           <p class="tl-meta ${m.earned ? "is-earned" : ""}">${meta}</p>
-          ${isNext ? "" : `<p class="tl-detail">${esc(m.detail)}</p>`}
           ${m.earned && m.id === "trial" ? `<button class="btn-link" type="button" data-act="howto" aria-expanded="${S.howto}" aria-controls="howto">Add it to your LinkedIn profile</button>
             <div class="howto" id="howto" ${S.howto ? "" : "hidden"}><ol>
               <li>On LinkedIn, open your profile and tap Add section.</li>
@@ -668,8 +664,7 @@
         </div>
       </div>
       <div class="wk-track" role="img" aria-label="${Math.min(done, next.weeks)} of ${next.weeks} weeks complete">${segs}</div>
-      <div class="wk-cap"><span><b>${Math.min(done, next.weeks)} of ${next.weeks}</b> weeks complete</span><span>After ${next.weeks} weeks</span></div>
-      <p class="ms-detail">${esc(next.detail)}</p>` : ""}
+      <div class="wk-cap"><span><b>${Math.min(done, next.weeks)} of ${next.weeks}</b> weeks complete</span><span>After ${next.weeks} weeks</span></div>` : ""}
       <div class="divider"></div>
       <h3 class="sub-title">All milestones <span class="count">${list.length}</span></h3>
       <ol class="tl">${items}</ol>`;
@@ -803,14 +798,11 @@
     const prompts = ME.storyPrompts;
     const pr = prompts[S.promptIdx] || prompts[0];
     const ms = S.talkAt ? Date.now() - S.talkAt : 0;
-    const asking = askingForStories(), left = ME.storiesWanted - S.stories.length;
+    const asking = askingForStories();
     $("#share").classList.toggle("is-listening", S.listening);
     $("#share").classList.toggle("is-asking", asking);
     $("#share").innerHTML = `
       <div class="card-head"><h2 class="card-title" id="share-title">${asking ? "Finish joining: tell us about yourself" : "Share an experience"}</h2>${asking ? `<span class="chip chip-next">${S.stories.length} of ${ME.storiesWanted} shared</span>` : `<span class="chip chip-good">${ic("check", "ic-sm")}You're in</span>`}</div>
-      <p class="card-sub">${asking
-        ? `The last step to officially join the fellowship: share ${left === 1 ? "one more story" : left + " stories"} about your own life. Your posts are written from what you share, so real places, people and what happened next make the best posts.`
-        : "Tell us what happened, in your own words. Your posts are written from these, so new stories mean better posts."}</p>
       <div class="prompt-box ${S.reply ? "is-reply" : ""}">
         <div class="prompt-top">
           ${S.reply
@@ -892,13 +884,101 @@
       : `<li><span>Nothing new in the last 7 days.</span></li>`;
     $("#news").innerHTML = `
       <div class="card-head"><h2 class="card-title" id="news-title">Fellowship news</h2></div>
-      <p class="card-sub">What's happened in ${ME.cohort ? esc(ME.cohort) : "the fellowship"} over the last 7 days.</p>
       <div class="news-hi">${ic("trend")}<div>${ME.cohortPosition ? `<b>${esc(ME.cohortPosition)}</b>` : ""}<span>${ME.cohortPostedThisWeek} of ${ME.cohortSize} ${ME.cohortSize === 1 ? "fellow has" : "fellows have"} posted this week</span></div></div>
       <div class="news-group">
         <p class="kicker">Latest in ${ME.cohort ? esc(ME.cohort) : "the fellowship"}</p>
         <ul class="news-list">${items}</ul>
       </div>`;
   }
+
+  /* ---------- Understand LinkedIn's algorithm: what we're seeing on the fellow's own posts, then one tip a
+     week (lifted out of the read below, which stays as it is). Every line comes from their own numbers, and
+     a line shows only when its numbers exist. */
+  function postsWithNumbers() {
+    const seen = new Map();
+    for (const w of ME.history) for (const p of w.posts) if (p.metrics) seen.set(p.id, p);
+    for (const p of S.posts) if (p.status === "posted" && p.metrics) seen.set(p.id, p);
+    return [...seen.values()];
+  }
+  const share = (x) => Math.round(x * 100) + "%";
+  function renderLearn() {
+    const box = $("#learn-you");
+    if (!box) return;
+    const posts = postsWithNumbers(), lines = [];
+    const avg = (list) => Math.round(list.reduce((s, p) => s + p.metrics.impressions, 0) / list.length);
+    if (posts.length) {
+      const best = posts.reduce((a, b) => (b.metrics.impressions > a.metrics.impressions ? b : a));
+      lines.push(`Your best post so far: <b>${esc(best.title)}</b>, ${nf(best.metrics.impressions)} impressions.`);
+    }
+    if (posts.length >= 2) lines.push(`Your posts average <b>${nf(avg(posts))}</b> impressions.`);
+    const own = posts.filter((p) => p.kind !== "studojo"), withUs = posts.filter((p) => p.kind === "studojo");
+    if (own.length && withUs.length) lines.push(`Posts about you average ${nf(avg(own))} impressions; posts with Studojo, ${nf(avg(withUs))}.`);
+    const comments = posts.reduce((s, p) => s + (p.metrics.comments || 0), 0);
+    if (comments) lines.push(`Your posts have drawn ${plural(comments, "comment")} so far.`);
+    const a = ME.analytics;
+    if (a && a.impressions != null) {
+      const span = a.periodStart && a.periodEnd ? `${fmt(a.periodStart, false)} to ${fmt(a.periodEnd, false)}` : "your last export";
+      const bits = [`${nf(a.impressions)} impressions`];
+      if (a.membersReached != null) bits.push(`${nf(a.membersReached)} people reached`);
+      if (a.newFollowers != null) bits.push(`${nf(a.newFollowers)} new ${a.newFollowers === 1 ? "follower" : "followers"}`);
+      lines.push(`${span}: ${bits.join(", ")}.`);
+    }
+    const who = a && a.audience;
+    if (who && who.jobTitle) lines.push(`Most common job title among your viewers: <b>${esc(who.jobTitle.value)}</b> (${share(who.jobTitle.pct)}).`);
+    if (who && who.location) lines.push(`Where most of them were: <b>${esc(who.location.value)}</b> (${share(who.location.pct)}).`);
+    if (who && who.industry) lines.push(`Their top industry: <b>${esc(who.industry.value)}</b> (${share(who.industry.pct)}).`);
+    const c = S.conn;
+    if (c.atJoin != null && c.now != null && c.now !== c.atJoin) {
+      lines.push(`Connections: ${nf(c.atJoin)} when you joined, ${nf(c.now)} now (${c.now > c.atJoin ? "+" : ""}${nf(c.now - c.atJoin)}).`);
+    }
+    box.innerHTML = `<h3 class="learn-h">${ic("chart", "ic-sm")}What we're seeing on your posts</h3>
+      ${lines.length ? `<ul class="learn-lines">${lines.map((l) => `<li>${l}</li>`).join("")}</ul>` : `<p class="learn-empty">Once your posts have numbers, what works for you shows here.</p>`}`;
+    renderTip();
+  }
+  // This week's tip: the read's sections and the creators' tips, one a week in order from the fellow's first week.
+  let tips = null;
+  function renderTip() {
+    const list = $("#learn .learn-list"), box = $("#learn-tip");
+    if (!list || !box) return;
+    if (!tips) {
+      tips = [];
+      for (const d of list.querySelectorAll("details")) {
+        const body = d.querySelector(".learn-body"), items = body.querySelectorAll("li");
+        if (items.length) items.forEach((li) => tips.push({ title: li.textContent, html: "", note: (body.querySelector(".learn-note") || {}).textContent || "", from: null }));
+        else tips.push({ title: d.querySelector("summary").textContent, html: body.innerHTML, note: "", from: d });
+      }
+    }
+    if (!tips.length) return;
+    const tip = tips[(Math.max(1, WEEK_NO) - 1) % tips.length];
+    list.querySelectorAll("details").forEach((d) => { d.hidden = d === tip.from; });
+    box.innerHTML = `<p class="learn-tip-k">${ic("bulb", "ic-sm")}This week's tip</p>
+      <h3 class="learn-tip-t">${esc(tip.title)}</h3>
+      ${tip.html ? `<div class="learn-body">${tip.html}</div>` : tip.note ? `<p class="learn-note">${esc(tip.note)}</p>` : ""}`;
+    box.hidden = false;
+  }
+
+  /* ---------- "What you've told us": every story they've shared, opened from their name. Their own words and
+     the read-backs of them only; the team's notes about them never reach this page. */
+  function renderTold() {
+    const list = S.stories; // newest first
+    const words = list.filter((s) => s.spoken).reduce((n, s) => n + s.text.split(/\s+/).filter(Boolean).length, 0);
+    const mins = Math.round(words / 130); // about how fast people talk
+    const talk = !words ? "" : mins < 1 ? ", under a minute of talking" : `, about ${plural(mins, "minute")} of talking`;
+    const items = list.map((s) => `<article class="told-item">
+        <p class="told-q">${s.replyTo ? "Follow-up: " : ""}${esc(s.prompt)}</p>
+        <p class="told-meta">${ic(s.spoken ? "mic" : "keyboard", "ic-sm")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
+        <p class="told-text">${esc(s.text)}</p>
+        ${s.coach && s.coach.heard.length ? `<div class="told-heard"><p class="told-heard-k">What we heard</p><ul>${s.coach.heard.map((h) => `<li>${esc(h)}</li>`).join("")}</ul></div>` : ""}
+      </article>`).join("");
+    $("#told-body").innerHTML = `
+      <div class="told-top">
+        <p class="told-count">${list.length ? plural(list.length, "story", "stories") + talk : "No stories yet"}</p>
+        <button class="btn btn-primary btn-sm" type="button" data-act="told-share">${ic("mic", "ic-sm")}Share another</button>
+      </div>
+      ${list.length ? items : `<p class="told-empty">Nothing yet. What you share in Stories shows here.</p>`}
+      ${list.length >= 50 ? `<p class="told-empty">These are your latest 50.</p>` : ""}`;
+  }
+  $("#told").addEventListener("click", (ev) => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
 
   /* ---------- activity (earlier weeks) */
   function renderActivity() {
@@ -908,8 +988,6 @@
         <p class="card-sub">Your earlier weeks will show here.</p>`;
       return;
     }
-    const all = weeks.flatMap((w) => w.posts);
-    const imp = all.reduce((s, p) => s + (p.metrics ? p.metrics.impressions : 0), 0);
     const open = (id, kind) => S.histOpen === id && S.histKind === kind;
     const blocks = weeks.map((w) => {
       // Posts that never went up come first: they can still be posted and marked, late.
@@ -950,13 +1028,8 @@
         <ul>${missed}${rows}</ul>
       </div>`;
     }).join("");
-    const span = weeks.length === 1 ? "in your first week" : `in your first ${weeks.length} weeks`;
-    const sub = all.length
-      ? `${plural(all.length, "post")} ${span}${all.some((p) => p.metrics) ? `, ${nf(imp)} impressions so far` : ""}.`
-      : "Nothing marked as posted yet.";
     $("#activity").innerHTML = `
       <h2 class="card-title" id="act-title">Your activity</h2>
-      <p class="card-sub">${sub}</p>
       ${blocks}`;
   }
 
@@ -1076,6 +1149,14 @@
     if (act === "goto-next") { const n = nextPost(); if (n) goTo(n.id); else toast(ME.thisWeek.due ? allPosts(ME.thisWeek.due, "done") + " this week." : NO_POSTS); return; }
     if (act === "goto") { goTo(id); return; }
     if (act === "tab") { if (phone.matches) showTab(b.dataset.tab); else goToSection(b.dataset.tab); return; }
+    if (act === "told") { renderTold(); $("#told").showModal(); $("#told-body").scrollTop = 0; focusEl('[data-act="told-close"]'); return; }
+    if (act === "told-close") { $("#told").close(); return; }
+    if (act === "told-share") {
+      $("#told").close();
+      if (phone.matches) showTab("stories"); else goToSection("stories");
+      focusEl("#story-text");
+      return;
+    }
     if (act === "more") { p.expanded = true; rerenderPost(id); const body = $("#body-" + id); if (body) { body.setAttribute("tabindex", "-1"); body.focus(); } return; }
     if (act === "share") {
       if (!hasPhoto(p)) { ev.preventDefault(); return; }
@@ -1378,7 +1459,7 @@
   if (askingForStories()) { const share = $("#share"); $("#main").insertBefore(share, $("#ed-cover")); share.classList.add("is-first"); }
   // Analytics that are due go first; the rest of the time the reminder sits under the story ask.
   if (!analyticsDue()) $("#main").insertBefore($("#analytics"), $("#ed-cover"));
-  renderTop(); renderProfile(); renderAnalytics(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity();
+  renderTop(); renderProfile(); renderAnalytics(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity(); renderLearn();
   showTab("home");
   $("#page").classList.add("is-ready");
   $("#main").removeAttribute("aria-busy");
