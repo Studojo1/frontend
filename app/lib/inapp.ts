@@ -9,7 +9,8 @@
 //   inAppOf      which app's browser a user agent is (or "none", a real browser)
 //   osOf         android, ios or other (an iPad asking for the desktop site is ios, by its touch screen)
 //   escapePlan   how to leave: Android opens Chrome with an intent URL, iOS 17 and later opens Safari with
-//                x-safari-https://; a sheet with the app's own steps and Copy link when neither happens in 1.5 s
+//                x-safari-https:// (not in Meta's apps, which drop it); a sheet with the app's own steps and Copy link
+//                when neither happens in 1.5 s
 //
 // The product (Studojo1/career-agent app/lib/inapp.ts) has the same detection and the same escape, plus the
 // microphone's own steps; a change here is a change there. journey.ts inAppOf (SITE-TRACK, every journey row's inapp)
@@ -70,6 +71,10 @@ export const ESCAPE_KEY = "esc";
 const SURE = new Set<InApp>(["instagram", "facebook", "messenger", "linkedin", "tiktok", "snapchat"]);
 /** Apps known to hand an intent:// address to Android (Meta's in-app browser). Elsewhere it may show an error page. */
 const INTENT_OK = new Set<InApp>(["instagram", "facebook", "messenger"]);
+/** INAPP-IOS (4 Nov 2026, the owner: "the open in safari button on my phone doesn't work"): Meta's browser on an iPhone
+ * drops x-safari-https:// without a word (prod, Instagram on iOS: 10 tries, none left the app). Facebook and Messenger
+ * run the same browser. There the sheet shows at once: the app's own steps and Copy link, no Open in Safari. */
+const SAFARI_BLOCKED = new Set<InApp>(["instagram", "facebook", "messenger"]);
 
 export type EscapeHow = "intent" | "safari";
 
@@ -97,7 +102,7 @@ export function escapePlan(ua: string | null | undefined, touch = false): Escape
   }
   if (os === "ios") {
     const v = iosMajor(ua);
-    const safari = v !== null && v >= 17 ? "safari" : null;
+    const safari = v !== null && v >= 17 && !SAFARI_BLOCKED.has(app) ? "safari" : null;
     return { app, os, auto: safari, button: safari, sure, browser: "Safari" };
   }
   return { app, os, auto: null, button: null, sure, browser: "your browser" };

@@ -69,7 +69,8 @@ assert.equal(iosMajor(IG_IOS), 17);
 assert.equal(iosMajor(IG_IOS16), 16);
 assert.equal(iosMajor(IG_ANDROID), null);
 
-// ── 2. The plan: Chrome by intent in Meta's apps on Android, Safari on iOS 17 and later, the sheet everywhere else.
+// ── 2. The plan: Chrome by intent in Meta's apps on Android, Safari on iOS 17 and later outside Meta's apps, the sheet
+// everywhere else.
 assert.equal(escapePlan(SAFARI), null);
 assert.equal(escapePlan(CHROME_ANDROID), null);
 assert.equal(escapePlan(WIN), null);
@@ -78,8 +79,9 @@ assert.deepEqual(escapePlan(FB_ANDROID), { app: "facebook", os: "android", auto:
 assert.equal(escapePlan(MSG_ANDROID).auto, "intent");
 assert.deepEqual(escapePlan(LI_ANDROID), { app: "linkedin", os: "android", auto: null, button: "intent", sure: true, browser: "Chrome" });
 assert.deepEqual(escapePlan(WEBVIEW), { app: "other-webview", os: "android", auto: null, button: null, sure: false, browser: "Chrome" });
-assert.deepEqual(escapePlan(IG_IOS), { app: "instagram", os: "ios", auto: "safari", button: "safari", sure: true, browser: "Safari" });
-assert.equal(escapePlan(FB_IOS).auto, "safari");
+assert.deepEqual(escapePlan(IG_IOS), { app: "instagram", os: "ios", auto: null, button: null, sure: true, browser: "Safari" }, "Meta's browser drops x-safari-https: the steps and Copy link");
+for (const ua of [FB_IOS, MSG_IOS]) assert.deepEqual([escapePlan(ua).auto, escapePlan(ua).button], [null, null], ua);
+assert.deepEqual(escapePlan(LI_IOS), { app: "linkedin", os: "ios", auto: "safari", button: "safari", sure: true, browser: "Safari" }, "other apps still try Safari");
 assert.deepEqual(escapePlan(IG_IOS16), { app: "instagram", os: "ios", auto: null, button: null, sure: true, browser: "Safari" }, "iOS 16: the steps only");
 assert.equal(escapePlan(WA).sure, false);
 

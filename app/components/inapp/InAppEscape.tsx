@@ -18,7 +18,8 @@ import { STU_HEAD } from "~/components/home-b2c/links";
 //   - "Start the call" (home-v3 [data-start], signed out: its link is the product's /join), the sign-up card's Google
 //     and email buttons ([data-signin] in [data-join-card]), and any link to the product's /join or /start;
 //   - the same address (its whole query: utm_*, via, fbclid; the held ad click added when the page lost it) opens in
-//     Chrome on Android (an intent URL, Meta's apps) or Safari on iOS 17 and later (x-safari-https://);
+//     Chrome on Android (an intent URL, Meta's apps) or Safari on iOS 17 and later (x-safari-https://, not in Meta's
+//     apps, which drop it: there the sheet shows at once, Copy link as its main button);
 //   - if the page is still here after ESCAPE_WAIT_MS, or neither is possible, the sheet: "Open this in Safari to talk to
 //     Stu", why, that app's steps to its "open in browser" item, Copy link, Open in Chrome or Safari where that address
 //     is safe to offer, a quiet "Set up by typing instead" (sign in, then the product's typed setup, /start?typed), and
@@ -150,7 +151,7 @@ function Sheet({ open, onClose, onStay }: { open: Open; onClose: () => void; onS
         </ol>
         <p className="sj-esc-copyline">{words.copy}</p>
         <div className="sj-esc-acts">
-          <button type="button" className="sj-esc-btn2" onClick={() => void copyText(link).then(setCopied)}>
+          <button type="button" className={plan.button ? "sj-esc-btn2" : "sj-esc-btn"} onClick={() => void copyText(link).then(setCopied)}>
             {copied ? "Link copied" : "Copy link"}
           </button>
           {plan.button && (
