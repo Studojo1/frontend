@@ -159,6 +159,9 @@ assert.equal(escapePlan(WA).sure, false);
   const root = read("root.tsx");
   assert.match(root, /\{journeyPages && !onSensei && !projectPage && <InAppEscape \/>\}/);
   const esc = read("components/inapp/InAppEscape.tsx");
+  // INAPP-OFF: the owner switched the escape off to try the call in Instagram's browser; inapp_seen is still sent first.
+  assert.match(esc, /const ESCAPE_ON = false;/);
+  assert.match(esc, /step: "inapp_seen"[\s\S]{0,200}if \(!ESCAPE_ON\) return;/);
   // The card's buttons, then any link to the product's /join or /start (not /auth); the takeover's handler is stopped,
   // clicked_join (same node, capture) is not.
   assert.match(esc, /closest<HTMLElement>\("\[data-signin\]"\)/);

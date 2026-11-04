@@ -28,6 +28,10 @@ import { STU_HEAD } from "~/components/home-b2c/links";
 // page's own handlers (the call takeover) and the link. Journey rows: inapp_seen once a browser session,
 // inapp_escape_tried and inapp_escape_sheet (journey.ts BEACON_STEPS). In a real browser nothing here runs.
 
+/** INAPP-OFF (4 Nov 2026, the owner: "can you remove the entire open in safari, let me see if it works on my phone
+ * first"): off, so a tap in an app's browser goes on to the call as in a real browser. inapp_seen is still sent. True
+ * turns the escape and its sheet back on. */
+const ESCAPE_ON = false;
 /** How long a tap's own escape gets before the sheet shows (the app may ask "Open in Chrome?" first). */
 const ESCAPE_WAIT_MS = 1_500;
 const SEEN_KEY = "stu_inapp_seen";
@@ -192,7 +196,6 @@ export function InAppEscape() {
   useEffect(() => {
     const plan = escapePlan(navigator.userAgent, touch());
     if (!plan) return;
-    setInApp(true);
     const base = () => ({ path: window.location.pathname, app: plan.app, os: plan.os });
     try {
       if (!sessionStorage.getItem(SEEN_KEY)) {
@@ -202,6 +205,8 @@ export function InAppEscape() {
     } catch {
       // storage blocked: no inapp_seen row, the escape still works
     }
+    if (!ESCAPE_ON) return;
+    setInApp(true);
     let timer: ReturnType<typeof setTimeout> | null = null;
     const sheet = (t: Target, why: "manual" | "timeout") => {
       try {
