@@ -51,6 +51,7 @@ export default [
   route("reports/high-school-internships-how-to-get-one-2026", "routes/legacy-redirects.tsx", { id: "redirect-reports-high-school-internships-how-to-get-one-2026" }),
 
   // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
+  route("reports/india-entry-level-jobs-internships-october-2026", "routes/reports.india-entry-level-jobs-internships-october-2026.tsx"),
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
   route("reports/cs-india-2026", "routes/reports.cs-india-2026.tsx"),

@@ -42,6 +42,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "india-entry-level-jobs-internships-october-2026",
+    publishDate: "2026-11-03",
+    title: "India Entry-Level Jobs and Internships, October 2026: 171,203 Listings, Counted",
+    subtitle: "Job Market · India · 2026",
+    excerpt: "We counted India's live entry-level and internship listings for October 2026: 171,203 of them, by role, city and pay. The gap that matters: about 85 in 100 give you no person to contact.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "how-to-get-a-job-2026",
     publishDate: "2026-10-28",
     title: "How to Get a Job in 2026: Every Route Compared, and the One That Skips the Queue",

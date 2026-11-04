@@ -156,8 +156,9 @@ const PINNED = {
   "routes/blog._index.tsx": "c56374e058eb2f3f",
   "routes/blog.$slug.tsx": "2a9c438fdd84f1ea",
   // re-pinned 28 Oct for the 14 batch-2 reports (REPORTS entries only); RELAUNCH 2 Nov: its two CTAs go to the
-  // product host (productHref, app/lib/product-origin.ts) and nothing else changed
-  "routes/reports.tsx": "3ff3d9a8bfd4b79d",
+  // product host (productHref, app/lib/product-origin.ts) and nothing else changed. SEO day 7 (4 Nov): one REPORTS
+  // entry for india-entry-level-jobs-internships-october-2026, nothing else changed
+  "routes/reports.tsx": "cda664d1e72abb41",
   "routes/terms.tsx": "e565ab6f9433ba94",
   // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), and a row for the
   // stu_vid, stu_src and stu_lt journey cookies (app/lib/journey.ts); nothing else changed. META-FIX 2 Nov: the
