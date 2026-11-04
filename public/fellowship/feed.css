@@ -102,8 +102,9 @@ ul, ol { padding: 0; list-style: none; }
   grid-template-areas: "left" "feed" "right" "activity";
 }
 .rail-left { grid-area: left; display: grid; gap: 12px; }
-.feed { grid-area: feed; display: grid; gap: 12px; min-width: 0; }
-.post-list { display: grid; gap: 12px; min-width: 0; }
+/* One column, never wider than the screen: a long unbroken line (a saved post link) shortens instead. */
+.feed { grid-area: feed; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
+.post-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
 .rail-right { grid-area: right; display: grid; gap: 12px; min-width: 0; }
 .activity { grid-area: activity; min-width: 0; }
 @media (min-width: 760px) {

@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
-export const ASSET_VERSION = "20261104a";
+export const ASSET_VERSION = "20261104b";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",

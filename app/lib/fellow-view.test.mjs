@@ -274,4 +274,12 @@ assert.equal(STORIES_WANTED, 3);
 assert.equal(v.me.storiesWanted, 3);
 assert.equal(v.me.storyPrompts[0], "Something that happened this week that taught you something");
 
+// The page's columns never grow past the screen: one long unbroken line (a saved post link) once
+// widened every post card on phones, and the phone zoomed the whole page out to fit it.
+const css = readFileSync(new URL("../../public/fellowship/feed.css", import.meta.url), "utf8");
+for (const rule of [".feed", ".post-list"]) {
+  const body = new RegExp(`^\\${rule} \\{([^}]*)\\}`, "m").exec(css)?.[1] ?? "";
+  assert.match(body, /grid-template-columns: minmax\(0, 1fr\)/, `${rule} keeps its column within the screen`);
+}
+
 console.log("fellow-view: ok");
