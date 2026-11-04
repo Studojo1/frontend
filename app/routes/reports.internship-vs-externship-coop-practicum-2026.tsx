@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -458,15 +458,7 @@ export default function Report_InternshipVsExternshipCoopPracticum2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Find the format that fits your actual question.</h3>
-              <p>Stu, Studojo's career agent, finds jobs and internships that fit you, best fit first, so you are comparing real terms instead of job titles.</p>
-            </div>
-            <Link to={productHref("/join?via=report-internship-vs-externship-coop-practicum-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find roles →
-            </Link>
-          </div>
+          <StuCta via="report-internship-vs-externship-coop-practicum-2026" place="report-end" size="card" title="Want an internship that fits you, whatever it's called?" line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email." />
         </div>
       </main>
       <Footer />

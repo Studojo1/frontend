@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 export function meta() {
   return [
@@ -193,12 +193,7 @@ export default function JobSearchReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Stop scrolling boards. Stu finds the roles that fit you, best fit first.</span>
-            <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-job-search-2026" title="Tell Stu the role you want. Stu finds jobs that fit you and who's hiring, so your search starts with a plan." /></div>
 
         <div className="rpt-content">
 
@@ -286,15 +281,7 @@ export default function JobSearchReport() {
           </div>
 
           {/* CTA 1 */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find internships that are actually worth applying to</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds internships that fit you from company career sites and job boards, best fit first. No spray and pray.</div>
-              </div>
-              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
-            </div>
-          </div>
+          <StuCta via="report-job-search-2026" place="report-mid" size="quiet" title="Stu finds internships that fit you from company career sites and job boards, best fit first." />
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -401,15 +388,6 @@ export default function JobSearchReport() {
           </div>
 
           {/* CTA 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that opens cold outreach doors</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>A clean, ATS-optimised resume is the attachment that makes cold emails credible. Stu, Studojo's career agent, tailors yours to each job.</div>
-              </div>
-              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
-            </div>
-          </div>
 
           {/* Finding 5 */}
           <div className="rpt-finding">
@@ -480,7 +458,7 @@ export default function JobSearchReport() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
                       ["Wellfound (wellfound.com)", "Best for startup roles. Salary shown upfront. Less crowded than LinkedIn. Founder-posted roles appear here before boards."],
-                      ["Stu, Studojo's career agent", "Finds internships that fit you from company career sites and job boards, best fit first, and tailors your resume to each one."],
+                      ["Stu, Studojo's career agent", "Finds internships that fit you from company career sites and job boards, best fit first, each with the reason it fits."],
                       ["Y Combinator jobs (ycombinator.com/jobs)", "YC-backed companies. Early-stage roles with high growth potential. Less competition than mainstream boards."],
                       ["GlassDoor company pages", "Use for salary research and to identify team structure before applying. Not primarily for applications."],
                       ["Naukri / Internshala (India)", "High volume, but use only for direct company applications. Filter aggressively: minimum stipend, sector, and role type."],
@@ -650,15 +628,7 @@ export default function JobSearchReport() {
           </div>
 
           {/* Final CTA */}
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stop spraying and praying. Stu, Studojo's career agent, finds the internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu →</Link>
-              <Link to={productHref("/join?via=report-job-search-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-job-search-2026" place="report-end" size="card" title="Want a job search that works harder than you do?" line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email." />
 
         </div>
       </main>

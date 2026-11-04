@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -361,13 +361,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             <p>Total reward includes housing allowance, flight home, schooling support, and bonuses in some packages, especially for expats. Two offers with the same base are not equal if one is all-in and the other splits allowances for tax and visa reasons.</p>
             <p>Remote-first global employers hiring UAE residents sometimes anchor to international scales, while local contracts anchor to regional norms. Both exist in the same city, which is why public salary threads disagree.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Turn bands into conversations</h4>
-                <p>When you know your function band, Stu, Studojo's career agent, finds the recruiter or hiring manager to write to and drafts the email, so you ask for real numbers for your level, not forum gossip.</p>
-                <Link to={productHref("/join?via=report-dubai-hiring-whos-hiring-and-pay-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-dubai-hiring-whos-hiring-and-pay-2026" place="report-mid" size="quiet" title="Want Dubai roles and the person hiring, found for you? Tell Stu in one call." />
 
             <div className="chart-wrap">
               <div className="chart-label">Illustrative gross monthly AED bands for early-career hires (midpoint index, 0 to 25 scale)</div>
@@ -432,13 +426,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             <p>Regional job boards and aggregator alerts help for volume roles, but mid-tier professional hiring still routes through networks. Alumni groups, community meetups, and founder circles often surface roles pre-posting.</p>
             <p>When you message someone, lead with a specific problem you can solve for their team, not admiration for the brand. Busy managers forward messages that make them look smart, not long essays.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's career agent, finds the hiring manager to write to and drafts a tight brief. You add one flagship link, the pattern Dubai teams actually forward.</p>
-                <Link to={productHref("/join?via=report-dubai-hiring-whos-hiring-and-pay-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Start with Stu →</Link>
-              </div>
-            </div>
+            <StuCta via="report-dubai-hiring-whos-hiring-and-pay-2026" place="report-mid" size="quiet" title="Stu finds who's hiring in Dubai and writes the email to them. Start with one call." />
 
             <div className="blist">
 
@@ -539,15 +527,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach hiring managers in Dubai, directly.</h3>
-              <p>Stu, Studojo's career agent, finds open roles that fit you and the right person behind each one, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-dubai-hiring-whos-hiring-and-pay-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-dubai-hiring-whos-hiring-and-pay-2026" place="report-end" size="card" title="Want a Dubai job, not another dead application?" line="Tell Stu the role, the city and the pay you want in one short call. Stu finds Dubai roles that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

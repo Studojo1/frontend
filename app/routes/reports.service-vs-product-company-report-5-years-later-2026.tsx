@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -380,15 +380,7 @@ export default function Report_ServiceVsProductCompanyReport5YearsLater2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Build the evidence that gets you the better start"}</h3>
-              <p>{"Internships at product companies and startups are the fastest way to show product-ready skills before your first offer. Stu, Studojo's career agent, finds the ones that fit you, best fit first."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-service-vs-product-company-report-5-years-later-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Let Stu find roles →"}
-            </Link>
-          </div>
+          <StuCta via="report-service-vs-product-company-report-5-years-later-2026" place="report-end" size="card" title="Know which kind of company you want? Tell Stu." line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

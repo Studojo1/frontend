@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -448,15 +448,7 @@ export default function Report_CybersecurityInternshipReport2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach the security teams that never post.</h3>
-              <p>Stu, Studojo's career agent, finds the right person to write to at each company and drafts the email that puts your write-ups in front of them.</p>
-            </div>
-            <Link to={productHref("/join?via=report-cybersecurity-internship-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find the right person →
-            </Link>
-          </div>
+          <StuCta via="report-cybersecurity-internship-report-2026" place="report-end" size="card" title="Want to reach the security teams that never post?" line="Tell Stu the role you want in one short call. Stu finds who's hiring and drafts a short email that puts your real work in front of them." />
         </div>
       </main>
       <Footer />

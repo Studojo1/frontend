@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -487,13 +487,7 @@ export default function Report_SingaporeRemoteFromIndia2026() {
 
             <div className="callout-green"><strong>How to verify in two minutes:</strong> Open the company's LinkedIn page, filter People by location India, sort by recent. If you find three or more engineers, designers, or PMs hired in the last twelve months, the remote rail is operational.</div>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Find the roles that fit you</h4>
-                <p>Stu, Studojo's career agent, finds jobs that fit you from company career sites and job boards, best fit first.</p>
-                <Link to={productHref("/join?via=report-singapore-remote-from-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
-              </div>
-            </div>
+            <StuCta via="report-singapore-remote-from-india-2026" place="report-mid" size="quiet" title="Stu finds Singapore remote roles that fit you, best fit first." />
 
             <div className="blist">
               <div className="blist-item">
@@ -618,13 +612,7 @@ export default function Report_SingaporeRemoteFromIndia2026() {
             <p>A Singapore remote role posted on LinkedIn averages roughly 4,000 applicants in the first 72 hours. The same role surfaced through a founder's DM averages four. The volume math is the entire reason direct outreach works for this market. Founders are starved for relevant inbound. Recruiters are buried in irrelevant inbound.</p>
             <p>Step one: build a target list of 50 Series A to C Singapore startups currently hiring engineers, designers, or PMs. Verify each one already employs at least one India remote person. Step two: find the hiring manager, not the recruiter. Head of Engineering, VP Product, or CTO. Step three: send a specific pitch that references one real product moment from their company and one concrete result from your past work. Step four: pin one piece of real work to your LinkedIn Featured section so the proof clicks before the conversation starts.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Steps two and three, with Stu</h4>
-                <p>Stu finds the hiring manager at each company and drafts a specific email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-singapore-remote-from-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-singapore-remote-from-india-2026" place="report-mid" size="quiet" title="Stu finds who's hiring for the role, with a verified work email." />
 
             <div className="highlight"><strong>Summary insight:</strong> Your geography is not the cap. Your reach is. Founders in Singapore want to hire strong India engineers; the structural pipes already exist; the only missing link is you showing up in the right inbox with the right pitch.</div>
 
@@ -707,15 +695,7 @@ export default function Report_SingaporeRemoteFromIndia2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach Singapore hiring teams directly.</h3>
-              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-singapore-remote-from-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-singapore-remote-from-india-2026" place="report-end" size="card" title="Want a Singapore remote role from India?" line="Tell Stu the role and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

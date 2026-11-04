@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 export function meta() {
   return [
@@ -224,12 +224,7 @@ export default function AustraliaInternshipsReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for paid internships in Australia and the Asia-Pacific?</span>
-            <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-internships-australia-2026" title="Tell Stu you want an internship in Australia. Stu finds paid roles that fit you, best fit first." /></div>
 
         <div className="rpt-content">
 
@@ -333,15 +328,7 @@ export default function AustraliaInternshipsReport() {
           </div>
 
           {/* CTA 1 */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find paid internships across Australia and Asia-Pacific</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds paid internships that fit you on company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-internships-australia-2026" place="report-mid" size="quiet" title="Stu finds paid internships across Australia on company career sites and job boards, best fit first." />
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -466,15 +453,6 @@ export default function AustraliaInternshipsReport() {
           </div>
 
           {/* CTA 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that Australian ATS systems accept</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Australian employers use ATS filters that are strict about format. Stu, Studojo's career agent, tailors your resume and cover letter to each role you apply to.</div>
-              </div>
-              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 6 */}
           <div className="rpt-finding">
@@ -654,15 +632,7 @@ export default function AustraliaInternshipsReport() {
             </div>
           </div>
 
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds paid internships that fit you. Then it tailors your resume and cover letter to each one.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-internships-australia-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-internships-australia-2026" place="report-end" size="card" title="Want a paid internship in Australia?" line="Tell Stu the role, city and pay you want in one short call. Stu finds internships that fit you, finds who's hiring and writes the email." />
 
         </div>
       </main>

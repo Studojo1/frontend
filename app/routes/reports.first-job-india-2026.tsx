@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -361,13 +361,7 @@ export default function Report_FirstJobIndia2026() {
             <p>Some employers bundle variable pay, joining bonus, and stock into headline CTC, which changes your in-hand cash. Two offers with the same headline number are not equal if one is 70% fixed and the other is 50% variable with a clawback clause.</p>
             <p>Tier-two city roles and mid-market employers may pay below headline Bangalore numbers but offer lower living costs and faster ownership. That can be rational if you are optimising for skill depth and conversion odds, not headline CTC alone.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Turn bands into conversations</h4>
-                <p>When you know your target CTC band, Stu, Studojo's career agent, finds the recruiter or hiring manager who can confirm real numbers for your cohort and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-first-job-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-first-job-india-2026" place="report-mid" size="quiet" title="Stu finds who's hiring for your first job and writes the email to them. Start with one call." />
 
             <div className="chart-wrap">
               <div className="chart-label">Illustrative annual CTC index for entry-level full-time roles in India (midpoint index, 0 to 20 scale)</div>
@@ -432,13 +426,7 @@ export default function Report_FirstJobIndia2026() {
             <p>Campus placement cells, hackathons, and employer insight sessions still route many structured cohorts. Off-campus candidates should treat those same competitions and open challenges as legitimate side doors.</p>
             <p>When you message a hiring manager or campus recruiter, lead with a specific problem you solved and one link to proof, not admiration for the brand. Busy managers forward messages that make them look sharp, not long essays.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's career agent, finds the recruiter or hiring manager at each company and drafts a short email for you. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-first-job-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-first-job-india-2026" place="report-mid" size="quiet" title="Tell Stu the role and city you want. It finds jobs that fit you, best fit first." />
 
             <div className="blist">
 
@@ -539,15 +527,7 @@ export default function Report_FirstJobIndia2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach hiring managers for your first role in India, directly.</h3>
-              <p>Stu, Studojo's career agent, finds the hiring manager or recruiter behind each entry-level role and drafts a personal email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-first-job-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find the right person →
-            </Link>
-          </div>
+          <StuCta via="report-first-job-india-2026" place="report-end" size="card" title="Want your first job, not another rejection?" line="Tell Stu the role, the city and the pay you want in one short call. Stu finds jobs that fit a fresher, finds who's hiring and writes the email from your real work." />
         </div>
       </main>
       <Footer />

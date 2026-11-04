@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -231,12 +231,7 @@ export default function HiringCalendarReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip rpt-cta-strip-orange">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Ready to apply to the roles on this calendar?</span>
-            <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-cta-pill rpt-cta-pill-orange">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-hiring-calendar-india-2026" title="Ready for the roles on this calendar? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -393,15 +388,6 @@ export default function HiringCalendarReport() {
           </div>
 
           {/* CTA 1 */}
-          <div className="rpt-inline-cta rpt-inline-cta-orange">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Don't wait for the window - prepare before it opens</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume and cover letter to each role, so your application is ready before each deadline hits.</div>
-              </div>
-              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -712,15 +698,7 @@ export default function HiringCalendarReport() {
           </div>
 
           {/* CTA 2 */}
-          <div className="rpt-inline-cta rpt-inline-cta-orange">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Get direct outreach to hiring managers at these companies</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds the hiring manager or recruiter at each company and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</div>
-              </div>
-              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-orange">Let Stu find the right person</Link>
-            </div>
-          </div>
+          <StuCta via="report-hiring-calendar-india-2026" place="report-mid" size="quiet" title="Stu finds the hiring manager or recruiter at each company and writes the email. Nothing goes out until you say." />
 
           {/* Finding 5 */}
           <div className="rpt-finding">
@@ -1106,16 +1084,7 @@ export default function HiringCalendarReport() {
           </div>
 
           {/* Final CTA */}
-          <div className="rpt-final-cta rpt-final-cta-orange">
-            <div className="rpt-final-cta-title">You know the calendar. Now use it.</div>
-            <p className="rpt-final-cta-sub">
-              Stu, Studojo's career agent, finds the right person to write to at the companies on this calendar and drafts a personal email to each. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies. Most students wait for job boards. You don't have to.
-            </p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu</Link>
-              <Link to={productHref("/join?via=report-hiring-calendar-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-            </div>
-          </div>
+          <StuCta via="report-hiring-calendar-india-2026" place="report-end" size="card" title="You know the calendar. Now use it." line="Tell Stu the role, the city and the pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
 
         </div>
       </main>

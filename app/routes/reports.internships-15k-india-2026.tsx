@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -133,12 +133,7 @@ export default function Internships15kReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="r15-cta-strip">
-          <div className="r15-inner r15-cta-strip-inner">
-            <span className="r15-cta-strip-text">Looking for the roles in the amber and violet brackets?</span>
-            <Link to={productHref("/join?via=report-internships-15k-india-2026&how=voice")} reloadDocument className="r15-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-internships-15k-india-2026" title="Tell Stu the role and city you want. Stu finds internships that fit you on company career sites and job boards." /></div>
 
         <div className="r15-content">
 
@@ -195,15 +190,7 @@ export default function Internships15kReport() {
           </div>
 
           {/* Inline CTA */}
-          <div className="r15-inline-cta">
-            <div className="r15-inline-cta-inner">
-              <div>
-                <div className="r15-inline-cta-title">Find the amber and violet roles before everyone else</div>
-                <div className="r15-inline-cta-sub">Stu, Studojo's career agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-internships-15k-india-2026&how=voice")} reloadDocument className="r15-btn-primary">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-internships-15k-india-2026" place="report-mid" size="quiet" title="Stu finds the better-paying internships for you, best fit first, each with the reason it fits." />
 
           {/* Finding 1 */}
           <div className="r15-finding">
@@ -334,14 +321,7 @@ export default function Internships15kReport() {
         </div>
 
         {/* Final CTA */}
-        <div className="r15-final-cta">
-          <div className="r15-final-title">Work on things that matter.</div>
-          <div className="r15-final-sub">Stu, Studojo's career agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.</div>
-          <div className="r15-final-btns">
-            <Link to={productHref("/join?via=report-internships-15k-india-2026&how=voice")} reloadDocument className="r15-btn-white">Let Stu find roles</Link>
-            <Link to="/reports" className="r15-btn-outline">Read More Reports</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap sv-stu-cta-wrap-end"><StuCta via="report-internships-15k-india-2026" place="report-end" size="card" title="Want an internship that pays, not just one that exists?" line="Tell Stu the role, city and pay you want in one short call. Stu finds internships that fit you, finds who's hiring and writes the email." /></div>
       </main>
       <Footer />
     </>

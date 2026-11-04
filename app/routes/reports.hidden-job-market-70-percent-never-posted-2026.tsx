@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -476,15 +476,7 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Find roles worth showing proof for.</h3>
-              <p>Stu, Studojo's career agent, finds jobs and internships that fit you and the right person to write to at each company, so you can aim your emails and applications at real needs, not ghost listings alone.</p>
-            </div>
-            <Link to={productHref("/join?via=report-hidden-job-market-70-percent-never-posted-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find roles →
-            </Link>
-          </div>
+          <StuCta via="report-hidden-job-market-70-percent-never-posted-2026" place="report-end" size="card" title="Want in on the jobs nobody posts?" line="Tell Stu the role you want in one short call. Stu finds who's hiring, usually the team head or a recruiter, and writes a short email from your real work." />
         </div>
       </main>
       <Footer />

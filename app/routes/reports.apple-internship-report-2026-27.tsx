@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -473,13 +473,7 @@ export default function Report_AppleInternshipReport202627() {
             <p>{"Apple internship postings do not list a GPA cutoff. They ask for relevant projects, prior internships, research, or teaching experience. In practice, the students who get picked tend to share one trait: they already look like a junior member of that specific team. They have used the same tools, solved a smaller version of the same problem, and can talk about it clearly."}</p>
             <p>{"Referrals help, but they work best when they come from someone on or near the hiring team and are paired with a strong, relevant resume. A cold referral from someone in a different org carries less weight than a thoughtful message to an engineer on the team you actually want."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Reach the team, not just the portal"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the right person to write to on the team you want, the hiring manager or recruiter, and drafts the email. You add a short proof link instead of a generic ask."}</p>
-                <Link to={productHref("/join?via=report-apple-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-apple-internship-report-2026-27" place="report-mid" size="quiet" title="Stu finds the right person on the team you want and drafts the email, so you reach the team, not just the portal." />
 
             <div className="highlight"><strong>{"Summary insight:"}</strong>{" Apple rewards depth, fit, and timing. Pick your lane, build real proof, apply early, and talk to the people doing the work."}</div>
 
@@ -560,15 +554,7 @@ export default function Report_AppleInternshipReport202627() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Apple hires by team. Reach the team."}</h3>
-              <p>{"Stu, Studojo's career agent, finds roles that fit you, tailors your resume to each one and drafts the email to the right person. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-apple-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-apple-internship-report-2026-27" place="report-end" size="card" title="Apple hires by team. Want to reach the team?" line="Tell Stu the role you want in one short call. Stu finds roles that fit you and who's hiring on the team, then writes a short email from your real work." />
         </div>
       </main>
       <Footer />

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -425,13 +425,7 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
             <p>Referrals bundle three things employers pay recruiters to manufacture: signal (someone credible stakes reputation), fit (the referrer knows both the role and the person), and speed (internal routing skips public-queue triage). That is why Gem reports referrals rising as a share of hires as companies grow past a few hundred employees: larger firms have denser employee networks and formal referral systems.</p>
             <p>For candidates, the implication is strategic. You are not trying to "game" a system. You are trying to arrive with the same information asymmetry reduction that a referral provides: a named connection, a specific team problem, and evidence you have done similar work. Cold outreach that reads like a referral packet (short forwardable blurb, one proof link, clear role fit) borrows the same mechanics without an employee ID.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's career agent, finds the hiring manager or recruiter for each role and drafts a short email with your proof link. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-referrals-vs-applications-how-people-get-hired-2026" place="report-mid" size="quiet" title="Skip the application pile: Stu finds who's hiring for your role, with a verified work email." />
 
             <div className="highlight"><strong>Key insight:</strong> Employers hire referrals because referrals lower coordination cost. Your job is to make every touchpoint easy to forward.</div>
 
@@ -566,13 +560,7 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
             <p>Most ATS products tag referral sources automatically, triggering faster recruiter review and sometimes skipping initial keyword screens. Referral bonus programs (common in tech, consulting, and healthcare) align employee incentives with quality, not volume, which is why referred candidates see higher interview rates in Ashby aggregates.</p>
             <p>Hiring managers often see referrals as internal customers: a teammate asked for a favor. That social cost cuts both ways. A weak referral damages the referrer, so managers take those screens seriously. Your job in the interview is to validate the referrer's judgment with specifics, not to re-pitch from zero.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Reach the inbox that routes referrals</h4>
-                <p>Stu finds the hiring manager or recruiter at each company and drafts the email, so your intro arrives with context, not just a resume attachment.</p>
-                <Link to={productHref("/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-referrals-vs-applications-how-people-get-hired-2026" place="report-mid" size="quiet" title="Stu writes a short, personal email on why you fit, from your real work." />
 
             <div className="highlight"><strong>Key insight:</strong> Referrals shift you from "unknown applicant" to "someone's request." Interview prep should include "why did you vouch for me?" alignment with your referrer.</div>
 
@@ -675,15 +663,7 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Turn channel data into conversations that convert</h3>
-              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-referrals-vs-applications-how-people-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-referrals-vs-applications-how-people-get-hired-2026" place="report-end" size="card" title="Referrals work. Here is a way to ask without knowing anyone." line="Tell Stu the role you want in one short call. Stu finds who's hiring, usually the hiring manager or a recruiter, and writes the email to them." />
         </div>
       </main>
       <Footer />

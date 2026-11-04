@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -228,13 +228,7 @@ export default function PuneJobsReport() {
           </div>
         </div>
 
-        {/* CTA strip */}
-        <div className="rpt-cta-strip rpt-cta-strip-blue">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for jobs and internships in Pune?</span>
-            <Link to={productHref("/join?via=report-pune-jobs-2026&how=voice")} reloadDocument className="rpt-cta-pill rpt-cta-pill-blue">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta via="report-pune-jobs-2026" place="report-top" size="quiet" title="Looking for jobs in Pune? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -327,16 +321,7 @@ export default function PuneJobsReport() {
             <p className="rpt-source">Source: Glassdoor India salary data 2026, AmbitionBox, LinkedIn Salary Insights, Studojo analysis</p>
           </div>
 
-          {/* CTA 1 */}
-          <div className="rpt-inline-cta rpt-inline-cta-blue">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find Pune roles that actually pay</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds the roles that fit you, from company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-pune-jobs-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-blue">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-pune-jobs-2026" place="report-mid" size="quiet" title="Stu finds Pune roles that fit you, best fit first, each with the reason it fits." />
 
           {/* Finding 4 */}
           <div className="rpt-finding">
@@ -451,16 +436,6 @@ export default function PuneJobsReport() {
             <p className="rpt-source">Source: Studojo JD analysis (1,200+ listings, April 2026), hiring manager interviews Q1 2026, Naukri fresher skills data</p>
           </div>
 
-          {/* CTA 2 */}
-          <div className="rpt-inline-cta rpt-inline-cta-blue">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Build an ATS-optimised resume for Pune roles</div>
-                <div className="rpt-inline-cta-sub">Stu tailors your resume and cover letter to each job you go for.</div>
-              </div>
-              <Link to={productHref("/join?via=report-pune-jobs-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-blue">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 6 */}
           <div className="rpt-finding">
@@ -587,16 +562,7 @@ export default function PuneJobsReport() {
             </div>
           </div>
 
-          {/* Final CTA */}
-          <div className="rpt-final-cta rpt-final-cta-blue">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds the Pune roles that fit you and tailors your resume to each one. It also finds the right person to write to and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-pune-jobs-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-pune-jobs-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-pune-jobs-2026" place="report-end" size="card" title="Want a Pune job, not a pile of applications?" line="Tell Stu the role and pay you want in Pune in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
 
         </div>
       </main>

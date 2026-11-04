@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -469,13 +469,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
             <p>{"Managers often form a preliminary keep-or-pass view around weeks four and five, long before the final presentation. By then they have seen whether you respond to feedback, whether your project is on track, and whether staffing you again feels easy."}</p>
             <p>{"Project assignment is partly luck. Interns who land on a visible, funded initiative with executive attention convert more often than interns on maintenance work, even when both work equally hard. If your project is low visibility, create a side artifact that solves a real team pain point."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Build parallel options before week eight"}</h4>
-                <p>{"Stu, Studojo's career agent, finds internships that fit you and the right person to write to at other companies, so one team's headcount cap does not define your pipeline."}</p>
-                <Link to={productHref("/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-return-offer-report-why-some-interns-get-hired-2026" place="report-mid" size="quiet" title="Stu finds internships that fit you, best fit first, each with the reason it fits." />
             <p>{"Fit is subjective but real. Teams optimize for communication style, time-zone overlap, appetite for ambiguity, and willingness to do unglamorous work. A great engineer on a client-facing team might lose to a good engineer who presents calmly to stakeholders."}</p>
 
             <div className="highlight"><strong>Key insight:</strong> The final demo is the closing argument, not the trial. Most jurors decided earlier.</div>
@@ -589,15 +583,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Land the internship that can convert."}</h3>
-              <p>{"Stu, Studojo's career agent, finds internships that fit you, best fit first, and drafts the email to the right person at each company. One team's headcount cap is not your only option."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-return-offer-report-why-some-interns-get-hired-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-return-offer-report-why-some-interns-get-hired-2026" place="report-end" size="card" title="Want an internship that can turn into an offer?" line="Tell Stu the roles you want in one short call. Stu finds internships that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

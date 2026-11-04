@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -388,13 +388,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <p>{"Raj Chetty's mobility research in the United States shows that children's adult earnings vary sharply by neighbourhood and college ecosystem even after controlling for test scores. In India, IIT/IIM pipeline density, family professional networks, and metro access produce similar structural advantages: not cheating, but head starts in information and introductions. Granovetter's weak-tie theory explains why those with broader acquaintance webs hear about roles earlier: bridges between clusters carry non-redundant information."}</p>
             <p>{"Referral data from ATS benchmarks (Ashby, Gem, CareerPlug) consistently shows referrals as a tiny share of applications but a double-digit share of hires. That is partly merit (referrers stake reputation) and partly luck (you happened to know someone inside). Candidates without pre-loaded networks are not less capable. They start the same game with fewer discovery channels, which is why Studojo's channel-mix research treats warm paths as infrastructure, not personality."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Build discovery luck on purpose"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the hiring manager or recruiter to write to and drafts a short email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-                <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-luck-report-how-much-career-success-is-luck-2026" place="report-mid" size="quiet" title="Stu shows you your best-fit roles every day and finds who's hiring, so you reach more doors." />
 
             <div className="highlight"><strong>Key insight:</strong> Networks are luck you can partially manufacture, but manufacturing takes years. Starting late is not a moral failing.</div>
 
@@ -496,13 +490,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <p>{"Luck-aware career planning changes emotional economics. Rejections during macro freezes become less personal. Wins become occasions for gratitude and pay-it-forward intros, not proof of superiority. Organisations that deny luck tend to over-credit pedigree and under-invest in outreach to non-traditional pipelines; individuals who deny luck burn out trying to optimise variables that were never fully in their control."}</p>
             <p>{"A practical luck-aware strategy for students: (1) run parallel discovery channels so one unlucky channel does not starve you; (2) maintain public proof so random viewers can assess you; (3) time-box pity loops and reallocate energy to surface-area actions; (4) help others when you are ahead, because referral economies are how people with bad initial draws reset their network lottery. Over a decade, modest skill plus many fair draws beats high skill with few draws almost as often as the simulations predict."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Increase your at-bats without spamming"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the roles that fit you, best fit first, and drafts an email to the right person at each company."}</p>
-                <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find roles →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-luck-report-how-much-career-success-is-luck-2026" place="report-mid" size="quiet" title="Tell Stu the role you want. Stu finds who's hiring and writes the email, so you take more shots." />
 
             <div className="highlight"><strong>Summary insight:</strong> Career success is partly luck, partly skill, always path-dependent. The winning move is to respect the dice and rig the table: more surfaces, better conversion, honest diagnostics.</div>
 
@@ -576,15 +564,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Meet luck halfway with better discovery"}</h3>
-              <p>{"Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-luck-report-how-much-career-success-is-luck-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-luck-report-how-much-career-success-is-luck-2026" place="report-end" size="card" title="Want more chances to get lucky?" line="Tell Stu the role you want in one short call. Every day Stu shows your best-fit roles and finds who's hiring, so you reach more doors." />
         </div>
       </main>
       <Footer />

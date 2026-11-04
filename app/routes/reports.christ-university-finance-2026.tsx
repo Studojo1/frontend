@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -213,12 +213,7 @@ export default function ChristUniversityFinanceReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for finance internships in Bangalore?</span>
-            <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta via="report-christ-university-finance-2026" place="report-top" size="quiet" title="Want a finance internship in Bangalore? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -249,16 +244,7 @@ export default function ChristUniversityFinanceReport() {
             <p className="rpt-source">Source: Naukri, LinkedIn Jobs, company career pages, April 2026</p>
           </div>
 
-          {/* CTA mid-report */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find finance internships in Bangalore before placement season</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds finance roles that fit you from company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-christ-university-finance-2026" place="report-mid" size="quiet" title="Tell Stu the finance roles you want, and Stu finds the internships that fit you and who's hiring." />
 
           {/* Finding 2 */}
           <div className="rpt-finding">
@@ -385,16 +371,6 @@ export default function ChristUniversityFinanceReport() {
             <p className="rpt-source">Source: 400+ Bangalore JD analysis (Naukri, LinkedIn), April 2026</p>
           </div>
 
-          {/* CTA mid-report 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into a fintech finance role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's career agent, tailors your resume and cover letter to each finance role you go for.</div>
-              </div>
-              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 5 */}
           <div className="rpt-finding">
@@ -449,18 +425,6 @@ export default function ChristUniversityFinanceReport() {
               <p>Three things close most of the gap. One live financial model you built yourself (not a class assignment). A resume that names specific outputs: "reduced reporting time by 30%" not "assisted finance team." And 20 minutes a week reading Zerodha Varsity and following Finshots. That preparation puts you in the top 20% of Christ candidates walking into any Bangalore interview.</p>
             </div>
 
-            <div className="rpt-inline-cta" style={{ marginTop: 24 }}>
-              <div className="rpt-inline-cta-inner">
-                <div>
-                  <div className="rpt-inline-cta-title">Fix your resume before you apply</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume to each finance role, so the words match the job.</div>
-                </div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-                  <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
-                </div>
-              </div>
-            </div>
             <p className="rpt-source">Source: Hiring manager surveys, Christ placement cell data, Studojo applicant analysis, April 2026</p>
           </div>
 
@@ -502,15 +466,6 @@ export default function ChristUniversityFinanceReport() {
               <p>The best fintech finance internships in Bangalore fill 3 to 4 months before they start. If you are in your second year, apply now. If you are in your third year and approaching placements, a strong fintech internship this semester is worth more than any certificate course you can complete in the same time.</p>
             </div>
 
-            <div className="rpt-inline-cta">
-              <div className="rpt-inline-cta-inner">
-                <div>
-                  <div className="rpt-inline-cta-title">Find your first Bangalore finance internship</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds finance internships that fit you, best fit first.</div>
-                </div>
-                <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-              </div>
-            </div>
             <p className="rpt-source">Source: 200 Christ graduate hiring decisions tracked, recruiter interviews, April 2026</p>
           </div>
 
@@ -583,15 +538,6 @@ export default function ChristUniversityFinanceReport() {
               <p>Find the finance hiring manager or team lead at your target company on LinkedIn. Send a short, specific message: what you study, one concrete thing you have built or analysed, and one specific reason this company over others. Not a generic "I am interested in opportunities." A real signal. Stu, Studojo's career agent, finds the right person to write to and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
             </div>
 
-            <div className="rpt-inline-cta">
-              <div className="rpt-inline-cta-inner">
-                <div>
-                  <div className="rpt-inline-cta-title">Reach Zerodha, Groww, and GCC hiring managers directly</div>
-                  <div className="rpt-inline-cta-sub">Stu finds the hiring manager or recruiter to write to and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</div>
-                </div>
-                <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find the right person</Link>
-              </div>
-            </div>
             <p className="rpt-source">Source: LinkedIn hiring data, company career pages, Studojo outreach conversion data, April 2026</p>
           </div>
 
@@ -619,15 +565,7 @@ export default function ChristUniversityFinanceReport() {
             </div>
           </div>
 
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">The gap between a 5 LPA campus placement and a 10 LPA fintech role is not talent. It is preparation, timing, and knowing where to apply. Stu, Studojo's career agent, finds roles that fit you, tailors your resume to each one and gets you ready for interviews.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-christ-university-finance-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-christ-university-finance-2026" place="report-end" size="card" title="Want a finance internship, not a pile of applications?" line="Tell Stu the finance roles you want in one short call. Stu finds the internships that fit you, finds who's hiring and writes the email to them." />
 
         </div>{/* /rpt-content */}
       </main>

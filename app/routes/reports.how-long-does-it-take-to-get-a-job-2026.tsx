@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -624,13 +624,7 @@ export default function HowLongToGetAJobReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Stop waiting on the portal.</h3>
-              <p>Studojo finds the hiring manager, verifies their email and sends a personal email for that one person from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-how-long-does-it-take-to-get-a-job-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-how-long-does-it-take-to-get-a-job-2026" place="report-end" size="card" title="Want a shorter job search?" line="Tell Stu the role, the city and the pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

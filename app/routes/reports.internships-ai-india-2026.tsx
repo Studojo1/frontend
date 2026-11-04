@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -205,12 +205,7 @@ export default function InternshipsAIIndiaReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for internships that are actually worth your time?</span>
-            <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-internships-ai-india-2026" title="Tell Stu you want an AI internship. Stu finds the roles that fit you, best fit first." /></div>
 
         <div className="rpt-content">
 
@@ -244,15 +239,7 @@ export default function InternshipsAIIndiaReport() {
           </div>
 
           {/* Inline CTA 1 */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find internship roles that are still hiring humans</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds internships that fit you on company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-primary" style={{ background: "#f59e0b", color: "#171717" }}>Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-internships-ai-india-2026" place="report-mid" size="quiet" title="Stu finds AI internships on company career sites and job boards, best fit first, each with the reason it fits." />
 
           {/* Finding 2 */}
           <div className="rpt-finding">
@@ -309,15 +296,6 @@ export default function InternshipsAIIndiaReport() {
           </div>
 
           {/* Inline CTA 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets past AI screening</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's career agent, tailors your resume and cover letter to each role you apply to.</div>
-              </div>
-              <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 4 */}
           <div className="rpt-finding">
@@ -568,16 +546,7 @@ export default function InternshipsAIIndiaReport() {
             </div>
           </div>
 
-          <div className="rpt-final-cta" style={{ background: "#f59e0b" }}>
-            <div className="rpt-final-cta-title" style={{ color: "#171717" }}>Work on things that matter.</div>
-            <div className="rpt-final-cta-sub" style={{ color: "rgba(23,23,23,0.75)" }}>
-              Stu, Studojo's career agent, finds the internships that fit you, best fit first. Not the generic listings. The ones worth your time.
-            </div>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-internships-ai-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to="/reports" className="rpt-btn-outline" style={{ borderColor: "rgba(23,23,23,0.3)", color: "#171717" }}>Read More Reports</Link>
-            </div>
-          </div>
+          <StuCta via="report-internships-ai-india-2026" place="report-end" size="card" title="Want an AI internship that fits you?" line="Tell Stu the role, city and pay you want in one short call. Stu finds AI internships that fit you, finds who's hiring and writes the email." />
 
         </div>
       </main>

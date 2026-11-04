@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -475,15 +475,7 @@ export default function Report_LinkedinEasyApplyKillingChances2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Apply where your proof fits the role.</h3>
-              <p>Stu, Studojo's career agent, finds the roles that fit you and tailors your resume to each one, so Easy Apply becomes a last step, not a substitute for strategy.</p>
-            </div>
-            <Link to={productHref("/join?via=report-linkedin-easy-apply-killing-chances-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-linkedin-easy-apply-killing-chances-2026" place="report-end" size="card" title="Tired of Easy Apply going nowhere?" line="Tell Stu the role you want in one short call. Stu finds who's hiring, usually the hiring manager or a recruiter, with a verified work email, and writes a short, personal email." />
         </div>
       </main>
       <Footer />

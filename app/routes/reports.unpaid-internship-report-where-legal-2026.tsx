@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -464,13 +464,7 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
             <p>Walk away or escalate to your career office when you see: unlimited hours with no pay; immediate revenue ownership ("bring clients, no salary"); no mentor or learning plan; pressure to sign away IP for free; visa or placement threats tied to unpaid work; pay "after funding" with no contract; or roles that replaced a paid posting with an intern title.</p>
             <p>Sectors with higher unpaid abuse reports include media, fashion, NGOs misclassified as volunteer shops, and small agencies selling "portfolio building." Sectors with clearer pay norms include large tech, banking analyst programmes, consulting summer analyst roles, and regulated GCC internships.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Prioritize paid pipelines</h4>
-                <p>Stu, Studojo's career agent, finds paid internships that fit you, so you are not defaulting to unpaid labour.</p>
-                <Link to={productHref("/join?via=report-unpaid-internship-report-where-legal-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
-              </div>
-            </div>
+            <StuCta via="report-unpaid-internship-report-where-legal-2026" place="report-mid" size="quiet" title="Stu finds internships that fit you, best fit first, with the reason each one fits." />
 
             <div className="highlight"><strong>Key insight:</strong> If only unpaid doors open, fix proof and channel mix before you normalize free production work.</div>
 
@@ -581,15 +575,7 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Target paid internships first.</h3>
-              <p>Stu, Studojo's career agent, finds paid internships that fit you and the right person to write to at each company, so you are not relying on unlawful or exploitative unpaid work.</p>
-            </div>
-            <Link to={productHref("/join?via=report-unpaid-internship-report-where-legal-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-unpaid-internship-report-where-legal-2026" place="report-end" size="card" title="Want an internship worth your time?" line="Tell Stu the roles and pay you want in one short call. Stu finds internships that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

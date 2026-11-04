@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -577,15 +577,7 @@ export default function MicrosoftInternshipReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach the people behind the posting.</h3>
-              <p>Stu, Studojo's career agent, finds the right person to write to on the hiring team and drafts the email, so your application does not sit alone in a portal. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-microsoft-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find the right person →
-            </Link>
-          </div>
+          <StuCta via="report-microsoft-internship-report-2026-27" place="report-end" size="card" title="Want a Microsoft internship, or roles like it?" line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email." />
         </div>
       </main>
       <Footer />

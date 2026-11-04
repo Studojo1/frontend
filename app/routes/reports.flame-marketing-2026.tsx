@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -225,12 +225,7 @@ export default function FlameMarketingReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip rpt-cta-strip-purple">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Flame student looking for marketing internships?</span>
-            <Link to={productHref("/join?via=report-flame-marketing-2026&how=voice")} reloadDocument className="rpt-cta-pill rpt-cta-pill-purple">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-flame-marketing-2026" title="Flame student looking for marketing internships? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -427,14 +422,7 @@ export default function FlameMarketingReport() {
           </div>
 
           {/* Closing CTA */}
-          <div className="rpt-cta-block">
-            <h2 className="rpt-cta-h">Find marketing internships worth applying to</h2>
-            <p className="rpt-cta-sub">Stu, Studojo's career agent, finds brand, GTM, content, and performance roles that fit you, best fit first. Then it tailors your resume to each one.</p>
-            <div className="rpt-cta-btns">
-              <Link to={productHref("/join?via=report-flame-marketing-2026&how=voice")} reloadDocument className="rpt-btn rpt-btn-purple">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-flame-marketing-2026&how=voice")} reloadDocument className="rpt-btn rpt-btn-out-purple">Let Stu tailor your resume</Link>
-            </div>
-          </div>
+          <StuCta via="report-flame-marketing-2026" place="report-end" size="card" title="Want a marketing internship worth applying to?" line="Tell Stu the marketing roles you want in one short call. Stu finds the brand, GTM, content and performance roles that fit you, finds who's hiring and writes the email." />
 
         </div>
       </main>

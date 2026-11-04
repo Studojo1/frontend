@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { HOW_IT_WORKS } from "../site-links";
-import { ArrowIcon, Kicker, StuHead, TileIcon } from "../ui";
+import { ArrowIcon, Kicker, TileIcon } from "../ui";
+import { StuCta } from "../StuCta";
 
 // SITE-V2 /reports on B2C hosts (studojo.pro): the page head, the newest three, one quiet Stu card, then every other
 // report as a white card with topic chips and a "show more" step so a phone does not get a 38k px page. The list is
@@ -93,18 +93,12 @@ export function ReportsIndexB2C({ reports, jsonLd, requestForm }: { reports: Rep
             </section>
           ) : null}
 
-          <aside className="sv-card sv-rx-stu" aria-label="about stu">
-            <StuHead size={64} />
-            <div className="sv-rx-stu-copy">
-              <h2 className="sv-h3">find the roles these reports talk about.</h2>
-              <p className="sv-body">
-                Stu, Studojo's career agent, finds roles that fit you, tailors your resume to each one and finds the right person to write to.
-              </p>
-            </div>
-            <a href={HOW_IT_WORKS} className="sv-link sv-rx-stu-link">
-              how it works
-            </a>
-          </aside>
+          <StuCta
+            via="reports"
+            place="reports-index"
+            title="Find the roles these reports talk about."
+            line="Tell Stu the role, the city and the pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them."
+          />
 
           <section className="sv-rx-block sv-rx-all" aria-labelledby="rx-all">
             <div className="sv-rx-allhead">

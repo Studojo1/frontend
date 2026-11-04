@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -664,15 +664,7 @@ export default function AmazonInternshipReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Find roles like this, without the queue.</h3>
-              <p>Stu, Studojo&apos;s career agent, finds roles that fit you and the hiring manager to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-amazon-internship-report-2026-27&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-amazon-internship-report-2026-27" place="report-end" size="card" title="Want roles like this, without the queue?" line="Tell Stu the role, city and pay you want in one short call. Stu finds roles that fit you, finds who's hiring at each company and drafts the email. Nothing goes out until you start a campaign." />
         </div>
       </main>
       <Footer />

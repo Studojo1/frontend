@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -672,13 +672,7 @@ export default function DoHiringManagersReadColdEmailsReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Earn the first line. Studojo writes it.</h3>
-              <p>Studojo finds the hiring manager, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-do-hiring-managers-read-cold-emails-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-do-hiring-managers-read-cold-emails-2026" place="report-end" size="card" title="Earn the first line. Let Stu write it." line="Tell Stu the role you want in one short call. Stu finds the hiring manager with a verified work email and writes a short, personal email from your real work." />
         </div>
       </main>
       <Footer />

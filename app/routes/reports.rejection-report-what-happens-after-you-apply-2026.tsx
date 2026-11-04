@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -490,13 +490,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
             <p>Automated rejections within 24 to 48 hours usually mean hard mismatch: location, authorization, level, or missing required skill flag. A rejection after a phone screen often means you were genuinely considered and lost to fit or slate size. A rejection months later frequently means the req closed and the ATS cleared the queue.</p>
             <p>Personalised feedback is rare in the United States and many global markets due to legal risk and time cost. Do not treat absence of feedback as hidden praise. Treat a fast no as efficient filtering that freed your attention.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Skip the queue that ends in silence</h4>
-                <p>Stu, Studojo's career agent, finds the hiring manager or recruiter for each role and drafts the email, so you are not just one more PDF in the pile.</p>
-                <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-rejection-report-what-happens-after-you-apply-2026" place="report-mid" size="quiet" title="Stu finds who's hiring and writes to them directly, so you are not stuck in a portal." />
 
             <div className="highlight"><strong>Key insight:</strong> A rejection email after a real conversation is progress. You entered the shortlist. Silence from the same company on your next apply means different role or path.</div>
 
@@ -591,13 +585,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
             <p>Replace "applications sent" with leading indicators: human replies, screens scheduled, and second conversations. CareerPlug's channel data (and Studojo's referral report) both show warm paths and careers-page applies convert at multiples of board spray-and-pray. Silence after cold apply is the expected output; your job is to increase the share of applies that are not cold.</p>
             <p>Batch emotional processing: weekly review of archived silences, not daily inbox refreshing. Celebrate rejections that reached interview stage as pipeline progress. Cap untailored applies so silence does not dominate your self-image.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Fewer applies, more conversations</h4>
-                <p>Stu finds the roles that fit you best and tailors your resume to each one, so you spend your effort on fewer, better applications.</p>
-                <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find roles →</Link>
-              </div>
-            </div>
+            <StuCta via="report-rejection-report-what-happens-after-you-apply-2026" place="report-mid" size="quiet" title="Stu finds jobs that fit you every day, best fit first, with the reason each one fits." />
 
             <div className="highlight"><strong>Summary insight:</strong> The system is noisy by design. Your strategy is to shorten the silence-heavy paths and lengthen the conversation-heavy ones.</div>
 
@@ -671,15 +659,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Stop waiting on silence. Start conversations.</h3>
-              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-rejection-report-what-happens-after-you-apply-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-rejection-report-what-happens-after-you-apply-2026" place="report-end" size="card" title="Tired of silence after you apply?" line="Tell Stu the role you want in one short call. Stu finds who's hiring and writes a short, personal email to them. Nothing goes out until you start a campaign." />
         </div>
       </main>
       <Footer />

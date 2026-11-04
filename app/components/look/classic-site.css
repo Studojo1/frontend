@@ -727,3 +727,7 @@ html[data-look="classic"][data-sv2] .sv-btn-ghost:active,
 html[data-look="classic"][data-sv2] a.sv-card:hover,
 html[data-look="classic"][data-sv2] a.sv-card:active { transform: none; }
 }
+/* CTA-NEW (4 Nov 2026): the one Stu card on blog posts and reports (site.css .sv-stu-cta) */
+html[data-look="classic"][data-sv2] aside.sv-stu-cta { border: 2px solid var(--cl-ink); border-radius: 16px; box-shadow: var(--cl-hard); background: #fff; }
+html[data-look="classic"][data-sv2] aside.sv-stu-cta p.sv-stu-cta-title { font-family: var(--cl-display); font-weight: 600; letter-spacing: -0.005em; }
+html[data-look="classic"][data-sv2] aside.sv-stu-cta[data-size="quiet"] p.sv-stu-cta-title { font-family: var(--sv-sans); }

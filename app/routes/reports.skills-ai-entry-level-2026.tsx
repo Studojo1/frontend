@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 export function meta() {
   return [
@@ -212,13 +212,7 @@ export default function AISkillsReport() {
           </div>
         </div>
 
-        {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for AI internships and entry-level roles?</span>
-            <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta via="report-skills-ai-entry-level-2026" place="report-top" size="quiet" title="Looking for AI roles? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -352,16 +346,7 @@ export default function AISkillsReport() {
             <p className="rpt-source">Source: Burning Glass Technologies AI skills demand 2025, LinkedIn Economic Graph AI Skills Report Q3 2025, Stack Overflow Developer Survey 2025, JetBrains State of Developer Ecosystem 2025</p>
           </div>
 
-          {/* CTA 1 */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find AI internships and entry-level roles globally</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds AI roles that fit you from company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-skills-ai-entry-level-2026" place="report-mid" size="quiet" title="Stu finds AI internships and entry-level roles that fit you, best fit first." />
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -467,16 +452,6 @@ export default function AISkillsReport() {
             <p className="rpt-source">Source: LinkedIn AI Hiring Trends Report 2025, Deloitte AI in the enterprise survey 2025, McKinsey Global AI Survey 2025, World Economic Forum AI talent gap analysis 2025</p>
           </div>
 
-          {/* CTA 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that clears AI company ATS filters</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>AI companies use keyword-heavy ATS systems. Stu, Studojo's career agent, tailors your resume and cover letter to each role you go for.</div>
-              </div>
-              <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 5 */}
           <div className="rpt-finding">
@@ -701,15 +676,7 @@ export default function AISkillsReport() {
             </div>
           </div>
 
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds AI internships and entry-level roles that fit you, then tailors your resume to each one.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-skills-ai-entry-level-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-skills-ai-entry-level-2026" place="report-end" size="card" title="Want an AI role, not a pile of applications?" line="Tell Stu the AI roles, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
 
         </div>
       </main>

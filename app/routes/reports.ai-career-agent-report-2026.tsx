@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -628,13 +628,7 @@ export default function AiCareerAgentReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Do job four with Studojo.</h3>
-              <p>Studojo finds the hiring manager, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-ai-career-agent-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-ai-career-agent-report-2026" place="report-end" size="card" title="Want an AI career agent that actually does the work?" line="Tell Stu the role, city and pay you want in one short call. Stu finds who's hiring, writes the email, and sends it from your own inbox once you start a campaign." />
         </div>
       </main>
       <Footer />

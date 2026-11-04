@@ -1,57 +1,28 @@
 import { processBlogContentHtml } from "~/components/blog/blog-content";
-import { STU_HEAD, STU_JOIN, siteStartHref } from "../site-links";
+import { STU_JOIN, siteStartHref } from "../site-links";
+import { STU_CTA_QUIET, stuCtaHtml, stuGoInner, stuVia, withVia } from "../stu-cta";
 
 // SITE-V2 blog (B2C hosts only): pure helpers for the blog index and post pages. studojo.com never calls these; its
 // blog keeps components/blog/* exactly as they were (Outreach CTAs, job.studojo.com rewrite to /outreach).
+// CTA-NEW (4 Nov 2026): RELAUNCH made studojo.com a B2C host too, so these now draw every post on studojo.com. The
+// Stu card is the shared one (stu-cta.ts, StuCta.tsx), and every start link in a post carries via=blog-<slug>.
 
-/** Where a job.studojo.com link in a post body goes on B2C hosts (never /outreach). */
+export { stuGoInner, withVia };
+
+/** Where a job.studojo.com link in a post body goes on B2C hosts when no post is known (never /outreach). */
 export const BLOG_JOB_LINK = `${STU_JOIN}?via=blog&how=voice`;
-
-/** The start link with its `via` replaced (keeps utm/gclid/fbclid and how=voice). Signed-in links (no query) pass through. */
-export function withVia(href: string, via: string): string {
-  const q = href.indexOf("?");
-  if (q < 0) return href;
-  const params = new URLSearchParams(href.slice(q + 1));
-  if (!params.has("via")) return href;
-  params.set("via", via);
-  return `${href.slice(0, q)}?${params}`;
-}
 
 /** "start the call" for one post: /b2cnew/join with the URL's ad keys, via=blog-<slug>, how=voice. Pure, deterministic. */
 export function blogStartHref(slug: string, search: string | null | undefined): string {
-  return withVia(siteStartHref(search, null), `blog-${slug}`);
+  return withVia(siteStartHref(search, null), stuVia("blog", slug));
 }
-
-const MIC_SVG =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
-const ARROW_SVG =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
 /** The one line on every Stu card in a post (React card and HTML card alike). */
-export const STU_CARD_LINE = "Stu, Studojo's career agent, finds jobs that fit you after one short call.";
+export const STU_CARD_LINE = STU_CTA_QUIET;
 
-function escAttr(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-}
-
-/** The inner HTML of a Stu card's start link: mic + "start the call", or (signed in) arrow + "my jobs". */
-export function stuGoInner(signedIn: boolean): string {
-  return signedIn ? `${ARROW_SVG}<span>my jobs</span>` : `${MIC_SVG}<span>start the call</span>`;
-}
-
-/**
- * The quiet Stu card as an HTML string, for CTA placeholders inside post HTML (where React components cannot go).
- * Plain classes, styled in site-blog.css. The link carries data-sv-blog-start so the page can point it at the
- * signed-in or held-first-touch link after hydration without re-rendering the post body.
- */
+/** The quiet Stu card as an HTML string, for CTA spots inside post HTML (stu-cta.ts stuCtaHtml, the quiet size). */
 export function stuCardHtml(href: string): string {
-  return (
-    `<div class="sv-blog-stu" data-studojo-cta="stu">` +
-    `<img class="sv-blog-stu-head" src="${STU_HEAD}" alt="" width="52" height="52">` +
-    `<p class="sv-blog-stu-line">${STU_CARD_LINE}</p>` +
-    `<a class="sv-btn sv-btn-sm sv-blog-stu-go" href="${escAttr(href)}" data-sv-blog-start="" data-start="blog-inline">${stuGoInner(false)}</a>` +
-    `</div>`
-  );
+  return stuCtaHtml({ href, size: "quiet", place: "blog-inline" });
 }
 
 // QA-FIX (2 Nov 2026): the blog's posts live in the database (production only) and still carry the retired product's
@@ -90,19 +61,29 @@ export function fixBlogClaims(html: string): string {
 }
 
 /**
- * Post HTML for B2C hosts: job.studojo.com links go to the job agent (not /outreach), every Outreach CTA placeholder
- * (and an already rendered Outreach CTA saved into a post) becomes the Stu card, links to /outreach go to the job
- * agent, then the shared image fixes.
+ * Post HTML for B2C hosts. Every CTA spot in a post becomes the Stu card: the writer's placeholder
+ * (data-studojo-cta="stu", the CTA-NEW migration's, or the older "outreach") and an already rendered Outreach CTA saved
+ * into a post. Every start link in the text (the migration marks them data-stu-start; also any link left to the retired
+ * Outreach page or job.studojo.com) points at this post's start link and is marked data-sv-blog-link, so the page can
+ * swap in the signed-in or held-first-touch link after hydration. Then the claims fixes and the shared image fixes.
  */
 export function processBlogHtmlB2c(html: string, startHref: string): string {
   if (!html) return html;
-  const jobLink = BLOG_JOB_LINK.replace(/&/g, "&amp;");
-  let out = html.replace(/https?:\/\/job\.studojo\.com[^\s"'<>]*/gi, jobLink);
+  const href = startHref.replace(/&/g, "&amp;");
   const card = stuCardHtml(startHref);
-  out = out.replace(/<div[^>]*data-studojo-cta="rendered"[^>]*>[\s\S]*?<\/a>\s*<\/div>/gi, card);
-  out = out.replace(/<div[^>]*data-studojo-cta="outreach"[^>]*>[\s\S]*?<\/div>/gi, card);
-  // a writer's own link to the retired Outreach page (studojo.com/outreach or /outreach) goes to the job agent too
-  out = out.replace(/(href\s*=\s*["'])(?:https?:\/\/(?:www\.)?studojo\.com)?\/outreach(?:[/?#][^"']*)?(["'])/gi, `$1${jobLink}$2`);
+  let out = html.replace(/<div[^>]*data-studojo-cta="rendered"[^>]*>[\s\S]*?<\/a>\s*<\/div>/gi, card);
+  out = out.replace(/<div[^>]*data-studojo-cta="(?:outreach|stu)"[^>]*>[\s\S]*?<\/div>/gi, card);
+  // a start link the migration wrote (<a ... data-stu-start ...>): this post's live start link
+  out = out.replace(/<a\b([^>]*?)\sdata-stu-start(?:=(?:""|''))?([^>]*)>/gi, (_m, a: string, b: string) => {
+    const attrs = `${a}${b}`.replace(/\shref\s*=\s*(?:"[^"]*"|'[^']*')/i, "");
+    return `<a href="${href}" data-sv-blog-link=""${attrs}>`;
+  });
+  // a writer's own link to the retired Outreach page (studojo.com/outreach or /outreach) or the old job board
+  out = out.replace(
+    /(href\s*=\s*["'])(?:(?:https?:\/\/(?:www\.)?studojo\.com)?\/outreach(?:[/?#][^"']*)?|https?:\/\/(?:jobs?\.studojo\.com|jobstudojo\.com)[^"']*)(["'])/gi,
+    `$1${href}$2 data-sv-blog-link=""`,
+  );
+  out = out.replace(/https?:\/\/job\.studojo\.com[^\s"'<>]*/gi, BLOG_JOB_LINK.replace(/&/g, "&amp;"));
   return processBlogContentHtml(fixBlogClaims(out));
 }
 

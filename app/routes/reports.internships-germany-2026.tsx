@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 export function meta() {
   return [
@@ -226,12 +226,7 @@ export default function GermanyInternshipsReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for paid internships in Germany and Europe?</span>
-            <Link to={productHref("/join?via=report-internships-germany-2026&how=voice")} reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-internships-germany-2026" title="Tell Stu you want an internship in Germany. Stu finds paid roles that fit you, best fit first." /></div>
 
         <div className="rpt-content">
 
@@ -331,15 +326,7 @@ export default function GermanyInternshipsReport() {
           </div>
 
           {/* CTA 1 */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find paid internships that fit you</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds internships that fit you from company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-internships-germany-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
-            </div>
-          </div>
+          <StuCta via="report-internships-germany-2026" place="report-mid" size="quiet" title="Stu finds paid internships that fit you from company career sites and job boards, best fit first." />
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -440,15 +427,6 @@ export default function GermanyInternshipsReport() {
           </div>
 
           {/* CTA 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that clears German ATS filters</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>German companies use ATS systems that are strict about formatting. Stu, Studojo's career agent, tailors your resume to each job you apply for.</div>
-              </div>
-              <Link to={productHref("/join?via=report-internships-germany-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
-            </div>
-          </div>
 
           {/* Finding 6 */}
           <div className="rpt-finding">
@@ -633,15 +611,7 @@ export default function GermanyInternshipsReport() {
           </div>
 
           {/* Final CTA */}
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds paid internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-internships-germany-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu →</Link>
-              <Link to={productHref("/join?via=report-internships-germany-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-internships-germany-2026" place="report-end" size="card" title="Want a paid internship in Germany?" line="Tell Stu the role, city and pay you want in one short call. Stu finds internships that fit you, finds who's hiring and writes the email." />
 
         </div>
       </main>

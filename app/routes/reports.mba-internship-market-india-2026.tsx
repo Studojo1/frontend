@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -351,13 +351,7 @@ export default function Report_MbaInternshipMarketIndia2026() {
             <p>Some employers bundle housing, travel, or project allowances, which changes your net cash. Two offers with the same headline stipend are not equal if one expects you to self-fund Mumbai rent for ten weeks.</p>
             <p>Boutique firms and growth-stage employers may pay below headline consulting numbers but offer partner proximity and faster reference letters. That can be rational if you are optimising for sector entry and conversion odds, not monthly savings alone.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Turn bands into conversations</h4>
-                <p>Know your target stipend band? Stu, Studojo's career agent, finds the recruiter or hiring manager to write to and drafts the email, so you can ask for real numbers for your cohort, not forum screenshots.</p>
-                <Link to={productHref("/join?via=report-mba-internship-market-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-mba-internship-market-india-2026" place="report-mid" size="quiet" title="Stu finds the MBA internships that fit you, best fit first, each with the reason it fits." />
 
             <div className="chart-wrap">
               <div className="chart-label">Illustrative monthly INR stipend index for MBA summer internships (midpoint index, 0 to 25 scale)</div>
@@ -422,13 +416,7 @@ export default function Report_MbaInternshipMarketIndia2026() {
             <p>Campus placement cells, case competitions, and employer insight sessions still route many structured cohorts. Lateral candidates should treat those same competitions and open challenges as legitimate side doors.</p>
             <p>When you message a partner, VP, or campus recruiter, lead with a specific problem you investigated and one recommendation, not admiration for the brand. Busy managers forward messages that make them look sharp, not long essays.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's career agent, finds the recruiter or hiring manager to write to and drafts a short email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-mba-internship-market-india-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-mba-internship-market-india-2026" place="report-mid" size="quiet" title="Stu finds the recruiter or hiring manager for the role and writes a short, personal email from your real work." />
 
             <div className="blist">
 
@@ -529,15 +517,7 @@ export default function Report_MbaInternshipMarketIndia2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach MBA campus recruiters and hiring managers in India, directly.</h3>
-              <p>Stu, Studojo's career agent, finds the MBA internships that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-mba-internship-market-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-mba-internship-market-india-2026" place="report-end" size="card" title="Want an MBA internship that fits you?" line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email." />
         </div>
       </main>
       <Footer />

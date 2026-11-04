@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 const SLUG = "fake-job-internship-scams-2026";
@@ -669,15 +669,7 @@ export default function FakeJobScamsReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Apply to real roles, direct from the company.</h3>
-              <p>Stu, Studojo's career agent, finds roles that fit you on company career sites and job boards, and the hiring manager or recruiter to write to. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-fake-job-internship-scams-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find roles →
-            </Link>
-          </div>
+          <StuCta via="report-fake-job-internship-scams-2026" place="report-end" size="card" title="Want real roles from real companies?" line="Tell Stu the role, the city and the pay you want in one short call. Stu checks company career sites and job boards and shows you real roles that fit you." />
         </div>
       </main>
       <Footer />

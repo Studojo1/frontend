@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -425,13 +425,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
             <p>{"Move or target tier 2 if you want cash savings, slower burnout, GCC or services paths, or family proximity. Stay metro-focused if you want early-stage startup product ownership, investing, consulting, or dense peer networks for your niche. Hybrid if your employer allows metro pay with limited office days in a cheaper city (confirm tax, payroll city, and promotion rules)."}</p>
             <p>{"Students can shortlist both: metro summer intern for brand proof, tier 2 return offer for savings. Career switchers should prioritize lane fit over city prestige."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Reach hiring managers in your target city"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the recruiter or team lead for each role and drafts a short email with your proof link, not a Bangalore-generic blast."}</p>
-                <Link to={productHref("/join?via=report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026" place="report-mid" size="quiet" title="Stu finds who's hiring in your city, with a verified work email." />
 
             <div className="highlight"><strong>Key insight:</strong> City strategy is a five-year cash and skills plan. Optimize for the work you want to be known for, then pick the map pin.</div>
 
@@ -534,15 +528,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Hire where the reqs actually are."}</h3>
-              <p>{"Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026" place="report-end" size="card" title="Want a job in your city, not a move to a metro?" line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

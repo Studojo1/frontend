@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -596,15 +596,7 @@ export default function CoverLetterReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Get the resume right first.</h3>
-              <p>The letter is a bonus. The resume does the heavy lifting. Stu, Studojo's career agent, tailors your resume and cover letter to each job.</p>
-            </div>
-            <Link to={productHref("/join?via=report-cover-letter-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu tailor your resume →
-            </Link>
-          </div>
+          <StuCta via="report-cover-letter-report-2026" place="report-end" size="card" title="Skip the cover letter. Write to the person instead." line="Tell Stu the role you want in one short call. Stu finds who's hiring and writes a short, personal email on why you fit, from your real work." />
         </div>
       </main>
       <Footer />

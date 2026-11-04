@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -361,13 +361,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
             <p>Communication quality is a skill, not a personality trait. Subject lines that state your window, degree stage, and work rights summary (when applicable) save recruiter cycles and quietly raise your ranking.</p>
             <p>Coordination cost matters in Singapore's tight teams. Respond with proposed meeting slots, link a single flagship project, and attach a PDF or repo that opens without special permissions.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's career agent, finds the hiring manager or recruiter to write to and drafts a short email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-internships-singapore-what-gets-you-hired-2026" place="report-mid" size="quiet" title="Stu finds the hiring manager or recruiter to write to and drafts a short email. Nothing goes out until you start." />
 
             <div className="chart-wrap">
               <div className="chart-label">Relative strength of hiring signals for Singapore intern shortlists (index, 0 to 10)</div>
@@ -432,13 +426,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
             <p>Case competitions, hackathons, and vendor-sponsored challenges function as timed auditions. Judges remember concise storytelling, defensible assumptions, and teams that finish with a test plan, not only a splashy slide.</p>
             <p>Cold outreach works when it is short, specific, and easy to forward. Attach a forwardable blurb your contact can paste into an internal referral or hiring channel.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Reach the right inbox</h4>
-                <p>Stu, Studojo's career agent, finds the right person to write to at each company and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-internships-singapore-what-gets-you-hired-2026" place="report-mid" size="quiet" title="Stu finds the person to write to in Singapore and drafts a short, personal email, sent from your own inbox when you start." />
 
             <div className="blist">
 
@@ -539,15 +527,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach Singapore hiring managers, directly.</h3>
-              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-internships-singapore-what-gets-you-hired-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-internships-singapore-what-gets-you-hired-2026" place="report-end" size="card" title="Want a Singapore internship that fits you?" line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email." />
         </div>
       </main>
       <Footer />

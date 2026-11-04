@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -462,15 +462,7 @@ export default function Report_UnpaidInternshipTrap2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Choose internships that build real proof.</h3>
-              <p>Stu, Studojo's career agent, finds internships that fit you, best fit first, and tailors your resume to each one, so your effort goes into work you can show.</p>
-            </div>
-            <Link to={productHref("/join?via=report-unpaid-internship-trap-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find roles →
-            </Link>
-          </div>
+          <StuCta via="report-unpaid-internship-trap-2026" place="report-end" size="card" title="Skip the unpaid trap." line="Tell Stu the internship and pay you want in one short call. Stu finds roles that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

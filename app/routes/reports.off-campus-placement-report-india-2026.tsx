@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -614,16 +614,7 @@ export default function OffCampusPlacementReport() {
             </div>
           </div>
 
-          {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Run your off-campus search with a system.</h3>
-              <p>Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, so your search does not depend on a campus drive.</p>
-            </div>
-            <Link to={productHref("/join?via=report-off-campus-placement-report-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Start with Stu →
-            </Link>
-          </div>
+          <StuCta via="report-off-campus-placement-report-india-2026" place="report-end" size="card" title="Run your off-campus search with a system." line="Tell Stu the roles you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them, no campus drive needed." />
         </div>
       </main>
       <Footer />

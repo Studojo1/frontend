@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -432,13 +432,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"Treat the cell as an intelligence source. Ask which recruiters requested shortlists by GPA, which roles are repeat visits, and whether last year's offers converted to joining letters. Bring your placement officer a tight question, not a vague plea for help."}</p>
             <p>{"Invest your personal time in proof the cell cannot manufacture: one flagship project, internship outcomes, GitHub or portfolio link, and a resume that names metrics. Many campuses run mandatory resume templates. Fit the template but keep a sharper version for off-campus outreach."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Run the off-campus lane in parallel"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the hiring manager or recruiter to write to at firms your placement cell never booked, and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-                <Link to={productHref("/join?via=report-placement-cell-report-what-they-can-cannot-do-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-placement-cell-report-what-they-can-cannot-do-2026" place="report-mid" size="quiet" title="Placement cell missed your target firms? Stu finds who's hiring there and writes the email." />
 
             <div className="highlight"><strong>Key insight:</strong> High performers treat campus drives as one channel in a portfolio. They do not pause other channels until placement season ends.</div>
 
@@ -552,15 +546,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Run campus and off-campus lanes together."}</h3>
-              <p>{"Stu, Studojo's career agent, finds internships that fit you and the right person to write to at firms your placement cell never scheduled, so you are not betting everything on one drive calendar."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-placement-cell-report-what-they-can-cannot-do-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-placement-cell-report-what-they-can-cannot-do-2026" place="report-end" size="card" title="Your placement cell is one channel. Add another." line="Tell Stu the role, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

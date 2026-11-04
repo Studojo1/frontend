@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -259,12 +259,7 @@ export default function CSIndiaReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for CS and SWE roles in India?</span>
-            <Link to={productHref("/join?via=report-cs-india-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta via="report-cs-india-2026" place="report-top" size="quiet" title="Want CS and SWE roles in India? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -329,16 +324,6 @@ export default function CSIndiaReport() {
             <p className="rpt-source">Source: Levels.fyi Google India 2026, PrepInsta Infosys salary tiers, Business Standard Dec 2025 (Infosys AI band), TCS hiring confirmation PeopleMatters</p>
           </div>
 
-          {/* CTA 1 */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Build the resume that gets you into a product company</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume to each role you go for, so the words match the job.</div>
-              </div>
-              <Link to={productHref("/join?via=report-cs-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -460,16 +445,7 @@ export default function CSIndiaReport() {
             <p className="rpt-source">Source: Masai School Skill Gap analysis 2025, Aspiring Minds AMCAT data, Mercer-Mettl Graduate Skill Index 2025, Statista India engineering employability</p>
           </div>
 
-          {/* CTA 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Find SWE, AI/ML, and product company internships</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Build your track record before you apply full-time. Stu, Studojo's career agent, finds the roles that fit you.</div>
-              </div>
-              <Link to={productHref("/join?via=report-cs-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-cs-india-2026" place="report-mid" size="quiet" title="Tell Stu the SWE, AI/ML or product roles you want, and Stu finds the ones that fit you and who's hiring." />
 
           {/* Finding 6 */}
           <div className="rpt-finding">
@@ -651,15 +627,7 @@ export default function CSIndiaReport() {
             </div>
           </div>
 
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds SWE, AI/ML, and product company roles that fit you and tailors your resume to each one, so it shows real skills, not just a degree.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-cs-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-cs-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-cs-india-2026" place="report-end" size="card" title="Want a SWE role, not a pile of applications?" line="Tell Stu the roles you want in one short call. Stu finds jobs and internships that fit you, finds who's hiring and writes a short email from your real projects." />
 
         </div>
       </main>

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -460,13 +460,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
             <p>Hiring managers forgive thin employment history if proof is sharp: a Notion or PDF case study with screenshots, numbers, and your decision log; a live landing page you wrote and tested; a small paid campaign you funded yourself ($50 to $100 is enough to learn); or a growth teardown of a product you admire (funnel map + three test ideas).</p>
             <p>Outreach works when it is specific: "I ran two A/B tests on your signup page mock and found X" beats "I love your brand." Message growth leads, not only HR, with one link and one ask (15-minute feedback, intern referral, or which skill they hire first).</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Reach growth leads directly</h4>
-                <p>Stu, Studojo's career agent, finds the hiring manager or growth lead at each company and drafts the email, so your case link lands before you are one of two hundred generic marketing resumes.</p>
-                <Link to={productHref("/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-growth-marketing-jobs-skills-pay-hiring-2026" place="report-mid" size="quiet" title="Stu finds growth marketing roles that fit you, plus the person hiring. Start with one call." />
 
             <div className="highlight"><strong>Key insight:</strong> Your portfolio is a mini growth team memo. Problem, channel, test, result, next step. Repeat for two projects and you are ahead of most applicants.</div>
 
@@ -569,15 +563,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach growth teams before the queue.</h3>
-              <p>Stu, Studojo's career agent, finds the growth roles that fit you and the hiring manager to write to, then drafts the email, so you are not another generic marketing application. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-growth-marketing-jobs-skills-pay-hiring-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find the right person →
-            </Link>
-          </div>
+          <StuCta via="report-growth-marketing-jobs-skills-pay-hiring-2026" place="report-end" size="card" title="Want a growth role, not a pile of applications?" line="Tell Stu the growth roles you want in one short call. Stu finds the ones that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

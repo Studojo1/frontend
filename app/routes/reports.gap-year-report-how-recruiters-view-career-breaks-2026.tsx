@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -372,15 +372,7 @@ export default function Report_GapYearReportHowRecruitersViewCareerBreaks2026() 
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Turn your gap into experience"}</h3>
-              <p>{"Stu, Studojo's career agent, finds the internships that fit you, best fit first, so you can build proof while you prepare, or restart quickly when you are ready."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-gap-year-report-how-recruiters-view-career-breaks-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Let Stu find roles →"}
-            </Link>
-          </div>
+          <StuCta via="report-gap-year-report-how-recruiters-view-career-breaks-2026" place="report-end" size="card" title="Got a gap on your CV? Let your work do the talking." line="Tell Stu the role you want in one short call. Stu writes a short, personal email on why you fit, from your real work, and sends it to the person hiring." />
         </div>
       </main>
       <Footer />

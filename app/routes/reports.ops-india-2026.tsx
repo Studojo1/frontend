@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -201,13 +201,7 @@ export default function OpsIndiaReport() {
           </div>
         </div>
 
-        {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for operations internships in India?</span>
-            <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-cta-pill">Start with Stu →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta via="report-ops-india-2026" place="report-top" size="quiet" title="Want an ops internship in India? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -253,16 +247,7 @@ export default function OpsIndiaReport() {
             <p className="rpt-source">Source: LinkedIn Jobs, Internshala, Unstop, Naukri, company career pages, April 2026</p>
           </div>
 
-          {/* CTA mid-report */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find ops internships in Bengaluru, Mumbai, and Delhi NCR</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds ops roles that fit you from company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
-            </div>
-          </div>
+          <StuCta via="report-ops-india-2026" place="report-mid" size="quiet" title="Stu finds ops roles in your city, best fit first, each with the reason it fits." />
 
           {/* Finding 2 */}
           <div className="rpt-finding">
@@ -362,16 +347,6 @@ export default function OpsIndiaReport() {
             <p className="rpt-source">Source: JD analysis, LinkedIn, Internshala, Naukri, Unstop, recruiter interviews, April 2026</p>
           </div>
 
-          {/* CTA mid-report 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into an ops role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's career agent, tailors your resume to each ops role you apply for.</div>
-              </div>
-              <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume →</Link>
-            </div>
-          </div>
 
           {/* Finding 4 */}
           <div className="rpt-finding">
@@ -525,18 +500,6 @@ export default function OpsIndiaReport() {
               <p>If you only have time for one thing: SQL. A basic SQL course takes 10 to 15 hours. It unlocks the ability to pull your own data without going through the engineering team, which is worth real money in ops. Every ops manager at a startup uses it. Most ops interns cannot. That gap is your entry point.</p>
             </div>
 
-            <div className="rpt-inline-cta" style={{ marginTop: 24 }}>
-              <div className="rpt-inline-cta-inner">
-                <div>
-                  <div className="rpt-inline-cta-title">Find ops internships paying ₹20k and above</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds the ops internships that fit you, best fit first.</div>
-                </div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles →</Link>
-                  <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
-                </div>
-              </div>
-            </div>
             <p className="rpt-source">Source: Internshala stipend data, LinkedIn salary data, Glassdoor India, hiring manager salary disclosures, April 2026</p>
           </div>
 
@@ -631,15 +594,7 @@ export default function OpsIndiaReport() {
             </div>
           </div>
 
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds the ops internships that fit you and tailors your resume to each one. Setup takes a few minutes, by a short voice call or by typing.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu →</Link>
-              <Link to={productHref("/join?via=report-ops-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-ops-india-2026" place="report-end" size="card" title="Want an ops role, not a pile of applications?" line="Tell Stu the ops roles, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
 
         </div>{/* /rpt-content */}
       </main>

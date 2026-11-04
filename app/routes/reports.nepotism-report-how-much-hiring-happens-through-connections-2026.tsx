@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -531,13 +531,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <p>{"Worker surveys capture hires people remember getting through someone they knew. They undercount a second category: roles that were never publicly posted. Most openings do get posted, though: Georgetown University's Center on Education and the Workforce estimated in 2014 that 60 to 70% of US job openings were posted online, rising to 80 to 90% of openings that need at least a bachelor's degree. The 54% figure from U.S. worker recall is conservative because it only counts hires the worker attributes to a connection, not hires that happened without any public competition at all."}</p>
             <p>{"StandOut CV found 91.3% of respondents would accept a dream job offered through a personal connection even if it bypassed the normal application process. That willingness reveals how normalised shortcut hiring is. The \"fair\" process is often the fallback when no one credible is already in frame."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Reach the manager before the posting closes"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the hiring manager or recruiter to write to and drafts a short email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-                <Link to={productHref("/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-nepotism-report-how-much-hiring-happens-through-connections-2026" place="report-mid" size="quiet" title="No connections? Stu finds the person hiring and writes the email for you." />
 
             <div className="highlight"><strong>Key insight:</strong> Connections do not only help you win posted roles. They help you access roles that were never meant to be a lottery.</div>
 
@@ -650,15 +644,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Start building the connections that convert"}</h3>
-              <p>{"Stu, Studojo's career agent, finds the roles that fit you and the right person to write to at each company, then drafts the email. You supply the proof. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-nepotism-report-how-much-hiring-happens-through-connections-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-nepotism-report-how-much-hiring-happens-through-connections-2026" place="report-end" size="card" title="No connections? Reach the person hiring directly." line="Tell Stu the role you want in one short call. Stu finds the hiring manager or recruiter with a verified work email and writes a short email from your real work." />
         </div>
       </main>
       <Footer />

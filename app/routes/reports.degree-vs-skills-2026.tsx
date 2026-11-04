@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -580,15 +580,7 @@ export default function DegreeVsSkillsReport() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Build the skills signals that actually get you hired.</h3>
-              <p>Stu, Studojo's career agent, finds roles that fit you and tailors your resume to each one, so your demonstrated work is what gets you through the door.</p>
-            </div>
-            <Link to={productHref("/join?via=report-degree-vs-skills-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find roles →
-            </Link>
-          </div>
+          <StuCta via="report-degree-vs-skills-2026" place="report-end" size="card" title="Want your work to count more than your degree?" line="Tell Stu the role you want in one short call. Stu finds jobs that fit you and writes a short email to who's hiring, built on your real projects and skills." />
         </div>
       </main>
       <Footer />

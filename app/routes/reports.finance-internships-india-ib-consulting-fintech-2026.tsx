@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -398,13 +398,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
             <p>Monthly stipends for structured fintech analyst internships in 2026 often sit in a strong band relative to general startup roles, though below headline IB and consulting numbers for the same city. Equity or grant language appears more often here than in banking cohorts.</p>
             <p>Read whether the role is regulated-facing (compliance load, documentation) or growth-facing (experiments, funnels). Both are legitimate finance training; they prepare you for different full-time paths.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Turn bands into conversations</h4>
-                <p>When you know your target stipend band, Stu, Studojo's career agent, finds the hiring manager or recruiter who can confirm real numbers for your cohort and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-finance-internships-india-ib-consulting-fintech-2026" place="report-mid" size="quiet" title="Tell Stu which finance roles you want. It finds the ones that fit you, best fit first." />
 
             <div className="highlight"><strong>Key insight:</strong> A fintech internship where you move one metric with your name on it can outperform a famous logo where you only shadow meetings.</div>
 
@@ -434,13 +428,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
             <p>LinkedIn remains the default discovery layer for India finance hiring. Profiles that link one flagship model, sector memo, or competition write-up get more serious passes than buzzword summaries.</p>
             <p>When you message an associate, VP, or campus recruiter, lead with a specific problem you investigated and one recommendation, not admiration for the brand. Busy managers forward messages that make them look sharp, not long essays.</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Send the message that gets forwarded</h4>
-                <p>Stu, Studojo's career agent, finds the recruiter or hiring manager at each firm and drafts a short email for you. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-                <Link to={productHref("/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">Let Stu find the right person →</Link>
-              </div>
-            </div>
+            <StuCta via="report-finance-internships-india-ib-consulting-fintech-2026" place="report-mid" size="quiet" title="Stu finds who's hiring for IB, consulting and fintech roles and writes the email to them." />
 
             <div className="blist">
 
@@ -541,15 +529,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Find finance internships in India that match your lane.</h3>
-              <p>Stu, Studojo's career agent, finds IB, consulting, and fintech roles that fit you, best fit first, so you spend time on programmes worth applying to, not noise.</p>
-            </div>
-            <Link to={productHref("/join?via=report-finance-internships-india-ib-consulting-fintech-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find roles →
-            </Link>
-          </div>
+          <StuCta via="report-finance-internships-india-ib-consulting-fintech-2026" place="report-end" size="card" title="Want a finance internship, not a pile of applications?" line="Tell Stu the finance roles you want in one short call. Stu finds the internships that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

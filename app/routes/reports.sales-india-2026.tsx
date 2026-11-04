@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -257,13 +257,7 @@ export default function SalesIndiaReport() {
           </div>
         </div>
 
-        {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for sales roles in India?</span>
-            <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta via="report-sales-india-2026" place="report-top" size="quiet" title="Looking for sales roles in India? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -328,16 +322,6 @@ export default function SalesIndiaReport() {
             <p className="rpt-source">Source: PayScale India 2026, AmbitionBox, Glassdoor India, Salarite FMCG report, eBharat insurance commission data</p>
           </div>
 
-          {/* CTA 1 */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Build the resume that gets you into a sales role</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume and cover letter to each sales role you go for.</div>
-              </div>
-              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -459,16 +443,7 @@ export default function SalesIndiaReport() {
             <p className="rpt-source">Source: LinkedIn job ad analysis, Naukri JD data, Jooble India listings, April 2026</p>
           </div>
 
-          {/* CTA 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Find SDR, BDA, and FMCG sales internships</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Build your track record before you apply full-time. Stu finds the roles that fit you, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-sales-india-2026" place="report-mid" size="quiet" title="Stu finds SDR, BDA and sales internships that fit you, best fit first." />
 
           {/* Finding 6 */}
           <div className="rpt-finding">
@@ -650,15 +625,7 @@ export default function SalesIndiaReport() {
             </div>
           </div>
 
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds SDR, BDA, FMCG sales, and inside sales roles that fit you. It tailors your resume to each one, so it shows real skills, not just a degree.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-sales-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-sales-india-2026" place="report-end" size="card" title="Want a sales role, not a pile of applications?" line="Tell Stu the sales roles, city and pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
 
         </div>
       </main>

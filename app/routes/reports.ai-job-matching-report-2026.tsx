@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -639,13 +639,7 @@ export default function AiJobMatchingReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Get matched with the person who hires.</h3>
-              <p>Studojo matches you with the hiring manager for the role, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-ai-job-matching-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-ai-job-matching-report-2026" place="report-end" size="card" title="Want matches that come with a person to write to?" line="Tell Stu the role, city and pay you want. Stu shows the best fits first, each with the reason it fits, and finds who's hiring for them." />
         </div>
       </main>
       <Footer />

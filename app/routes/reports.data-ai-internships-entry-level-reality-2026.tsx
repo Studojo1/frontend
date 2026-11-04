@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -460,13 +460,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             <p>{"Typical loops: SQL screen (live or timed), statistics and product sense questions, take-home analysis with a deck, and behavioral questions on ambiguity. ML-leaning roles may add Python coding or model metric questions. Rarely will undergrads face deep architecture proofs unless applying to elite research programmes."}</p>
             <p>{"Take-homes should be time-boxed (2 to 4 hours of real work). If an employer assigns a week of unpaid labor, decline or negotiate. Present insights, not notebook dumps."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Reach data hiring managers directly"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the data hiring manager to write to and drafts the email. You add one project link before you are buried in a generic intern queue."}</p>
-                <Link to={productHref("/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-data-ai-internships-entry-level-reality-2026" place="report-mid" size="quiet" title="Stu finds the data hiring manager to write to and drafts your email." />
 
             <div className="highlight"><strong>Key insight:</strong>{" Interviewers reward clarity: metric, method, limitation, next step. Practice saying \"I don't know, but I would test X.\""}</div>
 
@@ -569,15 +563,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Land a paid data intern role with proof."}</h3>
-              <p>{"Stu, Studojo's career agent, finds data and analytics internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-data-ai-internships-entry-level-reality-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-data-ai-internships-entry-level-reality-2026" place="report-end" size="card" title="Want a data internship, not a pile of applications?" line="Tell Stu the data roles you want in one short call. Stu finds internships that fit you, finds who's hiring and writes a short, personal email from your real projects." />
         </div>
       </main>
       <Footer />

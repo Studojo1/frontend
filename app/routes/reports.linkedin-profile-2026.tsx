@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -698,15 +698,7 @@ export default function LinkedInProfileReport() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Send the 20 outreach messages.</h3>
-              <p>Stu, Studojo's career agent, finds the right person to write to at your target companies and drafts each email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-linkedin-profile-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find the right person →
-            </Link>
-          </div>
+          <StuCta via="report-linkedin-profile-2026" place="report-end" size="card" title="Want the right people to hear from you?" line="Tell Stu the role you want in one short call. Stu finds who's hiring, usually the hiring manager or a recruiter, with a verified work email, and writes a short, personal email." />
         </div>
       </main>
       <Footer />

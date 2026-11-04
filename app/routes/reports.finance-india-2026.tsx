@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -226,12 +226,7 @@ export default function FinanceIndiaReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for finance internships in India?</span>
-            <Link to={productHref("/join?via=report-finance-india-2026&how=voice")} reloadDocument className="rpt-cta-pill">Let Stu find roles →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-finance-india-2026" title="Looking for finance internships in India? Tell Stu in one short call." /></div>
 
         <div className="rpt-content">
 
@@ -278,15 +273,7 @@ export default function FinanceIndiaReport() {
           </div>
 
           {/* CTA mid-report */}
-          <div className="rpt-inline-cta">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find finance internships in Mumbai, Bengaluru, and Delhi NCR</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds finance roles that fit you on company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-finance-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-            </div>
-          </div>
+          <StuCta via="report-finance-india-2026" place="report-mid" size="quiet" title="Stu finds finance roles in Mumbai, Bengaluru and Delhi NCR that fit you, best fit first." />
 
           {/* Finding 2 */}
           <div className="rpt-finding">
@@ -405,15 +392,6 @@ export default function FinanceIndiaReport() {
           </div>
 
           {/* CTA mid-report 2 */}
-          <div className="rpt-inline-cta" style={{ background: "#171717" }}>
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into a finance role</div>
-                <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>Stu, Studojo's career agent, tailors your resume and cover letter to each finance role you apply to.</div>
-              </div>
-              <Link to={productHref("/join?via=report-finance-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-            </div>
-          </div>
 
           {/* Finding 5 */}
           <div className="rpt-finding">
@@ -515,18 +493,6 @@ export default function FinanceIndiaReport() {
             </div>
 
             {/* Inline CTA for resume */}
-            <div className="rpt-inline-cta" style={{ marginTop: 24 }}>
-              <div className="rpt-inline-cta-inner">
-                <div>
-                  <div className="rpt-inline-cta-title">Fix your resume before you apply</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume to each finance role before you apply.</div>
-                </div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to={productHref("/join?via=report-finance-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu tailor your resume</Link>
-                  <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
-                </div>
-              </div>
-            </div>
             <p className="rpt-source">Source: Recruiter surveys across 40 firms, placement cell data from 12 colleges, April 2026</p>
           </div>
 
@@ -559,15 +525,6 @@ export default function FinanceIndiaReport() {
             </div>
 
             {/* Internship CTA */}
-            <div className="rpt-inline-cta">
-              <div className="rpt-inline-cta-inner">
-                <div>
-                  <div className="rpt-inline-cta-title">Find your first finance internship</div>
-                  <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds FP&A, investment research and fintech analytics roles that fit you, best fit first.</div>
-                </div>
-                <Link to={productHref("/join?via=report-finance-india-2026&how=voice")} reloadDocument className="rpt-btn-primary">Let Stu find roles</Link>
-              </div>
-            </div>
             <p className="rpt-source">Source: AmbitionBox salary data, CFA Institute India member survey, recruiter interviews, April 2026</p>
           </div>
 
@@ -629,15 +586,7 @@ export default function FinanceIndiaReport() {
           </div>
 
           {/* Final CTA block */}
-          <div className="rpt-final-cta">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds the finance roles this report is talking about that fit you: FP&A, analytics, fintech, and investment research. Then it tailors your resume to each one.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-finance-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Let Stu find roles</Link>
-              <Link to={productHref("/join?via=report-finance-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-finance-india-2026" place="report-end" size="card" title="Want a finance internship, not a pile of applications?" line="Tell Stu the finance roles you want in one short call. Stu finds the ones that fit you, finds who's hiring and writes the email to them." />
 
         </div>{/* /rpt-content */}
       </main>

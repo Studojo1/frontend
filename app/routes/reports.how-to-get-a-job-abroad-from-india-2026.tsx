@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -614,13 +614,7 @@ export default function JobAbroadFromIndiaReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Email the manager abroad.</h3>
-              <p>Studojo finds the hiring manager at the company you want, verifies their email and sends a personal email from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-how-to-get-a-job-abroad-from-india-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-how-to-get-a-job-abroad-from-india-2026" place="report-end" size="card" title="Want a job abroad from India?" line="Tell Stu the role, the city and the pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -635,13 +635,7 @@ export default function BestTimeToEmailReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Right person first. Then the right time.</h3>
-              <p>Studojo finds the hiring manager or team lead, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-best-time-to-email-hr-or-hiring-manager-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-best-time-to-email-hr-or-hiring-manager-2026" place="report-end" size="card" title="Right person first. Then the right time." line="Tell Stu the role you want in one short call. Stu finds the hiring manager or recruiter with a verified work email and writes the email. Nothing goes out until you start a campaign." />
         </div>
       </main>
       <Footer />

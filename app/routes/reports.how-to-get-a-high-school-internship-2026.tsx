@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -490,15 +490,7 @@ export default function Report_HowToGetAHighSchoolInternship2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Send the fifteen emails.</h3>
-              <p>Stu, Studojo's career agent, finds the right person to write to at each organisation and drafts the email, so you stop guessing at info addresses. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-how-to-get-a-high-school-internship-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find the right person →
-            </Link>
-          </div>
+          <StuCta via="report-how-to-get-a-high-school-internship-2026" place="report-end" size="card" title="Want a real internship while you're still in school?" line="Tell Stu the kind of role you want in one short call. Stu finds who's hiring and writes a short email from your real work, like projects and studies." />
         </div>
       </main>
       <Footer />

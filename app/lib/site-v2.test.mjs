@@ -157,8 +157,9 @@ const PINNED = {
   "routes/blog.$slug.tsx": "2a9c438fdd84f1ea",
   // re-pinned 28 Oct for the 14 batch-2 reports (REPORTS entries only); RELAUNCH 2 Nov: its two CTAs go to the
   // product host (productHref, app/lib/product-origin.ts) and nothing else changed. SEO day 7 (4 Nov): one REPORTS
-  // entry for india-entry-level-jobs-internships-october-2026, nothing else changed
-  "routes/reports.tsx": "cda664d1e72abb41",
+  // entry for india-entry-level-jobs-internships-october-2026, nothing else changed. CTA-NEW (4 Nov): the classic
+  // banner's line no longer says Stu tailors your resume (finds who's hiring and writes the email), nothing else changed
+  "routes/reports.tsx": "a54c6ed24e89e619",
   "routes/terms.tsx": "e565ab6f9433ba94",
   // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), and a row for the
   // stu_vid, stu_src and stu_lt journey cookies (app/lib/journey.ts); nothing else changed. META-FIX 2 Nov: the
@@ -185,9 +186,11 @@ const headerSrc = read("components/common/header.tsx");
 assert.match(headerSrc, /\n  const b2c = useSiteB2c\(\);\n  if \(b2c && !landing\) return <SiteHeader \/>;\n  return <ClassicHeader landing=\{landing\} \/>;\n/);
 const footerSrc = read("components/common/footer.tsx");
 assert.match(footerSrc, /\n  const b2c = useSiteB2c\(\);\n  return b2c \? <SiteFooter compact=\{compact\} \/> : <ClassicFooter \/>;\n/);
-// No report page was edited for SITE-V2 (the restyle is site-reports.css only).
+// No report page was edited for SITE-V2 (the restyle is site-reports.css only). CTA-NEW (4 Nov 2026): a report may
+// use the shared Stu card (components/site-b2c/StuCta.tsx, the owner's one CTA for blogs and reports), nothing else.
 for (const f of readdirSync(new URL("routes/", APP)).filter((x) => /^reports\..+\.tsx$/.test(x))) {
-  assert.doesNotMatch(read(`routes/${f}`), /site-b2c|useSiteB2c|data-sv2/, `routes/${f}`);
+  const src = read(`routes/${f}`).replace('import { StuCta } from "~/components/site-b2c/StuCta";', "");
+  assert.doesNotMatch(src, /site-b2c|useSiteB2c|data-sv2/, `routes/${f}`);
 }
 
 // ---------- 2. the B2C header and footer, and no retired product anywhere in SITE-V2 ----------

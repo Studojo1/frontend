@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -672,13 +672,7 @@ export default function DirectOutreachReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Let Studojo run your direct outreach.</h3>
-              <p>Studojo finds the person who can hire you, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-direct-outreach-job-search-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-direct-outreach-job-search-2026" place="report-end" size="card" title="Want to run your direct outreach without the grind?" line="Tell Stu the role you want in one short call. Stu finds the person who can hire you, writes a personal email and sends it from your own inbox once you start a campaign." />
         </div>
       </main>
       <Footer />

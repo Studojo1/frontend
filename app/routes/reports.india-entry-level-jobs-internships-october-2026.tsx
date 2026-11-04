@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -602,15 +602,7 @@ export default function IndiaEntryLevelReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Reach the person, not the form.</h3>
-              <p>Most India listings route you to an application form with no one to email. Studojo finds the hiring manager who owns the role, verifies their email, and writes a personal note for that one person, sent from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-india-entry-level-jobs-internships-october-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Email hiring managers with Studojo →
-            </Link>
-          </div>
+          <StuCta via="report-india-entry-level-jobs-internships-october-2026" place="report-end" size="card" title="Want the entry-level roles that fit you?" line="Tell Stu the role, city and pay you want in one short call. Every day Stu checks company career sites and job boards and shows your best fits first." />
         </div>
       </main>
       <Footer />

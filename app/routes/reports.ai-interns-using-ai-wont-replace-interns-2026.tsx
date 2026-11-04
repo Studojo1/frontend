@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -454,13 +454,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
             <p>{"Return offers still hinge on reliability, communication, and initiative. AI shifts how those traits show up. The intern who closes the week with a crisp update, a verified deliverable, and one proactive suggestion reads as high potential. The intern who needed three reminders on the same task reads as expensive, even if their resume is shinier."}</p>
             <p>{"Studojo's illustrative synthesis suggests AI-native interns with documented workflows score higher on speed metrics without sacrificing trust, while AI-abusers cluster at the bottom of cohort rankings after mid-internship reviews. AI-avoidants can still convert, but they need exceptional craft or niche skills to offset slower output."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Reach hiring managers before the intern queue buries you"}</h4>
-                <p>{"Stu, Studojo's career agent, finds the hiring manager to write to and drafts the email. You add one proof-of-work link, not a generic \"AI enthusiast\" pitch. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-                <Link to={productHref("/join?via=report-ai-interns-using-ai-wont-replace-interns-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu find the right person →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-ai-interns-using-ai-wont-replace-interns-2026" place="report-mid" size="quiet" title="Stu finds who's hiring and writes the email, with one proof-of-work link from you." />
 
             <div className="chart-wrap">
               <div className="chart-label">{"Return-offer signal strength by intern profile (illustrative index, 0 to 25)"}</div>
@@ -579,15 +573,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Become the intern managers fight to keep."}</h3>
-              <p>{"Stu, Studojo's career agent, finds internships that fit you, tailors your resume to each one and finds the hiring manager to write to."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-ai-interns-using-ai-wont-replace-interns-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-ai-interns-using-ai-wont-replace-interns-2026" place="report-end" size="card" title="Be the intern who uses AI well, and gets noticed." line="Tell Stu the role you want in one short call. Stu finds internships that fit you, finds who's hiring and writes a short, personal email from your real work." />
         </div>
       </main>
       <Footer />

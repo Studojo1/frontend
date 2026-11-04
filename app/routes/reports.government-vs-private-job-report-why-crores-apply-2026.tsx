@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -367,15 +367,7 @@ export default function Report_GovernmentVsPrivateJobReportWhyCroresApply2026() 
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Keep your fallback ready while you prepare"}</h3>
-              <p>{"Tell Stu, Studojo's career agent, what fits around your exam preparation, and it finds the internships that fit you, best fit first."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-government-vs-private-job-report-why-crores-apply-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Let Stu find roles →"}
-            </Link>
-          </div>
+          <StuCta via="report-government-vs-private-job-report-why-crores-apply-2026" place="report-end" size="card" title="Going private? Start with the people hiring." line="Tell Stu the role, the city and the pay you want in one short call. Stu finds private-sector jobs that fit you, finds who's hiring and writes the email." />
         </div>
       </main>
       <Footer />

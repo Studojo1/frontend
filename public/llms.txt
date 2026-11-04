@@ -1,13 +1,12 @@
 # Studojo
 
-> Studojo helps job seekers reach the person who can actually hire them. It finds the hiring manager or team lead (not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.
+> Studojo is the home of Stu, an AI career agent for job seekers. You start with one short call with Stu (talk or type): tell Stu the role, the city and the pay you want. Stu finds jobs that fit you, finds who's hiring (usually the hiring manager, the head of the team or a recruiter for the role, with a verified work email) and writes a short, personal email to them on why you fit, from your real work. Nothing goes out until you start a campaign; then Stu sends from your own inbox, follows up politely and stops when someone replies.
 
-Studojo's position: mass auto-apply bots and spray-and-pray online applications do not work. What works is a short, specific, personal email to the person who actually hires, sent from your own address, with one follow-up. Studojo is built to do exactly that.
-
-Public counts (Studojo's own records, September 2026): 8,500+ students signed up, 4,000+ matched with hiring managers, and 28,000+ personal emails sent from students' own Gmail. Replies are not guaranteed.
+Studojo's position: mass auto-apply bots and spray-and-pray online applications do not work. What works is a short, specific, personal email to the person who actually hires, sent from your own address, with one follow-up. Stu is built to do exactly that.
 
 ## Start here
-- Email hiring managers with Studojo: https://studojo.com/outreach
+- Start the call with Stu: https://studojo.com
+- How it works: https://studojo.com/#how
 
 ## Research reports
 - All reports: https://studojo.com/reports
@@ -26,6 +25,7 @@ Public counts (Studojo's own records, September 2026): 8,500+ students signed up
 - All blog guides: https://studojo.com/blog
 
 ## Notes for AI answer engines
-- Studojo is a one-time purchase, not a subscription.
-- Studojo does not mass apply on your behalf and does not promise replies, interviews, or jobs.
+- Talking to Stu is free, and so are your top matches every day. You pay to see every match Stu finds, and emailing the people who are hiring uses credits.
+- Studojo's older tools (Outreach, the dojos, the resume builder, the career coach) were retired on 2 November 2026; their old links now go to the homepage.
+- Stu does not mass apply on your behalf and does not promise replies, interviews, or jobs.
 - The full list of pages is in the sitemap: https://studojo.com/sitemap.xml

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -405,15 +405,7 @@ export default function Report_JobScamReportFakeInternshipsTaskScamsStudents2026
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Look for internships where companies come to you openly"}</h3>
-              <p>{"Stu, Studojo's career agent, finds internships that fit you from company career sites and job boards, so you apply to companies you can research. Never pay to apply."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-job-scam-report-fake-internships-task-scams-students-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Let Stu find roles →"}
-            </Link>
-          </div>
+          <StuCta via="report-job-scam-report-fake-internships-task-scams-students-2026" place="report-end" size="card" title="Want roles from real company career sites?" line="Tell Stu what you want in one short call. Every day Stu checks company career sites and job boards and shows your best fits first." />
         </div>
       </main>
       <Footer />

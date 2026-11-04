@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -491,13 +491,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <p>{"Freelancing is the highest-agency path and the most uneven. Jobipo's 2026 platform guide puts skilled Upwork and Fiverr professionals in India at ₹20,000 to ₹5,00,000+ per month depending on niche. Beginners land ₹5,000 to ₹10,000. Consistent earners with 6 to 12 months of client history cluster at ₹20,000 to ₹80,000. The ₹1 lakh line typically requires either international rate cards (USD or EUR clients) or 3 to 5 domestic retainer clients at ₹20,000 to ₹30,000 each."}</p>
             <p>{"Highest-yield student niches in 2026: full-stack development, ML and data engineering, performance marketing with proven ROAS, and technical content for SaaS. Upwork's highest-paying freelance categories include machine learning engineers ($50 to $200/hour) and cybersecurity specialists. A student billing $40/hour for 25 billable hours weekly clears roughly ₹4.3 lakh monthly at current rates, well above the ₹1 lakh threshold, but billable hours are not 25 every week when you are also in college."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Build proof that wins international clients"}</h4>
-                <p>{"Stu, Studojo's career agent, tailors your resume and cover letter to each job, so it reads credibly to the people hiring, not just campus placement cells."}</p>
-                <Link to={productHref("/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-first-1-lakh-month-report-fastest-paths-students-2026" place="report-mid" size="quiet" title="Tell Stu the role and the pay you're aiming for. It finds jobs that fit you, best fit first." />
 
             <div className="chart-wrap">
               <div className="chart-label">{"Where students who hit ₹1L/month in-hand by age 25 say the income came from (Studojo synthesis, illustrative)"}</div>
@@ -636,15 +630,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Find roles that pay what the path promises"}</h3>
-              <p>{"Stu, Studojo's career agent, finds jobs and internships that fit you on company career sites and job boards, best fit first, so you pick a lane with data, not guesswork."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-first-1-lakh-month-report-fastest-paths-students-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Let Stu find roles →"}
-            </Link>
-          </div>
+          <StuCta via="report-first-1-lakh-month-report-fastest-paths-students-2026" place="report-end" size="card" title="Aiming for a first Rs 1 lakh month?" line="Tell Stu the role, the city and the pay you want in one short call. Stu finds jobs that fit you, finds who's hiring and writes the email to them." />
         </div>
       </main>
       <Footer />

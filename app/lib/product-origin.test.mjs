@@ -109,8 +109,12 @@ for (const f of readdirSync(APP + "routes").filter((x) => /^reports(\..+)?\.tsx$
   const src = readFileSync(APP + "routes/" + f, "utf8");
   assert.doesNotMatch(src, /(to|href)=\{?["'`]\/b2cnew/, f);
   ctas += (src.match(/to=\{productHref\("\/(join|start)\?/g) ?? []).length;
+  // CTA-NEW (4 Nov 2026): the report CTAs are the shared Stu card, whose button is siteStartHref (STU_JOIN, the product host)
+  ctas += (src.match(/<StuCta\b/g) ?? []).length;
 }
-assert.ok(ctas >= 199, `report CTAs on the product host: ${ctas}`);
+assert.ok(ctas >= 150, `report CTAs on the product host: ${ctas}`);
+assert.match(readFileSync(APP + "components/site-b2c/site-links.ts", "utf8"), /export const STU_JOIN = productHref\("\/join"\);/);
+assert.match(readFileSync(APP + "components/site-b2c/StuCta.tsx", "utf8"), /useSiteStart\(\)/);
 const root = readFileSync(APP + "root.tsx", "utf8");
 assert.match(root, /<meta name="viewport" content="width=device-width, initial-scale=1" \/>\n\s+\{\/\*[^*]*\*\/\}\n\s+<script dangerouslySetInnerHTML=\{\{ __html: productOriginScript\(productOrigin\(\)\) \}\} \/>/);
 

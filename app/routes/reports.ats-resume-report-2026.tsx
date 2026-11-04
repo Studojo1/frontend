@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -604,15 +604,7 @@ export default function ATSResumeReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Build a resume that parses cleanly.</h3>
-              <p>Stu, Studojo's career agent, finds roles that fit you and tailors your resume to each one, so the words match the job you are going for.</p>
-            </div>
-            <Link to={productHref("/join?via=report-ats-resume-report-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu tailor your resume →
-            </Link>
-          </div>
+          <StuCta via="report-ats-resume-report-2026" place="report-end" size="card" title="Want to skip the ATS and reach a person?" line="Tell Stu the role you want in one short call. Stu finds jobs that fit you, finds the hiring manager and writes a short, personal email from your real work." />
         </div>
       </main>
       <Footer />

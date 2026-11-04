@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -431,13 +431,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
             <p>{"Day two: build three stories with metrics. Revenue, users, time saved, errors reduced, grade rank, competition placement. Pick outcomes that match the role level. Internships count when you own a slice of the work."}</p>
             <p>{"Day three: mock one round out loud. Record yourself. Cut filler words. Time each answer. Day four: prepare five questions that only make sense for this team. Day five: logistics and calm: confirm format, link, dress, and one-page notes."}</p>
 
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>{"Sharpen the stories they will ask about"}</h4>
-                <p>{"Stu, Studojo's career agent, tailors your resume to each job and runs mock interviews with you, so your stories hold up in manager rounds."}</p>
-                <Link to={productHref("/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice")} reloadDocument className="rpt-cta-mid-btn">{"Let Stu tailor your resume →"}</Link>
-              </div>
-            </div>
+            <StuCta via="report-interview-report-why-candidates-fail-after-shortlist-2026" place="report-mid" size="quiet" title="Stu finds who's hiring and writes the email, so the right person reads about you first." />
             <p>{"After each interview, send a short thank-you within twenty-four hours with one specific reference to the conversation. Not a novel. One paragraph. It rarely saves a bad interview, but it helps close ties."}</p>
 
             <div className="blist">
@@ -539,15 +533,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Turn shortlists into offers with proof that survives follow-ups."}</h3>
-              <p>{"Stu, Studojo's career agent, gets you ready for each interview with a brief on the company and mock interviews, and tailors your resume to the job."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-interview-report-why-candidates-fail-after-shortlist-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-interview-report-why-candidates-fail-after-shortlist-2026" place="report-end" size="card" title="Want the right people reading about you first?" line="Tell Stu the role you want in one short call. Stu finds who's hiring for it and writes a short, personal email from your real work." />
         </div>
       </main>
       <Footer />

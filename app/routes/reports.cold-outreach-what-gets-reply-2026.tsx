@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -444,15 +444,7 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Turn outreach into structured practice, not guesswork</h3>
-              <p>Stu, Studojo's career agent, finds the right person to write to at each company and drafts the email. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies.</p>
-            </div>
-            <Link to={productHref("/join?via=report-cold-outreach-what-gets-reply-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              Let Stu find the right person →
-            </Link>
-          </div>
+          <StuCta via="report-cold-outreach-what-gets-reply-2026" place="report-end" size="card" title="Want cold emails that get a reply?" line="Tell Stu the role you want in one short call. Stu finds who's hiring and writes a short, personal email. It sends from your own inbox, follows up politely and stops when someone replies." />
         </div>
       </main>
       <Footer />

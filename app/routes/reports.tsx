@@ -1537,7 +1537,7 @@ export default function Reports() {
             Find the roles these reports talk about.
           </h2>
           <p className="mx-auto mt-3 max-w-xl font-['Satoshi'] text-base text-white/80">
-            Stu, Studojo's job agent, finds the roles that fit you, tailors your resume to each one and finds the right person to write to.
+            Stu, Studojo's career agent, finds the roles that fit you, finds who's hiring and writes the email to them. One short call to start.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link

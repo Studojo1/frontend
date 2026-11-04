@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -612,13 +612,7 @@ export default function FollowUpTimingReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Start a thread worth following up on.</h3>
-              <p>Studojo finds the hiring manager, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-follow-up-job-application-timing-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-follow-up-job-application-timing-2026" place="report-end" size="card" title="Tired of waiting on a reply?" line="Tell Stu the role you want in one short call. Stu writes the email, follows up politely and stops when someone replies. Nothing goes out until you start a campaign." />
         </div>
       </main>
       <Footer />

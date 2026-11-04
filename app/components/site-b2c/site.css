@@ -279,3 +279,41 @@ html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden [class*="shadow-["
   html[data-sv2] [role="region"][aria-label^="Cookie"] button:is(:hover, :active),
   html[data-sv2] [role="dialog"][aria-labelledby="policy-update-title"] button:is(:hover, :active) { transform: none; }
 }
+
+/* ---------- CTA-NEW (4 Nov 2026): THE call to action on every blog post and report (StuCta.tsx, stu-cta.ts) ----------
+   A white card with the ink edge and hard shadow, Stu's head, the page's own title and line, the purple pill.
+   "card" (reports, the end of a page): kicker, title, line, then the pill with "free to start" under it.
+   "quiet" (inside a post): head, one line, pill. Specific selectors, so report and prose styles never reach in. */
+html[data-sv2] aside.sv-stu-cta { box-sizing: border-box; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px 22px;
+  width: 100%; margin: 44px 0; padding: 24px 26px 24px 22px; text-align: left; font-family: var(--sv-sans); color: var(--sv-ink);
+  background: linear-gradient(180deg, #fff 0%, #fdfbff 100%); border: var(--sv-bw) solid var(--sv-line); border-radius: 20px; box-shadow: var(--sv-hard); }
+html[data-sv2] aside.sv-stu-cta[data-size="quiet"] { gap: 14px 18px; padding: 18px 20px 18px 18px; border-radius: 18px; background: #fff; }
+html[data-sv2] .sv-prose > aside.sv-stu-cta { margin: 2.2em 0; }
+html[data-sv2] aside.sv-stu-cta img.sv-stu-cta-head { display: block; width: 64px; height: 64px; margin: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; object-fit: contain; max-width: none; }
+html[data-sv2] aside.sv-stu-cta[data-size="quiet"] img.sv-stu-cta-head { width: 52px; height: 52px; }
+html[data-sv2] aside.sv-stu-cta .sv-stu-cta-copy { display: grid; gap: 6px; min-width: 0; }
+html[data-sv2] aside.sv-stu-cta .sv-stu-cta-kick { margin: 0; }
+html[data-sv2] aside.sv-stu-cta p.sv-stu-cta-title { margin: 0; padding: 0; font-family: var(--sv-sans); font-size: 21px; font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; color: var(--sv-ink); text-wrap: balance; }
+html[data-sv2] aside.sv-stu-cta[data-size="quiet"] p.sv-stu-cta-title { font-size: 16.5px; line-height: 1.45; letter-spacing: -0.01em; text-wrap: pretty; }
+html[data-sv2] aside.sv-stu-cta p.sv-stu-cta-line { margin: 0; padding: 0; max-width: 560px; font-family: var(--sv-sans); font-size: 15.5px; font-weight: 400; line-height: 1.55; color: var(--sv-muted); text-wrap: pretty; }
+html[data-sv2] aside.sv-stu-cta .sv-stu-cta-act { display: grid; justify-items: center; gap: 8px; }
+html[data-sv2] aside.sv-stu-cta a.sv-stu-cta-go { height: 46px; padding: 0 22px; font-size: 16px; color: #fff; text-decoration: none; white-space: nowrap; }
+html[data-sv2] aside.sv-stu-cta[data-size="quiet"] a.sv-stu-cta-go { height: 42px; padding: 0 18px; font-size: 15px; }
+html[data-sv2] aside.sv-stu-cta a.sv-stu-cta-go:hover { color: #fff; text-decoration: none; }
+html[data-sv2] aside.sv-stu-cta a.sv-stu-cta-go svg { width: 16px; height: 16px; }
+html[data-sv2] aside.sv-stu-cta .sv-stu-cta-note { font-family: var(--sv-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .03em; color: var(--sv-faint); }
+@media (max-width: 640px) {
+  html[data-sv2] aside.sv-stu-cta { grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 18px 16px; margin: 36px 0; }
+  html[data-sv2] aside.sv-stu-cta img.sv-stu-cta-head { width: 52px; height: 52px; align-self: start; }
+  html[data-sv2] aside.sv-stu-cta[data-size="quiet"] img.sv-stu-cta-head { width: 46px; height: 46px; align-self: center; }
+  html[data-sv2] aside.sv-stu-cta p.sv-stu-cta-title { font-size: 19px; }
+  html[data-sv2] aside.sv-stu-cta[data-size="quiet"] p.sv-stu-cta-title { font-size: 16px; }
+  html[data-sv2] aside.sv-stu-cta .sv-stu-cta-act { grid-column: 1 / -1; }
+  html[data-sv2] aside.sv-stu-cta a.sv-stu-cta-go,
+  html[data-sv2] aside.sv-stu-cta[data-size="quiet"] a.sv-stu-cta-go { width: 100%; height: 48px; }
+}
+/* a card standing on its own between full-width bands (a report's old top strip): the report column's width */
+html[data-sv2] .sv-stu-cta-wrap { box-sizing: border-box; max-width: 812px; margin: 28px auto 0; padding: 0 24px; }
+html[data-sv2] .sv-stu-cta-wrap > aside.sv-stu-cta { margin: 0; }
+@media (max-width: 640px) { html[data-sv2] .sv-stu-cta-wrap { padding: 0 16px; margin-top: 20px; } }
+html[data-sv2] .sv-stu-cta-wrap.sv-stu-cta-wrap-end { margin: 24px auto 88px; }

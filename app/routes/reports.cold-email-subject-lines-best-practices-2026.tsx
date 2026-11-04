@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -497,15 +497,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
             </div>
           </div>
 
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>{"Practice better subjects before you hit send"}</h3>
-              <p>{"Stu, Studojo's career agent, finds the right person to write to and drafts the email, subject line included. Nothing goes out until you start a campaign. Then Stu sends from your own inbox, follows up, and stops when someone replies."}</p>
-            </div>
-            <Link to={productHref("/join?via=report-cold-email-subject-lines-best-practices-2026&how=voice")} reloadDocument className="rpt-cta-btn">
-              {"Start with Stu →"}
-            </Link>
-          </div>
+          <StuCta via="report-cold-email-subject-lines-best-practices-2026" place="report-end" size="card" title="Want a cold email that gets opened?" line="Tell Stu the role you want in one short call. Stu finds the right person to write to and drafts a short, personal email, subject line included. Nothing goes out until you start a campaign." />
         </div>
       </main>
       <Footer />

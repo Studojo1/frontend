@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 const BASE_URL = "https://studojo.com";
 
@@ -668,13 +668,7 @@ export default function BypassAtsReport() {
           </div>
 
           {/* CTA */}
-          <div className="rpt-cta">
-            <div className="rpt-cta-left">
-              <h3>Go around the queue, not through it.</h3>
-              <p>Studojo finds the hiring manager, verifies their email, writes a personal email for that one person and sends it from your own Gmail.</p>
-            </div>
-            <Link to={productHref("/join?via=report-how-to-bypass-ats-2026&how=voice")} reloadDocument className="rpt-cta-btn">Email hiring managers with Studojo →</Link>
-          </div>
+          <StuCta via="report-how-to-bypass-ats-2026" place="report-end" size="card" title="Skip the ATS and write to the person." line="Tell Stu the role you want in one short call. Stu finds who's hiring and writes a short, personal email on why you fit. Nothing goes out until you start a campaign." />
         </div>
       </main>
       <Footer />

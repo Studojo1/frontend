@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import { productHref } from "~/lib/product-origin";
+import { StuCta } from "~/components/site-b2c/StuCta";
 
 
 export function meta() {
@@ -229,12 +229,7 @@ export default function MarketingIndiaReport() {
         </div>
 
         {/* CTA strip */}
-        <div className="rpt-cta-strip rpt-cta-strip-green">
-          <div className="rpt-cta-strip-inner">
-            <span className="rpt-cta-strip-text">Looking for marketing internships in India?</span>
-            <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-cta-pill rpt-cta-pill-green">Start with Stu →</Link>
-          </div>
-        </div>
+        <div className="sv-stu-cta-wrap"><StuCta size="quiet" place="report-top" via="report-marketing-india-2026" title="Tell Stu you want a marketing internship. Stu finds the roles that fit you, best fit first." /></div>
 
         <div className="rpt-content">
 
@@ -300,15 +295,7 @@ export default function MarketingIndiaReport() {
           </div>
 
           {/* CTA 1 */}
-          <div className="rpt-inline-cta rpt-inline-cta-green">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Find marketing internships that actually pay</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, finds marketing internships that fit you from company career sites and job boards, best fit first.</div>
-              </div>
-              <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-green">Let Stu find roles →</Link>
-            </div>
-          </div>
+          <StuCta via="report-marketing-india-2026" place="report-mid" size="quiet" title="Stu finds marketing internships that fit you from company career sites and job boards, best fit first." />
 
           {/* Finding 3 */}
           <div className="rpt-finding">
@@ -407,15 +394,6 @@ export default function MarketingIndiaReport() {
           </div>
 
           {/* CTA 2 */}
-          <div className="rpt-inline-cta rpt-inline-cta-green">
-            <div className="rpt-inline-cta-inner">
-              <div>
-                <div className="rpt-inline-cta-title">Build a resume that actually reflects your marketing skills</div>
-                <div className="rpt-inline-cta-sub">Stu, Studojo's career agent, tailors your resume to each marketing role you apply for.</div>
-              </div>
-              <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-primary rpt-btn-green">Let Stu tailor your resume →</Link>
-            </div>
-          </div>
 
           {/* Finding 5 */}
           <div className="rpt-finding">
@@ -617,15 +595,7 @@ export default function MarketingIndiaReport() {
           </div>
 
           {/* Final CTA */}
-          <div className="rpt-final-cta rpt-final-cta-green">
-            <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Stu, Studojo's career agent, finds the marketing internships that fit you and tailors your resume to each one. Apply to the roles worth applying to.</p>
-            <div className="rpt-final-cta-btns">
-              <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-white">Start with Stu →</Link>
-              <Link to={productHref("/join?via=report-marketing-india-2026&how=voice")} reloadDocument className="rpt-btn-outline">Let Stu tailor your resume →</Link>
-              <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
-            </div>
-          </div>
+          <StuCta via="report-marketing-india-2026" place="report-end" size="card" title="Want a marketing internship that pays?" line="Tell Stu the marketing role, city and pay you want in one short call. Stu finds internships that fit you, finds who's hiring and writes the email." />
 
         </div>
       </main>
