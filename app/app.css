@@ -103,9 +103,19 @@ body {
    button that takes focus scrolls above it rather than under it. */
 body {
   padding-bottom: var(--sj-notice-h, 0px);
+  /* COOKIE-TOP: on a phone the notice is a bar at the top of the page; the page starts below it. */
+  padding-top: var(--sj-notice-top, 0px);
 }
 html {
   scroll-padding-bottom: var(--sj-notice-h, 0px);
+}
+
+/* COOKIE-TOP: on a phone the notice and the EU/UK choice are a slim bar at the top of the page: smaller type, padding and
+   buttons than the desktop card. (:root raises the specificity over the site look's own rules, site.css and home-v3.css.) */
+@media (max-width: 639.98px) {
+  :root [role="region"][aria-label^="Cookie"] > div { gap: 6px 10px; padding: 7px 8px 7px 12px; border-radius: 14px; }
+  :root [role="region"][aria-label^="Cookie"] p { font-size: 13px; line-height: 1.35; min-width: 0; }
+  :root [role="region"][aria-label^="Cookie"] button { height: 34px; padding: 0 13px; font-size: 14px; border-radius: 10px; }
 }
 
 /* Smooth scrolling for all scrollable containers */

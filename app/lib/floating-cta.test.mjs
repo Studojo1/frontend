@@ -32,4 +32,9 @@ for (const f of readdirSync(APP + "routes")) {
 }
 assert.deepEqual(missing, [], `floating actions without data-floating-cta: ${missing.join(", ")}`);
 
+// COOKIE-TOP: on a phone the notice is a bar at the top of the page and the page starts below it.
+assert.match(notice, /absolute inset-x-0 top-0/, "phone: a bar at the top of the page");
+assert.match(notice, /sm:fixed[^"]*sm:bottom-4/, "desktop: the floating card at the foot, as before");
+assert.match(css, /padding-top: var\(--sj-notice-top, 0px\)/, "the page starts below the phone bar");
+
 console.log("floating-cta: ok");

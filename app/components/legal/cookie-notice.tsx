@@ -12,28 +12,55 @@ export function noticeLift(noticeHeight: number): string {
   return noticeHeight > 0 ? `${Math.ceil(noticeHeight) + 24}px` : "0px";
 }
 
-/** Keep NOTICE_VAR equal to the notice's lift while it is on screen. */
+/** COOKIE-TOP (4 Nov 2026, the owner: "add the cookie notification to the top of the screen on phone not over the start a
+ * call button"): on a phone the notice is a bar at the top of the page, in the flow of the page (absolute at the top, the
+ * body padded by its height, so it scrolls away with the page and never covers the header, the start button or the
+ * bottom bar). NOTICE_TOP_VAR is that height; NOTICE_VAR (the bottom lift) stays 0 on a phone. */
+export const NOTICE_TOP_VAR = "--sj-notice-top";
+export const PHONE_QUERY = "(max-width: 639.98px)";
+
+/** Keep NOTICE_VAR (desktop) or NOTICE_TOP_VAR (phone) equal to the space the notice takes while it is on screen. */
 function useLiftFloatingActions(mode: string) {
   const open = mode !== "hidden";
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const root = document.documentElement;
     const el = ref.current;
-    if (!open || !el) {
+    const clear = () => {
       root.style.removeProperty(NOTICE_VAR);
+      root.style.removeProperty(NOTICE_TOP_VAR);
+    };
+    if (!open || !el) {
+      clear();
       return;
     }
-    const set = () => root.style.setProperty(NOTICE_VAR, noticeLift(el.getBoundingClientRect().height));
+    const mq = typeof window.matchMedia === "function" ? window.matchMedia(PHONE_QUERY) : null;
+    const set = () => {
+      const h = el.getBoundingClientRect().height;
+      if (mq?.matches) {
+        root.style.removeProperty(NOTICE_VAR);
+        root.style.setProperty(NOTICE_TOP_VAR, `${Math.ceil(h)}px`);
+      } else {
+        root.style.removeProperty(NOTICE_TOP_VAR);
+        root.style.setProperty(NOTICE_VAR, noticeLift(h));
+      }
+    };
     set();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(set) : null;
     ro?.observe(el);
+    mq?.addEventListener?.("change", set);
     return () => {
       ro?.disconnect();
-      root.style.removeProperty(NOTICE_VAR);
+      mq?.removeEventListener?.("change", set);
+      clear();
     };
   }, [open, mode]);
   return ref;
 }
+
+// Phone: a bar at the top of the page, under the status bar (safe area). From 640px up: the floating card at the foot.
+const WRAP =
+  "absolute inset-x-0 top-0 z-[60] px-3 pb-2 pt-[calc(env(safe-area-inset-top,0px)+8px)] sm:fixed sm:inset-x-4 sm:bottom-4 sm:top-auto sm:mx-auto sm:max-w-xl sm:p-0 sm:pb-[env(safe-area-inset-bottom,0px)]";
 
 const box =
   "flex flex-wrap items-center gap-3 rounded-2xl border-2 border-neutral-900 bg-white py-3 pl-4 pr-3 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
@@ -84,7 +111,7 @@ export function CookieNotice() {
         ref={liftRef}
         role="region"
         aria-label="Cookie choice"
-        className="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-xl pb-[env(safe-area-inset-bottom,0px)]"
+        className={WRAP}
       >
         <div className={box}>
           <p className="min-w-[12rem] flex-1 font-['Satoshi'] text-sm leading-5 text-neutral-900">
@@ -119,7 +146,7 @@ export function CookieNotice() {
       ref={liftRef}
       role="region"
       aria-label="Cookie notice"
-      className="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-xl pb-[env(safe-area-inset-bottom,0px)]"
+      className={WRAP}
     >
       <div className={box}>
         <p className="flex-1 font-['Satoshi'] text-sm leading-5 text-neutral-900">

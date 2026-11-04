@@ -260,10 +260,12 @@
    The site's cookie notice sets --sj-notice-h to the height it takes (app.css [data-floating-cta]); the floating
    agent and the sheet sit above it rather than under it. */
 .hv2 .hv-side, .hv2 .hv-bar-m { margin-bottom: var(--sj-notice-h, 0px); }
-/* On a phone the notice would cover the hero's start on a first visit: the hero's foot rises by the notice's height
-   while it shows. */
-@media (max-width: 640px) {
-  .hv2 .hv-hero { padding-bottom: calc(max(28px, 9svh) + var(--sj-notice-h, 0px)); }
+/* COOKIE-TOP: on a phone the notice is a bar at the top of the page (cookie-notice.tsx), so the hero needs no lift; its first screen is the
+   screen less the bar, so its start stays on the first screen. */
+@media (max-width: 639.98px) {
+  .hv2 .hv-hero { min-height: calc(100vh - var(--hv-hdr) - var(--sj-notice-top, 0px)); min-height: calc(100svh - var(--hv-hdr) - var(--sj-notice-top, 0px)); }
+  /* Stu gives up the bar's height (down to 96px), so the start sits as near the first screen as it can. */
+  .hv2 .hv-hero.hv3-hero .hv-hero-stu { --hv-s: max(96px, calc(clamp(128px, 18svh, 196px) - var(--sj-notice-top, 0px))); }
 }
 
 /* ---------- the call takeover (port, owner 27 Oct): every start opens a focused call screen ----------
