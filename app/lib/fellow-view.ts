@@ -268,25 +268,28 @@ export function cleanText(raw: unknown, max: number, oneLine = false): string {
 
 const DEFAULT_LABEL = "In partnership with Studojo";
 
-// What fellows are asked to share. Their posts are written only from what they share, so the first six
-// cover the basics (in this order for someone new); the rest keep returning fellows on new questions.
-// A saved story keeps its prompt's text, so a prompt is never reworded once in use, only added.
+// What fellows are asked to share. Their posts are written only from what they share. The founder (4 Nov 2026):
+// why they chose their course, where they want to be and what they're proud of were covered on the selection
+// call, so a new fellow is asked first for recent, specific moments, and those basics come later.
+// A saved story keeps its prompt's text, so a prompt is never reworded once in use, only added or moved.
 const CORE_PROMPTS = [
-  "Something that shaped who you are today",
-  "Why you chose your course, and whether you'd choose it again",
-  "An internship, project or job you're proud of",
+  "Something that happened this week that taught you something",
   "A time something didn't go to plan, and what you did next",
-  "Something you're proud of that isn't on your CV",
-  "What you want to be doing a year from now, and what's in the way",
+  "A conversation that changed how you think about your career",
+  "A project or piece of work you're in the middle of right now",
+  "A person who opened a door for you",
+  "Something you do outside class that most people don't know about",
 ];
 const MORE_PROMPTS = [
   "Something you learned the hard way",
-  "A conversation that changed how you think about your career",
   "A rejection that stung, and what it taught you",
   "The first time you were paid for your work, or the first thing you built",
-  "Something you do outside class that most people don't know about",
-  "A person who opened a door for you",
   "A moment at college you'll remember for a long time",
+  "Something that shaped who you are today",
+  "An internship, project or job you're proud of",
+  "Something you're proud of that isn't on your CV",
+  "Why you chose your course, and whether you'd choose it again",
+  "What you want to be doing a year from now, and what's in the way",
 ];
 export const STORY_PROMPTS = [...CORE_PROMPTS, ...MORE_PROMPTS];
 

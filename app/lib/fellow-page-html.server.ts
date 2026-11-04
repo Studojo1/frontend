@@ -4,8 +4,8 @@
 // Styles and the script are static files in public/fellowship/; the script
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
-/** Bump when public/fellowship/feed.css or feed.js changes, so browsers fetch the new files. */
-export const ASSET_VERSION = "20261103b";
+/** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
+export const ASSET_VERSION = "20261104a";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -71,6 +71,7 @@ const head = (top: string) => `<!doctype html>
 <link rel="icon" href="data:,">
 <title>Your Growth Fellowship | Studojo</title>
 <link rel="stylesheet" href="/fellowship/feed.css?v=${ASSET_VERSION}">
+<link rel="stylesheet" href="/fellowship/tour.css?v=${ASSET_VERSION}">
 </head>
 <body>
 ${ICONS}
@@ -237,6 +238,7 @@ const PAGE = `
   </div>
 </dialog>
 <script src="/fellowship/feed.js?v=${ASSET_VERSION}" defer></script>
+<script src="/fellowship/tour.js?v=${ASSET_VERSION}" defer></script>
 </body>
 </html>`;
 

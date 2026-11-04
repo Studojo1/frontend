@@ -1,0 +1,38 @@
+/* The onboarding tour (tour.js): a dimmed page with one part lit, and a card that says what it's for. */
+html.tour-on { overflow: hidden; }
+.tour { position: fixed; inset: 0; z-index: 100; }
+.tour-hole { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .55); outline: 2px solid #fff; transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease; pointer-events: none; }
+.tour.is-center { background: rgba(0, 0, 0, .55); }
+.tour.is-center .tour-hole { display: none; }
+.tour-still .tour-hole { transition: none; }
+.tour-card {
+  position: fixed; width: min(360px, calc(100vw - 24px)); background: var(--surface); color: var(--ink);
+  border-radius: 14px; padding: 18px 18px 14px; box-shadow: var(--shadow-pop);
+}
+.tour.is-center .tour-card { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%); }
+.tour-step { font-size: 12px; font-weight: 600; color: var(--accent-ink); letter-spacing: .02em; }
+.tour-title { margin: 4px 0 0; font-size: 18px; font-weight: 700; line-height: 1.3; }
+.tour-body { margin-top: 8px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; }
+.tour-btn { min-height: 40px; padding: 0 16px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+.tour-main { background: var(--accent); color: #fff; margin-left: auto; }
+.tour-main:hover { background: var(--accent-hover); }
+.tour-quiet { background: none; color: var(--ink-2); }
+.tour-quiet:hover { background: var(--hover); color: var(--ink); }
+.tour-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tour-open {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 34px; padding: 0 12px; margin-left: 8px;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.tour-open:hover { background: var(--hover); color: var(--ink); }
+.tour-open .ic { width: 16px; height: 16px; }
+/* Phones: the card sits above the bottom tabs, and the button is just its icon. */
+@media (max-width: 759px) {
+  .tour-card { left: 12px !important; right: 12px; width: auto; top: auto !important; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+  .tour.is-center .tour-card { top: 50% !important; left: 12px !important; right: 12px; bottom: auto; transform: translateY(-50%); }
+  .tour-card.tour-card-top { top: calc(60px + env(safe-area-inset-top, 0px)) !important; bottom: auto; }
+  .tour-open { width: 40px; min-height: 40px; padding: 0; justify-content: center; margin-left: 0; border: 0; background: none; }
+  .tour-open span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .tour-btn { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .tour-hole { transition: none; } }
