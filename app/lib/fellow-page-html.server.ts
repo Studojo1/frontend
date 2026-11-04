@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
-export const ASSET_VERSION = "20261104c";
+export const ASSET_VERSION = "20261104d";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -108,12 +108,20 @@ const MESSAGE_TOP = `<span class="brand">
     </span>`;
 
 // "Understand LinkedIn's algorithm": a short read so fellows learn to post well on their own. Every "LinkedIn
-// says" line is something LinkedIn has published (sources at the end); the tips are labelled as creators' rules of
-// thumb. No numbers that LinkedIn hasn't published. Same for everyone, so it lives in the page itself.
-const SRC = (href: string, text: string) => `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+// says" line is something LinkedIn has published; the tips are labelled as creators' rules of thumb. No numbers
+// that LinkedIn hasn't published. Same for everyone, so it lives in the page itself. The page links nowhere
+// else, so the sources are named, not linked. For the team, they are:
+//   engineering.linkedin.com/publishing-platform/maximizing-our-publishing-platform-reach-network-distribution
+//   linkedin.com/blog/engineering/feed/strategies-for-keeping-the-linkedin-feed-relevant
+//   linkedin.com/blog/engineering/member-customer-experience/linkedin-feed-with-creator-side-optimization
+//   linkedin.com/blog/engineering/feed/understanding-feed-dwell-time
+//   linkedin.com/blog/member/product/keeping-your-feed-relevant-and-productive
+//   linkedin.com/blog/member/product/mythbusting-the-feed-how-the-algorithm-works
+//   entrepreneur.com/science-technology/linkedin-changed-its-algorithms-heres-how-your-posts/454728
+//   linkedin.com/help/linkedin/answer/a1338787 and linkedin.com/legal/professional-community-policies
 const LEARN = `
     <section class="card card-pad learn" id="learn" aria-labelledby="learn-title">
-      <div class="card-head"><h2 class="card-title" id="learn-title">Understand LinkedIn's algorithm</h2><span class="chip">3 min read</span></div>
+      <div class="card-head"><span class="learn-ic" aria-hidden="true"><svg class="ic"><use href="#i-book"/></svg></span><h2 class="card-title" id="learn-title">Understand LinkedIn's algorithm</h2><span class="chip">3 min read</span></div>
       <p class="card-sub">How LinkedIn decides who sees a post, so you can post well on your own. Lines marked <span class="says">LinkedIn says</span> come from LinkedIn itself. The tips at the end are what tends to work for creators.</p>
       <div class="learn-list">
         <details open>
@@ -180,7 +188,7 @@ const LEARN = `
           </div>
         </details>
       </div>
-      <p class="learn-src">Sources: LinkedIn Engineering on ${SRC("https://engineering.linkedin.com/publishing-platform/maximizing-our-publishing-platform-reach-network-distribution", "how posts spread")} (2014), ${SRC("https://www.linkedin.com/blog/engineering/feed/strategies-for-keeping-the-linkedin-feed-relevant", "keeping the feed relevant")} (2017), ${SRC("https://www.linkedin.com/blog/engineering/member-customer-experience/linkedin-feed-with-creator-side-optimization", "giving smaller creators a fair share")} (2018) and ${SRC("https://www.linkedin.com/blog/engineering/feed/understanding-feed-dwell-time", "time spent on posts")} (2020); the LinkedIn blog on ${SRC("https://www.linkedin.com/blog/member/product/keeping-your-feed-relevant-and-productive", "what it won't promote")} (May 2022) and ${SRC("https://www.linkedin.com/blog/member/product/mythbusting-the-feed-how-the-algorithm-works", "how the feed works")} (Aug 2022); LinkedIn's Alice Xiong and Dan Roth ${SRC("https://www.entrepreneur.com/science-technology/linkedin-changed-its-algorithms-heres-how-your-posts/454728", "in Entrepreneur")} (June 2023); LinkedIn Help on ${SRC("https://www.linkedin.com/help/linkedin/answer/a1338787", "spam")} and its ${SRC("https://www.linkedin.com/legal/professional-community-policies", "community policies")}.</p>
+      <p class="learn-src">Sources: LinkedIn Engineering on how posts spread (2014), keeping the feed relevant (2017), giving smaller creators a fair share (2018) and time spent on posts (2020); the LinkedIn blog on what it won't promote (May 2022) and how the feed works (Aug 2022); LinkedIn's Alice Xiong and Dan Roth in Entrepreneur (June 2023); LinkedIn Help on spam, and LinkedIn's Professional Community Policies.</p>
     </section>`;
 
 const LEARN_TEASER = `
@@ -201,19 +209,19 @@ const PAGE = `
     <section class="card card-pad shots" id="analytics" aria-labelledby="analytics-title"></section>
     <section class="card ed-cover" id="ed-cover" aria-labelledby="ed-title"></section>${LEARN_TEASER}
     <div class="feed-head">
-      <div class="fh-row"><h2>This week's posts</h2><span class="chip" id="week-range"></span></div>
+      <div class="fh-row"><h2>Your posts in full</h2></div>
       <p id="feed-help">Loading your posts.</p>
     </div>
     <div class="post-list" id="posts"></div>
   </main>
 
-  <aside class="rail-right" aria-label="Milestones, stories, fellowship news and how LinkedIn works">
+  <aside class="rail-right" aria-label="Milestones, stories and fellowship news">
     <section class="card card-pad" id="milestones" aria-labelledby="ms-title"></section>
     <section class="card card-pad share" id="share" aria-labelledby="share-title"></section>
-    <section class="card card-pad" id="news" aria-labelledby="news-title"></section>${LEARN}
+    <section class="card card-pad" id="news" aria-labelledby="news-title"></section>
   </aside>
 
-  <section class="activity card card-pad" id="activity" aria-labelledby="act-title"></section>
+  <section class="activity card card-pad" id="activity" aria-labelledby="act-title"></section>${LEARN}
 </div>
 
 <nav class="m-tabs" id="m-tabs" aria-label="Sections">

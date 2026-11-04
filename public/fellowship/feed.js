@@ -155,17 +155,17 @@
   const NO_POSTS = ME.paused ? "No posts while your fellowship is paused." : "No posts for you this week yet.";
   function renderTop() {
     const n = postedCount(), due = ME.thisWeek.due;
+    // With no posts this week the edition card says so; the heading over the posts would only say it again.
+    $(".feed-head").hidden = !S.posts.length;
     if (!due) {
       $("#week-pill").innerHTML = `<span>${ME.paused ? "Paused" : "This week: no posts yet"}</span>`;
       $("#week-pill").setAttribute("aria-label", NO_POSTS);
-      $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
-      $("#feed-help").textContent = ME.paused ? NO_POSTS : NO_POSTS + " They'll show here when they're ready.";
+      $("#feed-help").textContent = "The team is updating this week's posts. They'll show here when they're ready.";
       return;
     }
     const dots = counted().sort((a, b) => a.date.localeCompare(b.date)).map((p) => `<i class="${p.status === "posted" ? "on" : ""}"></i>`).join("");
     $("#week-pill").innerHTML = `<span class="segs" aria-hidden="true">${dots}</span><span>This week: <b>${n} of ${due}</b> posted</span>`;
     $("#week-pill").setAttribute("aria-label", `This week: ${n} of ${due} posted. ${n < due ? "Go to your next post" : "All posts done"}`);
-    $("#week-range").textContent = fmt(ME.thisWeek.start, false) + " to " + fmt(addDays(ME.thisWeek.start, 6), false);
     $("#feed-help").textContent = n >= due
       ? `${allPosts(due, "out")} this week. On Sunday, upload each one's analytics from LinkedIn.`
       : "As they will look on LinkedIn. Add your own photo to each post, then tap Post on LinkedIn: it copies the post and opens LinkedIn. Add the photo there too, and paste the text if it isn't filled in. You post it yourself: Studojo never posts for you.";
@@ -455,6 +455,7 @@
       </div>
       <p class="ed-dek">${dek}</p>
       <ol class="ed-lines" aria-label="This week's posts">${lines}</ol>
+      <p class="ed-hint">Your week at a glance. Tap a post to open it in full below.</p>
       <dl class="ed-stats">
         <div><dt>Posted this week</dt><dd>${n} of ${total}<span class="ed-meter" aria-hidden="true">${counted().sort((a, b) => a.date.localeCompare(b.date)).map((p) => `<i class="${p.status === "posted" ? "on" : ""}"></i>`).join("")}</span></dd></div>
         <div><dt>Weekly run</dt><dd>${plural(run(), "week")}</dd></div>
