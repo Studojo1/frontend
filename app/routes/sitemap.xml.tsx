@@ -122,6 +122,18 @@ export async function loader() {
     { loc: "/reports/job-consultancy-for-freshers-india-2026", publishDate: "2026-10-28" },
     { loc: "/reports/how-to-get-a-job-at-a-startup-india-2026", publishDate: "2026-10-28" },
     { loc: "/reports/job-search-tips-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/big-4-fresher-internship-report-2026", publishDate: "2026-11-05" },
+    { loc: "/reports/pm-internship-scheme-report-2026", publishDate: "2026-11-05" },
+    { loc: "/reports/highest-paying-jobs-freshers-india-2026", publishDate: "2026-11-06" },
+    { loc: "/reports/jobs-after-bcom-bba-ba-2026", publishDate: "2026-11-07" },
+    { loc: "/reports/hr-interview-questions-freshers-2026", publishDate: "2026-11-08" },
+    { loc: "/reports/is-ms-abroad-worth-it-2026", publishDate: "2026-11-09" },
+    { loc: "/reports/fresher-resume-no-experience-2026", publishDate: "2026-11-10" },
+    { loc: "/reports/certifications-that-get-freshers-hired-2026", publishDate: "2026-11-11" },
+    { loc: "/reports/best-job-portal-freshers-india-2026", publishDate: "2026-11-12" },
+    { loc: "/reports/part-time-jobs-college-students-india-2026", publishDate: "2026-11-13" },
+    { loc: "/reports/employment-bond-report-freshers-2026", publishDate: "2026-11-14" },
+    { loc: "/reports/internship-first-year-college-2026", publishDate: "2026-11-15" },
   ];
 
   // Dynamic blog posts

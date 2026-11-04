@@ -159,7 +159,7 @@ const PINNED = {
   // product host (productHref, app/lib/product-origin.ts) and nothing else changed. SEO day 7 (4 Nov): one REPORTS
   // entry for india-entry-level-jobs-internships-october-2026, nothing else changed. CTA-NEW (4 Nov): the classic
   // banner's line no longer says Stu tailors your resume (finds who's hiring and writes the email), nothing else changed
-  "routes/reports.tsx": "a54c6ed24e89e619",
+  "routes/reports.tsx": "0e427acf08ce781d", // re-pinned 5 Nov for 12 scheduled reports (REPORTS entries only)
   "routes/terms.tsx": "e565ab6f9433ba94",
   // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), and a row for the
   // stu_vid, stu_src and stu_lt journey cookies (app/lib/journey.ts); nothing else changed. META-FIX 2 Nov: the
