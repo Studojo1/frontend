@@ -46,7 +46,7 @@ export function Floating() {
         </span>
       </StartLink>
       <div className={`hv-bar-m${on ? " hv-show" : ""}`} aria-hidden={!on}>
-        <StartLink place="bar-stu" className="hv-stu-cell" tabIndex={-1} aria-label={a.signedIn ? "open my jobs" : "start the call with Stu"}>
+        <StartLink place="bar-stu" className="hv-stu-cell" tabIndex={-1} aria-label={a.signedIn ? "open my jobs" : "try for free: start the call with Stu"}>
           <StuArt small />
         </StartLink>
         <StartLink place="bar" className="hv-btn-start" tabIndex={on ? 0 : -1} />

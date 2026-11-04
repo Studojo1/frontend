@@ -62,7 +62,7 @@ export function Hero() {
           <StartLink
             place="hero-stu"
             className="hv-hero-stu"
-            aria-label={a.signedIn ? "open my jobs" : "start the call with Stu"}
+            aria-label={a.signedIn ? "open my jobs" : "try for free: start the call with Stu"}
             onPointerEnter={() => setHeld(true)}
             onPointerLeave={() => setHeld(false)}
             onFocus={() => setHeld(true)}
