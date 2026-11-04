@@ -188,7 +188,7 @@ type StartLinkProps = {
 
 /** The label every start shows (the side pill and the bar too). */
 export function useStartLabel(): string {
-  return useAgent().signedIn ? "Open my jobs" : "Start the call";
+  return useAgent().signedIn ? "Open my jobs" : "Try for free"; // TRY-FREE (4 Nov 2026, the owner: "make it try for free as our homepage button")
 }
 
 /**

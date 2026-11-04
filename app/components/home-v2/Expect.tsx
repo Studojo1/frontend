@@ -12,7 +12,7 @@ export function Expect() {
         </header>
         <div className="hv-st-exp">
           <ol className="hv-card hv-st-steps">
-            <li><div><h3 className="hv-h-card">sign up <span className="hv-chip">ten seconds</span></h3><p className="hv-body">Tap start the call and Stu says hi. Sign up with Google or email, then the call starts.</p></div></li>
+            <li><div><h3 className="hv-h-card">sign up <span className="hv-chip">ten seconds</span></h3><p className="hv-body">Tap try for free and Stu says hi. Sign up with Google or email, then the call starts.</p></div></li>
             <li className="hv-st-key"><div><h3 className="hv-h-card">the call <span className="hv-chip">about 10 minutes</span></h3><p className="hv-body">Talk with Stu. Add your resume when Stu asks, and Stu reads it while you talk.</p></div></li>
             <li><div><h3 className="hv-h-card">your brief and first matches</h3><p className="hv-body">Check your brief, add links or anything Stu missed, then see jobs that fit.</p></div></li>
           </ol>
