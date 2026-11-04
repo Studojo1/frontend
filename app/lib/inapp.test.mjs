@@ -159,6 +159,8 @@ assert.equal(escapePlan(WA).sure, false);
   const root = read("root.tsx");
   assert.match(root, /\{journeyPages && !onSensei && !projectPage && <InAppEscape \/>\}/);
   const esc = read("components/inapp/InAppEscape.tsx");
+  // INAPP-STAY: /auth's older "open in your browser" prompt is off too (calls stay in the app's browser).
+  assert.match(read("routes/auth._index.tsx"), /const IN_APP_PROMPT_ON = false;[\s\S]*\{IN_APP_PROMPT_ON && inApp && /);
   // INAPP-OFF: the owner switched the escape off to try the call in Instagram's browser; inapp_seen is still sent first.
   assert.match(esc, /const ESCAPE_ON = false;/);
   assert.match(esc, /step: "inapp_seen"[\s\S]{0,200}if \(!ESCAPE_ON\) return;/);

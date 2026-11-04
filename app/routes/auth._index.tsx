@@ -105,6 +105,10 @@ export function meta({ location }: Route.MetaArgs) {
 const CONSENT_PENDING_KEY = "sj_consent_pending";
 
 const IN_APP_DISMISSED_KEY = "sj_in_app_prompt_dismissed";
+/** INAPP-STAY (4 Nov 2026, the owner, after a call in Instagram's browser on an iPhone worked: "keep calls in
+ * Instagram"): the EX-06 prompt to open the page in the phone's browser is off, like the escape sheet it used to give
+ * way to (components/inapp/InAppEscape.tsx ESCAPE_ON). True shows it again. in_app still goes on the funnel steps. */
+const IN_APP_PROMPT_ON = false;
 
 // Read at call time: the user agent only exists in the browser.
 const inAppNow = (): InAppBrowser =>
@@ -625,7 +629,7 @@ export default function Auth() {
             </div>
             )}
 
-            {inApp && !inAppDismissed && !typedRoute && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
+            {IN_APP_PROMPT_ON && inApp && !inAppDismissed && !typedRoute && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
 
             {/* Toggle Tabs (not with GOOGLE_ONLY on: Google signs people in and up alike) */}
             {!googleOnly && (
