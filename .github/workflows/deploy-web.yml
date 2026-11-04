@@ -207,8 +207,10 @@ jobs:
           # web's own settings, plain values, no secret: the "stu" sign-in cookies shared across this domain and the
           # origins a sign-in may be posted from (app/lib/auth-cookies.ts), and the product's host, where every join
           # and start link goes and /b2cnew/* answers 301 (PRODUCT_ORIGIN, app/lib/product-origin.ts).
+          # RECORDINGS (5 Nov 2026, the owner: on for staging, and for production once a staging recording played end to end
+          # in admin): the site's pages record sessions for the admin's /recordings (app/lib/recordings/boot.ts); "0" stops it.
           SET=$(jq -n --arg d "$COOKIE_DOMAIN" --arg o "$ORIGINS" --arg p "$PRODUCT" \
-            '{AUTH_COOKIE_PREFIX: "stu", AUTH_COOKIE_DOMAIN: $d, AUTH_TRUSTED_ORIGINS: $o, PRODUCT_ORIGIN: $p}')
+            '{AUTH_COOKIE_PREFIX: "stu", AUTH_COOKIE_DOMAIN: $d, AUTH_TRUSTED_ORIGINS: $o, PRODUCT_ORIGIN: $p, RECORDINGS: "1"}')
           # Only when frontend has none: the control plane in this namespace, in-cluster.
           DEFAULTS='{"CONTROL_PLANE_URL": "http://control-plane:8080"}'
           # META-TEST (2 Nov 2026), production only: Meta's Test events code for the Conversions API copies

@@ -24,6 +24,8 @@ import { trackSignedUpOnce } from "./lib/analytics";
 import { installJoinTracking } from "./lib/journey-client";
 import { installPageTracking, notePageView } from "./lib/journey-pages";
 import { InAppEscape } from "./components/inapp/InAppEscape";
+// RECORDINGS (5 Nov 2026): session replay for the admin's /recordings, when RECORDINGS is on (lib/recordings/boot.ts).
+import { bootRecorder, recEndpoint, recordingsOn } from "./lib/recordings/boot";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
 import { isB2cRequest, isPlatformHost } from "./lib/b2c-home";
 import { googleOnlyEnabled } from "./lib/google-only";
@@ -424,6 +426,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     // SITE-TRACK: page views and engagement (journey-pages.ts) on the site's own hosts. Not Sensei's or the admin's,
     // and not the product's (platform.*: only its sign-in pages reach this app, and its /api/journey is the product's).
     journeyPages: isB2cRequest(request) && !isPlatformHost(host),
+    // RECORDINGS: the site's own hosts and the platform's sign-in pages record, when the server's RECORDINGS is on.
+    rec: recordingsOn(process.env.RECORDINGS) && isB2cRequest(request),
   };
 }
 
@@ -467,13 +471,16 @@ export default function App() {
     if (attributionUserId) flushAttribution(attributionUserId);
   }, [attributionUserId]);
 
-  const { isSenseiHost, journeyPages } = useLoaderData<typeof loader>();
+  const { isSenseiHost, journeyPages, rec } = useLoaderData<typeof loader>();
   const location = useLocation();
   const onSensei = isSenseiHost || location.pathname.startsWith("/bob");
   // A student's launched project page (/:handle/:slug) carries no analytics and
   // none of the site's widgets: its CSP allows only its own scripts (contract
   // section 4, app/routes/$handle.$slug.tsx).
   const projectPage = useMatches().some((m) => (m.handle as { projectPage?: boolean } | undefined)?.projectPage === true);
+  // RECORDINGS: after the first paint and once the browser is idle, never in the way of the page (lib/recordings/boot.ts).
+  const recordHere = Boolean(rec) && !onSensei && !projectPage;
+  useEffect(() => bootRecorder(recordHere, recEndpoint(productOrigin())), [recordHere]);
 
   return (
     <>
