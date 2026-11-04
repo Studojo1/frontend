@@ -1,5 +1,6 @@
 import type { Route } from "./+types/api.auth.share-token-redirect";
 import { auth } from "~/lib/auth";
+import { isShareTokenTarget } from "~/lib/share-token-target";
 
 /**
  * Redirect-based token sharing endpoint
@@ -16,6 +17,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   
   if (!redirectTo) {
     return Response.json({ error: "redirect parameter required" }, { status: 400 });
+  }
+  // SEC-4NOV (4 Nov 2026): the token goes to the admin panel's own origins only (lib/share-token-target.ts).
+  if (!isShareTokenTarget(redirectTo, process.env.NODE_ENV)) {
+    return Response.json({ error: "redirect not allowed" }, { status: 400 });
   }
 
   try {

@@ -337,9 +337,10 @@ export default function Auth() {
     // Validate redirect URL is same-origin for security
     try {
       const redirectUrl = new URL(redirectParam, window.location.origin);
-      // Only allow same-origin redirects
-      if (redirectUrl.origin === window.location.origin) {
-        return redirectUrl.pathname + redirectUrl.search + redirectUrl.hash;
+      // Only allow same-origin redirects, and never one that reads as another host (SEC-4NOV: "//host" or "/\host")
+      const to = redirectUrl.pathname + redirectUrl.search + redirectUrl.hash;
+      if (redirectUrl.origin === window.location.origin && !/^[/\\]{2}/.test(redirectParam.trim()) && !/^[/\\]{2}/.test(to)) {
+        return to;
       }
     } catch {
       // Invalid URL, default to "/"
