@@ -782,9 +782,9 @@
     $("#share").classList.toggle("is-listening", S.listening);
     $("#share").classList.toggle("is-asking", asking);
     $("#share").innerHTML = `
-      <div class="card-head"><h2 class="card-title" id="share-title">${asking ? "Start here: tell us your story" : "Share an experience"}</h2>${asking ? `<span class="chip chip-next">${S.stories.length} of ${ME.storiesWanted} shared</span>` : ""}</div>
+      <div class="card-head"><h2 class="card-title" id="share-title">${asking ? "Finish joining: tell us about yourself" : "Share an experience"}</h2>${asking ? `<span class="chip chip-next">${S.stories.length} of ${ME.storiesWanted} shared</span>` : `<span class="chip chip-good">${ic("check", "ic-sm")}You're in</span>`}</div>
       <p class="card-sub">${asking
-        ? `Your posts are written from what you share here, so this comes first. Share ${left === 1 ? "one more story" : left + " stories"} about your own life: real places, people and what happened next make the best posts.`
+        ? `The last step to officially join the fellowship: share ${left === 1 ? "one more story" : left + " stories"} about your own life. Your posts are written from what you share, so real places, people and what happened next make the best posts.`
         : "Tell us what happened, in your own words. Your posts are written from these, so new stories mean better posts."}</p>
       <div class="prompt-box ${S.reply ? "is-reply" : ""}">
         <div class="prompt-top">
@@ -1273,10 +1273,12 @@
         if (text.length >= 10 && !applyView(await call(Object.assign({ intent: "story", prompt, text, spoken: S.spoke }, replyFields())))) return;
       } catch (e) { S.storyErr = e.message; renderShare(true); $("#story-text").focus(); return; }
       const parts = S.parts.saved + (text.length >= 10 ? 1 : 0);
+      const joinedNow = S.stories.length >= ME.storiesWanted && S.stories.length - parts < ME.storiesWanted;
       S.listening = false; S.spoke = false; S.storyErr = ""; S.promptIdx = 0; S.parts = { saved: 0, waiting: [], prompt: null };
       S.reply = null; S.talkAt = null;
       renderShare(false); focusEl("#share .story");
-      toast(parts > 1 ? `Story shared in ${parts} parts. Thank you, ${ME.first}.` : "Story shared. Thank you, " + ME.first + ".");
+      toast(joinedNow ? `You're officially in the Studojo Growth Fellowship, ${ME.first}. Your first posts arrive here once the team has written them.`
+        : parts > 1 ? `Story shared in ${parts} parts. Thank you, ${ME.first}.` : "Story shared. Thank you, " + ME.first + ".");
       // The newest stories are this talk's parts: read them back together.
       requestCoach(S.stories.slice(0, parts).map((x) => x.id));
       return;
@@ -1365,5 +1367,14 @@
   showTab("home");
   $("#page").classList.add("is-ready");
   $("#main").removeAttribute("aria-busy");
+  // The onboarding tour (tour.js) drives the page through these: it can open a section the way the tabs do.
+  window.fellowTour = {
+    slug: SLUG, first: ME.first, phone: () => phone.matches,
+    open: (t) => (phone.matches ? showTab(t) : goToSection(t)),
+    joined: () => S.stories.length >= ME.storiesWanted, storiesWanted: ME.storiesWanted,
+    milestones: (ME.milestones || []).filter((m) => m.weeks != null).map((m) => ({ name: m.name, weeks: m.weeks })),
+    focusStory: () => { const ta = $("#story-text"); if (ta) { ta.scrollIntoView({ block: "center" }); ta.focus(); } },
+  };
+  document.dispatchEvent(new CustomEvent("fellow:ready"));
   }
 })();
