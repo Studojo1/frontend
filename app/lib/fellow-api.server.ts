@@ -30,3 +30,29 @@ export async function fellowAt(rawSlug: string | undefined) {
   const fellow = slug ? await findFellow(slug) : null;
   return fellow ?? json({ error: "This link isn't working. Ask the Studojo team for your link." }, 404);
 }
+
+/** The body's bytes, or null once it passes max: reading stops there, whatever the sender claims. */
+export async function readBody(request: Request, max: number): Promise<Uint8Array | null> {
+  if (Number(request.headers.get("content-length") ?? 0) > max) return null;
+  if (!request.body) return new Uint8Array();
+  const reader = request.body.getReader();
+  const parts: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > max) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    parts.push(value);
+  }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const p of parts) { out.set(p, at); at += p.byteLength; }
+  return out;
+}
+
+/** The request's content type, without parameters ("image/jpeg; x=y" is "image/jpeg"). */
+export const contentType = (request: Request) => (request.headers.get("content-type") ?? "").toLowerCase().split(";")[0].trim();

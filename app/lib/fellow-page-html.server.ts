@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
-export const ASSET_VERSION = "20261104a";
+export const ASSET_VERSION = "20261104c";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -49,6 +49,7 @@ const ICONS = `<svg class="sprite" width="0" height="0" aria-hidden="true" focus
     <symbol id="i-thumb" viewBox="0 0 24 24"><path class="ic-solid" d="M2 10h4v11H2zM8 21h9.4a2 2 0 0 0 2-1.6l1.5-7A2 2 0 0 0 19 10h-5.2l.9-4.2A2 2 0 0 0 12.8 3.3L8 10z"/></symbol>
     <symbol id="i-comment" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8.5L4 20.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/></symbol>
     <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.5V4.5M7.5 9L12 4.5 16.5 9M4.5 15v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.3v.2"/></symbol>
     <symbol id="i-edit-sm" viewBox="0 0 24 24"><path d="M4 20h4.2L19.3 8.9a2.3 2.3 0 0 0-3.2-3.2L5 16.8V20z"/></symbol>
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.8l8.5 6.7"/><path d="M5.8 9v11h4.7v-5.8h3V20h4.7V9"/></symbol>
@@ -197,7 +198,7 @@ const PAGE = `
 
   <main class="feed" id="main" aria-busy="true">
     <div class="notice" id="notice" hidden></div>
-    <section class="card card-pad shots" id="shots" aria-labelledby="shots-title"></section>
+    <section class="card card-pad shots" id="analytics" aria-labelledby="analytics-title"></section>
     <section class="card ed-cover" id="ed-cover" aria-labelledby="ed-title"></section>${LEARN_TEASER}
     <div class="feed-head">
       <div class="fh-row"><h2>This week's posts</h2><span class="chip" id="week-range"></span></div>
@@ -224,7 +225,8 @@ const PAGE = `
 </nav>
 
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
-<input class="sr-only" id="shot-file" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+<input class="sr-only" id="photo-file" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+<input class="sr-only" id="analytics-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" tabindex="-1" aria-hidden="true">
 <dialog class="ask" id="ask" aria-labelledby="ask-title" aria-describedby="ask-sub">
   <h2 class="ask-title" id="ask-title">Did you post it on LinkedIn?</h2>
   <p class="ask-sub" id="ask-sub"></p>

@@ -5,16 +5,23 @@ import { checkRateLimit } from "~/lib/ratelimit.server";
 import { proofStore } from "~/lib/fellow-proof.server";
 import { CoachUnavailable, readBack, type CoachAsk, type CoachProfile } from "~/lib/fellow-coach.server";
 import {
+  activityOf,
+  AnalyticsFileError,
+  looksLikeXlsx,
+  MAX_ANALYTICS_BYTES,
+  NOT_AN_EXPORT,
+  readAnalyticsExport,
+  type WeekAnalytics,
+} from "~/lib/fellow-analytics.server";
+import {
   buildFellowView,
-  imageBlob,
-  imageTokens,
   PHOTOS_PER_POST,
   photoTokens,
   PROOF_CONTAINER,
+  proofBlob,
+  proofTokens,
   shotEntries,
   SHOT_TOKEN,
-  SHOT_UNDO_MS,
-  SHOTS_PER_POST,
   type ImageKind,
   cleanPostUrl,
   cleanText,
@@ -25,6 +32,7 @@ import {
   addDays,
   wholeNumber,
   STORY_PROMPTS,
+  type AnalyticsRow,
   type ApplicationRow,
   type CohortFellowRow,
   type CohortPostRow,
@@ -75,15 +83,15 @@ export async function findFellow(slug: string): Promise<FellowRow | null> {
 }
 
 export async function loadFellowView(fellow: FellowRow, now: Date = new Date()): Promise<FellowView> {
-  const [application, posts, stories, connections, rules, cohortFellows, cohortPosts] = await Promise.all([
+  const [application, posts, stories, connections, rules, cohortFellows, cohortPosts, analytics] = await Promise.all([
     fellow.application_id
       ? db.execute(sql`SELECT course, year_of_study, city FROM ugc_applications WHERE id = ${fellow.application_id}`)
           .then((r) => rows<ApplicationRow>(r)[0] ?? null)
           .catch(() => null)
       : Promise.resolve(null),
     db.execute(sql`
-      SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at, screenshot_url,
-        photo_idea, photo_url, photo_help_at
+      SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at,
+        photo_idea, photo_url, photo_help_at, analytics
       FROM ugc_creator_posts
       WHERE creator_id = ${fellow.id} AND status IN ('ready', 'posted', 'blocked')
       ORDER BY due_date, id
@@ -127,8 +135,17 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
              OR p.posted_at >= now() - interval '7 days'
              OR p.metrics_at >= now() - interval '7 days')
     `).then((r) => rows<CohortPostRow>(r)),
+    // Their latest LinkedIn analytics export: the totals only. The page works without it.
+    db.execute(sql`
+      SELECT uploaded_at, period_start::text AS period_start, period_end::text AS period_end, data->'totals' AS totals
+      FROM ugc_creator_analytics
+      WHERE creator_id = ${fellow.id}
+      ORDER BY uploaded_at DESC
+      LIMIT 1
+    `).then((r) => rows<AnalyticsRow>(r)[0] ?? null)
+      .catch(() => null),
   ]);
-  return buildFellowView({ fellow, application, posts, stories, connections, rules, cohortFellows, cohortPosts }, now.getTime());
+  return buildFellowView({ fellow, application, posts, stories, connections, rules, cohortFellows, cohortPosts, analytics }, now.getTime());
 }
 
 // ---------------------------------------------------------------- what the page can change
@@ -410,75 +427,67 @@ export async function coachTalk(fellow: FellowRow, rawIds: unknown, ask?: CoachA
   }
 }
 
-// ---------------------------------------------------------------- the fellow's own images
-// Analytics screenshots go on posted posts (the weekly proof); photos go on posts before they go out.
+// ---------------------------------------------------------------- the fellow's own files
+// Photos go on posts before they go out; LinkedIn's analytics export on posts that went out. Analytics
+// screenshots are no longer collected, but the ones already saved can still be opened.
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const RULES: Record<ImageKind, {
-  column: ReturnType<typeof sql.raw>;
-  most: number;
-  bytes: number;
-  none: string;
-  full: string;
-}> = {
-  shot: {
-    column: sql.raw("screenshot_url"),
-    most: SHOTS_PER_POST,
-    bytes: 3 * 1024 * 1024,
-    none: "That screenshot isn't on this post.",
-    full: `This post has ${SHOTS_PER_POST} screenshots, the most it can have. Remove one to add another.`,
-  },
-  photo: {
-    column: sql.raw("photo_url"),
-    most: PHOTOS_PER_POST,
-    bytes: MAX_IMAGE_BYTES,
-    none: "That photo isn't on this post.",
-    full: `This post has ${PHOTOS_PER_POST} photos, the most it can have. Remove one to add another.`,
-  },
-};
+export { MAX_ANALYTICS_BYTES };
+const XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const SHOTS_RETIRED = "Screenshots aren't needed any more. Upload the post's analytics export from LinkedIn instead.";
+const IMAGE_COLUMN: Record<ImageKind, ReturnType<typeof sql.raw>> = { shot: sql.raw("screenshot_url"), photo: sql.raw("photo_url") };
+const NOT_ON_POST: Record<ImageKind, string> = { shot: "That screenshot isn't on this post.", photo: "That photo isn't on this post." };
 
-/** The post's entries of one kind, once the post can take another; otherwise why not. */
-async function imageEntries(exec: { execute: typeof db.execute }, kind: ImageKind, fellow: FellowRow, id: number): Promise<string[]> {
-  const rule = RULES[kind];
-  const weekEnd = addDays(weekOf(istDate()), 6);
-  const r = await exec.execute(sql`
-    SELECT status, due_date <= ${weekEnd}::date AS open, ${rule.column} AS images
-    FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
-  `);
-  const row = rows<Row>(r)[0];
-  if (!row || !["ready", "posted", "blocked"].includes(String(row.status))) throw new FellowInputError(TAKEN_BACK, 404);
-  if (row.status === "blocked") throw new FellowInputError(ON_HOLD, 409);
-  if (kind === "shot" && row.status !== "posted") throw new FellowInputError("Add analytics screenshots once the post is marked as posted.", 409);
-  if (kind === "photo" && row.status !== "ready") throw new FellowInputError("This post is already posted, so its photos can't change now.", 409);
-  if (kind === "photo" && !row.open) throw new FellowInputError("That post isn't on your page yet.", 404);
-  const raw = (row.images as string | null) ?? null;
+/** A post's column as a list. Something in it the page doesn't recognise is kept, never dropped. */
+function entriesOf(raw: string | null): string[] {
   const entries = shotEntries(raw);
-  // Something in the column the page doesn't recognise is kept, never dropped.
   if (raw?.trim() && !entries.length) entries.push(raw.trim());
-  if (imageTokens(kind, raw, fellow.id, id).length >= rule.most) throw new FellowInputError(rule.full, 409);
   return entries;
 }
 
-/** Saves one image (a JPEG the page has already re-encoded) on one of the fellow's posts. */
+/** The post's status, once it is one of the fellow's and not on hold; otherwise why not. */
+function livePost(row: Row | undefined): string {
+  if (!row || !["ready", "posted", "blocked"].includes(String(row.status))) throw new FellowInputError(TAKEN_BACK, 404);
+  if (row.status === "blocked") throw new FellowInputError(ON_HOLD, 409);
+  return String(row.status);
+}
+
+/** The post's photos, once it can take another; otherwise why not. */
+async function photoEntries(exec: { execute: typeof db.execute }, fellow: FellowRow, id: number): Promise<string[]> {
+  const weekEnd = addDays(weekOf(istDate()), 6);
+  const row = rows<Row>(await exec.execute(sql`
+    SELECT status, due_date <= ${weekEnd}::date AS open, photo_url
+    FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
+  `))[0];
+  if (livePost(row) !== "ready") throw new FellowInputError("This post is already posted, so its photos can't change now.", 409);
+  if (!row!.open) throw new FellowInputError("That post isn't on your page yet.", 404);
+  const raw = (row!.photo_url as string | null) ?? null;
+  if (photoTokens(raw, fellow.id, id).length >= PHOTOS_PER_POST) {
+    throw new FellowInputError(`This post has ${PHOTOS_PER_POST} photos, the most it can have. Remove one to add another.`, 409);
+  }
+  return entriesOf(raw);
+}
+
+/** Saves one photo (a JPEG the page has already re-encoded) on one of the fellow's posts. */
 export async function addFellowImage(kind: ImageKind, fellow: FellowRow, rawPostId: unknown, jpeg: Uint8Array, now = Date.now()): Promise<void> {
+  if (kind === "shot") throw new FellowInputError(SHOTS_RETIRED, 410);
   const id = postId(rawPostId);
-  if (jpeg.length > RULES[kind].bytes) throw new FellowInputError("That picture is too big to send.", 413);
+  if (jpeg.length > MAX_IMAGE_BYTES) throw new FellowInputError("That picture is too big to send.", 413);
   if (jpeg.length < 4 || jpeg[0] !== 0xff || jpeg[1] !== 0xd8 || jpeg[2] !== 0xff) {
     throw new FellowInputError("That file isn't a picture the page can use. Choose another one.", 415);
   }
-  await imageEntries(db, kind, fellow, id); // refuse early, before anything is stored
-  const blob = imageBlob(kind, fellow.id, id, `${now}-${randomBytes(6).toString("hex")}`);
-  await proofStore.put(blob, jpeg);
+  await photoEntries(db, fellow, id); // refuse early, before anything is stored
+  const blob = proofBlob("photo", fellow.id, id, `${now}-${randomBytes(6).toString("hex")}`);
+  await proofStore.put(blob, jpeg, "image/jpeg");
   try {
     await withFellowLock(fellow, async (tx) => {
-      const entries = await imageEntries(tx, kind, fellow, id);
+      const entries = await photoEntries(tx, fellow, id);
       entries.push(`${PROOF_CONTAINER}/${blob}`);
       // A photo also answers "I don't have a photo for this".
-      await tx.execute(kind === "photo"
-        ? sql`UPDATE ugc_creator_posts SET photo_url = ${JSON.stringify(entries)}, photo_help_at = NULL, updated_at = now()
-              WHERE id = ${id} AND creator_id = ${fellow.id}`
-        : sql`UPDATE ugc_creator_posts SET screenshot_url = ${JSON.stringify(entries)}, updated_at = now()
-              WHERE id = ${id} AND creator_id = ${fellow.id}`);
+      await tx.execute(sql`
+        UPDATE ugc_creator_posts SET photo_url = ${JSON.stringify(entries)}, photo_help_at = NULL, updated_at = now()
+        WHERE id = ${id} AND creator_id = ${fellow.id}
+      `);
     });
   } catch (e) {
     await proofStore.remove(blob).catch(() => {});
@@ -487,41 +496,99 @@ export async function addFellowImage(kind: ImageKind, fellow: FellowRow, rawPost
 }
 
 const imageToken = (kind: ImageKind, v: unknown) => {
-  if (typeof v !== "string" || !SHOT_TOKEN.test(v)) throw new FellowInputError(RULES[kind].none, 404);
+  if (typeof v !== "string" || !SHOT_TOKEN.test(v)) throw new FellowInputError(NOT_ON_POST[kind], 404);
   return v;
 };
 
-/** Removes an image: a screenshot in its first day (after that it stays as proof), a photo until the post goes out. */
-export async function removeFellowImage(kind: ImageKind, fellow: FellowRow, rawPostId: unknown, rawToken: unknown, now = Date.now()): Promise<void> {
+/** Removes a photo, until the post goes out. */
+export async function removeFellowImage(kind: ImageKind, fellow: FellowRow, rawPostId: unknown, rawToken: unknown): Promise<void> {
+  if (kind === "shot") throw new FellowInputError(SHOTS_RETIRED, 410);
   const id = postId(rawPostId);
   const token = imageToken(kind, rawToken);
-  const blob = imageBlob(kind, fellow.id, id, token);
-  const rule = RULES[kind];
+  const blob = proofBlob("photo", fellow.id, id, token);
   await withFellowLock(fellow, async (tx) => {
     const row = rows<Row>(await tx.execute(sql`
-      SELECT status, ${rule.column} AS images FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
+      SELECT status, photo_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
     `))[0];
-    const entries = shotEntries((row?.images as string | null) ?? null);
-    if (!entries.includes(`${PROOF_CONTAINER}/${blob}`)) throw new FellowInputError(rule.none, 404);
-    if (kind === "shot" && now - Number(token.slice(0, 13)) > SHOT_UNDO_MS) {
-      throw new FellowInputError("A screenshot can be removed only in the first 24 hours. Ask the Studojo team if this one is wrong.", 409);
-    }
-    if (kind === "photo" && row?.status !== "ready") throw new FellowInputError("This post is already posted, so its photos stay.", 409);
+    const entries = shotEntries((row?.photo_url as string | null) ?? null);
+    if (!entries.includes(`${PROOF_CONTAINER}/${blob}`)) throw new FellowInputError(NOT_ON_POST.photo, 404);
+    if (row?.status !== "ready") throw new FellowInputError("This post is already posted, so its photos stay.", 409);
     const rest = entries.filter((e) => e !== `${PROOF_CONTAINER}/${blob}`);
-    const value = rest.length ? JSON.stringify(rest) : null;
-    await tx.execute(kind === "photo"
-      ? sql`UPDATE ugc_creator_posts SET photo_url = ${value}, updated_at = now() WHERE id = ${id} AND creator_id = ${fellow.id}`
-      : sql`UPDATE ugc_creator_posts SET screenshot_url = ${value}, updated_at = now() WHERE id = ${id} AND creator_id = ${fellow.id}`);
+    await tx.execute(sql`
+      UPDATE ugc_creator_posts SET photo_url = ${rest.length ? JSON.stringify(rest) : null}, updated_at = now()
+      WHERE id = ${id} AND creator_id = ${fellow.id}
+    `);
   });
   await proofStore.remove(blob);
 }
 
-/** One of the fellow's own images, or null if it isn't on that post. */
+/** One of the fellow's own images (a photo, or a screenshot saved before they were retired), or null if it isn't on that post. */
 export async function readFellowImage(kind: ImageKind, fellow: FellowRow, rawPostId: unknown, rawToken: unknown): Promise<Uint8Array | null> {
   const id = postId(rawPostId);
   const token = imageToken(kind, rawToken);
-  const r = await db.execute(sql`SELECT ${RULES[kind].column} AS images FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
+  const r = await db.execute(sql`SELECT ${IMAGE_COLUMN[kind]} AS images FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`);
   const raw = (rows<Row>(r)[0]?.images as string | null) ?? null;
-  if (!imageTokens(kind, raw, fellow.id, id).includes(token)) return null;
-  return proofStore.get(imageBlob(kind, fellow.id, id, token));
+  if (!proofTokens(kind, raw, fellow.id, id).includes(token)) return null;
+  return proofStore.get(proofBlob(kind, fellow.id, id, token));
+}
+
+const UPLOADS_PER_DAY = 10;
+const UPLOADS_FULL = "That's a lot of uploads for one day. The latest one counts; try again tomorrow if it needs changing.";
+
+/**
+ * Saves LinkedIn's content analytics export (the whole account over a period, usually the last 7 days)
+ * and reads it. The file and everything in it are kept, a row an upload: the same week uploaded twice
+ * keeps both, and the newest counts. Each of the fellow's posted posts listed in it, matched by the
+ * activity number in its saved link, gets its impressions from the file, as if typed, but only when it
+ * was published inside the period: for an older post the file counts only that period's impressions.
+ * Reactions and comments stay as they are (the file has no counts of them for each post).
+ */
+export async function addFellowAnalytics(fellow: FellowRow, file: Uint8Array, now = Date.now()): Promise<void> {
+  if (file.length > MAX_ANALYTICS_BYTES) throw new FellowInputError("That file is too big to be LinkedIn's analytics export.", 413);
+  if (!looksLikeXlsx(file)) throw new FellowInputError(NOT_AN_EXPORT, 415);
+  const uploadsToday = async (exec: { execute: typeof db.execute }) => Number(rows<Row>(await exec.execute(sql`
+    SELECT count(*)::int AS n FROM ugc_creator_analytics WHERE creator_id = ${fellow.id} AND uploaded_at > now() - interval '1 day'
+  `))[0]?.n ?? 0);
+  if ((await uploadsToday(db)) >= UPLOADS_PER_DAY) throw new FellowInputError(UPLOADS_FULL, 429);
+  let week: WeekAnalytics;
+  try {
+    week = await readAnalyticsExport(file, now);
+  } catch (e) {
+    if (e instanceof AnalyticsFileError) throw new FellowInputError(e.message, 422);
+    throw e;
+  }
+  const blob = proofBlob("analytics", fellow.id, null, `${now}-${randomBytes(6).toString("hex")}`);
+  const ref = `${PROOF_CONTAINER}/${blob}`;
+  await proofStore.put(blob, file, XLSX_TYPE);
+  try {
+    await withFellowLock(fellow, async (tx) => {
+      if ((await uploadsToday(tx)) >= UPLOADS_PER_DAY) throw new FellowInputError(UPLOADS_FULL, 429);
+      const mine = rows<{ id: number; post_url: string; posted_at: string | Date | null }>(await tx.execute(sql`
+        SELECT id, post_url, posted_at FROM ugc_creator_posts
+        WHERE creator_id = ${fellow.id} AND status = 'posted' AND post_url IS NOT NULL
+      `));
+      const byActivity = new Map(mine.map((p) => [activityOf(p.post_url), p] as const).filter(([a]) => a));
+      const posts = week.posts.map((p) => ({ ...p, postId: byActivity.get(activityOf(p.url) ?? "")?.id ?? null }));
+      const uploadedAt = new Date(now).toISOString();
+      await tx.execute(sql`
+        INSERT INTO ugc_creator_analytics (creator_id, file_url, period_start, period_end, data, uploaded_at)
+        VALUES (${fellow.id}, ${ref}, ${week.periodStart}::date, ${week.periodEnd}::date, ${JSON.stringify({ ...week, posts })}::jsonb, ${uploadedAt}::timestamptz)
+      `);
+      for (const p of posts) {
+        const own = mine.find((m) => m.id === p.postId);
+        const published = p.publishedOn ?? (own?.posted_at ? istDate(new Date(own.posted_at).getTime()) : null);
+        if (!own || p.impressions == null || !week.periodStart || !published || published < week.periodStart) continue;
+        const metrics = p.engagements != null ? { impressions: p.impressions, engagements: p.engagements } : { impressions: p.impressions };
+        await tx.execute(sql`
+          UPDATE ugc_creator_posts
+          SET impressions = ${p.impressions}, metrics_at = now(), updated_at = now(),
+              analytics = ${JSON.stringify({ uploadedAt, file: ref, postedOn: p.publishedOn, postUrl: p.url, metrics, demographics: {} })}::jsonb
+          WHERE id = ${own.id} AND creator_id = ${fellow.id} AND status = 'posted'
+        `);
+      }
+    });
+  } catch (e) {
+    await proofStore.remove(blob).catch(() => {});
+    throw e;
+  }
 }

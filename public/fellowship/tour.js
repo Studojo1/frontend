@@ -6,18 +6,19 @@
   // hands over window.fellowTour once the page is drawn; nothing here talks to the server.
   const KEY = "fellowTour:v1:";
   const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const icon = (id) => `<svg class="ic" aria-hidden="true" focusable="false"><use href="#i-${id}"/></svg>`;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   function steps(T) {
     const ms = T.milestones.map((m) => `${m.weeks} weeks: ${m.name}`);
     return [
-      { title: `Welcome, ${T.first}`, body: "This is your Growth Fellowship page. Your LinkedIn posts are written for you from what you share here, and everything you need each week lives on this page. Here's a quick look around." },
-      { tab: "stories", sel: "#share", title: "Tell us your stories", body: "Speak or type about real moments from your life: what you did, who was there, what happened next. After each one you get written feedback on what we can use, plus follow-up questions you can answer by tapping Answer." },
-      { tab: "home", sel: "#ed-cover", title: "Your posts for the week", body: "Five posts a week: three about you and two in partnership with Studojo. For each one: copy it, add a photo of your own (every post needs one), post it on LinkedIn, then mark it as posted." },
-      { tab: "home", sel: "#analytics, #shots", title: "Your weekly analytics", body: "Every Sunday, you send us your LinkedIn analytics here. The steps are on this card. It shows us what's working, so we can help you grow." },
-      { tab: "milestones", sel: "#milestones", title: "Milestones", body: ms.length ? `Each week you post all your posts counts toward these: ${ms.join(" · ")}.` : "Each week you post all your posts counts toward your milestones." },
-      { tab: "cohort", sel: "#news", title: "Your fellowship", body: "See how the rest of the fellowship is doing this week. The pill at the top always shows how many of this week's posts you've done." },
-      { tab: "stories", sel: "#share", title: "Last step: tell us about yourself", body: T.joined() ? "You've already shared your first stories, so you're in. Keep adding new ones: new stories mean better posts." : `Share ${T.storiesWanted} stories about your own life to complete your onboarding and officially join the fellowship. We already have what we covered on your call, so start with something happening in your life right now: a project, a conversation, a setback.`, last: true },
+      { icon: "home", title: `Welcome, ${T.first}`, body: "This is your Growth Fellowship page. Your LinkedIn posts are written for you from what you share here, and everything you need each week lives on this page. Here's a quick look around." },
+      { icon: "mic", tab: "stories", sel: "#share", title: "Tell us your stories", body: "Speak or type about real moments from your life: what you did, who was there, what happened next. After each one you get written feedback on what we can use, plus follow-up questions you can answer by tapping Answer." },
+      { icon: "compose", tab: "home", sel: "#ed-cover", title: "Your posts for the week", body: "Five posts a week: three about you and two in partnership with Studojo. For each one: copy it, add a photo of your own (every post needs one), post it on LinkedIn, then mark it as posted." },
+      { icon: "chart", tab: "home", sel: "#analytics, #shots", title: "Your weekly analytics", body: "Every Sunday, you send us your LinkedIn analytics here. The steps are on this card. It shows us what's working, so we can help you grow." },
+      { icon: "cert", tab: "milestones", sel: "#milestones", title: "Milestones", body: ms.length ? `Each week you post all your posts counts toward these: ${ms.join(" · ")}.` : "Each week you post all your posts counts toward your milestones." },
+      { icon: "users", tab: "cohort", sel: "#news", title: "Your fellowship", body: "See how the rest of the fellowship is doing this week. The pill at the top always shows how many of this week's posts you've done." },
+      { icon: "mic", tab: "stories", sel: "#share", title: "Last step: tell us about yourself", body: T.joined() ? "You've already shared your first stories, so you're in. Keep adding new ones: new stories mean better posts." : `Share ${T.storiesWanted} stories about your own life to complete your onboarding and officially join the fellowship. We already have what we covered on your call, so start with something happening in your life right now: a project, a conversation, a setback.`, last: true },
     ];
   }
 
@@ -59,13 +60,17 @@
     if (s.tab) T.open(s.tab);
     const el = s.sel ? document.querySelector(s.sel) : null;
     if (el && visible(el)) el.scrollIntoView({ behavior: "auto", block: T.phone() ? "start" : "center" });
+    // A blue header (the step's icon, how far along, the title and a bar for the whole tour), then the text.
     card.innerHTML = `
-      <p class="tour-step">${at + 1} of ${list.length}</p>
-      <h2 class="tour-title" id="tour-title">${esc(s.title)}</h2>
+      <div class="tour-head">
+        <div class="tour-top"><span class="tour-badge" aria-hidden="true">${icon(s.icon)}</span><p class="tour-step">Step ${at + 1} of ${list.length}</p></div>
+        <h2 class="tour-title" id="tour-title">${esc(s.title)}</h2>
+        <div class="tour-bar" aria-hidden="true">${list.map((_, i) => `<i class="${i <= at ? "on" : ""}"></i>`).join("")}</div>
+      </div>
       <p class="tour-body" id="tour-body">${esc(s.body)}</p>
       <div class="tour-actions">
         ${at > 0 ? '<button class="tour-btn tour-quiet" type="button" data-tour="back">Back</button>' : '<button class="tour-btn tour-quiet" type="button" data-tour="skip">Skip</button>'}
-        <button class="tour-btn tour-main" type="button" data-tour="${s.last ? "done" : "next"}">${s.last ? (T.joined() ? "Done" : "Tell us about yourself") : at === 0 ? "Show me" : "Next"}</button>
+        <button class="tour-btn tour-main" type="button" data-tour="${s.last ? "done" : "next"}">${s.last ? (T.joined() ? "Done" : "Tell us about yourself") : at === 0 ? "Show me" : "Next"}${s.last && T.joined() ? "" : icon("arrow")}</button>
       </div>`;
     requestAnimationFrame(() => { place(); const b = card.querySelector(".tour-main"); if (b) b.focus(); });
   }

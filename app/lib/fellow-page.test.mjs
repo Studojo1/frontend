@@ -7,6 +7,7 @@
 // DATABASE_URL; CI has one (.github/workflows/tests.yml).
 import assert from "node:assert/strict";
 import pg from "pg";
+import JSZip from "jszip";
 
 if (!process.env.DATABASE_URL) {
   console.log("fellow-page: skipped (DATABASE_URL not set)");
@@ -47,7 +48,7 @@ try {
       kind TEXT NOT NULL DEFAULT 'personal', due_date DATE NOT NULL, status TEXT NOT NULL DEFAULT 'ready', copied_at TIMESTAMPTZ,
       own_line TEXT, posted_at TIMESTAMPTZ, post_url TEXT, impressions INTEGER, reactions INTEGER, comments INTEGER,
       screenshot_url TEXT, metrics_at TIMESTAMPTZ, review JSONB, insight TEXT, insight_at TIMESTAMPTZ,
-      photo_idea TEXT, photo_url TEXT, photo_help_at TIMESTAMPTZ,
+      photo_idea TEXT, photo_url TEXT, photo_help_at TIMESTAMPTZ, analytics_url TEXT, analytics JSONB,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE TABLE ugc_creator_stories (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), prompt TEXT, text TEXT NOT NULL, spoken BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -55,6 +56,8 @@ try {
     CREATE TABLE ugc_creator_connections (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), connections INTEGER NOT NULL, recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
     CREATE TABLE ugc_creator_drafts (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), title TEXT NOT NULL, body TEXT NOT NULL, due_date DATE NOT NULL);
     CREATE TABLE ugc_programme (id INTEGER PRIMARY KEY, rules JSONB NOT NULL);
+    CREATE TABLE ugc_creator_analytics (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id) ON DELETE CASCADE,
+      file_url TEXT NOT NULL, period_start DATE, period_end DATE, data JSONB NOT NULL, uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
   `);
   await setup.query(`INSERT INTO ugc_applications (full_name, email, whatsapp, course, year_of_study, city, team_notes, target_roles, looking_for, topics, avoid_topics)
     VALUES ('Asha Testfellow', 'asha@example.com', '+910000000001', 'BBA', '3rd year', 'Pune', $1, 'Brand manager', 'An internship', '["College life", "Internships"]', 'Politics')`, [SECRET]);
@@ -89,10 +92,11 @@ try {
   const pageRoute = await import("../routes/fellowship-growth.$slug.tsx");
   const splat = await import("../routes/fellowship-growth.$.tsx");
   const proofRoute = await import("../routes/api.fellowship-growth.$slug_.proof.tsx");
-  // Screenshots go to an in-memory store here; the real one is Azure Blob (fellow-proof.server.ts).
+  const analyticsRoute = await import("../routes/api.fellowship-growth.$slug_.analytics.tsx");
+  // Files go to an in-memory store here; the real one is Azure Blob (fellow-proof.server.ts).
   const { proofStore } = await import("./fellow-proof.server.ts");
-  const stored = new Map();
-  proofStore.put = async (name, data) => { if (stored.has(name)) throw new Error("overwrite"); stored.set(name, Buffer.from(data)); };
+  const stored = new Map(), storedType = new Map();
+  proofStore.put = async (name, data, type) => { if (stored.has(name)) throw new Error("overwrite"); stored.set(name, Buffer.from(data)); storedType.set(name, type); };
   proofStore.get = async (name) => stored.get(name) ?? null;
   proofStore.remove = async (name) => { stored.delete(name); };
   appDb = (await import("./db.ts")).default;
@@ -157,7 +161,7 @@ try {
   await page.removeFellowImage("photo", asha, ids.aTue, ph0, p0 + 3 * 24 * 3600 * 1000);
   photos = await photosOn(ids.aTue);
   assert.equal(photos.length, 3, "a photo can be removed any time before the post goes out");
-  await refused(() => page.addFellowImage("shot", asha, ids.aTue, PHOTO), 409, "no screenshots before posting");
+  assert.equal(storedType.get(photos[0].slice("fellow-proof/".length)), "image/jpeg");
 
   // ---------------------------------------------------------------- the fellow's own posts
   await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aNext, url: "https://www.linkedin.com/posts/x-activity-10" }), 409, "next week's post can't be marked yet");
@@ -383,76 +387,151 @@ try {
   assert.equal((await res.json()).me.thisWeek.posts.find((p) => Number(p.id) === ids.aThu).ownLine, "Thursday's line");
   assert.equal(api.headers({})["Cache-Control"], "no-store", "the .data spelling gets the same headers");
 
-  // ---------------------------------------------------------------- analytics screenshots
+  // ---------------------------------------------------------------- analytics screenshots: retired, still readable
   const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]);
-  const shotsOn = async (id) => JSON.parse((await one(`SELECT screenshot_url FROM ugc_creator_posts WHERE id = $1`, [id])).screenshot_url ?? "[]");
-  await refused(() => page.addFellowImage("shot", asha, ids.aThu, JPEG), 409, "a post not yet posted");
-  await refused(() => page.addFellowImage("shot", asha, ids.kPosted, JPEG), 404, "another fellow's post");
-  await refused(() => page.addFellowImage("shot", asha, ids.aTue, Buffer.from("GIF89a")), 415, "not a JPEG");
-  const storedShots = () => [...stored.keys()].filter((k) => !k.includes("/photo/")).length;
-  assert.equal(storedShots(), 0, "nothing is stored for a refused screenshot");
-  const t0 = Date.now();
-  await page.addFellowImage("shot", asha, ids.aTue, JPEG, t0);
-  let shots = await shotsOn(ids.aTue);
-  assert.equal(shots.length, 1);
-  assert.match(shots[0], new RegExp(`^fellow-proof/1/${ids.aTue}/${t0}-[0-9a-f]{12}\\.jpg$`), "the stored path names the fellow, the post and the time");
-  assert.ok(stored.has(shots[0].slice("fellow-proof/".length)));
-  const token0 = shots[0].split("/").pop().slice(0, -4);
-  assert.deepEqual([...(await page.readFellowImage("shot", asha, ids.aTue, token0))], [...JPEG], "the fellow sees their own screenshot");
-  assert.equal(await page.readFellowImage("shot", kiran, ids.aTue, token0), null, "another fellow can't");
+  await refused(() => page.addFellowImage("shot", asha, ids.aTue, JPEG), 410, "screenshots aren't taken any more");
+  const oldShot = `${Date.now() - 86400000}-abcdefabcdef`;
+  await setup.query(`UPDATE ugc_creator_posts SET screenshot_url = $2 WHERE id = $1`, [ids.aTue, JSON.stringify([`fellow-proof/1/${ids.aTue}/${oldShot}.jpg`])]);
+  stored.set(`1/${ids.aTue}/${oldShot}.jpg`, JPEG);
+  await refused(() => page.removeFellowImage("shot", asha, ids.aTue, oldShot), 410, "nor removed");
+  assert.deepEqual([...(await page.readFellowImage("shot", asha, ids.aTue, oldShot))], [...JPEG], "one saved before can still be opened");
+  assert.equal(await page.readFellowImage("shot", kiran, ids.aTue, oldShot), null, "by its own fellow only");
   await refused(() => page.readFellowImage("shot", asha, ids.aTue, "../../etc/passwd"), 404, "a made-up token");
-  for (let i = 1; i < 6; i++) await page.addFellowImage("shot", asha, ids.aTue, JPEG, t0 + i);
-  await refused(() => page.addFellowImage("shot", asha, ids.aTue, JPEG, t0 + 9), 409, "a seventh screenshot");
-  assert.equal(storedShots(), 6);
-  const shotView = await page.loadFellowView(asha);
-  assert.equal(shotView.me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue).shots.length, 6, "the page lists them");
-  await refused(() => page.removeFellowImage("shot", asha, ids.aTue, token0, t0 + 25 * 3600 * 1000), 409, "a day later a screenshot stays");
-  await refused(() => page.removeFellowImage("shot", kiran, ids.aTue, token0, t0), 404, "another fellow can't remove it");
-  await page.removeFellowImage("shot", asha, ids.aTue, token0, t0 + 60_000);
-  shots = await shotsOn(ids.aTue);
-  assert.equal(shots.length, 5);
-  assert.ok(!shots.some((e) => e.includes(token0)) && storedShots() === 5, "removed from the post and from storage");
-  // A link the team saved in the column is kept.
-  await setup.query(`UPDATE ugc_creator_posts SET screenshot_url = 'https://example.com/numbers.png' WHERE id = $1`, [ids.aDone]);
-  await page.addFellowImage("shot", asha, ids.aDone, JPEG, t0);
-  shots = await shotsOn(ids.aDone);
-  assert.equal(shots[0], "https://example.com/numbers.png");
-  assert.equal(shots.length, 2);
-  // Storage failing leaves the post as it was.
-  const realPut = proofStore.put;
-  proofStore.put = async () => { throw new Error("storage down"); };
-  await assert.rejects(() => page.addFellowImage("shot", asha, ids.aDone, JPEG, t0 + 1));
-  proofStore.put = realPut;
-  assert.equal((await shotsOn(ids.aDone)).length, 2);
 
   const PROOF = "https://studojo.com/api/fellowship-growth/";
   const proofReq = (slug, qs, init) => new Request(`${PROOF}${slug}/proof?${qs}`, init);
-  const token1 = (await shotsOn(ids.aTue))[0].split("/").pop().slice(0, -4);
-  res = await proofRoute.loader({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aTue}&shot=${token1}`) });
+  res = await proofRoute.loader({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aTue}&shot=${oldShot}`) });
   assert.equal(res.status, 200);
   assert.equal(res.headers.get("content-type"), "image/jpeg");
   assert.equal(res.headers.get("cache-control"), "private, no-store");
   assert.equal(res.headers.get("cross-origin-resource-policy"), "same-origin");
-  res = await proofRoute.loader({ params: { slug: "kiran-p7w2m4tq" }, request: proofReq("kiran-p7w2m4tq", `post=${ids.aTue}&shot=${token1}`) });
+  res = await proofRoute.loader({ params: { slug: "kiran-p7w2m4tq" }, request: proofReq("kiran-p7w2m4tq", `post=${ids.aTue}&shot=${oldShot}`) });
   assert.equal(res.status, 404, "Kiran's address can't open Asha's screenshot");
-  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "POST", headers: { "content-type": "multipart/form-data" }, body: JPEG }) });
-  assert.equal(res.status, 415, "image/jpeg only, so another site's form can't post here");
-  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "POST", headers: { "content-type": "image/jpeg" }, body: Buffer.alloc(3 * 1024 * 1024 + 1, 0xff) }) });
-  assert.equal(res.status, 413, "over 3 MB");
   res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "POST", headers: { "content-type": "image/jpeg" }, body: JPEG }) });
-  assert.equal(res.status, 200);
-  assert.equal((await res.json()).me.history.flatMap((w) => w.posts).find((p) => Number(p.id) === ids.aDone).shots.length, 2, "the answer is the fresh view");
-  const token2 = (await shotsOn(ids.aDone)).pop().split("/").pop().slice(0, -4);
-  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}&shot=${token2}`, { method: "DELETE" }) });
-  assert.equal(res.status, 200);
-  assert.equal((await shotsOn(ids.aDone)).length, 2, "removed again: the team's link and the first screenshot stay");
+  assert.equal(res.status, 410, "the page can't add a screenshot");
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aTue}&shot=${oldShot}`, { method: "DELETE" }) });
+  assert.equal(res.status, 410);
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&kind=photo`, { method: "POST", headers: { "content-type": "multipart/form-data" }, body: JPEG }) });
+  assert.equal(res.status, 415, "image/jpeg only, so another site's form can't post here");
+  res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&kind=photo`, { method: "POST", headers: { "content-type": "image/jpeg" }, body: Buffer.alloc(5 * 1024 * 1024 + 1, 0xff) }) });
+  assert.equal(res.status, 413, "over 5 MB");
   res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aDone}`, { method: "PUT", body: JPEG }) });
   assert.equal(res.status, 405);
+
+  // ---------------------------------------------------------------- LinkedIn's weekly analytics export
+  const xlsx = async (sheets) => {
+    const zip = new JSZip();
+    const cell = (v, r, c) => (v == null ? "" : typeof v === "number"
+      ? `<c r="${String.fromCharCode(65 + c)}${r}"><v>${v}</v></c>`
+      : `<c r="${String.fromCharCode(65 + c)}${r}" t="inlineStr"><is><t>${v}</t></is></c>`);
+    sheets.forEach((rows, k) => zip.file(`xl/worksheets/sheet${k + 1}.xml`,
+      `<worksheet><sheetData>${rows.map((row, i) => `<row r="${i + 1}">${row.map((v, c) => cell(v, i + 1, c)).join("")}</row>`).join("")}</sheetData></worksheet>`));
+    return Buffer.from(await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" }));
+  };
+  // The export as LinkedIn writes it: month-first dates, the last 7 days up to today.
+  const mdy = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${m}/${d}/${y}`; };
+  const today = istDate(), from = addDays(today, -6), before = addDays(today, -20);
+  const ACT = { done: "7254000000000000001", tue: "7254000000000000002", other: "7254000000000000099" };
+  const liUrl = (a) => `https://www.linkedin.com/feed/update/urn:li:activity:${a}/`;
+  const weekFile = (n) => xlsx([
+    [["Overall Performance", `${mdy(from)} - ${mdy(today)}`], ["Impressions", n.total], ["Members reached", 1227]],
+    [["Date", "Impressions", "Engagements"], [mdy(from), 100, 2], [mdy(today), 300, 9]],
+    [["Post URL", "Post publish date", "Engagements", null, "Post URL", "Post publish date", "Impressions"],
+      [liUrl(ACT.done), mdy(today), 40, null, liUrl(ACT.done), mdy(today), n.done],
+      [liUrl(ACT.tue), mdy(before), 12, null, liUrl(ACT.tue), mdy(before), 77],
+      [liUrl(ACT.other), mdy(from), 3, null, liUrl(ACT.other), mdy(from), 55]],
+    [["Total followers on " + mdy(today) + ":", 845], [], ["Date", "New followers"], [mdy(from), 2], [mdy(today), 1]],
+    [["Top Demographics", "Value", "Percentage"], ["Job titles", "Student", "0.34"], ["Locations", "Pune", 0.4]],
+  ]);
+  const rowsFor = async (creator) => (await setup.query(`SELECT * FROM ugc_creator_analytics WHERE creator_id = $1 ORDER BY id`, [creator])).rows;
+  const storedFiles = () => [...stored.keys()].filter((k) => k.includes("/analytics/")).length;
+  // aDone went out today; aTue's link names a post published before the period, so the file has only part of its impressions.
+  await setup.query(`UPDATE ugc_creator_posts SET post_url = $2 WHERE id = $1`, [ids.aDone, `https://www.linkedin.com/posts/asha-done-activity-${ACT.done}-AbCd`]);
+  await setup.query(`UPDATE ugc_creator_posts SET post_url = $2 WHERE id = $1`, [ids.aTue, `https://www.linkedin.com/posts/asha-tue-activity-${ACT.tue}-XyZw`]);
+  const tueBefore = await one(`SELECT impressions, reactions, comments FROM ugc_creator_posts WHERE id = $1`, [ids.aTue]);
+  const good = await weekFile({ total: 3101, done: 1873 });
+  const noImpressions = await xlsx([[["Reactions", 3]]]);
+  await refused(() => page.addFellowAnalytics(asha, JPEG), 415, "not an .xlsx");
+  await refused(() => page.addFellowAnalytics(asha, noImpressions), 422, "an .xlsx with no impressions");
+  await refused(() => page.addFellowAnalytics(asha, Buffer.alloc(5 * 1024 * 1024 + 1, 0x50)), 413, "over 5 MB");
+  assert.equal(storedFiles(), 0, "nothing is stored for a refused file");
+  assert.equal((await rowsFor(1)).length, 0);
+
+  const a0 = Date.now();
+  await page.addFellowAnalytics(asha, good, a0);
+  let week = await rowsFor(1);
+  assert.equal(week.length, 1);
+  assert.match(week[0].file_url, new RegExp(`^fellow-proof/1/analytics/${a0}-[0-9a-f]{12}\\.xlsx$`), "the file is kept on the fellow, not on a post");
+  assert.deepEqual([...stored.get(week[0].file_url.slice("fellow-proof/".length))], [...good]);
+  assert.equal(storedType.get(week[0].file_url.slice("fellow-proof/".length)), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  assert.deepEqual([istDate(week[0].period_start.getTime() + 12 * 3600e3), istDate(week[0].period_end.getTime() + 12 * 3600e3)], [from, today]);
+  assert.equal(week[0].uploaded_at.getTime(), a0);
+  const data = week[0].data;
+  assert.deepEqual(Object.keys(data).sort(), ["daily", "demographics", "periodEnd", "periodStart", "posts", "totals"]);
+  assert.deepEqual(data.totals, { impressions: 3101, membersReached: 1227, totalFollowers: 845, engagements: 11, newFollowers: 3 });
+  assert.deepEqual(data.posts.map((p) => [p.url, p.postId]), [[liUrl(ACT.done), ids.aDone], [liUrl(ACT.tue), ids.aTue], [liUrl(ACT.other), null]],
+    "posts mapped to the fellow's own by the activity number in their saved link");
+  assert.deepEqual(data.demographics, { "Job titles": [{ value: "Student", pct: 0.34 }], Locations: [{ value: "Pune", pct: 0.4 }] });
+  let done = await one(`SELECT impressions, reactions, comments, metrics_at, analytics FROM ugc_creator_posts WHERE id = $1`, [ids.aDone]);
+  assert.equal(done.impressions, 1873, "a post published in the period gets its impressions from the file");
+  assert.ok(done.metrics_at);
+  assert.deepEqual(done.analytics, { uploadedAt: new Date(a0).toISOString(), file: week[0].file_url, postedOn: today, postUrl: liUrl(ACT.done), metrics: { impressions: 1873, engagements: 40 }, demographics: {} });
+  assert.deepEqual([done.reactions, done.comments], [null, null], "the file has no reactions or comments for a post");
+  const tueAfter = await one(`SELECT impressions, reactions, comments, analytics FROM ugc_creator_posts WHERE id = $1`, [ids.aTue]);
+  assert.deepEqual([tueAfter.impressions, tueAfter.reactions, tueAfter.comments, tueAfter.analytics], [tueBefore.impressions, tueBefore.reactions, tueBefore.comments, null],
+    "a post published before the period keeps its numbers: the file has only part of its impressions");
+  let anView = await page.loadFellowView(asha);
+  assert.deepEqual(anView.me.analytics, { at: anView.me.analytics.at, periodStart: from, periodEnd: today, impressions: 3101, membersReached: 1227, newFollowers: 3 });
+  const doneView = anView.me.history.flatMap((w) => w.posts).find((p) => Number(p.id) === ids.aDone);
+  assert.ok(doneView.analyticsAt);
+  assert.deepEqual(doneView.metrics, { impressions: 1873, reactions: null, comments: null }, "unknown counts stay unknown, never 0");
+  assert.ok(!JSON.stringify(anView).includes("Student"), "the page doesn't show who saw them");
+  // The same week again: both kept, the newest counts.
+  await page.addFellowAnalytics(asha, await weekFile({ total: 3300, done: 2050 }), a0 + 1);
+  assert.equal((await rowsFor(1)).length, 2);
+  assert.equal((await one(`SELECT impressions FROM ugc_creator_posts WHERE id = $1`, [ids.aDone])).impressions, 2050);
+  assert.equal((await page.loadFellowView(asha)).me.analytics.impressions, 3300);
+  // Kiran uploading a file that lists Asha's posts changes nothing of Asha's.
+  await page.addFellowAnalytics(kiran, await weekFile({ total: 10, done: 1 }), a0 + 2);
+  assert.equal((await one(`SELECT impressions FROM ugc_creator_posts WHERE id = $1`, [ids.aDone])).impressions, 2050);
+  assert.ok((await rowsFor(2))[0].data.posts.every((p) => p.postId === null));
+  // Storage failing leaves nothing behind.
+  proofStore.put = async () => { throw new Error("storage down"); };
+  const lost = await weekFile({ total: 9999, done: 9999 });
+  await assert.rejects(() => page.addFellowAnalytics(asha, lost, a0 + 3));
+  proofStore.put = async (name, data, type) => { if (stored.has(name)) throw new Error("overwrite"); stored.set(name, Buffer.from(data)); storedType.set(name, type); };
+  assert.equal((await rowsFor(1)).length, 2);
+  assert.equal((await one(`SELECT impressions FROM ugc_creator_posts WHERE id = $1`, [ids.aDone])).impressions, 2050);
+  // Ten uploads a day.
+  for (let i = 0; i < 8; i++) await setup.query(`INSERT INTO ugc_creator_analytics (creator_id, file_url, data) VALUES (1, 'x', '{}')`);
+  await refused(() => page.addFellowAnalytics(asha, good, a0 + 4), 429, "an eleventh upload in a day");
+  await setup.query(`DELETE FROM ugc_creator_analytics WHERE file_url = 'x'`);
+
+  const anReq = (slug, init) => new Request(`${PROOF}${slug}/analytics`, init);
+  const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  res = await analyticsRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: anReq("asha-k3m9x2qa", { method: "POST", headers: { "content-type": "multipart/form-data" }, body: good }) });
+  assert.equal(res.status, 415, "the .xlsx type only, so another site's form can't post here");
+  res = await analyticsRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: anReq("asha-k3m9x2qa", { method: "POST", headers: { "content-type": XLSX }, body: Buffer.alloc(5 * 1024 * 1024 + 1, 0x50) }) });
+  assert.equal(res.status, 413);
+  res = await analyticsRoute.action({ params: { slug: "gone-z5y4x3w2" }, request: anReq("gone-z5y4x3w2", { method: "POST", headers: { "content-type": XLSX }, body: good }) });
+  assert.equal(res.status, 404, "a removed fellow's address can't upload");
+  res = await analyticsRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: anReq("asha-k3m9x2qa", { method: "POST", headers: { "content-type": XLSX }, body: noImpressions }) });
+  assert.equal(res.status, 422);
+  assert.match((await res.json()).error, /doesn't look like LinkedIn's analytics export/);
+  res = await analyticsRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: anReq("asha-k3m9x2qa", { method: "POST", headers: { "content-type": XLSX }, body: await weekFile({ total: 4000, done: 2600 }) }) });
+  assert.equal(res.status, 200);
+  const fresh = await res.json();
+  assert.equal(fresh.me.analytics.impressions, 4000, "the answer is the fresh view");
+  assert.equal(fresh.me.history.flatMap((w) => w.posts).find((p) => Number(p.id) === ids.aDone).metrics.impressions, 2600);
+  assert.equal(analyticsRoute.loader().status, 405);
+  res = await analyticsRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: anReq("asha-k3m9x2qa", { method: "PUT", body: good }) });
+  assert.equal(res.status, 405);
+
   // Photos go through the same route, by kind.
   res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&kind=photo`, { method: "POST", headers: { "content-type": "image/jpeg" }, body: JPEG }) });
   assert.equal(res.status, 200);
   const thuPost = (await res.json()).me.thisWeek.posts.find((p) => Number(p.id) === ids.aThu);
-  assert.deepEqual([thuPost.photos.length, thuPost.shots.length], [1, 0], "a photo, not a screenshot");
+  assert.deepEqual([thuPost.photos.length, thuPost.analyticsAt], [1, null], "a photo, nothing else");
   res = await proofRoute.loader({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&photo=${thuPost.photos[0]}`) });
   assert.equal(res.status, 200);
   assert.equal(res.headers.get("content-type"), "image/jpeg");
