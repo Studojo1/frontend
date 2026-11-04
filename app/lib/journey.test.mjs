@@ -430,4 +430,69 @@ function srvSrc() {
   return readFileSync(`${APP}lib/journey.server.ts`, "utf8");
 }
 
+// CRAWLER-COUNT (VISITORS, 4 Nov 2026): crawler page renders counted per IST day, bot family and path group in
+// public.site_bot_hits, never an IP, a user agent or a visitor id; a person's browser writes nothing.
+{
+  const { botFamily, botPathGroup, botHitOf, addBotHit, botUpsert, BOT_TABLE } = await import("./journey.server.ts");
+  const CHROME_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+  const NAV = { accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "accept-language": "en-IN,en;q=0.9", "sec-fetch-mode": "navigate" };
+  const req = (path, ua, headers = {}, method = "GET") =>
+    new Request(`https://studojo.com${path}`, { method, headers: { host: "studojo.com", ...(ua == null ? {} : { "user-agent": ua }), ...headers } });
+
+  assert.equal(botFamily("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"), "googlebot");
+  assert.equal(botFamily("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"), "bingbot");
+  assert.equal(botFamily("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)"), "gptbot");
+  assert.equal(botFamily("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"), "claudebot");
+  assert.equal(botFamily("meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)"), "meta_externalagent");
+  assert.equal(botFamily("facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"), "facebook_preview");
+  assert.equal(botFamily("Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)"), "ahrefsbot");
+  assert.equal(botFamily("Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)"), "semrushbot");
+  assert.equal(botFamily("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)"), "yandexbot");
+  assert.equal(botFamily("curl/8.4.0"), "script_client");
+  assert.equal(botFamily(""), "no_user_agent");
+  assert.equal(botFamily("SomethingCrawler/1.0 spider"), "other_bot");
+  assert.equal(botFamily("Mozilla/5.0 (compatible; Googlebot/2.1) StudojoAudit-bot/1.0"), "studojo_audit", "our audit bot is never counted as Googlebot");
+
+  assert.equal(botPathGroup("/"), "home");
+  assert.equal(botPathGroup("/blog"), "blog");
+  assert.equal(botPathGroup("/blog/some-post/"), "blog");
+  assert.equal(botPathGroup("/reports/hiring-calendar-india-2026"), "report");
+  assert.equal(botPathGroup("/privacy"), "legal");
+  assert.equal(botPathGroup("/terms"), "legal");
+  assert.equal(botPathGroup("/meta.json"), "other");
+
+  // A person's browser: no row. A crawler: its family and path group. A HEAD or a POST: nothing.
+  assert.equal(botHitOf(req("/", CHROME_UA, NAV)), null, "a person on the homepage writes nothing");
+  assert.equal(botHitOf(req("/blog/x", CHROME_UA, NAV)), null, "a person on a blog post writes nothing");
+  assert.deepEqual(botHitOf(req("/blog/x", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)")), { bot: "googlebot", pathGroup: "blog" });
+  assert.deepEqual(botHitOf(req("/", null)), { bot: "no_user_agent", pathGroup: "home" });
+  assert.equal(botHitOf(req("/", "Mozilla/5.0 (compatible; Googlebot/2.1)", {}, "HEAD")), null);
+  assert.equal(botHitOf(req("/", "Mozilla/5.0 (compatible; Googlebot/2.1)", {}, "POST")), null);
+  // A browser's user agent without a browser's headers on a landing page: what NOT A VISIT drops from the visitors.
+  assert.deepEqual(botHitOf(req("/reports/x", CHROME_UA, { accept: "*/*" })), { bot: "scripted", pathGroup: "report" });
+  assert.equal(botHitOf(req("/terms", CHROME_UA, { accept: "*/*" })), null, "scripted is counted on landing pages only");
+  assert.equal(botHitOf(req("/", CHROME_UA, { ...NAV, "sec-purpose": "prefetch" })), null, "a prefetch is not a hit");
+
+  // The batch: one key per (day, bot, path group), capped; one upsert adds the counts.
+  const batch = new Map();
+  assert.ok(addBotHit(batch, "2026-11-04", "googlebot", "blog"));
+  assert.ok(addBotHit(batch, "2026-11-04", "googlebot", "blog"));
+  assert.ok(addBotHit(batch, "2026-11-04", "gptbot", "home"));
+  assert.equal(batch.get("2026-11-04|googlebot|blog"), 2);
+  assert.equal(addBotHit(batch, "2026-11-04", "x", "home", 2), false, "a full batch drops a new key");
+  assert.ok(addBotHit(batch, "2026-11-04", "gptbot", "home", 2), "but still counts a key it holds");
+  const q = botUpsert(batch);
+  assert.equal(BOT_TABLE, "public.site_bot_hits");
+  assert.match(q.text, /^INSERT INTO public\.site_bot_hits \(day, bot, path_group, hits\) VALUES \(\$1::date, \$2, \$3, \$4::int\), \(\$5::date, \$6, \$7, \$8::int\)/);
+  assert.match(q.text, /ON CONFLICT \(day, bot, path_group\) DO UPDATE SET hits = public\.site_bot_hits\.hits \+ EXCLUDED\.hits/);
+  assert.deepEqual(q.values, ["2026-11-04", "googlebot", "blog", 2, "2026-11-04", "gptbot", "home", 2]);
+  assert.equal(botUpsert(new Map()), null);
+  assert.doesNotMatch(q.text, /user_agent|\bip\b|visitor/i, "no IP, user agent or visitor id is written");
+
+  // Wiring: every page render passes through the counter before the journey's own bot rule.
+  assert.match(srvSrc(), /countBotHit\(request\);\n\s+if \(request\.method\.toUpperCase\(\) !== "GET" \|\| isBotRequest\(request\)\) return;/);
+  assert.match(srvSrc(), /botTimer\.unref\?\.\(\);/, "the flush timer never keeps the process alive");
+  assert.match(readFileSync(`${APP}../drizzle/0038_site_bot_hits.sql`, "utf8"), /PRIMARY KEY \(day, bot, path_group\)/);
+}
+
 console.log("journey: ok");

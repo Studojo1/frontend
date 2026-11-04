@@ -265,6 +265,147 @@ export function isAutomatedRequest(request: Request, page: boolean): boolean {
   return page && !(request.headers.get("accept") ?? "").includes("text/html");
 }
 
+// CRAWLER-COUNT (VISITORS, 4 Nov 2026, the owner: "how many crawlers and from what source"). Crawlers never reach the
+// journey log, so a page render that is a bot adds one to public.site_bot_hits (drizzle/0038_site_bot_hits.sql): one
+// row per IST day, bot family and path group. Only the family name and the path group are kept, never an IP, a user
+// agent or a visitor id. Hits are added up in memory and written by one upsert at most every BOT_FLUSH_MS, after the
+// response, on the journey pool; a missing table (42P01) is skipped quietly like the journey's.
+
+export const BOT_TABLE = "public.site_bot_hits";
+export const BOT_FLUSH_MS = 10_000;
+/** At most this many (day, bot, path group) keys wait in memory; more are dropped until the next write. */
+export const BOT_BATCH_CAP = 500;
+
+/** Bot families, first match wins. Our own audit bot first, so a test never counts as Googlebot. */
+const BOT_FAMILIES: [string, RegExp][] = [
+  ["studojo_audit", /StudojoAudit-bot/i],
+  ["googlebot", /Googlebot|GoogleOther|Google-InspectionTool|AdsBot-Google|Mediapartners-Google|Storebot-Google|Google-Read-Aloud|FeedFetcher-Google|APIs-Google|Google-Site-Verification/i],
+  ["bingbot", /bingbot|BingPreview|msnbot|adidxbot/i],
+  ["gptbot", /GPTBot/i],
+  ["chatgpt", /ChatGPT-User|OAI-SearchBot/i],
+  ["claudebot", /ClaudeBot|Claude-Web|Claude-SearchBot|Claude-User|anthropic-ai/i],
+  ["perplexitybot", /PerplexityBot|Perplexity-User/i],
+  ["meta_externalagent", /meta-externalagent|meta-externalfetcher|FacebookBot/i],
+  ["facebook_preview", /facebookexternalhit|Facebot/i],
+  ["applebot", /Applebot/i],
+  ["yandexbot", /Yandex/i],
+  ["duckduckbot", /DuckDuckBot|DuckAssistBot/i],
+  ["baiduspider", /Baiduspider/i],
+  ["bytespider", /Bytespider|TikTokSpider/i],
+  ["amazonbot", /Amazonbot/i],
+  ["ccbot", /CCBot/i],
+  ["ahrefsbot", /AhrefsBot|AhrefsSiteAudit/i],
+  ["semrushbot", /SemrushBot|SiteAuditBot|SplitSignalBot/i],
+  ["seo_other", /MJ12bot|DotBot|DataForSeoBot|BLEXBot|Barkrowler|serpstatbot|SeekportBot|MegaIndex|rogerbot|ZoominfoBot|Screaming Frog|PetalBot/i],
+  ["linkedinbot", /LinkedInBot/i],
+  ["twitterbot", /Twitterbot/i],
+  ["whatsapp_preview", /WhatsApp/i],
+  ["preview_other", /Slackbot|TelegramBot|Discordbot|Pinterestbot|redditbot|Embedly|SkypeUriPreview|Iframely/i],
+  ["monitor", /UptimeRobot|Pingdom|StatusCake|Site24x7|Better Uptime|kube-probe|Prometheus|Datadog/i],
+  ["headless", /HeadlessChrome|PhantomJS|puppeteer|playwright|selenium|webdriver/i],
+  ["script_client", /curl\/|Wget|python-requests|python-urllib|aiohttp|httpx|Go-http-client|okhttp|axios|node-fetch|undici|Java\/|libwww-perl|PostmanRuntime|Scrapy/i],
+];
+
+/** The family a bot's user agent belongs to; "no_user_agent" when there is none, "other_bot" when no family fits. Pure. */
+export function botFamily(ua: string | null | undefined): string {
+  const s = (ua ?? "").trim();
+  if (!s) return "no_user_agent";
+  for (const [name, re] of BOT_FAMILIES) if (re.test(s)) return name;
+  return "other_bot";
+}
+
+/** home, blog, report, legal or other, for a page's path. Pure. */
+export function botPathGroup(pathname: string): "home" | "blog" | "report" | "legal" | "other" {
+  const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  if (p === "/" || p === "") return "home";
+  if (p === "/blog" || p.startsWith("/blog/")) return "blog";
+  if (p === "/reports" || p.startsWith("/reports/")) return "report";
+  if (p === "/terms" || p === "/privacy" || p === "/refund-policy") return "legal";
+  return "other";
+}
+
+/**
+ * What a page render counts as in site_bot_hits, or null for a person's browser: a GET whose user agent isbot (its
+ * family), or a landing page that isAutomatedRequest drops from the visitors ("scripted", a browser's user agent
+ * without a browser's headers). Pure.
+ */
+export function botHitOf(request: Request): { bot: string; pathGroup: string } | null {
+  if (request.method.toUpperCase() !== "GET") return null;
+  const path = new URL(request.url).pathname;
+  if (isBotRequest(request)) return { bot: botFamily(request.headers.get("user-agent")), pathGroup: botPathGroup(path) };
+  if (isLandingPath(path) && !isPrefetch(request.headers) && isAutomatedRequest(request, true)) return { bot: "scripted", pathGroup: botPathGroup(path) };
+  return null;
+}
+
+/** Hits waiting to be written: "day|bot|path_group" -> count. */
+export type BotBatch = Map<string, number>;
+const botBatch: BotBatch = new Map();
+let botTimer: ReturnType<typeof setTimeout> | null = null;
+let botMissingUntil = 0;
+
+/** Adds one hit to the batch; false when the batch is full (the hit is dropped). Pure apart from the map. */
+export function addBotHit(batch: BotBatch, day: string, bot: string, pathGroup: string, cap: number = BOT_BATCH_CAP): boolean {
+  const key = `${day}|${bot}|${pathGroup}`;
+  if (!batch.has(key) && batch.size >= cap) return false;
+  batch.set(key, (batch.get(key) ?? 0) + 1);
+  return true;
+}
+
+/** The one upsert for a batch: its SQL and values, one row per key. Pure. */
+export function botUpsert(batch: BotBatch): { text: string; values: unknown[] } | null {
+  if (!batch.size) return null;
+  const values: unknown[] = [];
+  const rows: string[] = [];
+  for (const [key, n] of batch) {
+    const [day, bot, group] = key.split("|");
+    const i = values.length;
+    values.push(day, bot, group, n);
+    rows.push(`($${i + 1}::date, $${i + 2}, $${i + 3}, $${i + 4}::int)`);
+  }
+  return {
+    text: `INSERT INTO ${BOT_TABLE} (day, bot, path_group, hits) VALUES ${rows.join(", ")}
+           ON CONFLICT (day, bot, path_group) DO UPDATE SET hits = ${BOT_TABLE}.hits + EXCLUDED.hits, updated_at = now()`,
+    values,
+  };
+}
+
+async function flushBotHits(): Promise<void> {
+  botTimer = null;
+  const batch: BotBatch = new Map(botBatch);
+  botBatch.clear();
+  const q = botUpsert(batch);
+  const p = journeyPool();
+  if (!q || !p || Date.now() < botMissingUntil) return;
+  try {
+    await p.query(q.text, q.values);
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code === "42P01" || code === "3F000") {
+      botMissingUntil = Date.now() + 60_000;
+      return;
+    }
+    if (!warned) {
+      warned = true;
+      console.warn(`[journey] bot count skipped (${code ?? "error"}); further failures are silent`);
+    }
+  }
+}
+
+/** Counts a crawler's page render (botHitOf) without waiting and without ever throwing. */
+export function countBotHit(request: Request, now: Date = new Date()): void {
+  try {
+    const hit = botHitOf(request);
+    if (!hit || Date.now() < botMissingUntil || !process.env.DATABASE_URL) return;
+    addBotHit(botBatch, istDay(now), hit.bot, hit.pathGroup);
+    if (!botTimer) {
+      botTimer = setTimeout(() => void flushBotHits().catch(() => {}), BOT_FLUSH_MS);
+      botTimer.unref?.();
+    }
+  } catch {
+    // counting must never break a page
+  }
+}
+
 /**
  * The event a POST /api/journey beacon asks for, or null when it is not to be written: not a person's browser
  * (isAutomatedRequest), another site's page posting here, a visitor who said no to tracking (the consent cookie the
@@ -316,6 +457,8 @@ function cookieSecure(host: string): boolean {
  */
 export function journeyOnPage(request: Request, responseHeaders: Headers): void {
   try {
+    // CRAWLER-COUNT: a crawler's page render adds to site_bot_hits (in memory, written later); a person's adds nothing.
+    countBotHit(request);
     if (request.method.toUpperCase() !== "GET" || isBotRequest(request)) return;
     const url = new URL(request.url);
     const host = request.headers.get("host") ?? url.host;
