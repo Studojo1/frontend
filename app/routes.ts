@@ -51,6 +51,18 @@ export default [
   route("reports/high-school-internships-how-to-get-one-2026", "routes/legacy-redirects.tsx", { id: "redirect-reports-high-school-internships-how-to-get-one-2026" }),
 
   // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
+  route("reports/internship-first-year-college-2026", "routes/reports.internship-first-year-college-2026.tsx"),
+  route("reports/employment-bond-report-freshers-2026", "routes/reports.employment-bond-report-freshers-2026.tsx"),
+  route("reports/part-time-jobs-college-students-india-2026", "routes/reports.part-time-jobs-college-students-india-2026.tsx"),
+  route("reports/best-job-portal-freshers-india-2026", "routes/reports.best-job-portal-freshers-india-2026.tsx"),
+  route("reports/certifications-that-get-freshers-hired-2026", "routes/reports.certifications-that-get-freshers-hired-2026.tsx"),
+  route("reports/fresher-resume-no-experience-2026", "routes/reports.fresher-resume-no-experience-2026.tsx"),
+  route("reports/is-ms-abroad-worth-it-2026", "routes/reports.is-ms-abroad-worth-it-2026.tsx"),
+  route("reports/hr-interview-questions-freshers-2026", "routes/reports.hr-interview-questions-freshers-2026.tsx"),
+  route("reports/jobs-after-bcom-bba-ba-2026", "routes/reports.jobs-after-bcom-bba-ba-2026.tsx"),
+  route("reports/highest-paying-jobs-freshers-india-2026", "routes/reports.highest-paying-jobs-freshers-india-2026.tsx"),
+  route("reports/big-4-fresher-internship-report-2026", "routes/reports.big-4-fresher-internship-report-2026.tsx"),
+  route("reports/pm-internship-scheme-report-2026", "routes/reports.pm-internship-scheme-report-2026.tsx"),
   route("reports/india-entry-level-jobs-internships-october-2026", "routes/reports.india-entry-level-jobs-internships-october-2026.tsx"),
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
