@@ -30,6 +30,8 @@ import { STU_HEAD } from "~/components/home-b2c/links";
 /** How long a tap's own escape gets before the sheet shows (the app may ask "Open in Chrome?" first). */
 const ESCAPE_WAIT_MS = 1_500;
 const SEEN_KEY = "stu_inapp_seen";
+/** Set when the sheet shows; /auth then skips its older in-app prompt (lib/in-app-browser.ts). */
+export const SHEET_SHOWN_KEY = "stu_inapp_sheet_shown";
 
 type Target = { href: string; cta: string; retry: () => void };
 type Open = { plan: EscapePlan; href: string; typed: string; cta: string; retry: () => void };
@@ -201,6 +203,11 @@ export function InAppEscape() {
     }
     let timer: ReturnType<typeof setTimeout> | null = null;
     const sheet = (t: Target, why: "manual" | "timeout") => {
+      try {
+        sessionStorage.setItem(SHEET_SHOWN_KEY, "1");
+      } catch {
+        // storage blocked: /auth may show its prompt
+      }
       setOpen({ plan, href: withHeld(t.href), typed: typedSignIn(homeSignIn(visitSearch())), cta: t.cta, retry: t.retry });
       sendJourney({ step: "inapp_escape_sheet", ...base(), cta: t.cta, why });
     };

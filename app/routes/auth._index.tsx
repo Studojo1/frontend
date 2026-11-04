@@ -229,10 +229,12 @@ export default function Auth() {
   // EX-06: set after hydration, since the user agent is browser only.
   const [inApp, setInApp] = useState<InAppBrowser>(null);
   const [inAppDismissed, setInAppDismissed] = useState(false);
+  // INAPP-FIX: the typed route (redirect holds "typed") or a session that already saw the escape sheet chose to stay.
+  const typedRoute = (searchParams.get("redirect") ?? "").includes("typed");
   useEffect(() => {
     setInApp(inAppNow());
     try {
-      setInAppDismissed(!!sessionStorage.getItem(IN_APP_DISMISSED_KEY));
+      setInAppDismissed(!!sessionStorage.getItem(IN_APP_DISMISSED_KEY) || !!sessionStorage.getItem("stu_inapp_sheet_shown"));
     } catch {
       // Storage blocked: the prompt just shows again next load.
     }
@@ -622,7 +624,7 @@ export default function Auth() {
             </div>
             )}
 
-            {inApp && !inAppDismissed && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
+            {inApp && !inAppDismissed && !typedRoute && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
 
             {/* Toggle Tabs (not with GOOGLE_ONLY on: Google signs people in and up alike) */}
             {!googleOnly && (

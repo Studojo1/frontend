@@ -47,15 +47,17 @@
   font-family: inherit; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; text-decoration: none; cursor: pointer;
   border: var(--esc-bw) solid var(--esc-edge); transition: transform .14s ease, box-shadow .14s ease, background-color .14s ease;
 }
+/* Stacked (under 420px), flex: 1 has a zero basis and would squash the 48px height; keep it. */
+@media (max-width: 419px) { .sj-esc-btn, .sj-esc-btn2 { flex: none; } }
 .sj-esc-btn2 { background: #fff; color: var(--esc-ink); box-shadow: var(--esc-hard); }
 .sj-esc-btn { background: var(--esc-cta-bg); color: #fff; box-shadow: var(--esc-cta-in), var(--esc-hard); }
 .sj-esc-btn2:hover { background: #f6f2ff; transform: translate(-1px, -1px); box-shadow: var(--esc-hard-up); }
 .sj-esc-btn:hover { transform: translate(-1px, -1px); box-shadow: var(--esc-cta-in), var(--esc-hard-up); }
 .sj-esc-btn2:active, .sj-esc-btn:active { transform: translate(2px, 2px); box-shadow: var(--esc-hard-down); }
 .sj-esc-err { margin: 8px 0 0; font-size: 13.5px; color: #dc2626; }
-.sj-esc-quiet { margin-top: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.sj-esc-quiet { margin-top: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
 .sj-esc-quiet a, .sj-esc-quiet button {
-  padding: 0; border: 0; background: none; font-family: inherit; font-size: 14.5px; color: var(--esc-muted); cursor: pointer;
+  min-height: 44px; display: inline-flex; align-items: center; padding: 0; border: 0; background: none; font-family: inherit; font-size: 14.5px; color: var(--esc-muted); cursor: pointer;
   text-decoration: underline; text-decoration-color: rgba(82, 82, 82, .35); text-underline-offset: 4px;
 }
 .sj-esc-quiet a:hover, .sj-esc-quiet button:hover { color: var(--esc-ink); text-decoration-color: currentColor; }
