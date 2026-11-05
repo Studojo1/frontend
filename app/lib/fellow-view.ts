@@ -4,7 +4,7 @@
 //
 // The tables belong to the admin panel (admin-panel app/lib/ugc-creators.server.ts),
 // which creates them and holds the same week rules. Keep these in step:
-// weeks run Monday to Sunday, India time; a post belongs to the week of its
+// weeks run Wednesday to Tuesday, India time; a post belongs to the week of its
 // due date; a week is complete when it has posts and every one is posted; the
 // run counts complete weeks back from last week (this week joins it once complete).
 //
@@ -217,11 +217,11 @@ export function addDays(day: string, n: number): string {
   return new Date(Date.UTC(y, m - 1, d) + n * DAY).toISOString().slice(0, 10);
 }
 
-/** The Monday of the week a "YYYY-MM-DD" date falls in. */
+/** The Wednesday of the week a "YYYY-MM-DD" date falls in: weeks run Wednesday to Tuesday (the founder, 5 Nov 2026). */
 export function weekOf(day: string): string {
   const [y, m, d] = day.slice(0, 10).split("-").map(Number);
   const t = Date.UTC(y, m - 1, d);
-  const dow = (new Date(t).getUTCDay() + 6) % 7; // Monday = 0
+  const dow = (new Date(t).getUTCDay() + 4) % 7; // Wednesday = 0
   return new Date(t - dow * DAY).toISOString().slice(0, 10);
 }
 

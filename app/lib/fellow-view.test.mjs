@@ -21,9 +21,11 @@ import {
 } from "./fellow-view.ts";
 
 // ---------------------------------------------------------------- dates
-assert.equal(weekOf("2026-10-29"), "2026-10-26", "Thursday belongs to Monday's week");
-assert.equal(weekOf("2026-11-01"), "2026-10-26", "Sunday ends the week");
-assert.equal(weekOf("2026-11-02"), "2026-11-02", "Monday starts a new one");
+// Weeks run Wednesday to Tuesday (the founder, 5 Nov 2026).
+assert.equal(weekOf("2026-11-06"), "2026-11-04", "Friday belongs to Wednesday's week");
+assert.equal(weekOf("2026-11-10"), "2026-11-04", "Tuesday ends the week");
+assert.equal(weekOf("2026-11-11"), "2026-11-11", "Wednesday starts a new one");
+assert.equal(weekOf("2026-11-04"), "2026-11-04", "week 1 began Wednesday 4 November");
 assert.equal(istDate(Date.parse("2026-10-28T18:29:00Z")), "2026-10-28", "before IST midnight");
 assert.equal(istDate(Date.parse("2026-10-28T18:30:00Z")), "2026-10-29", "IST midnight is 18:30 UTC");
 assert.equal(toMs("2026-10-27 14:10:00+00"), Date.parse("2026-10-27T14:10:00Z"), "Postgres text with a bare hour offset");
@@ -64,7 +66,7 @@ assert.ok(linkOk, "feed.js defines LINK_OK");
 assert.equal(linkOk[1], LINKEDIN_POST.source, "feed.js LINK_OK matches the server's LINKEDIN_POST");
 
 // ---------------------------------------------------------------- the view
-const NOW = Date.parse("2026-10-29T08:00:00Z"); // Thu 29 Oct, 1:30 pm IST
+const NOW = Date.parse("2026-10-31T08:00:00Z"); // Thu 29 Oct, 1:30 pm IST
 const at = (day, hm = "19:40") => `${day} ${hm}:00+05:30`;
 const post = (id, due, status, extra = {}) => ({
   id, title: `Post ${id}`, body: `Body ${id}`, kind: "personal", due_date: due, status,
@@ -74,7 +76,7 @@ const post = (id, due, status, extra = {}) => ({
 const SECRET = "TEAM-ONLY-NOTE-7741";
 const fellow = {
   id: 7, slug: "asha-k3m9x2qa", full_name: "Asha Testfellow", college: "Test College", field: "Marketing", cohort: "A",
-  status: "active", connections_at_join: 500, joined_at: "2026-10-12 10:00:00+05:30", linkedin_url: null, application_id: 3,
+  status: "active", connections_at_join: 500, joined_at: "2026-10-14 10:00:00+05:30", linkedin_url: null, application_id: 3,
   // A careless SELECT * would bring these along; the view must never pass them on.
   team_notes: SECRET, learnings: SECRET, email: "asha@example.com", whatsapp: "+910000000000", nudged_at: SECRET, token: SECRET,
 };
@@ -88,26 +90,26 @@ const rules = {
 };
 const posts = [
   // week of 12 Oct: complete
-  post(1, "2026-10-13", "posted", { impressions: 900, reactions: 20, comments: 3, metrics_at: at("2026-10-20") }),
-  post(2, "2026-10-15", "posted"),
+  post(1, "2026-10-15", "posted", { impressions: 900, reactions: 20, comments: 3, metrics_at: at("2026-10-22") }),
+  post(2, "2026-10-17", "posted"),
   // week of 19 Oct: complete
-  post(3, "2026-10-20", "posted"),
-  post(4, "2026-10-22", "posted"),
+  post(3, "2026-10-22", "posted"),
+  post(4, "2026-10-24", "posted"),
   // this week: Tue posted, Thu and Sat ready
-  post(5, "2026-10-27", "posted", { own_line: "My line" }),
-  post(6, "2026-10-29", "ready", { copied_at: at("2026-10-29", "09:00") }),
-  post(7, "2026-10-31", "ready", { kind: "studojo" }),
+  post(5, "2026-10-29", "posted", { own_line: "My line" }),
+  post(6, "2026-10-31", "ready", { copied_at: at("2026-10-31", "09:00") }),
+  post(7, "2026-11-02", "ready", { kind: "studojo" }),
   // a draft must never be shown, even if one slipped into the rows
-  post(8, "2026-10-29", "draft", { title: SECRET }),
+  post(8, "2026-10-31", "draft", { title: SECRET }),
 ];
 const input = {
   fellow, application: { course: "BBA", year_of_study: "3rd year", city: "Pune" }, posts, stories: [], rules,
-  connections: [{ connections: 520, recorded_at: "2026-10-19 09:00:00+05:30" }, { connections: 530, recorded_at: "2026-10-26 09:00:00+05:30" }],
+  connections: [{ connections: 520, recorded_at: "2026-10-21 09:00:00+05:30" }, { connections: 530, recorded_at: "2026-10-28 09:00:00+05:30" }],
   cohortFellows: [{ id: 8, first_name: "Kiran" }, { id: 9, first_name: "Meera" }, { id: 10, first_name: "Ravi" }],
   cohortPosts: [
-    { creator_id: 8, status: "posted", due_date: "2026-10-27", posted_at: at("2026-10-28", "10:00"), impressions: 2300, metrics_at: at("2026-10-28", "11:00") },
-    { creator_id: 9, status: "ready", due_date: "2026-10-27", posted_at: null, impressions: null, metrics_at: null },
-    { creator_id: 7, status: "posted", due_date: "2026-10-27", posted_at: at("2026-10-27"), impressions: null, metrics_at: null },
+    { creator_id: 8, status: "posted", due_date: "2026-10-29", posted_at: at("2026-10-30", "10:00"), impressions: 2300, metrics_at: at("2026-10-30", "11:00") },
+    { creator_id: 9, status: "ready", due_date: "2026-10-29", posted_at: null, impressions: null, metrics_at: null },
+    { creator_id: 7, status: "posted", due_date: "2026-10-29", posted_at: at("2026-10-29"), impressions: null, metrics_at: null },
   ],
 };
 const v = buildFellowView(input, NOW);
@@ -115,8 +117,8 @@ const json = JSON.stringify(v);
 assert.ok(!json.includes(SECRET), "team notes, learnings, tokens and drafts never reach the page");
 assert.ok(!json.includes("asha@example.com") && !json.includes("+910000000000"), "no contact details");
 
-assert.equal(v.program.today, "2026-10-29");
-assert.equal(v.program.weekStart, "2026-10-26");
+assert.equal(v.program.today, "2026-10-31");
+assert.equal(v.program.weekStart, "2026-10-28");
 assert.equal(v.me.weekNo, 3, "the first post was due in the week of 12 Oct, so this is week 3");
 assert.equal(v.me.completedWeeks, 2, "two finished weeks, not counting this one");
 assert.equal(v.me.weeklyRun, 2, "two in a row up to last week");
@@ -124,25 +126,25 @@ assert.deepEqual(v.me.thisWeek.posts.map((p) => p.id), ["5", "6", "7"], "this we
 assert.equal(v.me.thisWeek.due, 3);
 assert.equal(v.me.thisWeek.posted, 1);
 const tue = v.me.thisWeek.posts[0];
-assert.equal(tue.postedAt, "2026-10-27T19:40:00+05:30", "posted time in India time");
-assert.equal(tue.numbersDue, "2026-11-03", "numbers a week after posting");
+assert.equal(tue.postedAt, "2026-10-29T19:40:00+05:30", "posted time in India time");
+assert.equal(tue.numbersDue, "2026-11-05", "numbers a week after posting");
 assert.equal(tue.ownLine, "My line");
-assert.equal(v.me.thisWeek.posts[1].copiedAt, "2026-10-29T09:00:00+05:30");
+assert.equal(v.me.thisWeek.posts[1].copiedAt, "2026-10-31T09:00:00+05:30");
 assert.equal(v.me.thisWeek.posts[2].kind, "studojo");
 
 const ms = Object.fromEntries(v.me.milestones.map((m) => [m.id, m]));
 assert.equal(ms.trial.status, "earned");
-assert.equal(ms.trial.earnedOn, "2026-10-22", "earned the day the second week's last post went up");
+assert.equal(ms.trial.earnedOn, "2026-10-24", "earned the day the second week's last post went up");
 assert.equal(ms.month.status, "next");
 assert.equal(ms.month.weeksToGo, 2);
 assert.equal(ms.pipeline.weeks, null, "the hiring pipeline has no week count");
 
-assert.deepEqual(v.me.history.map((w) => [w.week, w.complete, w.due, w.posts.length, w.missed.length]), [["2026-10-19", true, 2, 2, 0], ["2026-10-12", true, 2, 2, 0]]);
+assert.deepEqual(v.me.history.map((w) => [w.week, w.complete, w.due, w.posts.length, w.missed.length]), [["2026-10-21", true, 2, 2, 0], ["2026-10-14", true, 2, 2, 0]]);
 assert.deepEqual(v.me.history[1].posts[0].metrics, { impressions: 900, reactions: 20, comments: 3 });
 
 assert.deepEqual(v.me.connections, {
   now: 530, atJoin: 500,
-  history: [{ date: "2026-10-12", n: 500 }, { date: "2026-10-19", n: 520 }, { date: "2026-10-26", n: 530 }],
+  history: [{ date: "2026-10-14", n: 500 }, { date: "2026-10-21", n: 520 }, { date: "2026-10-28", n: 530 }],
 });
 assert.equal(v.me.headline, "BBA student at Test College | Growth Fellow at Studojo | Marketing");
 assert.equal(v.me.course, "BBA, 3rd year");
@@ -162,8 +164,8 @@ const small = buildFellowView({ ...input, cohortFellows: [{ id: 8, first_name: "
 assert.equal(small.me.cohortPosition, null);
 
 // "Top 5" is only said in a cohort of 10 or more.
-const busyWeek = (n) => Array.from({ length: n }, (_, i) => ({ creator_id: 100 + i, status: "posted", due_date: "2026-10-27", posted_at: at("2026-10-27"), impressions: null, metrics_at: null }));
-const twice = { creator_id: 100, status: "posted", due_date: "2026-10-28", posted_at: at("2026-10-28"), impressions: null, metrics_at: null };
+const busyWeek = (n) => Array.from({ length: n }, (_, i) => ({ creator_id: 100 + i, status: "posted", due_date: "2026-10-29", posted_at: at("2026-10-29"), impressions: null, metrics_at: null }));
+const twice = { creator_id: 100, status: "posted", due_date: "2026-10-30", posted_at: at("2026-10-30"), impressions: null, metrics_at: null };
 const cohortOf = (n) => Array.from({ length: n }, (_, i) => ({ id: 100 + i, first_name: `F${i}` }));
 const four = buildFellowView({ ...input, cohortFellows: cohortOf(3), cohortPosts: [...busyWeek(3), twice, input.cohortPosts[2]] }, NOW);
 assert.equal(four.me.cohortSize, 4);
@@ -205,44 +207,44 @@ const odd = buildFellowView({ ...input, rules: { ...rules, milestones: [{ id: "a
 assert.deepEqual(odd.me.milestones.map((m) => m.id), ["ok", "pipeline"], "only whole weeks from 1 to 52");
 
 // A milestone's date is when that many weeks were done, even when a late post finished an earlier week last.
-const late = buildFellowView({ ...input, posts: posts.map((p) => (p.id === 2 ? post(2, "2026-10-15", "posted", { posted_at: at("2026-10-25") }) : p)) }, NOW);
-assert.equal(late.me.milestones.find((m) => m.id === "trial").earnedOn, "2026-10-25", "the second week was done on 25 Oct, not 22 Oct");
+const late = buildFellowView({ ...input, posts: posts.map((p) => (p.id === 2 ? post(2, "2026-10-17", "posted", { posted_at: at("2026-10-27") }) : p)) }, NOW);
+assert.equal(late.me.milestones.find((m) => m.id === "trial").earnedOn, "2026-10-27", "the second week was done on 25 Oct, not 22 Oct");
 
 // A fellow who joined mid-week, with nothing yet.
 const fresh = buildFellowView({
-  ...input, fellow: { ...fellow, joined_at: "2026-10-29 10:00:00+05:30", connections_at_join: null },
+  ...input, fellow: { ...fellow, joined_at: "2026-10-31 10:00:00+05:30", connections_at_join: null },
   posts: [], connections: [], cohortFellows: [], cohortPosts: [],
 }, NOW);
 assert.equal(fresh.me.weekNo, 1, "the week they join is week 1");
 
 // Week 1 starts with the first approved post, not the day they joined (the founder, 3 Nov 2026).
-const early = { ...fellow, joined_at: "2026-10-05 10:00:00+05:30" };
+const early = { ...fellow, joined_at: "2026-10-07 10:00:00+05:30" };
 assert.equal(buildFellowView({ ...input, fellow: early, posts: [] }, NOW).me.weekNo, 1, "joined three weeks ago with no posts yet: still week 1");
-assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-29", "ready")] }, NOW).me.weekNo, 1, "the first post is this week: week 1");
-assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-11-03", "ready")] }, NOW).me.weekNo, 1, "the first post is next week: still week 1");
-assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-21", "posted"), post(21, "2026-10-29", "ready")] }, NOW).me.weekNo, 2, "the first post was last week: week 2");
-assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-21", "draft")] }, NOW).me.weekNo, 1, "a draft doesn't start the clock");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-31", "ready")] }, NOW).me.weekNo, 1, "the first post is this week: week 1");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-11-05", "ready")] }, NOW).me.weekNo, 1, "the first post is next week: still week 1");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-23", "posted"), post(21, "2026-10-31", "ready")] }, NOW).me.weekNo, 2, "the first post was last week: week 2");
+assert.equal(buildFellowView({ ...input, fellow: early, posts: [post(20, "2026-10-23", "draft")] }, NOW).me.weekNo, 1, "a draft doesn't start the clock");
 assert.equal(fresh.me.thisWeek.due, 0);
 assert.equal(fresh.me.weeklyRun, 0);
 assert.equal(fresh.me.completedWeeks, 0);
 assert.equal(fresh.me.milestones.find((m) => m.status === "next")?.id, "trial");
 assert.deepEqual(fresh.me.connections, { now: null, atJoin: null, history: [] }, "an unknown count stays unknown, not 0");
 const firstCount = buildFellowView({
-  ...input, fellow: { ...fellow, connections_at_join: null }, connections: [{ connections: 610, recorded_at: "2026-10-28 09:00:00+05:30" }],
+  ...input, fellow: { ...fellow, connections_at_join: null }, connections: [{ connections: 610, recorded_at: "2026-10-30 09:00:00+05:30" }],
 }, NOW);
-assert.deepEqual(firstCount.me.connections, { now: 610, atJoin: null, history: [{ date: "2026-10-28", n: 610 }] }, "a first count isn't backdated to the join date");
+assert.deepEqual(firstCount.me.connections, { now: 610, atJoin: null, history: [{ date: "2026-10-30", n: 610 }] }, "a first count isn't backdated to the join date");
 assert.equal(fresh.me.cohortSize, 1);
 
 // A missed post breaks the run but not the completed count of other weeks.
-const missed = buildFellowView({ ...input, posts: posts.map((p) => (p.id === 3 ? post(3, "2026-10-20", "ready") : p)) }, NOW);
+const missed = buildFellowView({ ...input, posts: posts.map((p) => (p.id === 3 ? post(3, "2026-10-22", "ready") : p)) }, NOW);
 assert.equal(missed.me.weeklyRun, 0, "last week isn't complete, so no run");
 assert.equal(missed.me.completedWeeks, 1);
 assert.equal(missed.me.history[0].complete, false);
 assert.equal(missed.me.history[0].posts.length, 1, "only posted posts are listed");
-assert.deepEqual(missed.me.history[0].missed.map((m) => [m.id, m.day, m.date, m.body]), [["3", "Tue", "2026-10-20", "Body 3"]], "the missed post can still be copied and marked");
+assert.deepEqual(missed.me.history[0].missed.map((m) => [m.id, m.day, m.date, m.body]), [["3", "Thu", "2026-10-22", "Body 3"]], "the missed post can still be copied and marked");
 
 // A post the team put on hold ('blocked') shows as a notice: no text, not due, not missed, not next.
-const held = buildFellowView({ ...input, posts: [...posts, post(11, "2026-10-30", "blocked", { body: `HELD-${SECRET}`, own_line: SECRET }), post(12, "2026-10-21", "blocked")] }, NOW);
+const held = buildFellowView({ ...input, posts: [...posts, post(11, "2026-11-01", "blocked", { body: `HELD-${SECRET}`, own_line: SECRET }), post(12, "2026-10-23", "blocked")] }, NOW);
 const h = held.me.thisWeek.posts.find((p) => p.id === "11");
 assert.ok(h && h.status === "blocked", "the held post is on the page as a notice");
 assert.equal(h.body, "", "never its text");
@@ -259,17 +261,17 @@ assert.deepEqual([noRules.program.postsPerWeek, noRules.program.studojoPerWeek, 
 
 // Story questions: recent, specific moments first for someone new (the call covered the basics), unanswered
 // ones before answered, and a new order each day.
-const order0 = promptOrder([], "2026-11-01");
+const order0 = promptOrder([], "2026-11-03");
 assert.equal(order0.length, STORY_PROMPTS.length);
 assert.equal(order0[0], "Something that happened this week that taught you something", "a new fellow starts with something recent");
 assert.equal(order0[1], "A time something didn't go to plan, and what you did next");
 assert.ok(order0.indexOf("Why you chose your course, and whether you'd choose it again") > 5, "what the call covered comes later");
-const done = promptOrder(["Something that happened this week that taught you something", null, "A time something didn't go to plan, and what you did next"], "2026-11-01");
+const done = promptOrder(["Something that happened this week that taught you something", null, "A time something didn't go to plan, and what you did next"], "2026-11-03");
 assert.equal(done[0], "A conversation that changed how you think about your career", "answered questions aren't asked first again");
 assert.deepEqual(done.slice(-2).sort(), ["A time something didn't go to plan, and what you did next", "Something that happened this week that taught you something"].sort(), "answered ones go last");
 assert.equal(new Set(done).size, STORY_PROMPTS.length, "every question appears once");
 const allCore = STORY_PROMPTS.slice(0, 6);
-assert.notEqual(promptOrder(allCore, "2026-11-01")[0], promptOrder(allCore, "2026-11-02")[0], "returning fellows get a different first question the next day");
+assert.notEqual(promptOrder(allCore, "2026-11-03")[0], promptOrder(allCore, "2026-11-04")[0], "returning fellows get a different first question the next day");
 assert.equal(STORIES_WANTED, 3);
 assert.equal(v.me.storiesWanted, 3);
 assert.equal(v.me.storyPrompts[0], "Something that happened this week that taught you something");
