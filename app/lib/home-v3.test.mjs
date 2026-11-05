@@ -262,30 +262,4 @@ for (const rule of css.replace(/@font-face\s*\{[^}]*\}/g, "").replace(/@keyframe
 for (const f of files.filter((f) => f.endsWith(".tsx") && f !== "HomeV3.tsx")) assert.doesNotMatch(read(f), /className="hv2[ "]/, `${f}: a second .hv2 root`);
 assert.doesNotMatch(css, /@import|:root\b|(^|[\s,}])(html|body)\b/m, "nothing global");
 
-// ---------- 8. LAUNCH-COUNTDOWN (owner, 5 Nov 2026): ten seconds on every load, then the homepage ----------
-{
-  const { LAUNCH_SECONDS, LIVE_HOLD_MS, LIFT_MS, launchAt, countdownOn } = await import("../components/home-v3/launch.ts");
-  assert.equal(LAUNCH_SECONDS, 10, "ten seconds");
-  const shown = [];
-  for (let ms = 0; ms < 10_000; ms += 250) { const n = launchAt(ms).left; if (shown.at(-1) !== n) shown.push(n); }
-  assert.deepEqual(shown, [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], "10 down to 1, each for a second");
-  assert.deepEqual(launchAt(9_999), { stage: "count", left: 1 });
-  assert.deepEqual(launchAt(10_000), { stage: "live", left: 0 }, "live at ten seconds");
-  assert.equal(launchAt(10_000 + LIVE_HOLD_MS).stage, "lift");
-  assert.equal(launchAt(10_000 + LIVE_HOLD_MS + LIFT_MS).stage, "done", "then gone");
-  assert.ok(LIVE_HOLD_MS + LIFT_MS <= 1600, "the page is open within about a second and a half of 0");
-  assert.equal(launchAt(-50).left, 10, "a clock that runs backwards still starts at 10");
-  assert.equal(countdownOn(""), true, "every load, with no flag");
-  assert.equal(countdownOn("?utm_source=x"), true);
-  assert.equal(countdownOn("?countdown=0"), false, "?countdown=0 skips it");
-  // Over the page, in HomeV3 only (so only on a B2C host), never in the route studojo.com renders.
-  assert.ok(home.indexOf("<CallTakeover />") < home.indexOf("<LaunchCountdown />") && home.indexOf("<LaunchCountdown />") < home.indexOf("</div>"), "in the homepage root, after the takeover");
-  assert.doesNotMatch(index, /LaunchCountdown/, "not in the route itself");
-  const lc = code(read("LaunchCountdown.tsx"));
-  assert.match(lc, /page\?\.setAttribute\("inert", ""\);[\s\S]*?const lock = lockScroll\(window\);/, "the page under it is inert and does not scroll");
-  assert.match(lc, /if \(now\.stage === "lift" \|\| now\.stage === "done"\) release\(\);/, "the page is back as the sheet lifts");
-  assert.match(css, /\.hv2 \.hv-lc \{ position: fixed; inset: 0; z-index: 200;/, "above the cookie notice and the call");
-  assert.match(css, /\.hv2 \.hv-lc-run \.hv-lc-bar i \{ animation: hv-lc-fill 10s linear forwards; \}/, "the bar fills over the same ten seconds");
-}
-
 console.log("home-v3: ok");

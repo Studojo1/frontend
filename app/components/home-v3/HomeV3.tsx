@@ -6,7 +6,6 @@ import { Hero } from "./Hero";
 import { HomeFooter } from "./HomeFooter";
 import { HomeHeader } from "./HomeHeader";
 import { HowItWorks } from "./HowItWorks";
-import { LaunchCountdown } from "./LaunchCountdown";
 import { useHomeMotion } from "./Motion";
 import { Proof } from "./Proof";
 import { AgentProvider, useAgent } from "./start";
@@ -29,7 +28,6 @@ import { WhyEmail } from "./WhyEmail";
 // ?stu=circle puts Stu back on the h1 purple disc, for the owner to compare (hv-stu-circle); the default has none.
 // Its stylesheet is linked here, by this component (React hoists it into <head>, also in the server's HTML), not
 // imported into the route: so studojo.com's homepage, which never renders HomeV3, links no new stylesheet at all.
-// LAUNCH-COUNTDOWN (owner, 5 Nov 2026): every load counts down from 10 over the page, then opens it (LaunchCountdown.tsx).
 
 export function HomeV3() {
   const { search } = useLocation();
@@ -40,7 +38,6 @@ export function HomeV3() {
       <div className={`hv2 hv-page${circle ? " hv-stu-circle" : ""}`}>
         <Page />
         <CallTakeover />
-        <LaunchCountdown />
       </div>
     </AgentProvider>
   );
