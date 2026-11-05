@@ -511,7 +511,8 @@
         <button class="act ${p.copied ? "is-done" : ""}" type="button" data-act="copy" data-id="${p.id}"${lock}>${ic(p.copied ? "check" : "copy")}<span>${p.copied ? "Copied" : "Copy"}</span></button>
         <button class="act" type="button" data-act="line" data-id="${p.id}" aria-expanded="${p.panel === "line"}" aria-controls="panel-${p.id}">${ic("pen")}<span>${p.ownLine ? "Edit your line" : "Add your line"}</span></button>
         <button class="act ${postPrimary ? "is-primary" : ""}" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}"${lock}>${ic("send")}<span>I posted it</span></button>
-      </div>`;
+      </div>
+      <p class="as-written">${ic("info", "ic-sm")}<span>Post it as written: <b>Post on LinkedIn</b> copies it for you, or use <b>Copy</b>. To make it more yours, <b>Add your line</b> at the top instead of rewriting it.</span></p>`;
     }
 
     let footer = "";
@@ -693,6 +694,7 @@
   const PART_AT = 7500;
   S.parts = { saved: 0, waiting: [], prompt: null };
   S.storyOpen = new Set();
+  S.storyEdit = null; // { id, from, to, err }: the shared story whose name is being fixed
   // After each talk the page reads it back in writing (nothing is spoken back): what we heard, what can
   // become a post, what we'll leave out, and follow-up questions to answer next. A follow-up answer is a
   // story of its own, sent with the question it answers (S.reply). S.talkAt times the talk: 5 to 10
@@ -821,13 +823,15 @@
       <label class="sr-only" for="story-text">Your story</label>
       <textarea id="story-text" rows="4" aria-describedby="prompt-text story-err" placeholder="${S.listening ? "Listening. Start talking and we'll write it here." : canSpeak() ? "Type your story, or tap Speak and talk. Where it happened, what you did, what came next." : "Type your story here: where it happened, what you did, what came next."}">${esc(text)}</textarea>
       <p class="err" id="story-err">${S.storyErr ? ic("alert") + esc(S.storyErr) : ""}</p>
+      ${(S.spoke || S.parts.saved) && !S.listening ? `<p class="names-note">${ic("alert", "ic-sm")}<span>Check the names of companies, colleges and people before you share. Speech-to-text often gets them wrong: tap <b>Type or edit</b> to fix them.</span></p>` : ""}
       ${S.parts.saved ? `<p class="parts-note" role="status">${ic("check-circle", "ic-sm")}${S.parts.saved === 1 ? "The first part of your story is saved." : `${S.parts.saved} parts of your story are saved.`}${S.listening ? " Keep talking." : " Share the rest when you're done."}</p>` : ""}
       <div class="share-actions">
         ${canSpeak() ? `<button class="mic" type="button" data-act="mic" aria-pressed="${S.listening}">
           <span class="mic-ring">${ic("mic")}</span>
           <span>${S.listening ? "Tap to stop" : "Speak"}</span>
           <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        </button>` : ""}
+        </button>
+        <button class="btn btn-secondary" type="button" data-act="type">${ic("keyboard", "ic-sm")}Type or edit</button>` : ""}
         <button class="btn btn-primary" type="button" data-act="story-save">Share</button>
       </div>
       ${canSpeak() ? `<p class="voice-note">Speaking uses your browser's speech service (Google on Chrome and Android, Apple on iPhone) to turn your voice into text. Check the text, then share it.</p>` : ""}
@@ -868,11 +872,48 @@
     const box = $("#stories");
     if (!box) return;
     // A long story (a long talk saved in parts) shows its first lines until they ask for all of it.
+    // A name in a shared story can be fixed (speech-to-text mishears companies, colleges, places, people and
+    // events). Only names: the server swaps a short phrase that's in the story for another, everywhere it appears.
+    const editing = (s) => S.storyEdit && S.storyEdit.id === s.id;
+    // Capitalised words and runs of them ("Jain University", "Peakloop"): the likely names, offered as picks.
+    // A run breaks at everyday words ("I", "The"), and a sentence's usual first words ("During", "After") aren't names.
+    const PLAIN = new Set(["I", "I'm", "I've", "I'd", "I'll", "A", "An", "The", "My", "We", "It", "So", "But", "And", "This", "That", "Then", "When", "In", "On", "At", "If", "Our", "Of"]);
+    const OPENERS = new Set(("during after before today yesterday tomorrow last next these those when while then also now there here every each " +
+      "one two three first second finally later once since because although though however what why how where who which they he she you your his " +
+      "her their its as with for from to by all some most many few even just still yes no not never always sometimes over back looking working " +
+      "being having getting doing going after everyone nobody somebody people students college school class week month year").split(" "));
+    const namesIn = (t) => {
+      const out = [], words = [...t.matchAll(/[\p{L}\p{N}][\p{L}\p{N}&'.-]*/gu)];
+      let run = [], last = -2;
+      const flush = () => { if (run.length && !(run.length === 1 && run[0].start && OPENERS.has(run[0].w.toLowerCase()))) out.push(run.map((r) => r.w).join(" ")); run = []; };
+      words.forEach((m, i) => {
+        const w = m[0].replace(/[.'-]+$/, ""), at = m.index, before = t.slice(0, at).trimEnd();
+        const name = /^\p{Lu}/u.test(w) && !PLAIN.has(w);
+        const joined = i === last + 1 && /^\s+$/.test(t.slice(words[i - 1].index + words[i - 1][0].length, at)) && !/[.!?,;:]$/.test(words[i - 1][0]);
+        if (!name || !joined) flush();
+        if (name) { run.push({ w, start: !before || /[.!?]$/.test(before) }); last = i; }
+      });
+      flush();
+      return [...new Set(out)].slice(0, 12);
+    };
     const stories = S.stories.map((s) => `<li class="story" tabindex="-1" data-story-id="${esc(s.id)}">
         <p class="st-prompt">${s.replyTo ? `<span class="st-follow">Follow-up:</span> ` : ""}${esc(s.prompt)}</p>
-        <p class="st-text ${s.text.length > 400 && !S.storyOpen.has(s.id) ? "is-clamped" : ""}" id="st-${esc(s.id)}">${esc(s.text)}</p>
-        ${s.text.length > 400 ? `<button class="btn-link st-more" type="button" data-act="story-more" data-story="${esc(s.id)}" aria-controls="st-${esc(s.id)}" aria-expanded="${S.storyOpen.has(s.id)}">${S.storyOpen.has(s.id) ? "Show less" : "Show all"}</button>` : ""}
-        <p class="st-meta">${ic(s.spoken ? "mic" : "keyboard")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
+        ${editing(s) ? `<p class="st-text">${esc(s.text)}</p>
+        <div class="st-edit">
+          <p class="panel-help" id="st-edit-help-${esc(s.id)}">Only names can be fixed here: companies, colleges, places, people and events. Posts still to come use your fix.</p>
+          ${namesIn(s.text).length ? `<div class="st-names" role="group" aria-label="Names in this story">${namesIn(s.text).map((n) => `<button class="chip st-name" type="button" data-act="story-name-pick" data-story="${esc(s.id)}" data-name="${esc(n)}">${esc(n)}</button>`).join("")}</div>` : ""}
+          <div class="st-fields">
+            <label for="st-from-${esc(s.id)}">Name as it's written<input id="st-from-${esc(s.id)}" type="text" maxlength="60" autocomplete="off" value="${esc(S.storyEdit.from || "")}" aria-describedby="st-edit-help-${esc(s.id)} st-edit-err-${esc(s.id)}"></label>
+            <label for="st-to-${esc(s.id)}">The right name<input id="st-to-${esc(s.id)}" type="text" maxlength="60" autocomplete="off" value="${esc(S.storyEdit.to || "")}" aria-describedby="st-edit-err-${esc(s.id)}"></label>
+          </div>
+          <p class="err" id="st-edit-err-${esc(s.id)}">${S.storyEdit.err ? ic("alert") + esc(S.storyEdit.err) : ""}</p>
+          <div class="panel-actions">
+            <button class="btn btn-ghost" type="button" data-act="story-edit-cancel" data-story="${esc(s.id)}">Cancel</button>
+            <button class="btn btn-primary" type="button" data-act="story-edit-save" data-story="${esc(s.id)}">Fix the name</button>
+          </div>
+        </div>` : `<p class="st-text ${s.text.length > 400 && !S.storyOpen.has(s.id) ? "is-clamped" : ""}" id="st-${esc(s.id)}">${esc(s.text)}</p>
+        ${s.text.length > 400 ? `<button class="btn-link st-more" type="button" data-act="story-more" data-story="${esc(s.id)}" aria-controls="st-${esc(s.id)}" aria-expanded="${S.storyOpen.has(s.id)}">${S.storyOpen.has(s.id) ? "Show less" : "Show all"}</button>` : ""}`}
+        <p class="st-meta">${ic(s.spoken ? "mic" : "keyboard")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}${editing(s) ? "" : `<button class="btn-link st-edit-btn" type="button" data-act="story-edit" data-story="${esc(s.id)}">${ic("pen", "ic-sm")}Fix a name</button>`}</p>
         ${coachArea(s)}
       </li>`).join("");
     box.innerHTML = `
@@ -971,6 +1012,7 @@
         <p class="told-q">${s.replyTo ? "Follow-up: " : ""}${esc(s.prompt)}</p>
         <p class="told-meta">${ic(s.spoken ? "mic" : "keyboard", "ic-sm")}${s.spoken ? "Spoken" : "Typed"}, ${fmt(s.createdAt.slice(0, 10), false)}</p>
         <p class="told-text">${esc(s.text)}</p>
+        <button class="btn-link told-edit" type="button" data-act="told-edit" data-story="${esc(s.id)}">${ic("pen", "ic-sm")}Fix a name</button>
         ${s.coach && s.coach.heard.length ? `<div class="told-heard"><p class="told-heard-k">What we heard</p><ul>${s.coach.heard.map((h) => `<li>${esc(h)}</li>`).join("")}</ul></div>` : ""}
       </article>`).join("");
     $("#told-body").innerHTML = `
@@ -1348,6 +1390,39 @@
     if (act === "mic") {
       if (S.listening) stopListening(); else { S.quietEnds = 0; startListening(); }
       renderShare(true); focusEl('[data-act="mic"]');
+      return;
+    }
+    if (act === "type") {
+      if (S.listening) stopListening();
+      renderShare(true);
+      const ta = $("#story-text"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+      return;
+    }
+    if (act === "story-edit" || act === "told-edit") {
+      const sid = b.dataset.story;
+      if (act === "told-edit") { $("#told").close(); if (phone.matches) showTab("stories"); else goToSection("stories"); }
+      S.storyEdit = { id: sid, from: "", to: "", err: "" };
+      renderStories();
+      const f = $("#st-from-" + sid);
+      if (f) { f.scrollIntoView({ block: "center" }); f.focus(); }
+      return;
+    }
+    if (act === "story-name-pick") {
+      const sid = b.dataset.story;
+      S.storyEdit = { id: sid, from: b.dataset.name, to: $("#st-to-" + sid).value, err: "" };
+      renderStories(); focusEl("#st-to-" + sid);
+      return;
+    }
+    if (act === "story-edit-cancel") { const sid = b.dataset.story; S.storyEdit = null; renderStories(); focusEl(`[data-act="story-edit"][data-story="${sid}"]`); return; }
+    if (act === "story-edit-save") {
+      const sid = b.dataset.story, from = $("#st-from-" + sid).value.trim(), to = $("#st-to-" + sid).value.trim();
+      if (!from || !to) { S.storyEdit = { id: sid, from, to, err: "Add the name as it's written, and the right name." }; renderStories(); focusEl((from ? "#st-to-" : "#st-from-") + sid); return; }
+      b.disabled = true;
+      try { if (!applyView(await call({ intent: "story-name", storyId: sid, from, to }))) return; }
+      catch (e) { S.storyEdit = { id: sid, from, to, err: e.message }; renderStories(); focusEl("#st-from-" + sid); return; }
+      S.storyEdit = null; renderStories();
+      focusEl(`[data-act="story-edit"][data-story="${sid}"]`);
+      toast(`Fixed: "${from}" is now "${to}". Posts still to come use it.`);
       return;
     }
     if (act === "story-more") {

@@ -245,6 +245,28 @@ try {
   await page.applyFellowChange(kiran, { intent: "story", text: "A story Kiran told out loud, about his first internship.", spoken: true });
   await page.applyFellowChange(kiran, { intent: "story", text: "Another story, with a spoken flag that isn't true.", spoken: "yes" });
   assert.deepEqual((await setup.query(`SELECT spoken FROM ugc_creator_stories WHERE creator_id = 2 ORDER BY id`)).rows.map((r) => r.spoken), [true, false], "only spoken: true marks a story spoken");
+  // A name in a shared story can be fixed (speech-to-text mishears names), by its own fellow only, and nothing else.
+  const kStory = (await one(`SELECT id FROM ugc_creator_stories WHERE creator_id = 2 ORDER BY id LIMIT 1`)).id;
+  await setup.query(`UPDATE ugc_creator_stories SET text = $2, coach = $3 WHERE id = $1`, [kStory, "At Peakloop I ran the peakloop challenge. Peakloopers loved it; Peakloop grew.",
+    JSON.stringify({ heard: ["You talked about Peakloop."], useful: ["Peakloop grew"], skip: [], next: ["When did Peakloop start?"], tip: "Say Peakloop's numbers.", parts: [kStory], at: "2026-11-05T10:00:00Z" })]);
+  await page.applyFellowChange(kiran, { intent: "story-name", storyId: kStory, from: " peakloop ", to: "SpeakLoop" });
+  assert.equal((await one(`SELECT text FROM ugc_creator_stories WHERE id = $1`, [kStory])).text,
+    "At SpeakLoop I ran the SpeakLoop challenge. Peakloopers loved it; SpeakLoop grew.", "every whole-word match, in any case, and only those");
+  const kCoach = (await one(`SELECT coach FROM ugc_creator_stories WHERE id = $1`, [kStory])).coach;
+  assert.deepEqual([kCoach.heard, kCoach.useful, kCoach.next, kCoach.tip, kCoach.parts], [["You talked about SpeakLoop."], ["SpeakLoop grew"], ["When did SpeakLoop start?"], "Say SpeakLoop's numbers.", [kStory]],
+    "the read-back gets the same fix, and keeps everything else");
+  const kText = async () => (await one(`SELECT text FROM ugc_creator_stories WHERE id = $1`, [kStory])).text;
+  const kBefore = await kText();
+  await refused(() => page.applyFellowChange(asha, { intent: "story-name", storyId: kStory, from: "SpeakLoop", to: "Mine" }), 404, "another fellow's story");
+  await refused(() => page.applyFellowChange(kiran, { intent: "story-name", storyId: kStory, from: "Nowhere Inc", to: "Somewhere" }), 400, "a name that isn't in the story");
+  await refused(() => page.applyFellowChange(kiran, { intent: "story-name", storyId: kStory, from: "SpeakLoop", to: "a whole new sentence that rewrites the story" }), 400, "more than a name");
+  await refused(() => page.applyFellowChange(kiran, { intent: "story-name", storyId: kStory, from: "SpeakLoop", to: "" }), 400, "no right name");
+  await refused(() => page.applyFellowChange(kiran, { intent: "story-name", storyId: kStory, from: "SpeakLoop", to: "x".repeat(61) }), 400, "a name over 60 characters");
+  await refused(() => page.applyFellowChange(kiran, { intent: "story-name", storyId: "nope", from: "SpeakLoop", to: "Peak" }), 404, "a made-up story id");
+  await page.applyFellowChange(kiran, { intent: "story-name", storyId: kStory, from: "SpeakLoop.", to: "x" }).catch(() => {});
+  assert.equal(await kText(), kBefore, "refused fixes change nothing, and a pattern character is just a character");
+  assert.equal(page.swapName("Visited (Mumbai) and mumbai.", "mumbai", "Pune"), "Visited (Pune) and Pune.");
+  assert.equal(page.swapName("a+b", "a+b", "c"), "c", "the name is matched as written, not as a pattern");
   await setup.query(`DELETE FROM ugc_creator_stories WHERE creator_id = 2`);
   await setup.query(`INSERT INTO ugc_creator_stories (creator_id, text) SELECT 1, 'an earlier story today' FROM generate_series(1, 24)`);
   const burst = await Promise.allSettled(Array.from({ length: 12 }, (_, i) => page.applyFellowChange(asha, { intent: "story", text: `A story told in a burst, number ${i}` })));

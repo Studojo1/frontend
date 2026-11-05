@@ -329,12 +329,53 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       });
       return;
     }
+    case "story-name": {
+      // A fellow fixes a name in a story they shared (speech-to-text gets companies, colleges, places, people
+      // and events wrong). Only a name can change: a short phrase that's in the story, swapped everywhere it
+      // appears, for another short phrase. The rest of the story stays as they shared it. Its read-back was
+      // written from the old words, so the same swap goes through that too.
+      const id = storyId(body.storyId);
+      const from = cleanText(body.from, NAME_MAX + 1, true), to = cleanText(body.to, NAME_MAX + 1, true);
+      const words = (s: string) => s.split(" ").filter(Boolean).length;
+      if (!from || !to) throw new FellowInputError("Add the name as it's written, and the right name.");
+      if (from.length > NAME_MAX || to.length > NAME_MAX || words(from) > NAME_WORDS || words(to) > NAME_WORDS) {
+        throw new FellowInputError(`Only names can be changed here, up to ${NAME_WORDS} words each.`);
+      }
+      await withFellowLock(fellow, async (tx) => {
+        const row = rows<{ text: string; coach: unknown }>(await tx.execute(sql`SELECT text, coach FROM ugc_creator_stories WHERE id = ${id} AND creator_id = ${fellow.id}`))[0];
+        if (!row) throw new FellowInputError("That story isn't on your page.", 404);
+        const fixed = swapName(row.text, from, to);
+        if (fixed === null) throw new FellowInputError(`"${from}" isn't in this story. Type it exactly as it's written there.`);
+        if (fixed.length > STORY_MAX) throw new FellowInputError("That would make the story longer than 8,000 characters.");
+        const coach = row.coach && typeof row.coach === "object" ? { ...(row.coach as Record<string, unknown>) } : null;
+        if (coach) {
+          const swap = (v: unknown) => (typeof v === "string" ? swapName(v, from, to) ?? v : v);
+          for (const key of ["heard", "useful", "skip", "next"]) if (Array.isArray(coach[key])) coach[key] = (coach[key] as unknown[]).map(swap);
+          coach.tip = swap(coach.tip);
+        }
+        await tx.execute(sql`
+          UPDATE ugc_creator_stories SET text = ${fixed}, coach = ${coach ? JSON.stringify(coach) : null}::jsonb
+          WHERE id = ${id} AND creator_id = ${fellow.id}
+        `);
+      });
+      return;
+    }
     case "coach":
       await coachTalk(fellow, body.storyIds);
       return;
     default:
       throw new FellowInputError("Unknown request.");
   }
+}
+
+const NAME_MAX = 60;
+const NAME_WORDS = 6;
+/** The text with every whole-word match of `from` (any case) swapped for `to`, or null when there's none. */
+export function swapName(text: string, from: string, to: string): string | null {
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])${from.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "giu");
+  if (!re.test(text)) return null;
+  re.lastIndex = 0;
+  return text.replace(re, () => to);
 }
 
 const storyId = (v: unknown) => {
