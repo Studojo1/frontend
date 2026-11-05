@@ -1,6 +1,6 @@
 import type { Route } from "./+types/api.meta-event";
 import { auth } from "~/lib/auth";
-import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured, cleanFbc, valueData, metaProdHost } from "~/lib/meta-capi.server";
+import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured, cleanFbc, valueData, metaProdHost, withAccount } from "~/lib/meta-capi.server";
 import { claimOnce, POSTHOG_SIGNED_UP } from "~/lib/tracking-once.server";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { serverMayReportToMeta } from "~/lib/consent";
@@ -17,6 +17,11 @@ import { parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
  *
  * The email is taken from the session on the server, never from the request body:
  * a client-supplied address would let anyone poison the match data.
+ * EMQ (5 Nov 2026): so are the name and phone. What each copy carries (meta-capi.server.ts metaUserDataPayload):
+ *   signed out  external_id [visitor id], ip, user agent, fbp, fbc.
+ *   signed in   also em, fn, ln (a real name only, accountName), ph and country (when the account has a phone), and
+ *               external_id [account id, visitor id].
+ * All hashed except ip, user agent, fbp and fbc. The browser pixel's init sends the same hashed visitor id.
  *
  * Always returns 200. A failed analytics call must never surface to the user.
  *
@@ -137,18 +142,20 @@ export async function action({ request }: Route.ActionArgs) {
   const limit = await checkRateLimit(request);
   if (limit && !limit.allowed) return ok();
 
-  const user = metaUserDataFromRequest(request);
+  let user = metaUserDataFromRequest(request);
 
   // Logged-in users get email and a stable id, which is what lifts Event Match
   // Quality above the threshold where optimisation actually works. Anonymous
-  // landing-page hits still send cookies, IP and user agent.
+  // landing-page hits still send cookies, IP, user agent and the hashed stu_vid visitor id.
+  // EMQ (5 Nov 2026): signed in, the account's name (fn, ln), phone (ph) and the phone's country too, from the
+  // session (better-auth's phone-number plugin returns phoneNumber on the session user; no extra query), and
+  // external_id lists the account id and the visitor id (meta-capi.server.ts withAccount).
   let signedIn = false;
   try {
     const session = await auth.api.getSession({ headers: request.headers });
     if (session?.user) {
       signedIn = true;
-      user.email = session.user.email ?? null;
-      user.externalId = session.user.id ?? null;
+      user = withAccount(user, session.user);
     }
   } catch {
     // Not signed in, or auth unavailable. Send what we have.
@@ -182,11 +189,11 @@ async function claimRegistration(
   consentOk: boolean,
 ): Promise<Response> {
   let userId: string | null = null;
-  let email: string | null = null;
+  let account: Parameters<typeof withAccount>[1] = {};
   try {
     const session = await auth.api.getSession({ headers: request.headers });
     userId = session?.user?.id ?? null;
-    email = session?.user?.email ?? null;
+    account = session?.user ?? {};
   } catch {
     userId = null;
   }
@@ -201,10 +208,10 @@ async function claimRegistration(
   if (body.posthog === true) reply.posthog = await claimOnce(userId, POSTHOG_SIGNED_UP, host);
   // Unknown (null) still sends: the same event id, so Meta keeps one.
   if (metaClaim !== false && isMetaCapiConfigured()) {
-    const user = metaUserDataFromRequest(request);
+    // EMQ (5 Nov 2026): the same keys as every signed-in send (withAccount): email, name, phone and its country, the
+    // account id and the visitor id.
+    const user = withAccount(metaUserDataFromRequest(request), account);
     if (!user.fbc) user.fbc = cleanFbc(body.fbc);
-    user.email = email;
-    user.externalId = userId;
     void sendMetaEvent({ eventName: "CompleteRegistration", eventId, eventSourceUrl: body.sourceUrl ?? request.headers.get("referer"), user });
   }
   return ok(reply);

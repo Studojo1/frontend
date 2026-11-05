@@ -164,8 +164,10 @@ const PINNED = {
   "routes/terms.tsx": "e565ab6f9433ba94",
   // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), and a row for the
   // stu_vid, stu_src and stu_lt journey cookies (app/lib/journey.ts); nothing else changed. META-FIX 2 Nov: the
-  // sj_tracking_consent row says it is also a cookie on studojo.com and its subdomains (app/lib/consent.ts), 1 year
-  "routes/privacy.tsx": "77353e01b8b5d830",
+  // sj_tracking_consent row says it is also a cookie on studojo.com and its subdomains (app/lib/consent.ts), 1 year.
+  // EMQ 5 Nov: section 12's "Identifiers sent with them" lists the hashed phone, name, country and visitor ID too
+  // (app/lib/meta-capi.server.ts, meta-pixel.ts); nothing else changed
+  "routes/privacy.tsx": "36e646c365e37d4a",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
   // SUPPORT-STU 2 Nov: contact.tsx lost the chat copy and gained the signed-in Ask Stu card (hash re-pinned).
   // QA-FIX 2 Nov: copy only (one sending promise, career agent, reset emails paused, chat bubble bottom left, About's

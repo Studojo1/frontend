@@ -6,6 +6,7 @@
 
 import { consentForServer, trackingAllowed } from "./consent";
 import { metaBrowserIds } from "./attribution";
+import { VISITOR_COOKIE, parseCookies, validVisitorId } from "./journey";
 
 // META-FIX (2 Nov 2026), the event map (one meaning per name, one dataset for studojo.com and platform.studojo.com):
 //   PageView              every page change, browser only.
@@ -76,13 +77,69 @@ function isTrackableHost(): boolean {
   }
 }
 
+// EMQ (5 Nov 2026, the owner: Events Manager showed PageView 6.1, Lead 6.1, CompleteRegistration 7.7 of 10, "we need
+// to be around 9+"). init carries Advanced Matching: the stu_vid visitor id, SHA-256 hashed here (lowercase hex, never
+// the raw id; nothing else, so no email, phone or name is ever in the page). The browser copy of every event, and
+// Meta's gateway copy of it (a server event with the same event_id), then match on the same external_id as this site's
+// own server copy (meta-capi.server.ts). Hashing is async (crypto.subtle), so init waits for it, at most AM_WAIT_MS,
+// then goes on without it; every call made meanwhile is held and replayed right after init, in order (fbq below).
+// Every gate is as before: initMetaPixel still runs only when metaAllowed, and each call site still checks its own.
+const AM_WAIT_MS = 1000;
+
+/** The pixel is booting or booted: browser calls go through fbq() (held until init has run). */
 let isInitialized = false;
+/** init has run: fbq() is the page's own. */
+let pixelReady = false;
+let held: unknown[][] = [];
 
 type Fbq = (...args: unknown[]) => void;
 
-function fbq(): Fbq | undefined {
+/** The page's own fbq (Meta's stub until fbevents.js loads). */
+function pageFbq(): Fbq | undefined {
   if (typeof window === "undefined") return undefined;
   return (window as unknown as { fbq?: Fbq }).fbq;
+}
+
+/** What every call site uses. EMQ: while init waits for the visitor id's hash, a call is held, in order, and replayed
+ * right after init (startPixel), so no track, PageView or consent call reaches fbevents ahead of init. */
+function fbq(): Fbq | undefined {
+  if (typeof window === "undefined") return undefined;
+  if (isInitialized && !pixelReady) {
+    return (...args: unknown[]) => {
+      held.push(args);
+    };
+  }
+  return pageFbq();
+}
+
+/**
+ * EMQ: the stu_vid visitor id (journey.ts, readable by scripts) trimmed, lowercased and SHA-256 hashed to lowercase hex,
+ * exactly as the server hashes it into external_id (meta-capi.server.ts externalIdHashes). Null with no valid stu_vid,
+ * or with no crypto.subtle (an insecure context). Never throws. Exported for tests.
+ */
+export async function visitorExternalId(cookieHeader?: string): Promise<string | null> {
+  try {
+    const vid = parseCookies(cookieHeader ?? (typeof document !== "undefined" ? document.cookie : "")).get(VISITOR_COOKIE);
+    if (!validVisitorId(vid)) return null;
+    const subtle = typeof crypto !== "undefined" ? crypto.subtle : undefined;
+    if (!subtle || typeof subtle.digest !== "function") return null;
+    const buf = await subtle.digest("SHA-256", new TextEncoder().encode(vid.trim().toLowerCase()));
+    return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+  } catch {
+    return null;
+  }
+}
+
+/** EMQ: init's Advanced Matching data, { external_id } with the hashed visitor id, or undefined when there is none or
+ * the hash takes longer than waitMs. Never rejects. Exported for tests. */
+export function pixelUserData(waitMs = AM_WAIT_MS, cookieHeader?: string): Promise<{ external_id: string } | undefined> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(undefined), waitMs);
+    void visitorExternalId(cookieHeader).then((id) => {
+      clearTimeout(timer);
+      resolve(id ? { external_id: id } : undefined);
+    });
+  });
 }
 
 function newEventId(): string {
@@ -107,7 +164,7 @@ function newEventId(): string {
  * second PageView on /auth (audit 10 Oct 2026). With it off, the only
  * PageViews are the ones trackMetaPageView sends, and every one is gated.
  */
-export function bootPixel(pixelId: string): boolean {
+export function bootPixel(pixelId: string, userData?: Record<string, string>): boolean {
   try {
     // fbevents.js also sends a PageView when a page comes back from the
     // back/forward cache, and that one ignores disablePushState. Registered
@@ -141,7 +198,7 @@ export function bootPixel(pixelId: string): boolean {
     })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
     /* eslint-enable */
 
-    const q = fbq();
+    const q = pageFbq();
     if (!q) return false;
     // Must be set before init, or the first history change still slips out.
     // fbevents.js drops every explicit PageView after the first in a document
@@ -152,7 +209,9 @@ export function bootPixel(pixelId: string): boolean {
     flags.allowDuplicatePageViews = true;
     // autoConfig off: we fire every event explicitly so the funnel stays auditable.
     q("set", "autoConfig", false, pixelId);
-    q("init", pixelId);
+    // EMQ (5 Nov 2026): Advanced Matching (pixelUserData, hashed ids only) when there is any; otherwise as before.
+    if (userData) q("init", pixelId, userData);
+    else q("init", pixelId);
     return true;
   } catch {
     // Silently fail: analytics must never break the app
@@ -165,7 +224,34 @@ export function initMetaPixel() {
   if (!PIXEL_ID) return;
   if (isInitialized) return;
   if (!metaAllowed()) return;
-  if (bootPixel(PIXEL_ID)) isInitialized = true;
+  void startPixel(PIXEL_ID);
+}
+
+/**
+ * EMQ (5 Nov 2026): boot with Advanced Matching. From here every call is held (fbq) while init waits for the hashed
+ * visitor id (pixelUserData, at most waitMs); then bootPixel inits with it and the held calls are replayed in order.
+ * A failed boot drops them, as a failed boot always skipped the browser copy, and the next call tries again. Resolves
+ * true once init has run. Exported for tests; initMetaPixel is the only caller in the app.
+ */
+export async function startPixel(pixelId: string, waitMs = AM_WAIT_MS): Promise<boolean> {
+  isInitialized = true;
+  const userData = await pixelUserData(waitMs);
+  const calls = held;
+  held = [];
+  if (!bootPixel(pixelId, userData)) {
+    isInitialized = false;
+    return false;
+  }
+  pixelReady = true;
+  const q = pageFbq();
+  for (const args of calls) {
+    try {
+      q?.(...args);
+    } catch {
+      // Analytics must never break the app
+    }
+  }
+  return true;
 }
 
 /**
