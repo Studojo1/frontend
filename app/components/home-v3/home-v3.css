@@ -609,3 +609,40 @@
 @keyframes hv3-ping { 0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, .55); } 100% { box-shadow: 0 0 0 9px rgba(139, 92, 246, 0); } }
 @keyframes hv3-hop { 0% { transform: none; } 35% { transform: translateY(-16px) rotate(-7deg); } 60% { transform: translateY(0) rotate(4deg); } 80% { transform: translateY(-5px); } 100% { transform: none; } }
 @keyframes hv3-progress { to { transform: scaleX(1); } }
+
+/* ---------- LAUNCH-COUNTDOWN (owner, 5 Nov 2026: "a ten-second launch countdown ... every time I refresh the page ...
+   the moment the countdown finishes, it opens our actual website"; LaunchCountdown.tsx, launch.ts) ----------
+   A purple sheet over the whole page, above the cookie notice (z 60) and the call (z 90): Stu, the kicker, "Launching
+   in" and the number, white with the page's ink edge and hard shadow, a bar filling over the ten seconds. At 0, "Stu is
+   live." and confetti; then the sheet lifts off the top, its ink bottom edge passing up the screen. */
+.hv2 .hv-lc { position: fixed; inset: 0; z-index: 200; height: 100vh; height: 100dvh; display: grid; place-items: center; padding: 24px 16px; overflow: hidden; color: #fff; text-align: center; background-color: #8b5cf6; background-image: radial-gradient(circle, rgba(255, 255, 255, .2) 1px, transparent 1.4px), radial-gradient(120% 90% at 50% 0%, #a78bfa 0%, #8b5cf6 55%, #6d28d9 100%); background-size: 28px 28px, 100% 100%; background-position: 14px 6px, 0 0; border-bottom: var(--hv-bw) solid var(--hv-ink-e); box-shadow: 0 8px 0 var(--hv-ink-e); transition: transform .8s cubic-bezier(.7, 0, .2, 1); }
+.hv2 .hv-lc.hv-lc-lift { transform: translateY(calc(-100% - 12px)); }
+.hv2 .hv-lc-in { position: relative; z-index: 1; display: grid; justify-items: center; width: 100%; max-width: 760px; }
+.hv2 .hv-lc-stu { width: 112px; height: 112px; margin-bottom: 14px; animation: hv-lc-bob 2.4s ease-in-out infinite; filter: drop-shadow(4px 4px 0 var(--hv-ink-e)); }
+.hv2 .hv-lc-kicker { margin: 0; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; font-weight: 500; letter-spacing: .06em; text-transform: lowercase; color: #f3eefc; }
+.hv2 .hv-lc-h { margin: 14px 0 0; font-family: Satoshi, system-ui, sans-serif; font-weight: 500; font-size: clamp(26px, 3.2vw, 40px); line-height: 1.1; letter-spacing: -0.02em; }
+.hv2 .hv-lc-n { margin: 6px 0 0; height: 1em; font-family: Satoshi, system-ui, sans-serif; font-weight: 700; font-size: min(34vh, 46vw, 320px); line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; color: #fff; -webkit-text-stroke: 4px var(--hv-ink-e); paint-order: stroke fill; text-shadow: 8px 8px 0 var(--hv-ink-e); }
+.hv2 .hv-lc-n span { display: inline-block; animation: hv-lc-pop .45s cubic-bezier(.2, 1.5, .4, 1) both; }
+.hv2 .hv-lc-bar { width: min(440px, 80vw); height: 18px; margin-top: 34px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, .22); border: var(--hv-bw) solid var(--hv-ink-e); box-shadow: var(--hv-hard); }
+.hv2 .hv-lc-bar i { display: block; height: 100%; width: 0; background: #fff; }
+.hv2 .hv-lc-run .hv-lc-bar i { animation: hv-lc-fill 10s linear forwards; }
+.hv2 .hv-lc-live .hv-lc-bar i { width: 100%; animation: none; }
+.hv2 .hv-lc-live .hv-lc-stu { animation: hv-lc-jump .6s cubic-bezier(.2, 1.4, .4, 1) both; }
+.hv2 .hv-lc-confetti { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.hv2 .hv-lc-confetti i { position: absolute; left: -6px; top: -9px; width: 12px; height: 18px; border-radius: 3px; border: 1.5px solid var(--hv-ink-e); opacity: 0; animation: hv-lc-burst 1.2s cubic-bezier(.15, .8, .3, 1) both; }
+@keyframes hv-lc-pop { 0% { opacity: 0; transform: translateY(14%) scale(.72); } 100% { opacity: 1; transform: none; } }
+@keyframes hv-lc-fill { from { width: 0; } to { width: 100%; } }
+@keyframes hv-lc-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-6px) rotate(-3deg); } }
+@keyframes hv-lc-jump { 0% { transform: scale(.8); } 55% { transform: translateY(-18px) scale(1.12) rotate(-6deg); } 100% { transform: none; } }
+@keyframes hv-lc-burst { 0% { opacity: 1; transform: translate(0, 0) rotate(0) scale(.4); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(1); } }
+@media (max-width: 640px) {
+  .hv2 .hv-lc-stu { width: 88px; height: 88px; }
+  .hv2 .hv-lc-n { -webkit-text-stroke-width: 3px; text-shadow: 6px 6px 0 var(--hv-ink-e); }
+  .hv2 .hv-lc-bar { margin-top: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hv2 .hv-lc { transition: opacity .4s ease; }
+  .hv2 .hv-lc.hv-lc-lift { transform: none; opacity: 0; }
+  .hv2 .hv-lc-stu, .hv2 .hv-lc-n span, .hv2 .hv-lc-live .hv-lc-stu { animation: none; }
+  .hv2 .hv-lc-confetti { display: none; }
+}
