@@ -207,12 +207,15 @@
     if (a.newFollowers != null) bits.push(`<b>${nf(a.newFollowers)}</b> new ${a.newFollowers === 1 ? "follower" : "followers"}`);
     return `<p class="an-totals">${ic("chart", "ic-sm")}<span>${span}: ${bits.join(", ")}</span></p>`;
   }
-  // The weekend asks for this week's export; Monday to Friday for last week's, if it had posts and none came in since its Saturday.
+  // The weekend asks for the last 7 days' export; Monday to Friday for the week before, if it had posts and none
+  // came in since its Saturday. By date, not by where the fellowship week starts (weeks run Wednesday to Tuesday).
   function analyticsWeek() {
     const dow = parseD(TODAY).getUTCDay();
-    if (dow === 0 || dow === 6) return { weekend: true, sunday: dow === 0, since: addDays(ME.thisWeek.start, 5), posts: S.posts.filter((p) => p.status === "posted").length };
-    const last = ME.history.find((w) => w.week === addDays(ME.thisWeek.start, -7));
-    return { weekend: false, sunday: false, since: addDays(ME.thisWeek.start, -2), posts: last ? last.posts.length : 0 };
+    const lastSat = addDays(TODAY, -((dow + 1) % 7)); // today on a Saturday, yesterday on a Sunday
+    const all = S.posts.concat(ME.history.flatMap((w) => w.posts));
+    const postedSince = (from, to) => all.filter((p) => p.status === "posted" && p.postedAt && p.postedAt.slice(0, 10) >= from && p.postedAt.slice(0, 10) <= to).length;
+    if (dow === 0 || dow === 6) return { weekend: true, sunday: dow === 0, since: lastSat, posts: postedSince(addDays(lastSat, -6), TODAY) };
+    return { weekend: false, sunday: false, since: lastSat, posts: postedSince(addDays(lastSat, -6), lastSat) };
   }
   const analyticsDue = () => { const w = analyticsWeek(); return w.posts > 0 && !upToDate(w.since); };
   function renderAnalytics() {
