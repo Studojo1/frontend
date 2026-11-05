@@ -247,10 +247,14 @@ try {
   assert.deepEqual((await setup.query(`SELECT spoken FROM ugc_creator_stories WHERE creator_id = 2 ORDER BY id`)).rows.map((r) => r.spoken), [true, false], "only spoken: true marks a story spoken");
   // A name in a shared story can be fixed (speech-to-text mishears names), by its own fellow only, and nothing else.
   const kStory = (await one(`SELECT id FROM ugc_creator_stories WHERE creator_id = 2 ORDER BY id LIMIT 1`)).id;
-  await setup.query(`UPDATE ugc_creator_stories SET text = $2 WHERE id = $1`, [kStory, "At Peakloop I ran the peakloop challenge. Peakloopers loved it; Peakloop grew."]);
+  await setup.query(`UPDATE ugc_creator_stories SET text = $2, coach = $3 WHERE id = $1`, [kStory, "At Peakloop I ran the peakloop challenge. Peakloopers loved it; Peakloop grew.",
+    JSON.stringify({ heard: ["You talked about Peakloop."], useful: ["Peakloop grew"], skip: [], next: ["When did Peakloop start?"], tip: "Say Peakloop's numbers.", parts: [kStory], at: "2026-11-05T10:00:00Z" })]);
   await page.applyFellowChange(kiran, { intent: "story-name", storyId: kStory, from: " peakloop ", to: "SpeakLoop" });
   assert.equal((await one(`SELECT text FROM ugc_creator_stories WHERE id = $1`, [kStory])).text,
     "At SpeakLoop I ran the SpeakLoop challenge. Peakloopers loved it; SpeakLoop grew.", "every whole-word match, in any case, and only those");
+  const kCoach = (await one(`SELECT coach FROM ugc_creator_stories WHERE id = $1`, [kStory])).coach;
+  assert.deepEqual([kCoach.heard, kCoach.useful, kCoach.next, kCoach.tip, kCoach.parts], [["You talked about SpeakLoop."], ["SpeakLoop grew"], ["When did SpeakLoop start?"], "Say SpeakLoop's numbers.", [kStory]],
+    "the read-back gets the same fix, and keeps everything else");
   const kText = async () => (await one(`SELECT text FROM ugc_creator_stories WHERE id = $1`, [kStory])).text;
   const kBefore = await kText();
   await refused(() => page.applyFellowChange(asha, { intent: "story-name", storyId: kStory, from: "SpeakLoop", to: "Mine" }), 404, "another fellow's story");
