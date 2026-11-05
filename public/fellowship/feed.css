@@ -447,7 +447,27 @@ ul, ol { padding: 0; list-style: none; }
 .prompt-text { font-size: 14px; font-weight: 600; line-height: 1.4; margin-top: 4px; }
 .share textarea { margin-top: 12px; min-height: 96px; }
 .share.is-listening textarea { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: #F5FAFF; }
-.share-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.share-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; margin-top: 10px; }
+.share-actions .btn-secondary { display: inline-flex; align-items: center; gap: 6px; }
+.names-note { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: #FFF6E5; color: #6B4A00; font-size: 13.5px; line-height: 1.45; }
+.names-note .ic { flex: none; margin-top: 2px; }
+.names-note b { font-weight: 650; }
+/* A shared story being corrected, and the button that opens it */
+.st-edit { margin-top: 10px; padding: 12px; border-radius: 10px; background: var(--surface-2); }
+.st-names { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.st-name { cursor: pointer; border: 1px solid var(--accent-line); background: var(--surface); color: var(--accent-ink); font-weight: 600; }
+.st-name:hover { background: var(--accent-soft); }
+.st-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+.st-fields label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.st-fields input { min-height: 40px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 8px; font: inherit; font-size: 15px; font-weight: 400; color: var(--ink); background: var(--surface); }
+.st-fields input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.st-edit-btn, .told-edit { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
+.st-edit-btn { margin-left: auto; }
+.told-edit { margin-top: 8px; }
+/* Under a post's buttons: post it as written */
+.as-written { display: flex; gap: 6px; align-items: flex-start; padding: 6px 16px 12px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.as-written .ic { flex: none; margin-top: 2px; color: var(--accent-ink); }
+.as-written b { color: var(--ink); font-weight: 600; }
 .mic {
   display: inline-flex; align-items: center; gap: 10px;
   min-height: 44px; padding: 0 16px 0 6px; border-radius: 999px;
