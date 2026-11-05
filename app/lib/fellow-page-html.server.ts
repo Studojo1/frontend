@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
-export const ASSET_VERSION = "20261105b";
+export const ASSET_VERSION = "20261105c";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -185,7 +185,7 @@ const LEARN = `
               <li>Keep your profile complete: a clear photo, a headline that says what you do, and your college.</li>
               <li>Short paragraphs and plain words. Write the way you talk.</li>
               <li>Tag people only when they're really part of the story.</li>
-              <li>Keep "In partnership with Studojo" on Studojo posts. It's required, and being open about it builds trust. Add your own line instead of rewriting the post.</li>
+              <li>Post Studojo posts as they're written. If you want your own touch, add your own line at the top instead of rewriting the post.</li>
             </ul>
           </div>
         </details>

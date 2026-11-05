@@ -136,17 +136,15 @@
     return pa ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date);
   }).map((p) => p.id);
 
-  // A Studojo post carries the partnership line once: at the top, unless the post already has it further down
-  // (the admin panel accepts it anywhere in the post).
-  const labelAtTop = (p) => p.kind === "studojo" && (p.body.startsWith(LABEL) || !p.body.toLowerCase().includes(LABEL.toLowerCase()));
-  const bodyOf = (p) => (p.kind === "studojo" && p.body.startsWith(LABEL) ? p.body.slice(LABEL.length).replace(/^\s+/, "") : p.body);
+  // No partnership line on posts (the founder, 5 Nov 2026: fellows are part of the fellowship, so a Studojo
+  // post reads as their own). An older post that still opens with the line has it taken off here.
+  const bodyOf = (p) => (p.kind === "studojo" && LABEL && p.body.startsWith(LABEL) ? p.body.slice(LABEL.length).replace(/^\s+/, "") : p.body);
   function postText(p) {
-    return [labelAtTop(p) ? LABEL : "", p.ownLine, bodyOf(p)].filter(Boolean).join("\n\n");
+    return [p.ownLine, bodyOf(p)].filter(Boolean).join("\n\n");
   }
   function postHTML(p) {
     const body = bodyOf(p);
     const parts = [];
-    if (labelAtTop(p)) parts.push(esc(LABEL));
     if (p.ownLine) parts.push(`<mark class="own" title="Your line">${esc(p.ownLine)}</mark>`);
     parts.push(esc(body));
     return parts.join("\n\n");
@@ -538,7 +536,7 @@
     if (p.panel === "line") {
       panel = `<div class="panel" id="panel-${p.id}">
         <label class="panel-label" for="line-${p.id}">Your own line <span class="opt">(optional)</span></label>
-        <p class="panel-help" id="line-help-${p.id}">One line in your own words. It goes at the top of the post${p.kind === "studojo" ? ", under the partnership line" : ""}.</p>
+        <p class="panel-help" id="line-help-${p.id}">One line in your own words. It goes at the top of the post.</p>
         <textarea id="line-${p.id}" rows="2" maxlength="220" aria-describedby="line-help-${p.id} line-err-${p.id}" aria-invalid="${!!p.err}" placeholder="Something only you would say about this">${esc(p.lineDraft != null ? p.lineDraft : p.ownLine)}</textarea>
         <p class="err" id="line-err-${p.id}">${p.err ? ic("alert") + esc(p.err) : ""}</p>
         <div class="panel-actions">
@@ -582,7 +580,7 @@
         <span class="date-tile" aria-hidden="true"><span class="dt-dow">${DOW[d.getUTCDay()]}</span><span class="dt-num">${d.getUTCDate()}</span></span>
         <div>
           <h3 class="pc-title" id="title-${p.id}"><span class="sr-only">${dowLong(p.date)}: </span>${esc(p.title)}</h3>
-          <p class="pc-sub"><span>${sub}</span>${p.kind === "studojo" ? `<span class="sj-tag"><span class="mark" aria-hidden="true">S</span>${esc(LABEL)}</span>` : ""}</p>
+          <p class="pc-sub"><span>${sub}</span>${p.kind === "studojo" ? `<span class="sj-tag"><span class="mark" aria-hidden="true">S</span>Studojo post</span>` : ""}</p>
         </div>
         ${chip}
       </header>
@@ -1055,7 +1053,7 @@
           <p class="act-when"><b>${DOW[parseD(p.postedAt).getUTCDay()]}</b>${fmt(p.postedAt.slice(0, 10), false)}</p>
           <div>
             <p class="act-title">${esc(p.title)}</p>
-            ${p.kind === "studojo" ? `<p class="sj-tag"><span class="mark" aria-hidden="true">S</span>${esc(LABEL)}</p>` : ""}
+            ${p.kind === "studojo" ? `<p class="sj-tag"><span class="mark" aria-hidden="true">S</span>Studojo post</p>` : ""}
           </div>
           ${m ? `<p class="act-nums">
             <span class="n-imp"><b>${nf(m.impressions)}</b> impressions</span>
@@ -1255,7 +1253,7 @@
       if (!ok) { toast("Couldn't copy. Tap see more, then select the text.", "error"); return; }
       p.copied = true; rerenderPost(id, '[data-act="posted"]'); renderCover();
       call({ intent: "copied", postId: id }).catch(() => {});
-      toast(p.kind === "studojo" ? "Copied, with the partnership line. Paste it into a new post on LinkedIn." : "Copied. Paste it into a new post on LinkedIn.");
+      toast("Copied. Paste it into a new post on LinkedIn.");
       return;
     }
     if (act === "line" || act === "posted" || act === "numbers") {
