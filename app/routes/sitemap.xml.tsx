@@ -124,6 +124,7 @@ export async function loader() {
     { loc: "/reports/job-search-tips-2026", publishDate: "2026-10-28" },
     { loc: "/reports/big-4-fresher-internship-report-2026", publishDate: "2026-11-05" },
     { loc: "/reports/pm-internship-scheme-report-2026", publishDate: "2026-11-05" },
+    { loc: "/reports/how-to-get-an-internship-india-2026", publishDate: "2026-11-05" },
     { loc: "/reports/highest-paying-jobs-freshers-india-2026", publishDate: "2026-11-06" },
     { loc: "/reports/jobs-after-bcom-bba-ba-2026", publishDate: "2026-11-07" },
     { loc: "/reports/hr-interview-questions-freshers-2026", publishDate: "2026-11-08" },
