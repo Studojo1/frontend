@@ -135,9 +135,9 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
              OR p.posted_at >= now() - interval '7 days'
              OR p.metrics_at >= now() - interval '7 days')
     `).then((r) => rows<CohortPostRow>(r)),
-    // Their latest LinkedIn analytics export: the totals only. The page works without it.
+    // Their latest LinkedIn analytics export: the totals and who saw their posts. The page works without it.
     db.execute(sql`
-      SELECT uploaded_at, period_start::text AS period_start, period_end::text AS period_end, data->'totals' AS totals
+      SELECT uploaded_at, period_start::text AS period_start, period_end::text AS period_end, data->'totals' AS totals, data->'demographics' AS demographics
       FROM ugc_creator_analytics
       WHERE creator_id = ${fellow.id}
       ORDER BY uploaded_at DESC

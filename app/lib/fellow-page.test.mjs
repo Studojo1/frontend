@@ -481,11 +481,11 @@ try {
   assert.deepEqual([tueAfter.impressions, tueAfter.reactions, tueAfter.comments, tueAfter.analytics], [tueBefore.impressions, tueBefore.reactions, tueBefore.comments, null],
     "a post published before the period keeps its numbers: the file has only part of its impressions");
   let anView = await page.loadFellowView(asha);
-  assert.deepEqual(anView.me.analytics, { at: anView.me.analytics.at, periodStart: from, periodEnd: today, impressions: 3101, membersReached: 1227, newFollowers: 3 });
+  assert.deepEqual(anView.me.analytics, { at: anView.me.analytics.at, periodStart: from, periodEnd: today, impressions: 3101, membersReached: 1227, newFollowers: 3,
+    audience: { jobTitle: { value: "Student", pct: 0.34 }, location: { value: "Pune", pct: 0.4 }, industry: null } }, "the totals and the top of who saw them");
   const doneView = anView.me.history.flatMap((w) => w.posts).find((p) => Number(p.id) === ids.aDone);
   assert.ok(doneView.analyticsAt);
   assert.deepEqual(doneView.metrics, { impressions: 1873, reactions: null, comments: null }, "unknown counts stay unknown, never 0");
-  assert.ok(!JSON.stringify(anView).includes("Student"), "the page doesn't show who saw them");
   // The same week again: both kept, the newest counts.
   await page.addFellowAnalytics(asha, await weekFile({ total: 3300, done: 2050 }), a0 + 1);
   assert.equal((await rowsFor(1)).length, 2);
