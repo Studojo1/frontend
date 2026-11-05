@@ -186,6 +186,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "how-to-get-an-internship-india-2026",
+    publishDate: "2026-11-05",
+    title: "How to Get an Internship in India in 2026: Where to Look, What It Pays, and the Move That Works",
+    subtitle: "Internships · 2026",
+    excerpt: "Where internships are actually listed in India, what stipends really look like (only about 2.1% of listings even say), and why emailing the person who hires beats mass applying when about 85 in 100 listings name no one to contact.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "india-entry-level-jobs-internships-october-2026",
     publishDate: "2026-11-03",
     title: "India Entry-Level Jobs and Internships, October 2026: 171,203 Listings, Counted",

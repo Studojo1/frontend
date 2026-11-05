@@ -63,6 +63,7 @@ export default [
   route("reports/highest-paying-jobs-freshers-india-2026", "routes/reports.highest-paying-jobs-freshers-india-2026.tsx"),
   route("reports/big-4-fresher-internship-report-2026", "routes/reports.big-4-fresher-internship-report-2026.tsx"),
   route("reports/pm-internship-scheme-report-2026", "routes/reports.pm-internship-scheme-report-2026.tsx"),
+  route("reports/how-to-get-an-internship-india-2026", "routes/reports.how-to-get-an-internship-india-2026.tsx"),
   route("reports/india-entry-level-jobs-internships-october-2026", "routes/reports.india-entry-level-jobs-internships-october-2026.tsx"),
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
