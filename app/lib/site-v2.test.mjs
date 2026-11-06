@@ -168,7 +168,7 @@ const PINNED = {
   // EMQ 5 Nov: section 12's "Identifiers sent with them" lists the hashed phone, name, country and visitor ID too
   // (app/lib/meta-capi.server.ts, meta-pixel.ts), and the purpose table's Meta row says hashed email, phone number,
   // name and IDs; nothing else changed
-  "routes/privacy.tsx": "30b691518329695f",
+  "routes/privacy.tsx": "66a7b1851108b3b2",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
   // SUPPORT-STU 2 Nov: contact.tsx lost the chat copy and gained the signed-in Ask Stu card (hash re-pinned).
   // QA-FIX 2 Nov: copy only (one sending promise, career agent, reset emails paused, chat bubble bottom left, About's

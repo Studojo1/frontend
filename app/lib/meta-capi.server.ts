@@ -11,6 +11,7 @@
 import crypto from "node:crypto";
 import { buildFbc } from "./attribution";
 import { FIRST_TOUCH_COOKIE, LAST_TOUCH_COOKIE, VISITOR_COOKIE, parseCookies, readSource, validVisitorId } from "./journey";
+import { IP6_COOKIE, publicIpv6 } from "./meta-ip6";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v21.0";
 const PIXEL_ID = process.env.META_PIXEL_ID || "1402801611979819";
@@ -320,9 +321,12 @@ export function metaUserDataFromRequest(request: Request): MetaUserData {
   // Behind the ingress the socket address is the proxy, so the real client is
   // the first entry of x-forwarded-for.
   const xff = request.headers.get("x-forwarded-for") || "";
-  const clientIp = xff.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
+  const cookies = parseCookies(cookieHeader);
+  // EMQ-IP6: the browser's own IPv6 address when it has one (meta-ip6.ts), the address Meta's pixel sees; else the one
+  // our ingress saw (IPv4 only).
+  const clientIp = publicIpv6(cookies.get(IP6_COOKIE)) ?? (xff.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null);
 
-  const vid = parseCookies(cookieHeader).get(VISITOR_COOKIE);
+  const vid = cookies.get(VISITOR_COOKIE);
 
   return {
     fbp: readCookie("_fbp"),

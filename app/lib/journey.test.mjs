@@ -143,7 +143,7 @@ const analytics = readFileSync(`${APP}lib/analytics.ts`, "utf8");
 assert.match(analytics, /return `reg_\$\{userId\}`;/);
 // META-FIX (B4): claimed once a person on the server first (both hosts), PostHog's signed_up with it; the per-user
 // flag still guards this browser (meta-fix.test.mjs drives it).
-assert.match(analytics, /claimMetaOnce\("CompleteRegistration", registrationEventId\(user\.id\), \{ posthog: true \}\)/);
+assert.match(analytics, /claimMetaOnce\("CompleteRegistration", registrationEventId\(user\.id\), \{ posthog: true, meta: false \}\)/);
 assert.match(analytics, /if \(answer\.posthog !== false\) capturePostHog\("signed_up", \{ email: user\.email, name: user\.name \}\)/);
 assert.match(analytics, /if \(localStorage\.getItem\(key\)\) return Promise\.resolve\(\);/, "the per-user signed_up flag");
 const { registrationEventId } = await import("./analytics.ts").catch(() => ({}));

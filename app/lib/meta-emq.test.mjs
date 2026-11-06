@@ -245,6 +245,6 @@ assert.deepEqual(relayed.map(([, b]) => b.eventId), ["ev_1", "ev_2"], "the serve
 
 // ── The privacy page names what is now sent.
 const privacy = readFileSync(`${APP}routes/privacy.tsx`, "utf8");
-assert.match(privacy, /Identifiers sent with them:<\/span> scrambled \(SHA-256 hashed\) copies of your email address, phone number, name and country, a hashed account ID and visitor ID, your IP address, your browser details, and the _fbp and _fbc cookies\./);
+assert.match(privacy, /Identifiers sent with them:<\/span> scrambled \(SHA-256 hashed\) copies of your email address, phone number, name and country, a hashed account ID and visitor ID, your IP address \(your device&apos;s IPv6 address too, which our own server reads when your network has one\), your browser details, and the _fbp and _fbc cookies\./);
 
 console.log("meta-emq: ok");

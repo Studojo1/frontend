@@ -7,6 +7,7 @@
 import { consentForServer, trackingAllowed } from "./consent";
 import { metaBrowserIds } from "./attribution";
 import { VISITOR_COOKIE, parseCookies, validVisitorId } from "./journey";
+import { IP6_COOKIE, IP6_ECHO_URL, IP6_MAX_AGE_S, ip6CookieDomain, publicIpv6 } from "./meta-ip6";
 
 // META-FIX (2 Nov 2026), the event map (one meaning per name, one dataset for studojo.com and platform.studojo.com):
 //   PageView              every page change, browser only.
@@ -14,10 +15,14 @@ import { VISITOR_COOKIE, parseCookies, validVisitorId } from "./journey";
 //                         event_id, once a tab session. The platform never fires Lead.
 //   CompleteRegistration  a new account, reg_<userId>, browser + server, once a person across both hosts: claimed on the
 //                         server first (claimMetaOnce, career_agent.career_tracking_once), so a second host sends nothing.
+//                         EMQ-REG (6 Nov 2026, the owner chose it): sent by the platform's /start once the WhatsApp
+//                         number is verified, so it carries the phone; /auth here claims PostHog's signed_up only.
 //   OnboardingComplete    the platform's custom event (set up done); never sent from here.
 //   ViewContent, InitiateCheckout, AddPaymentInfo, Purchase: the old /outreach funnel (analytics.ts META_EVENT); the
 //                         server copies of InitiateCheckout and AddPaymentInfo carry value and currency too.
 // Every server copy also carries fbc (the _fbc cookie, else built from the stored fbclid) and fbp when _fbp exists.
+// EMQ-IP6 (6 Nov 2026): init also asks our IPv6 echo for this browser's own IPv6 address, for the server copies'
+// client_ip_address (meta-ip6.ts); nothing waits on it.
 
 const PIXEL_ID = import.meta.env?.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
 
@@ -219,11 +224,33 @@ export function bootPixel(pixelId: string, userData?: Record<string, string>): b
   }
 }
 
+/** How long the IPv6 echo has to answer. */
+const IP6_WAIT_MS = 3000;
+
+/**
+ * EMQ-IP6: this browser's own IPv6 address into the IP6_COOKIE cookie on the parent domain, or "-" when the echo says it
+ * has none (an IPv4-only network), so a page load asks only when the cookie is gone. A failed ask sets nothing. Never
+ * rejects.
+ */
+async function noteIpv6(): Promise<void> {
+  try {
+    const domain = ip6CookieDomain(window.location.hostname);
+    if (!domain || parseCookies(document.cookie).has(IP6_COOKIE)) return;
+    const r = await fetch(IP6_ECHO_URL, { credentials: "omit", cache: "no-store", signal: AbortSignal.timeout(IP6_WAIT_MS) });
+    if (!r.ok) return;
+    const ip = publicIpv6(await r.text());
+    document.cookie = `${IP6_COOKIE}=${ip ?? "-"}; Domain=${domain}; Path=/; Max-Age=${IP6_MAX_AGE_S}; SameSite=Lax; Secure`;
+  } catch {
+    // no answer: the server sends the address it sees
+  }
+}
+
 export function initMetaPixel() {
   if (typeof window === "undefined") return;
   if (!PIXEL_ID) return;
   if (isInitialized) return;
   if (!metaAllowed()) return;
+  void noteIpv6();
   void startPixel(PIXEL_ID);
 }
 
@@ -343,9 +370,10 @@ export function onceAnswer(json: unknown): OnceAnswer {
  * tell). posthog: also claim PostHog's signed_up. The request goes even when Meta may not be told (meta: false), so
  * PostHog's claim still happens. Never throws.
  */
-export async function claimMetaOnce(eventName: "CompleteRegistration", eventId: string, opts: { posthog?: boolean } = {}): Promise<OnceAnswer> {
+export async function claimMetaOnce(eventName: "CompleteRegistration", eventId: string, opts: { posthog?: boolean; meta?: boolean } = {}): Promise<OnceAnswer> {
   if (typeof window === "undefined") return { meta: null, posthog: null };
-  const allowed = metaAllowed();
+  // EMQ-REG: meta: false claims PostHog's alone (the platform's /start sends Meta's once the phone is verified).
+  const allowed = opts.meta !== false && metaAllowed();
   let answer: OnceAnswer = { meta: null, posthog: null };
   try {
     const r = await fetch("/api/meta-event", {

@@ -107,7 +107,8 @@ export function registrationEventId(userId: string): string {
 let pendingSignup: Promise<void> | null = null;
 
 /**
- * signed_up (PostHog) and Meta CompleteRegistration exactly once per account, across both hosts (META-FIX B4). The
+ * signed_up (PostHog) exactly once per account, across both hosts (META-FIX B4; since EMQ-REG, 6 Nov 2026, Meta's
+ * CompleteRegistration is the platform's, sent once the WhatsApp number is verified, so this claims PostHog's alone). The
  * per-origin localStorage flag alone let studojo.com and platform.studojo.com (this site's /auth runs on both) each
  * report it. Now the server claims it first (api/meta-event once: true, career_agent.career_tracking_once): PostHog's
  * signed_up is captured only when its claim is the first, and the pixel's copy only when Meta's is (the server sends
@@ -125,7 +126,9 @@ export function trackSignedUpOnce(user: { id: string; email?: string | null; nam
   }
   const run = (async () => {
     try {
-      const answer = await claimMetaOnce("CompleteRegistration", registrationEventId(user.id), { posthog: true });
+      // EMQ-REG (6 Nov 2026, the owner chose it): Meta's CompleteRegistration is the platform's now, sent once the
+      // WhatsApp number is verified so it carries the phone (career-agent start.tsx); here PostHog's claim alone.
+      const answer = await claimMetaOnce("CompleteRegistration", registrationEventId(user.id), { posthog: true, meta: false });
       if (answer.posthog !== false) capturePostHog("signed_up", { email: user.email, name: user.name });
     } catch {
       // analytics must never break the app
