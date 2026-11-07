@@ -87,6 +87,7 @@
     stories: ME.stories.slice(),
     promptIdx: 0, listening: false, spoke: false, storyErr: "",
     howto: false,
+    stock: {}, stockFocus: null,
   };
   const byId = (id) => S.posts.find((p) => p.id === id);
   // Your activity: the one earlier post with a panel open ("numbers" or "posted"), and what's typed in it.
@@ -224,7 +225,7 @@
       box.innerHTML = `
         <h2 class="card-title" id="analytics-title">${ic("image")}Two things only you can add</h2>
         <ol class="shots-steps">
-          <li><b>Your own photo on every post.</b> Add it on the post before you copy it: Copy and Post on LinkedIn unlock once it's there.</li>
+          <li><b>A photo on every post.</b> Add your own before you copy it. No photo? Use the stock image we pick for it. Copy and Post on LinkedIn unlock once it's there.</li>
           <li><b>Every Sunday, your LinkedIn analytics.</b> Export the last 7 days from LinkedIn and upload the file here. Your posts' numbers fill in from it.${done ? ` <span class="chip chip-good">${ic("check", "ic-xs")}Uploaded ${fmt(ME.analytics.at.slice(0, 10), false)}</span>` : ""}</li>
         </ol>
         ${weekTotals()}
@@ -277,16 +278,47 @@
       ? `<span class="shot-add is-busy">Adding ${S.photoBusy.done + 1} of ${S.photoBusy.total}</span>`
       : n >= P.photosPerPost ? ""
       : `<button class="shot-add ${n ? "" : "is-primary"}" type="button" data-act="photo-add" data-id="${p.id}" aria-label="${n ? "Add another photo" : "Add your photo"}, ${esc(p.title)}">${ic("image")}<span>${n ? "Add another" : "Add your photo"}</span></button>`;
-    const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">I don't have a photo for this</button>` : "";
+    const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">No photo? Use a stock image</button>` : "";
     const note = n ? "On LinkedIn, add this photo to the post as well: the link only carries the text."
-      : p.photoHelp ? "You asked for a photo: the Studojo team will add one here. The post unlocks once it's here, or once you add your own."
+      : p.photoHelp ? "Copy and Post on LinkedIn unlock once the post has a photo: this stock image or your own."
       : "Copy and Post on LinkedIn unlock once your own photo is added. Every post goes out with one.";
     return `<div class="ph">
       <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo for this post:</b> ${esc(p.photoIdea || PHOTO_IDEA)}</span></p>
       <div class="shots-strip">${thumbs}${add}${help}</div>
+      ${!n && p.photoHelp ? stockBlock(p) : ""}
       <p class="ph-note ${n ? "" : "is-locked"}" id="phnote-${p.id}">${note}</p>
     </div>`;
   }
+  // No photo of their own: a stock image picked for the post (fetched once), and the one question: can they post it?
+  function stockBlock(p) {
+    const st = S.stock[p.id];
+    if (!st) loadStock(p.id);
+    if (!st || st.busy === "load") return `<div class="stk"><p class="stk-q" role="status">Finding a stock image for this post...</p></div>`;
+    if (st.error || !st.list.length) {
+      return `<div class="stk"><p class="stk-q" role="status">${esc(st.error || "We couldn't find a stock image for this post. Add your own photo instead.")}</p>
+        <div class="stk-acts"><button class="btn btn-ghost btn-sm" type="button" data-act="stock-retry" data-id="${p.id}">Try again</button></div></div>`;
+    }
+    const pick = st.list[st.at % st.list.length], off = st.busy ? " disabled" : "";
+    return `<div class="stk">
+      <p class="stk-q"><b>Can you post it with a stock image?</b> We picked this one for your post. It's free to use, with no credit needed.</p>
+      <img class="stk-img" src="${esc(pick.src)}" alt="Stock image: ${esc(pick.title || "a picture for this post")}" loading="lazy" referrerpolicy="no-referrer">
+      <div class="stk-acts">
+        <button class="btn btn-primary btn-sm" type="button" data-act="stock-use" data-id="${p.id}"${off}>${st.busy === "use" ? "Adding it..." : "Yes, use this image"}</button>
+        ${st.list.length > 1 ? `<button class="btn btn-ghost btn-sm" type="button" data-act="stock-next" data-id="${p.id}"${off}>Show another</button>` : ""}
+      </div>
+    </div>`;
+  }
+  async function loadStock(id) {
+    if (S.stock[id]) return;
+    S.stock[id] = { list: [], at: 0, busy: "load" };
+    try {
+      const r = await send(`${API}/stock?post=${encodeURIComponent(id)}`, { headers: { Accept: "application/json" } });
+      S.stock[id] = { list: (r && r.stock) || [], at: 0, busy: null };
+    } catch (e) { S.stock[id] = { list: [], at: 0, busy: null, error: e.message }; }
+    refreshPhoto(id);
+    if (S.stockFocus === id) { S.stockFocus = null; focusEl(`[data-act="stock-use"][data-id="${id}"]`) || focusEl(`[data-act="stock-retry"][data-id="${id}"]`); }
+  }
+
   // The post as LinkedIn will show it: the photos under the text.
   function liMedia(p) {
     if (!hasPhoto(p)) return "";
@@ -295,10 +327,10 @@
   }
   // A tap on a locked button says why and takes them to Add your photo, instead of doing nothing.
   function needPhoto(id) {
-    const p = imagePost(id), add = $(`[data-act="photo-add"][data-id="${id}"]`);
+    const p = imagePost(id), add = $(`[data-act="stock-use"][data-id="${id}"]`) || $(`[data-act="photo-add"][data-id="${id}"]`);
     if (add) { add.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); add.focus({ preventScroll: true }); }
     toast(p && p.photoHelp
-      ? "The Studojo team is adding a photo to this post. To post it now, add your own photo."
+      ? "This post needs a photo first: use the stock image we picked for it, or add your own."
       : "Add your own photo to this post first. Then Post on LinkedIn, Copy and I posted it unlock.", "error");
   }
   function refreshPhoto(id) { if (byId(id)) { rerenderPost(id); renderCover(); } else renderActivity(); }
@@ -427,7 +459,7 @@
     if (!next) dek = `${allPosts(total, "up")}. <b>That's this week done.</b>`;
     else if (!hasPhoto(next)) {
       dek = next.photoHelp
-        ? `<b>The Studojo team is adding a photo to ${dowLong(next.date)}'s post.</b> It unlocks once the photo is there, or once you add your own.`
+        ? `<b>No photo for ${dowLong(next.date)}'s post?</b> Use the stock image we picked for it, or add your own, to unlock it.`
         : `<b>Add your own photo to ${dowLong(next.date)}'s post</b> to unlock it. Every post goes out with one.`;
     } else if (next.copied) dek = `${dowLong(next.date)}'s post is copied. Paste it on LinkedIn, then tap <b>I posted it</b>.`;
     else if (away(next.date) < 0) {
@@ -1183,7 +1215,7 @@
     el.focus({ preventScroll: true });
   }
   const toInt = (v) => { const s = String(v).replace(/[,\s]/g, ""); return /^\d+$/.test(s) ? parseInt(s, 10) : NaN; };
-  const focusEl = (sel) => { const el = $(sel); if (el) el.focus(); };
+  const focusEl = (sel) => { const el = $(sel); if (el) el.focus(); return !!el; };
   function closeHist() {
     const id = S.histOpen, kind = S.histKind;
     S.histOpen = null; S.histKind = null; S.histErr = ""; S.histDraft = null; S.histUrl = "";
@@ -1237,9 +1269,22 @@
       b.disabled = true;
       try { if (!applyView(await call({ intent: "photo-help", postId: id }))) return; }
       catch (e) { b.disabled = false; toast(e.message, "error"); return; }
+      S.stockFocus = id;
       refreshPhoto(id);
-      focusEl(`[data-act="photo-add"][data-id="${id}"]`);
-      toast("Thanks. The Studojo team will add a photo to this post. You can still add your own.");
+      return;
+    }
+    if (act === "stock-next") { const st = S.stock[id]; if (st) st.at++; refreshPhoto(id); focusEl(`[data-act="stock-next"][data-id="${id}"]`); return; }
+    if (act === "stock-retry") { delete S.stock[id]; S.stockFocus = id; refreshPhoto(id); return; }
+    if (act === "stock-use") {
+      const st = S.stock[id], pick = st && st.list[st.at % st.list.length];
+      if (!pick || st.busy) return;
+      st.busy = "use"; refreshPhoto(id);
+      try { if (!applyView(await call({ intent: "stock-use", postId: id, stockId: pick.id }))) return; }
+      catch (e) { st.busy = null; refreshPhoto(id); focusEl(`[data-act="stock-use"][data-id="${id}"]`); toast(e.message, "error"); return; }
+      delete S.stock[id];
+      refreshPhoto(id);
+      focusEl(`[data-act="share"][data-id="${id}"]`) || focusEl(`[data-act="hist-copy"][data-id="${id}"]`);
+      toast("Stock image added, so the post is unlocked. Add the same image when you post it on LinkedIn.");
       return;
     }
     if (act === "ask-no") { closeAsk(); toast("No problem. It stays here until you post it."); return; }

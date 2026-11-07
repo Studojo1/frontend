@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { proofStore } from "~/lib/fellow-proof.server";
 import { CoachUnavailable, readBack, type CoachAsk, type CoachProfile } from "~/lib/fellow-coach.server";
+import { stockFor, stockJpeg, type StockPick } from "~/lib/fellow-stock.server";
 import {
   activityOf,
   AnalyticsFileError,
@@ -263,13 +264,28 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       return;
     }
     case "photo-help": {
-      // The fellow has no photo of their own for this post: the team adds one. Adding a photo clears it.
+      // The fellow has no photo of their own for this post: the page offers stock images for it. Adding a photo clears it.
       const id = postId(body.postId);
       const r = await db.execute(sql`
         UPDATE ugc_creator_posts SET photo_help_at = COALESCE(photo_help_at, now()), updated_at = now()
         WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
       `);
       if (!updated(r)) await refuseChange(db, fellow, id, "This post is already posted.");
+      return;
+    }
+    case "stock-use": {
+      // "Yes, I can post a stock image": the picture they chose is saved on the post like their own photo.
+      const picks = await stockPicks(fellow, body.postId);
+      const pick = picks.find((p) => p.id === body.stockId);
+      if (!pick) throw new FellowInputError("That stock image isn't on offer for this post any more. Pick another one.", 404);
+      let jpeg: Uint8Array;
+      try {
+        jpeg = await stockJpeg(pick, MAX_IMAGE_BYTES);
+      } catch (e) {
+        console.error("[fellow-page] stock image fetch failed:", e instanceof Error ? e.message : "unknown");
+        throw new FellowInputError(NO_STOCK, 503);
+      }
+      await addFellowImage("photo", fellow, body.postId, jpeg);
       return;
     }
     case "numbers": {
@@ -507,6 +523,26 @@ async function photoEntries(exec: { execute: typeof db.execute }, fellow: Fellow
     throw new FellowInputError(`This post has ${PHOTOS_PER_POST} photos, the most it can have. Remove one to add another.`, 409);
   }
   return entriesOf(raw);
+}
+
+const NO_STOCK = "We couldn't get a stock image just now. Try again in a minute, or add your own photo.";
+
+/** Stock images for one of the fellow's posts that's on their page and not out yet. */
+export async function stockPicks(fellow: FellowRow, rawPostId: unknown): Promise<StockPick[]> {
+  const id = postId(rawPostId);
+  const weekEnd = addDays(weekOf(istDate()), 6);
+  const row = rows<Row>(await db.execute(sql`
+    SELECT status, due_date <= ${weekEnd}::date AS open, title, kind, photo_idea
+    FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
+  `))[0];
+  if (livePost(row) !== "ready") throw new FellowInputError("This post is already posted, so its photos can't change now.", 409);
+  if (!row!.open) throw new FellowInputError("That post isn't on your page yet.", 404);
+  try {
+    return await stockFor({ photoIdea: (row!.photo_idea as string | null) ?? null, title: String(row!.title ?? ""), kind: String(row!.kind ?? "") });
+  } catch (e) {
+    console.error("[fellow-page] stock search failed:", e instanceof Error ? e.message : "unknown");
+    throw new FellowInputError(NO_STOCK, 503);
+  }
 }
 
 /** Saves one photo (a JPEG the page has already re-encoded) on one of the fellow's posts. */
