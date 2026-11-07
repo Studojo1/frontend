@@ -35,8 +35,6 @@ import {
   STORY_PROMPTS,
   type AnalyticsRow,
   type ApplicationRow,
-  type CohortFellowRow,
-  type CohortPostRow,
   type ConnectionRow,
   type FellowPostRow,
   type FellowRow,
@@ -84,7 +82,7 @@ export async function findFellow(slug: string): Promise<FellowRow | null> {
 }
 
 export async function loadFellowView(fellow: FellowRow, now: Date = new Date()): Promise<FellowView> {
-  const [application, posts, stories, connections, rules, cohortFellows, cohortPosts, analytics] = await Promise.all([
+  const [application, posts, stories, connections, rules, analytics] = await Promise.all([
     fellow.application_id
       ? db.execute(sql`SELECT course, year_of_study, city FROM ugc_applications WHERE id = ${fellow.application_id}`)
           .then((r) => rows<ApplicationRow>(r)[0] ?? null)
@@ -118,24 +116,6 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
     db.execute(sql`SELECT rules FROM ugc_programme WHERE id = 1`)
       .then((r) => (rows<Row>(r)[0]?.rules ?? null) as ProgrammeRules | null)
       .catch(() => null),
-    // The rest of the cohort: an id and a first name only (shown only if the rules allow).
-    db.execute(sql`
-      SELECT id, split_part(trim(full_name), ' ', 1) AS first_name
-      FROM ugc_creators
-      WHERE cohort IS NOT DISTINCT FROM ${fellow.cohort} AND status = 'active' AND id <> ${fellow.id}
-    `).then((r) => rows<CohortFellowRow>(r)),
-    // Their posts this week and anything they did in the last 7 days, for counts and news.
-    db.execute(sql`
-      SELECT p.creator_id, p.status, p.due_date, p.posted_at, p.impressions, p.metrics_at
-      FROM ugc_creator_posts p
-      JOIN ugc_creators c ON c.id = p.creator_id
-      WHERE c.cohort IS NOT DISTINCT FROM ${fellow.cohort}
-        AND (c.status = 'active' OR c.id = ${fellow.id})
-        AND p.status IN ('ready', 'posted')
-        AND (p.due_date >= ${weekOf(istDate(now.getTime()))}::date
-             OR p.posted_at >= now() - interval '7 days'
-             OR p.metrics_at >= now() - interval '7 days')
-    `).then((r) => rows<CohortPostRow>(r)),
     // Their latest LinkedIn analytics export: the totals and who saw their posts. The page works without it.
     db.execute(sql`
       SELECT uploaded_at, period_start::text AS period_start, period_end::text AS period_end, data->'totals' AS totals, data->'demographics' AS demographics
@@ -146,7 +126,7 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
     `).then((r) => rows<AnalyticsRow>(r)[0] ?? null)
       .catch(() => null),
   ]);
-  return buildFellowView({ fellow, application, posts, stories, connections, rules, cohortFellows, cohortPosts, analytics }, now.getTime());
+  return buildFellowView({ fellow, application, posts, stories, connections, rules, analytics }, now.getTime());
 }
 
 // ---------------------------------------------------------------- what the page can change

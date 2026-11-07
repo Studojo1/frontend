@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
-export const ASSET_VERSION = "20261107e";
+export const ASSET_VERSION = "20261108a";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -96,7 +96,6 @@ const PAGE_TOP = `<a class="brand" href="#posts" aria-label="Studojo Growth Fell
     <nav class="d-nav" aria-label="Sections">
       <button type="button" data-act="tab" data-tab="home" aria-current="page"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>Home</span></button>
       <button type="button" data-act="tab" data-tab="stories"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-mic"/></svg><span>Stories</span></button>
-      <button type="button" data-act="tab" data-tab="cohort"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-users"/></svg><span>Cohort</span></button>
       <button type="button" data-act="tab" data-tab="updates"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"/></svg><span>Activity</span></button>
       <button type="button" data-act="tab" data-tab="milestones"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-briefcase"/></svg><span>Milestones</span></button>
       <button type="button" class="d-me" data-act="tab" data-tab="me"><span class="avatar" id="d-avatar" aria-hidden="true"></span><span>Me</span></button>
@@ -217,10 +216,9 @@ const PAGE = `
     <div class="post-list" id="posts"></div>
   </main>
 
-  <aside class="rail-right" aria-label="Milestones, stories and fellowship news">
+  <aside class="rail-right" aria-label="Milestones and stories">
     <section class="card card-pad" id="milestones" aria-labelledby="ms-title"></section>
     <section class="card card-pad share" id="share" aria-labelledby="share-title"></section>
-    <section class="card card-pad" id="news" aria-labelledby="news-title"></section>
   </aside>
 
   <section class="activity card card-pad" id="activity" aria-labelledby="act-title"></section>${LEARN}
@@ -229,7 +227,6 @@ const PAGE = `
 <nav class="m-tabs" id="m-tabs" aria-label="Sections">
   <button type="button" data-act="tab" data-tab="home" aria-current="page"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>Home</span></button>
   <button type="button" data-act="tab" data-tab="stories"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-mic"/></svg><span>Stories</span></button>
-  <button type="button" data-act="tab" data-tab="cohort"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-users"/></svg><span>Cohort</span></button>
   <button type="button" data-act="tab" data-tab="updates"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"/></svg><span>Activity</span></button>
   <button type="button" data-act="tab" data-tab="milestones"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-briefcase"/></svg><span>Milestones</span></button>
 </nav>

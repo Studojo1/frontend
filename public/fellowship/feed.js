@@ -112,7 +112,6 @@
     ME.thisWeek.due = M.thisWeek.due;
     Object.assign(ME, {
       weeklyRun: M.weeklyRun, completedWeeks: M.completedWeeks, milestones: M.milestones, history: M.history,
-      cohortPosition: M.cohortPosition, cohortPostedThisWeek: M.cohortPostedThisWeek, cohortSize: M.cohortSize, cohortFeed: M.cohortFeed,
       analytics: M.analytics,
     });
     S.conn.now = M.connections.now; S.conn.atJoin = M.connections.atJoin; S.conn.history = M.connections.history.slice();
@@ -254,7 +253,7 @@
     catch (e) { S.anBusy = false; renderAnalytics(); focusEl('[data-act="analytics-add"]'); toast(e.message, "error"); return; }
     S.anBusy = false;
     if (!applyView(v)) return;
-    renderAnalytics(); renderPosts(); renderActivity(); renderNews();
+    renderAnalytics(); renderPosts(); renderActivity();
     focusEl('[data-act="analytics-add"]');
     const a = ME.analytics;
     toast(a && a.impressions != null
@@ -1010,20 +1009,6 @@
         <ul class="story-list">${stories}</ul>`;
   }
 
-  /* ---------- fellowship news */
-  function renderNews() {
-    const items = ME.cohortFeed.length
-      ? ME.cohortFeed.map((e) => `<li><b>${esc(e.text)}</b><span>${esc(e.ago)}</span></li>`).join("")
-      : `<li><span>Nothing new in the last 7 days.</span></li>`;
-    $("#news").innerHTML = `
-      <div class="card-head"><h2 class="card-title" id="news-title">Fellowship news</h2></div>
-      <div class="news-hi">${ic("trend")}<div>${ME.cohortPosition ? `<b>${esc(ME.cohortPosition)}</b>` : ""}<span>${ME.cohortPostedThisWeek} of ${ME.cohortSize} ${ME.cohortSize === 1 ? "fellow has" : "fellows have"} posted this week</span></div></div>
-      <div class="news-group">
-        <p class="kicker">Latest in ${ME.cohort ? esc(ME.cohort) : "the fellowship"}</p>
-        <ul class="news-list">${items}</ul>
-      </div>`;
-  }
-
   /* ---------- Understand LinkedIn's algorithm: what we're seeing on the fellow's own posts, then one tip a
      week (lifted out of the read below, which stays as it is). Every line comes from their own numbers, and
      a line shows only when its numbers exist. */
@@ -1250,7 +1235,7 @@
   $("#ask").addEventListener("cancel", (ev) => { ev.preventDefault(); closeAsk(); });
 
   function markedPosted(p) {
-    rerenderPost(p.id); refreshProgress(); renderNews();
+    rerenderPost(p.id); refreshProgress();
     // The next post is now "Up next". A card with a panel open keeps what's typed and catches up when it closes.
     const nx = nextPost(); if (nx && !nx.panel) rerenderPost(nx.id);
     focusEl("#post-" + p.id);
@@ -1479,7 +1464,7 @@
       try { if (!applyView(await call({ intent: "numbers", postId: id, impressions: imp, reactions: rea, comments: com }))) return; }
       catch (e) { S.histDraft = raw; S.histErr = e.message; renderActivity(); focusEl("#himp-" + id); return; }
       S.histOpen = null; S.histKind = null; S.histErr = ""; S.histDraft = null;
-      renderActivity(); renderNews(); focusEl("#act-" + id);
+      renderActivity(); focusEl("#act-" + id);
       toast("Numbers saved. Thank you.");
       return;
     }
@@ -1499,7 +1484,7 @@
       try { if (!applyView(await call({ intent: "posted", postId: id, url: raw }))) return; }
       catch (e) { S.histErr = e.message; S.histUrl = raw; renderActivity(); focusEl("#hurl-" + id); return; }
       S.histOpen = null; S.histKind = null; S.histErr = ""; S.histUrl = "";
-      refreshProgress(); renderActivity(); renderNews(); focusEl("#act-" + id);
+      refreshProgress(); renderActivity(); focusEl("#act-" + id);
       toast(`Marked as posted. Add your numbers on ${fmt(addDays(TODAY, 7))}.`);
       return;
     }
@@ -1634,7 +1619,7 @@
   const SECTIONS = {
     home: ["#notice", "#analytics", "#ed-cover", ".learn-teaser", ".feed-head", "#posts"],
     learn: ["#learn"],
-    stories: ["#share"], cohort: ["#news"], updates: ["#activity"], milestones: ["#milestones"], me: ["#profile"],
+    stories: ["#share"], updates: ["#activity"], milestones: ["#milestones"], me: ["#profile"],
   };
   let tab = "home";
   function showTab(t) {
@@ -1650,7 +1635,7 @@
     if (phone.matches) window.scrollTo(0, 0);
   }
   // Desktop shows every section at once, so its top nav scrolls to the section instead of switching.
-  const DESK_TARGET = { home: null, stories: "#share", cohort: "#news", updates: "#activity", milestones: "#milestones", me: "#profile", learn: "#learn" };
+  const DESK_TARGET = { home: null, stories: "#share", updates: "#activity", milestones: "#milestones", me: "#profile", learn: "#learn" };
   function goToSection(t) {
     document.querySelectorAll(".d-nav [data-tab]").forEach((b) => { if (b.dataset.tab === t) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
     const smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
@@ -1683,7 +1668,7 @@
   if (askingForStories()) { const share = $("#share"); $("#main").insertBefore(share, $("#ed-cover")); share.classList.add("is-first"); }
   // Analytics that are due go first; the rest of the time the reminder sits under the story ask.
   if (!analyticsDue()) $("#main").insertBefore($("#analytics"), $("#ed-cover"));
-  renderTop(); renderProfile(); renderAnalytics(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderNews(); renderActivity(); renderLearn();
+  renderTop(); renderProfile(); renderAnalytics(); renderCover(); renderPosts(); renderMilestones(); renderShare(false); renderActivity(); renderLearn();
   showTab("home");
   $("#page").classList.add("is-ready");
   $("#main").removeAttribute("aria-busy");
