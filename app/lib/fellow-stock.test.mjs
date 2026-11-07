@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { modelPicks, rankByWords, spread, stockFor, stockWords } from "./fellow-stock.server.ts";
+import { hitToPick, modelPicks, rankByWords, searchQuery, spread, stockById, stockFor, stockSearch, stockWords } from "./fellow-stock.server.ts";
 import LIBRARY from "./fellow-stock-library.json" with { type: "json" };
 
 // The library: public-domain photos from the WordPress Photo Directory, each vetted and described once.
@@ -35,5 +35,28 @@ assert.ok(new Set(["1", "2", "3", "4", "5", "6", "7", "8"].map((s) => spread([1,
 const picks = await stockFor({ id: 1, photoIdea: "A photo of your desk with your laptop and notes", title: "t", kind: "personal" }, async () => { throw new Error("down"); });
 assert.ok(picks.length >= 3 && picks.length <= 6, "a handful of pictures");
 assert.ok(picks.every((p) => LIBRARY.some((x) => x.id === p.id && x.src === p.src)), "only library pictures are offered");
+
+// The fellow's own search: library matches first, then the photo directory's own results, only usable ones.
+const UUID = "6adcab40-54a1-4192-ada8-96968da73762";
+const hit = (o) => ({ id: UUID, title: "Chai cup", url: "https://pd.w.org/2024/01/chai.jpg", license: "cc0", source: "wordpress", ...o });
+assert.equal(hitToPick(hit()).thumb, `https://api.openverse.org/v1/images/${UUID}/thumb/`, "a small copy for the grid");
+assert.equal(hitToPick(hit({ source: "flickr" })), null, "only the WordPress Photo Directory");
+assert.equal(hitToPick(hit({ license: "by" })), null, "only public domain");
+assert.equal(hitToPick(hit({ url: "https://evil.example/chai.jpg" })), null, "only pictures on pd.w.org");
+assert.equal(hitToPick(hit({ id: "../x" })), null, "odd ids are refused");
+assert.equal(searchQuery("  Chai & laptop!! <script>  "), "chai laptop script", "letters only");
+const found = await stockSearch("chai laptop", async () => [hit(), hit({ id: "6adcab40-54a1-4192-ada8-96968da73763", source: "flickr" })]);
+assert.ok(found.length >= 2 && found.length <= 12, "library matches and live results together");
+assert.ok(found.some((p) => p.id === UUID), "the live result is in");
+assert.ok(!found.some((p) => p.id.endsWith("763")), "the unusable one isn't");
+assert.ok((await stockSearch("chai desk", async () => { throw new Error("down"); })).length > 0, "the library still answers when Openverse is down");
+assert.deepEqual(await stockSearch("  !!  ", async () => [hit()]), [], "an empty search finds nothing");
+
+// The chosen photo is looked up again: the library, or Openverse by id. The page's copy is never trusted.
+assert.equal((await stockById(LIBRARY[0].id, async () => { throw new Error("not called"); })).src, LIBRARY[0].src);
+assert.equal((await stockById(UUID, async () => hit())).src, "https://pd.w.org/2024/01/chai.jpg");
+assert.equal(await stockById(UUID, async () => hit({ license: "by" })), null);
+assert.equal(await stockById(UUID, async () => null), null);
+assert.equal(await stockById("../../etc", async () => hit()), null);
 
 console.log("fellow-stock: ok");

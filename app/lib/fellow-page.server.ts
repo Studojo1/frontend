@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { proofStore } from "~/lib/fellow-proof.server";
 import { CoachUnavailable, readBack, type CoachAsk, type CoachProfile } from "~/lib/fellow-coach.server";
-import { stockFor, stockJpeg, type StockPick } from "~/lib/fellow-stock.server";
+import { stockById, stockFor, stockJpeg, stockSearch, StockTooBig, type StockPick } from "~/lib/fellow-stock.server";
 import {
   activityOf,
   AnalyticsFileError,
@@ -302,14 +302,18 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       return;
     }
     case "stock-use": {
-      // "Yes, I can post a stock image": the picture they chose is saved on the post like their own photo.
-      const picks = await stockPicks(fellow, body.postId);
-      const pick = picks.find((p) => p.id === body.stockId);
-      if (!pick) throw new FellowInputError("That stock image isn't on offer for this post any more. Pick another one.", 404);
+      // The photo they chose, from our picks or their own search, saved on the post like their own photo. It's
+      // looked up again here (the library, or Openverse by id): the page only sends which one.
+      await openPost(fellow, body.postId);
+      let pick: StockPick | null;
       let jpeg: Uint8Array;
       try {
+        pick = await stockById(body.stockId);
+        if (!pick) throw new FellowInputError("That photo isn't available any more. Pick another one.", 404);
         jpeg = await stockJpeg(pick, MAX_IMAGE_BYTES);
       } catch (e) {
+        if (e instanceof FellowInputError) throw e;
+        if (e instanceof StockTooBig) throw new FellowInputError("That photo is too big to use. Pick another one.", 413);
         console.error("[fellow-page] stock image fetch failed:", e instanceof Error ? e.message : "unknown");
         throw new FellowInputError(NO_STOCK, 503);
       }
@@ -555,8 +559,8 @@ async function photoEntries(exec: { execute: typeof db.execute }, fellow: Fellow
 
 const NO_STOCK = "We couldn't get a stock image just now. Try again in a minute, or add your own photo.";
 
-/** Stock images for one of the fellow's posts that's on their page and not out yet. */
-export async function stockPicks(fellow: FellowRow, rawPostId: unknown): Promise<StockPick[]> {
+/** One of the fellow's posts that's on their page and not out yet: what a photo can still be added to. */
+async function openPost(fellow: FellowRow, rawPostId: unknown) {
   const id = postId(rawPostId);
   const weekEnd = addDays(weekOf(istDate()), 6);
   const row = rows<Row>(await db.execute(sql`
@@ -565,8 +569,14 @@ export async function stockPicks(fellow: FellowRow, rawPostId: unknown): Promise
   `))[0];
   if (livePost(row) !== "ready") throw new FellowInputError("This post is already posted, so its photos can't change now.", 409);
   if (!row!.open) throw new FellowInputError("That post isn't on your page yet.", 404);
+  return { id, title: String(row!.title ?? ""), kind: String(row!.kind ?? ""), photoIdea: (row!.photo_idea as string | null) ?? null };
+}
+
+/** Photos for one of the fellow's posts: what they searched for (q), or else the ones we picked for the post. */
+export async function stockPicks(fellow: FellowRow, rawPostId: unknown, q?: unknown): Promise<StockPick[]> {
+  const post = await openPost(fellow, rawPostId);
   try {
-    return await stockFor({ id, photoIdea: (row!.photo_idea as string | null) ?? null, title: String(row!.title ?? ""), kind: String(row!.kind ?? "") });
+    return q ? await stockSearch(q) : await stockFor(post);
   } catch (e) {
     console.error("[fellow-page] stock search failed:", e instanceof Error ? e.message : "unknown");
     throw new FellowInputError(NO_STOCK, 503);

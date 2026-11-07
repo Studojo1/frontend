@@ -2,7 +2,8 @@ import type { Route } from "./+types/api.fellowship-growth.$slug_.stock";
 import { API_HEADERS, fellowAt, json, logFailure, tooMany } from "~/lib/fellow-api.server";
 import { FellowInputError, stockPicks } from "~/lib/fellow-page.server";
 
-// Stock images for one of a fellow's posts (?post=<id>), offered when they have no photo of their own.
+// Photos for one of a fellow's posts (?post=<id>) when they have no photo of their own: the ones we picked for the
+// post, or what they searched for (&q=<words>).
 // Choosing one is a change like any other: the "stock-use" intent on the page's own address.
 
 export const headers: Route.HeadersFunction = () => API_HEADERS;
@@ -14,7 +15,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     const fellow = await fellowAt(params.slug);
     if (fellow instanceof Response) return fellow;
     try {
-      return json({ stock: await stockPicks(fellow, new URL(request.url).searchParams.get("post")) });
+      const q = new URL(request.url).searchParams;
+      return json({ stock: await stockPicks(fellow, q.get("post"), q.get("q") || undefined) });
     } catch (e) {
       if (e instanceof FellowInputError) return json({ error: e.message }, e.status);
       throw e;

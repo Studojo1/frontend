@@ -7,15 +7,21 @@
 // on LinkedIn with no credit. Each one was looked at once (gpt-4o-mini, 7 Nov 2026) and kept only if it's a
 // natural photo a student in India could post: desks, notes, chai, campuses, classrooms, offices, events,
 // streets, trains. No stranger's face as the subject, no logos, nothing religious or odd, no statues or landmarks. The founder wanted
-// pictures that look the part, not stock. For each post, gpt-4o-mini picks the best matches from the library;
-// if it can't be reached, the photo idea's own words do.
+// pictures that look the part, not stock.
+//
+// The fellow decides (the founder, 7 Nov 2026): they search for what the photo should show, across the library
+// and the whole WordPress Photo Directory (live, through Openverse), and pick one. Until they search, the page
+// shows a varied set we picked for the post (gpt-4o-mini, from the library; the photo idea's words if it can't
+// be reached), and they can take one of those or search for their own.
 import LIBRARY from "./fellow-stock-library.json";
 
 const AZURE_ENDPOINT = (process.env.AZURE_OPENAI_ENDPOINT ?? "").replace(/\/+$/, "");
 const AZURE_KEY = process.env.AZURE_OPENAI_API_KEY ?? "";
 const DEPLOYMENT = process.env.FELLOW_COACH_DEPLOYMENT?.trim() || "gpt-4o-mini";
 const HOST = "pd.w.org";
+const SEARCH = "https://api.openverse.org/v1/images/";
 const PICKS = 6;
+const RESULTS = 12;
 const DAY = 24 * 3600_000;
 
 export interface LibraryPhoto {
@@ -31,6 +37,8 @@ export interface StockPick {
   id: string;
   title: string;
   src: string;
+  /** A small copy for the grid (Openverse's thumbnail of the same photo). */
+  thumb: string;
 }
 
 const PHOTOS = LIBRARY as LibraryPhoto[];
@@ -73,7 +81,7 @@ export function rankByWords(words: string[], photos: LibraryPhoto[] = PHOTOS): L
 
 export type StockAsk = (system: string, user: string) => Promise<string>;
 
-export const STOCK_SYSTEM = `You pick a photo for a LinkedIn post written for a college student in India, from a numbered library of real photos. Choose the ones that best fit what the post is about and the photo its writer suggested, and that the student could believably have taken: their desk, notes, chai, campus, a classroom or office, an event, the city they live in. Prefer everyday scenes over sights: a desk, a notebook, chai, a classroom beats a famous building. Prefer Indian settings. Never pick something unrelated just to fill the list.`;
+export const STOCK_SYSTEM = `You pick a photo for a LinkedIn post written for a college student in India, from a numbered library of real photos. Choose the ones that best fit what the post is about and the photo its writer suggested, and that the student could believably have taken: their desk, notes, chai, campus, a classroom or office, an event, the city they live in. Give a varied set, different kinds of scene rather than six of the same, so the student has a real choice. Prefer everyday scenes over sights: a desk, a notebook, chai, a classroom beats a famous building. Prefer Indian settings. Never pick something unrelated just to fill the list.`;
 
 const PICK_SHAPE = {
   name: "stock_picks",
@@ -135,7 +143,7 @@ export async function stockFor(post: { id: number | string; photoIdea: string | 
   const fromModel = await modelPicks(post, ask);
   const fromWords = rankByWords(stockWords(post.photoIdea, post.kind));
   const all = [...fromModel, ...fromWords.filter((p) => !fromModel.includes(p))];
-  const picks = spread(all.slice(0, 10), String(post.id)).slice(0, PICKS).map((p) => ({ id: p.id, title: p.desc, src: p.src }));
+  const picks = spread(all.slice(0, 10), String(post.id)).slice(0, PICKS).map(toPick);
   // A failed model call isn't remembered for the day: the next look tries it again.
   if (fromModel.length) {
     if (picked.size > 500) picked.clear();
@@ -144,15 +152,92 @@ export async function stockFor(post: { id: number | string; photoIdea: string | 
   return picks;
 }
 
+const thumbOf = (id: string) => `${SEARCH}${id}/thumb/`;
+const toPick = (p: { id: string; desc: string; src: string }): StockPick => ({ id: p.id, title: p.desc, src: p.src, thumb: thumbOf(p.id) });
+const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+interface Hit { id?: unknown; title?: unknown; url?: unknown; license?: unknown; source?: unknown }
+/** A WordPress Photo Directory photo from Openverse, if it's one the page can offer: public domain, a JPEG on pd.w.org. */
+export function hitToPick(r: Hit): StockPick | null {
+  const id = typeof r.id === "string" && ID.test(r.id) ? r.id : null;
+  const src = typeof r.url === "string" ? r.url : "";
+  if (!id || r.source !== "wordpress" || !["cc0", "pdm"].includes(String(r.license))) return null;
+  try {
+    const u = new URL(src);
+    if (u.protocol !== "https:" || u.hostname !== HOST || !/\.jpe?g$/i.test(u.pathname)) return null;
+  } catch { return null; }
+  return { id, title: typeof r.title === "string" ? r.title.slice(0, 80) : "", src, thumb: thumbOf(id) };
+}
+
+/** What the fellow typed, as search words: letters only, at most 60 characters. */
+export const searchQuery = (raw: unknown) => String(raw ?? "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60);
+
+const searched = new Map<string, { at: number; picks: StockPick[] }>();
+
+/**
+ * The fellow's own search: matching photos from the library first, then the WordPress Photo Directory's own
+ * search (Openverse). If Openverse is down or out of searches for the day, the library's matches still come back.
+ */
+export async function stockSearch(raw: unknown, live: (q: string) => Promise<Hit[]> = openverse): Promise<StockPick[]> {
+  const q = searchQuery(raw);
+  if (!q) return [];
+  const hit = searched.get(q);
+  if (hit && Date.now() - hit.at < DAY) return hit.picks;
+  const words = q.split(" ").filter((w) => w.length > 2 && !FILLER.has(w));
+  const fromLib = rankByWords(words).filter((p) => words.some((w) => `${p.desc} ${p.tags.join(" ")}`.toLowerCase().includes(w))).slice(0, 6).map(toPick);
+  let fromLive: StockPick[] = [];
+  let ok = true;
+  try {
+    fromLive = (await live(q)).map(hitToPick).filter((p): p is StockPick => !!p);
+  } catch (e) {
+    ok = false;
+    console.error("[fellow-stock] search failed:", e instanceof Error ? e.message : "unknown");
+  }
+  const picks = [...fromLib, ...fromLive.filter((p) => !fromLib.some((l) => l.id === p.id))].slice(0, RESULTS);
+  if (ok) {
+    if (searched.size > 500) searched.clear();
+    searched.set(q, { at: Date.now(), picks });
+  }
+  return picks;
+}
+
+async function openverse(q: string): Promise<Hit[]> {
+  const res = await fetch(`${SEARCH}?${new URLSearchParams({ q, license: "cc0,pdm", source: "wordpress", page_size: "20", mature: "false" })}`, {
+    headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`openverse ${res.status}`);
+  const data = (await res.json()) as { results?: Hit[] };
+  return Array.isArray(data.results) ? data.results : [];
+}
+
+/** The photo the fellow chose, looked up again on our side: from the library, or from Openverse by its id. Never trusts the page's copy. */
+export async function stockById(raw: unknown, lookup: (id: string) => Promise<Hit | null> = openverseOne): Promise<StockPick | null> {
+  const id = typeof raw === "string" && ID.test(raw) ? raw : null;
+  if (!id) return null;
+  const lib = PHOTOS.find((p) => p.id === id);
+  if (lib) return toPick(lib);
+  const r = await lookup(id);
+  return r ? hitToPick(r) : null;
+}
+
+async function openverseOne(id: string): Promise<Hit | null> {
+  const res = await fetch(`${SEARCH}${id}/`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000) });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`openverse ${res.status}`);
+  return (await res.json()) as Hit;
+}
+
 /** The picture itself, as a JPEG of at most maxBytes, straight from the WordPress Photo Directory. */
 export async function stockJpeg(pick: StockPick, maxBytes: number): Promise<Uint8Array> {
-  const p = PHOTOS.find((x) => x.id === pick.id);
-  if (!p) throw new Error("not a library picture");
-  const u = new URL(p.src);
-  if (u.protocol !== "https:" || u.hostname !== HOST) throw new Error("not a library picture");
+  const u = new URL(pick.src);
+  if (u.protocol !== "https:" || u.hostname !== HOST) throw new Error("not a photo directory picture");
   const res = await fetch(u, { redirect: "error", signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error(`stock picture ${res.status}`);
   const bytes = new Uint8Array(await res.arrayBuffer());
-  if (bytes.length > maxBytes || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("stock picture unusable");
+  if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) throw new Error("stock picture unusable");
+  if (bytes.length > maxBytes) throw new StockTooBig();
   return bytes;
 }
+
+/** The chosen photo is bigger than a post's photo can be. */
+export class StockTooBig extends Error {}
