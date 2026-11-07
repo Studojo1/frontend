@@ -92,7 +92,7 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
       : Promise.resolve(null),
     db.execute(sql`
       SELECT id, title, body, kind, due_date, status, copied_at, own_line, posted_at, post_url, impressions, reactions, comments, metrics_at,
-        photo_idea, photo_url, photo_help_at, analytics
+        photo_idea, photo_url, photo_help_at, analytics, rewrite_body, rewrite_at, rewrite_reply
       FROM ugc_creator_posts
       WHERE creator_id = ${fellow.id} AND status IN ('ready', 'posted', 'blocked')
       ORDER BY due_date, id
@@ -197,6 +197,8 @@ function withFellowLock<T>(fellow: FellowRow, fn: (tx: Tx) => Promise<T>): Promi
 
 const STORY_MAX = 8000;
 const NEEDS_PHOTO = "Add your own photo to this post first. Every post goes out with one.";
+const WAITING_VERSION = "Your version of this post is with Studojo for approval. Post it once it's approved, or withdraw it to post the original.";
+const POST_TEXT_MAX = 3000; // LinkedIn's limit for one post
 
 /**
  * One change from the page. Throws FellowInputError with a message the page can
@@ -236,8 +238,10 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       await withFellowLock(fellow, async (tx) => {
         // The hard rule: a post is never marked posted without a photo of the fellow's own (or one the team added).
         const before = rows<Row>(await tx.execute(sql`
-          SELECT status, photo_url FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
+          SELECT status, photo_url, rewrite_body FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
         `))[0];
+        // Their own version goes out only once the team has approved it.
+        if (before?.status === "ready" && before.rewrite_body) throw new FellowInputError(WAITING_VERSION, 409);
         if (before?.status === "ready" && !photoTokens((before.photo_url as string | null) ?? null, fellow.id, id).length) {
           throw new FellowInputError(NEEDS_PHOTO, 409);
         }
@@ -261,6 +265,30 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
         `);
         if (!updated(r)) await refuseChange(tx, fellow, id, "This post is already marked as posted.");
       });
+      return;
+    }
+    case "rewrite": {
+      // The fellow's own version of the post: it waits for the team, and the post stays locked until they approve
+      // it (it becomes the post) or keep the original. Sending again replaces the one waiting.
+      const id = postId(body.postId);
+      const text = cleanText(body.text, POST_TEXT_MAX);
+      if (text.length < 40) throw new FellowInputError("Write out your whole version of the post before you send it.");
+      const cur = rows<Row>(await db.execute(sql`SELECT body FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`))[0];
+      const same = (a: string) => a.replace(/\s+/g, " ").trim();
+      if (cur && same(String(cur.body)) === same(text)) throw new FellowInputError("That's the same as the post. Change it the way you'd write it, then send it.");
+      const r = await db.execute(sql`
+        UPDATE ugc_creator_posts SET rewrite_body = ${text}, rewrite_at = now(), rewrite_reply = NULL, updated_at = now()
+        WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
+      `);
+      if (!updated(r)) await refuseChange(db, fellow, id, "This post is already posted, so it can't change now.");
+      return;
+    }
+    case "rewrite-withdraw": {
+      const id = postId(body.postId);
+      await db.execute(sql`
+        UPDATE ugc_creator_posts SET rewrite_body = NULL, rewrite_at = NULL, updated_at = now()
+        WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready'
+      `);
       return;
     }
     case "photo-help": {
