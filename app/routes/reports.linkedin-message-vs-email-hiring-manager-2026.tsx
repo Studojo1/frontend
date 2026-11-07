@@ -7,8 +7,8 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "LinkedIn Message vs Email to a Hiring Manager: Which One Actually Gets Read | Studojo" },
-    { name: "description", content: "LinkedIn message vs email to a hiring manager: the 200-character note cap, InMail credit limits, LinkedIn's ban on automation, and why email wins." },
+    { title: "LinkedIn Message vs Email to a Hiring Manager: Which Gets Read | Studojo" },
+    { name: "description", content: "LinkedIn message vs email to a hiring manager: the 200-character note cap, InMail credit limits, and why email reaches the person who decides." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "LinkedIn message vs email to hiring manager, should I message or email the hiring manager, LinkedIn InMail vs email, LinkedIn connection request to hiring manager, is it better to email or LinkedIn message a recruiter, how to contact a hiring manager" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/linkedin-message-vs-email-hiring-manager-2026` },
@@ -280,11 +280,19 @@ const FAQ = [
   },
   {
     q: "How do I contact a hiring manager?",
-    a: "Find the role, find the hiring manager or team lead on LinkedIn, get a verified email address, and send five specific lines from your own address. Follow up once if you hear nothing. Studojo finds the person, verifies the email, writes a personal email for that one person and sends it from your own Gmail.",
+    a: "Find the role, find the hiring manager or team lead on LinkedIn, get a verified email address, and send five specific lines from your own address. Follow up once if you hear nothing. Studojo finds the person, verifies the email, writes a personal email for that one person and sends it from your own inbox.",
   },
   {
     q: "Can I use a tool to automate LinkedIn messages to hiring managers?",
     a: "LinkedIn's terms ban bots and automation tools (User Agreement, section 8.2), so automating messages breaks the rules on the account you job hunt with. Automated messages also tend to be generic, which is the opposite of what gets read. Send fewer, specific emails instead.",
+  },
+  {
+    q: "Do hiring managers respond to LinkedIn messages?",
+    a: "Sometimes, but it is not where most of them work. A busy manager may leave a LinkedIn message for days, while a work email sits next to their interview invites and offers. If you can reach them both ways, lead with email and treat LinkedIn as a way to be recognised.",
+  },
+  {
+    q: "Is it unprofessional to message a hiring manager on LinkedIn?",
+    a: "No, if it is short, specific and sent once. What reads badly is a generic template, a hard ask for a job inside a connection note, or repeated messages. Use LinkedIn to introduce yourself in a line, then make your real case in an email.",
   },
 ];
 
@@ -380,7 +388,7 @@ export default function LinkedinMessageVsEmailReport() {
               <div className="kf-item"><span className="kf-check">✓</span><span>A connection note is capped at <strong>200 characters</strong>, and a free account can personalise only <strong>three invitations a month</strong> (LinkedIn Help Center, 2026).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>InMail runs on <strong>paid credits</strong>: Premium Career includes 5 a month and Premium Business 15 (LinkedIn Help Center, 2026).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>LinkedIn's terms <strong>ban bots and automation tools</strong> (User Agreement, section 8.2), so mass-messaging tools are a bad bet.</span></div>
-              <div className="kf-item"><span className="kf-check">✓</span><span>Email from your own address lands <strong>where hiring work happens</strong>. Studojo finds the hiring manager, verifies the email, writes it for that one person and sends it from your Gmail.</span></div>
+              <div className="kf-item"><span className="kf-check">✓</span><span>Email from your own address lands <strong>where hiring work happens</strong>. Studojo finds the hiring manager, verifies the email, writes it for that one person and sends it from your own inbox.</span></div>
             </div>
           </div>
 
@@ -478,7 +486,7 @@ export default function LinkedinMessageVsEmailReport() {
               </div>
             </div>
             <p>What those numbers mean for you: on a free account, 200 characters is about two short sentences, and after three personalised notes in a month you can still send requests, just without a note. On Premium Career, five InMails a month is five people. LinkedIn returns an InMail credit if the person responds within 90 days (LinkedIn Help Center, 2026), but you still start with five.</p>
-            <p>None of this is a reason to pay for a plan just to reach a hiring manager. Email reaches them without credits.</p>
+            <p>None of this is a reason to pay for a plan just to reach a hiring manager. Email reaches them without credits. For when to send it, see our report on the <Link to="/reports/best-time-to-email-hr-or-hiring-manager-2026">best time to email HR or the hiring manager</Link>.</p>
           </div>
 
           {/* Section 3 */}
@@ -520,7 +528,7 @@ export default function LinkedinMessageVsEmailReport() {
             </div>
             <p>When LinkedIn's limits feel tight, the temptation is a tool that sends connection requests and messages for you. LinkedIn's terms ban bots and automation tools: its User Agreement (section 8.2) prohibits bots or other unauthorized automated methods, and software or browser add-ons that scrape or automate the service.</p>
             <p>It is also a bad bet on the merits. Recruiters already look for bot patterns, such as one person applying to dozens of roles at the same company (NBC News, 17 November 2024, quoting recruiter Mike Peditto). Mass messages read like mass messages, on any channel.</p>
-            <p>The fix is not more messages. It is fewer, better ones, sent to the right person, by email.</p>
+            <p>The fix is not more messages. It is fewer, better ones, sent to the right person, by email. Our report on <Link to="/reports/do-hiring-managers-read-cold-emails-2026">whether hiring managers read cold emails</Link> covers what to put in them.</p>
           </div>
 
           {/* Section 5 */}
@@ -545,12 +553,12 @@ export default function LinkedinMessageVsEmailReport() {
                 <canvas id="lveSpaceChart" />
               </div>
             </div>
-            <p>We built Studojo to do the email part. Studojo finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.</p>
+            <p>We built Studojo to do the email part. Studojo finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own inbox.</p>
             <div className="pull-quote">
               <p>"LinkedIn tells you who to write to. Email is where you write."</p>
               <span className="pq-source">The Studojo rule for reaching a hiring manager</span>
             </div>
-            <p>8,700+ students have signed up to Studojo. Replies are not guaranteed. A specific email to the right person gives you more room than a 200-character note waiting in a pending list.</p>
+            <p>Replies are not guaranteed. A specific email to the right person gives you more room than a 200-character note waiting in a pending list.</p>
           </div>
 
           {/* FAQ */}
