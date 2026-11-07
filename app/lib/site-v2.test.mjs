@@ -160,7 +160,8 @@ const PINNED = {
   // entry for india-entry-level-jobs-internships-october-2026, nothing else changed. CTA-NEW (4 Nov): the classic
   // banner's line no longer says Stu tailors your resume (finds who's hiring and writes the email), nothing else changed
   // SEO day 10 (5 Nov): one REPORTS entry for how-to-get-an-internship-india-2026 (its route and sitemap too), nothing else changed
-  "routes/reports.tsx": "4e785a9b00979fa8", // re-pinned 5 Nov for 12 scheduled reports (REPORTS entries only)
+  // SEO day 13 (7 Nov): 3 REPORTS entries for drdo-isro, internships-bangalore and internships-hyderabad (their routes and sitemap entries too), nothing else changed
+  "routes/reports.tsx": "b83c5fd4610c4539", // re-pinned 7 Nov for the 3 day-13 internship reports (REPORTS entries only)
   "routes/terms.tsx": "e565ab6f9433ba94",
   // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), and a row for the
   // stu_vid, stu_src and stu_lt journey cookies (app/lib/journey.ts); nothing else changed. META-FIX 2 Nov: the
