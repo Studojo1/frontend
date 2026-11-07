@@ -6,7 +6,7 @@
 // WordPress Photo Directory, real photos people took on their phones rather than studio stock, so they can go
 // on LinkedIn with no credit. Each one was looked at once (gpt-4o-mini, 7 Nov 2026) and kept only if it's a
 // natural photo a student in India could post: desks, notes, chai, campuses, classrooms, offices, events,
-// streets, trains. No stranger's face as the subject, no logos, nothing religious or odd. The founder wanted
+// streets, trains. No stranger's face as the subject, no logos, nothing religious or odd, no statues or landmarks. The founder wanted
 // pictures that look the part, not stock. For each post, gpt-4o-mini picks the best matches from the library;
 // if it can't be reached, the photo idea's own words do.
 import LIBRARY from "./fellow-stock-library.json";
@@ -73,7 +73,7 @@ export function rankByWords(words: string[], photos: LibraryPhoto[] = PHOTOS): L
 
 export type StockAsk = (system: string, user: string) => Promise<string>;
 
-export const STOCK_SYSTEM = `You pick a photo for a LinkedIn post written for a college student in India, from a numbered library of real photos. Choose the ones that best fit what the post is about and the photo its writer suggested, and that the student could believably have taken: their desk, notes, chai, campus, a classroom or office, an event, the city they live in. Prefer Indian settings. Never pick something unrelated just to fill the list.`;
+export const STOCK_SYSTEM = `You pick a photo for a LinkedIn post written for a college student in India, from a numbered library of real photos. Choose the ones that best fit what the post is about and the photo its writer suggested, and that the student could believably have taken: their desk, notes, chai, campus, a classroom or office, an event, the city they live in. Prefer everyday scenes over sights: a desk, a notebook, chai, a classroom beats a famous building. Prefer Indian settings. Never pick something unrelated just to fill the list.`;
 
 const PICK_SHAPE = {
   name: "stock_picks",
