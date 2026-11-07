@@ -228,10 +228,12 @@ export async function sendMetaEvent(opts: {
   eventSourceUrl?: string | null;
   user: MetaUserData;
   customData?: Record<string, unknown>;
+  /** LEAD-LATE: when it happened (ms), for a copy sent later (meta-lead-late.server.ts); now when left out. */
+  eventTime?: number;
 }): Promise<{ ok: boolean; error?: string }> {
   if (!ACCESS_TOKEN) return { ok: false, error: "unconfigured" };
 
-  const { eventName, eventId, eventSourceUrl, user, customData } = opts;
+  const { eventName, eventId, eventSourceUrl, user, customData, eventTime } = opts;
 
   const userData = metaUserDataPayload(user);
 
@@ -239,7 +241,7 @@ export async function sendMetaEvent(opts: {
     data: [
       {
         event_name: eventName,
-        event_time: Math.floor(Date.now() / 1000),
+        event_time: Math.floor((eventTime ?? Date.now()) / 1000),
         event_id: eventId, // MUST match the browser copy or the event double counts
         action_source: "website",
         ...(eventSourceUrl ? { event_source_url: eventSourceUrl } : {}),

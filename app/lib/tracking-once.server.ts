@@ -17,7 +17,8 @@ export const POSTHOG_SIGNED_UP = "posthog_signed_up";
 export type OnceClaim = (userId: string, event: string, host: string) => Promise<boolean>;
 
 let pool: Pool | null = null;
-function oncePool(): Pool | null {
+/** The small pool for career_agent's tables (LEAD-LATE's account lookup, meta-lead-late.server.ts, shares it). */
+export function oncePool(): Pool | null {
   if (!process.env.DATABASE_URL) return null;
   if (!pool) {
     pool = new Pool({

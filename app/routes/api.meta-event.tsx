@@ -5,6 +5,7 @@ import { claimOnce, POSTHOG_SIGNED_UP } from "~/lib/tracking-once.server";
 import { checkRateLimit } from "~/lib/ratelimit.server";
 import { serverMayReportToMeta } from "~/lib/consent";
 import { parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
+import { holdLead } from "~/lib/meta-lead-late.server";
 
 /**
  * Server-side mirror for browser pixel events (Meta Conversions API).
@@ -22,6 +23,8 @@ import { parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
  *   signed in   also em, fn, ln (a real name only, accountName), ph and country (when the account has a phone), and
  *               external_id [account id, visitor id].
  * All hashed except ip, user agent, fbp and fbc. The browser pixel's init sends the same hashed visitor id.
+ * LEAD-LATE (7 Nov 2026): a signed-out Lead's server copy is held (meta-lead-late.server.ts) and sent with the signed-in
+ * keys of the account that visitor makes next, at the click's time, or after 10 minutes as it is.
  *
  * Always returns 200. A failed analytics call must never surface to the user.
  *
@@ -166,11 +169,20 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!user.fbc) user.fbc = cleanFbc(body.fbc);
   const customData = valueData(eventName, body);
+  const sourceUrl = typeof body.sourceUrl === "string" ? body.sourceUrl.slice(0, 500) : request.headers.get("referer");
+
+  // LEAD-LATE (7 Nov 2026): a signed-out Lead's server copy waits for the account this visitor makes next, and goes
+  // with its email, phone and name, at the click's own time (meta-lead-late.server.ts).
+  const vid = parseCookies(request.headers.get("cookie")).get(VISITOR_COOKIE);
+  if (!signedIn && eventName === "Lead" && validVisitorId(vid)) {
+    holdLead({ eventId, at: Date.now(), sourceUrl, user, visitorId: vid });
+    return ok();
+  }
 
   await sendMetaEvent({
     eventName,
     eventId,
-    eventSourceUrl: body.sourceUrl ?? request.headers.get("referer"),
+    eventSourceUrl: sourceUrl,
     user,
     ...(customData ? { customData } : {}),
   });
