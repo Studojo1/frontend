@@ -114,12 +114,6 @@ const posts = [
 const input = {
   fellow, application: { course: "BBA", year_of_study: "3rd year", city: "Pune" }, posts, stories: [], rules,
   connections: [{ connections: 520, recorded_at: "2026-10-21 09:00:00+05:30" }, { connections: 530, recorded_at: "2026-10-28 09:00:00+05:30" }],
-  cohortFellows: [{ id: 8, first_name: "Kiran" }, { id: 9, first_name: "Meera" }, { id: 10, first_name: "Ravi" }],
-  cohortPosts: [
-    { creator_id: 8, status: "posted", due_date: "2026-10-29", posted_at: at("2026-10-30", "10:00"), impressions: 2300, metrics_at: at("2026-10-30", "11:00") },
-    { creator_id: 9, status: "ready", due_date: "2026-10-29", posted_at: null, impressions: null, metrics_at: null },
-    { creator_id: 7, status: "posted", due_date: "2026-10-29", posted_at: at("2026-10-29"), impressions: null, metrics_at: null },
-  ],
 };
 const v = buildFellowView(input, NOW);
 const json = JSON.stringify(v);
@@ -159,28 +153,9 @@ assert.equal(v.me.headline, "BBA student at Test College | Growth Fellow at Stud
 assert.equal(v.me.course, "BBA, 3rd year");
 assert.equal(v.me.cohort, "Cohort A");
 
-// The cohort: counts and anonymous news by default.
-assert.equal(v.me.cohortSize, 4);
-assert.equal(v.me.cohortPostedThisWeek, 2, "Kiran and Asha have posted this week");
-assert.equal(v.me.cohortPosition, "You're among the most active in your cohort this week");
-assert.deepEqual(v.me.cohortFeed.map((e) => e.text), ["A fellow's post crossed 2k", "A fellow posted"], "no names unless the team turns them on");
-assert.ok(!json.includes("Kiran"), "other fellows' names stay off the page");
-const named = buildFellowView({ ...input, rules: { ...rules, cohortNames: true } }, NOW);
-assert.deepEqual(named.me.cohortFeed.map((e) => e.text), ["Kiran's post crossed 2k", "Kiran posted"]);
-
-// A small cohort gets counts but no position line.
-const small = buildFellowView({ ...input, cohortFellows: [{ id: 8, first_name: "Kiran" }] }, NOW);
-assert.equal(small.me.cohortPosition, null);
-
-// "Top 5" is only said in a cohort of 10 or more.
-const busyWeek = (n) => Array.from({ length: n }, (_, i) => ({ creator_id: 100 + i, status: "posted", due_date: "2026-10-29", posted_at: at("2026-10-29"), impressions: null, metrics_at: null }));
-const twice = { creator_id: 100, status: "posted", due_date: "2026-10-30", posted_at: at("2026-10-30"), impressions: null, metrics_at: null };
-const cohortOf = (n) => Array.from({ length: n }, (_, i) => ({ id: 100 + i, first_name: `F${i}` }));
-const four = buildFellowView({ ...input, cohortFellows: cohortOf(3), cohortPosts: [...busyWeek(3), twice, input.cohortPosts[2]] }, NOW);
-assert.equal(four.me.cohortSize, 4);
-assert.equal(four.me.cohortPosition, null, "no 'top 5' in a cohort of 4");
-const ten = buildFellowView({ ...input, cohortFellows: cohortOf(9), cohortPosts: [...busyWeek(9), twice, input.cohortPosts[2]] }, NOW);
-assert.equal(ten.me.cohortPosition, "You're in the top 5 of your cohort this week");
+// Nothing about other fellows reaches a fellow's page: no counts, rankings or news (the founder, 8 Nov 2026).
+assert.deepEqual(Object.keys(v.me).filter((k) => /cohort/i.test(k)), ["cohort"], "only their own cohort's label");
+assert.ok(!/fellows have posted|your cohort|a fellow/i.test(json), "no line about how other fellows are doing");
 
 // The headline leaves out what isn't known instead of guessing.
 const headlineOf = (college, course) => buildFellowView({ ...input, fellow: { ...fellow, college, field: null }, application: course ? { course, year_of_study: null, city: null } : null }, NOW).me.headline;
@@ -222,7 +197,7 @@ assert.equal(late.me.milestones.find((m) => m.id === "trial").earnedOn, "2026-10
 // A fellow who joined mid-week, with nothing yet.
 const fresh = buildFellowView({
   ...input, fellow: { ...fellow, joined_at: "2026-10-31 10:00:00+05:30", connections_at_join: null },
-  posts: [], connections: [], cohortFellows: [], cohortPosts: [],
+  posts: [], connections: [],
 }, NOW);
 assert.equal(fresh.me.weekNo, 1, "the week they join is week 1");
 
@@ -242,7 +217,6 @@ const firstCount = buildFellowView({
   ...input, fellow: { ...fellow, connections_at_join: null }, connections: [{ connections: 610, recorded_at: "2026-10-30 09:00:00+05:30" }],
 }, NOW);
 assert.deepEqual(firstCount.me.connections, { now: 610, atJoin: null, history: [{ date: "2026-10-30", n: 610 }] }, "a first count isn't backdated to the join date");
-assert.equal(fresh.me.cohortSize, 1);
 
 // A missed post breaks the run but not the completed count of other weeks.
 const missed = buildFellowView({ ...input, posts: posts.map((p) => (p.id === 3 ? post(3, "2026-10-22", "ready") : p)) }, NOW);

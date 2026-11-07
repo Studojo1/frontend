@@ -119,6 +119,7 @@ try {
   const seen = JSON.stringify(view);
   assert.ok(!seen.includes(SECRET), "no team notes, learnings, token, review, insight, draft, next week or other fellow's post");
   assert.ok(!seen.includes("asha@example.com") && !seen.includes("+910000000001"), "no contact details");
+  assert.ok(!seen.includes("Kiran") && !/cohort(Size|PostedThisWeek|Position|Feed)/.test(seen), "nothing about another fellow, even one who posted this week in the same cohort");
   assert.deepEqual(view.me.thisWeek.posts.map((p) => Number(p.id)), [ids.aTue, ids.aThu], "this week's posts only");
   assert.deepEqual(view.me.history[0].missed.map((p) => Number(p.id)), [ids.aMissed], "last week's unposted post is offered late");
   assert.equal(view.me.course, "BBA, 3rd year");

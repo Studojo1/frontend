@@ -17,7 +17,6 @@
       { icon: "compose", tab: "home", sel: "#ed-cover", title: "Your posts for the week", body: "Five posts a week: three about you and two about Studojo. For each one: copy it, add a photo of your own (every post needs one), post it on LinkedIn, then mark it as posted." },
       { icon: "chart", tab: "home", sel: "#analytics, #shots", title: "Your weekly analytics", body: "Every Sunday, you send us your LinkedIn analytics here. The steps are on this card. It shows us what's working, so we can help you grow." },
       { icon: "cert", tab: "milestones", sel: "#milestones", title: "Milestones", body: ms.length ? `Each week you post all your posts counts toward these: ${ms.join(" · ")}.` : "Each week you post all your posts counts toward your milestones." },
-      { icon: "users", tab: "cohort", sel: "#news", title: "Your fellowship", body: "See how the rest of the fellowship is doing this week. The pill at the top always shows how many of this week's posts you've done." },
       { icon: "mic", tab: "stories", sel: "#share", title: "Last step: tell us about yourself", body: T.joined() ? "You've already shared your first stories, so you're in. Keep adding new ones: new stories mean better posts." : `Share ${T.storiesWanted} stories about your own life to complete your onboarding and officially join the fellowship. We already have what we covered on your call, so start with something happening in your life right now: a project, a conversation, a setback.`, last: true },
     ];
   }

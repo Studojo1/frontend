@@ -115,20 +115,6 @@ export interface ConnectionRow {
   recorded_at: string | Date;
 }
 
-export interface CohortFellowRow {
-  id: number;
-  first_name: string;
-}
-
-export interface CohortPostRow {
-  creator_id: number;
-  status: string;
-  due_date: string | Date;
-  posted_at: string | Date | null;
-  impressions: number | null;
-  metrics_at: string | Date | null;
-}
-
 export interface Milestone {
   id: string;
   weeks: number | null;
@@ -143,8 +129,6 @@ export interface ProgrammeRules {
   partnershipLabel?: string;
   milestones?: { id: string; weeks: number; name: string; detail: string }[];
   hiringPipeline?: { id: string; name: string; detail: string };
-  /** Show other fellows' first names in the cohort news. Off unless the team turns it on. */
-  cohortNames?: boolean;
 }
 
 /** The fellow's latest LinkedIn analytics export (ugc_creator_analytics): when it came in, its period, totals and demographics. */
@@ -163,8 +147,6 @@ export interface FellowInput {
   stories: StoryRow[];
   connections: ConnectionRow[];
   rules: ProgrammeRules | null;
-  cohortFellows: CohortFellowRow[];
-  cohortPosts: CohortPostRow[];
   analytics?: AnalyticsRow | null;
 }
 
@@ -497,15 +479,6 @@ function cohortLabel(c: string | null): string {
   return /^cohort\b/i.test(s) ? s : `Cohort ${s}`;
 }
 
-function agoLabel(ms: number, now: number): string {
-  const mins = Math.max(0, Math.round((now - ms) / 60000));
-  if (mins < 60) return mins <= 1 ? "Just now" : `${mins} minutes ago`;
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-  const days = diffDays(istDate(ms), istDate(now));
-  return days <= 1 ? "Yesterday" : `${days} days ago`;
-}
-
 const isPosted = (p: { status: string }) => p.status === "posted";
 
 export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) {
@@ -638,41 +611,6 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
     else hist.push({ date: d, n: c.connections });
   }
 
-  // The cohort, as counts and anonymous news (names only if the team turns them on).
-  const showNames = rules?.cohortNames === true;
-  const nameOf = new Map(input.cohortFellows.map((f) => [f.id, firstNameOf(f.first_name)]));
-  const cohortIds = new Set(input.cohortFellows.map((f) => f.id));
-  cohortIds.add(fellow.id);
-  const postedThisWeekBy = new Map<number, number>();
-  for (const p of input.cohortPosts) {
-    if (!cohortIds.has(p.creator_id) || !isPosted(p) || weekOf(dayOf(p.due_date)) !== thisWeek) continue;
-    postedThisWeekBy.set(p.creator_id, (postedThisWeekBy.get(p.creator_id) ?? 0) + 1);
-  }
-  const cohortSize = cohortIds.size;
-  const cohortPostedThisWeek = postedThisWeekBy.size;
-  const mine = postedThisWeekBy.get(fellow.id) ?? 0;
-  const ahead = [...postedThisWeekBy.entries()].filter(([id, n]) => id !== fellow.id && n > mine).length;
-  let cohortPosition: string | null = null;
-  if (cohortSize >= 4) {
-    if (cohortPostedThisWeek === 0) cohortPosition = "No one in your cohort has posted yet this week";
-    else if (mine > 0 && ahead === 0) cohortPosition = "You're among the most active in your cohort this week";
-    // "Top 5" only means something in a cohort well above 5.
-    else if (cohortSize >= 10 && mine > 0 && ahead < 5) cohortPosition = "You're in the top 5 of your cohort this week";
-  }
-  const weekAgo = nowMs - 7 * DAY;
-  const news: { t: number; text: string }[] = [];
-  for (const p of input.cohortPosts) {
-    if (p.creator_id === fellow.id || !cohortIds.has(p.creator_id)) continue;
-    const who = showNames ? nameOf.get(p.creator_id) || "A fellow" : "A fellow";
-    const postedMs = toMs(p.posted_at);
-    if (isPosted(p) && postedMs >= weekAgo && postedMs <= nowMs) news.push({ t: postedMs, text: `${who} posted` });
-    const metricsMs = toMs(p.metrics_at);
-    if (isPosted(p) && (p.impressions ?? 0) >= 1000 && metricsMs >= weekAgo && metricsMs <= nowMs) {
-      news.push({ t: metricsMs, text: `${who === "A fellow" ? "A fellow's" : who + "'s"} post crossed ${Math.floor((p.impressions ?? 0) / 1000)}k` });
-    }
-  }
-  news.sort((a, b) => b.t - a.t);
-
   const courseName = tidyCourse(application?.course ?? "");
   const collegeName = tidyWords(fellow.college ?? "");
   const year = application?.year_of_study?.trim() ?? "";
@@ -722,9 +660,6 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       weeklyRun,
       completedWeeks,
       milestones,
-      cohortPosition,
-      cohortPostedThisWeek,
-      cohortSize,
       thisWeek: {
         start: thisWeek,
         due: thisWeekPosts.length,
@@ -735,7 +670,6 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       storyPrompts: promptOrder(input.stories.map((s) => s.prompt), today),
       storiesWanted: STORIES_WANTED,
       stories: storyViews(input.stories, nowMs),
-      cohortFeed: news.slice(0, 6).map((n) => ({ text: n.text, ago: agoLabel(n.t, nowMs) })),
       analytics: analyticsView(input.analytics),
     },
   };

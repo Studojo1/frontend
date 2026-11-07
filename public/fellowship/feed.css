@@ -1,6 +1,6 @@
 :root {
   /* LinkedIn's layout and look: profile rail left, this week's posts as the feed in the middle, milestones,
-     news and the algorithm guide on the right; LinkedIn's grey canvas, white cards, blue and plain type.
+     stories and the algorithm guide on the right; LinkedIn's grey canvas, white cards, blue and plain type.
      Phones: one column with LinkedIn's top bar and bottom tabs. */
   --canvas: #F4F2EE;
   --surface: #FFFFFF;
@@ -503,18 +503,6 @@ ul, ol { padding: 0; list-style: none; }
 .st-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
 .st-meta .ic { width: 14px; height: 14px; }
 
-/* ---------- right rail: fellowship news */
-.news-group { margin-top: 10px; }
-.news-list { display: grid; gap: 2px; margin-top: 4px; }
-.news-list li { position: relative; padding: 6px 0 6px 18px; }
-.news-list li::before { content: ""; position: absolute; left: 4px; top: 13px; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
-.news-list b { display: block; font-size: 14px; font-weight: 600; line-height: 1.35; }
-.news-list span { display: block; font-size: 12px; color: var(--ink-2); }
-.news-hi { margin: 8px 0 4px; padding: 12px; border-radius: 10px; background: var(--accent-soft); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; }
-.news-hi .ic { color: var(--accent-ink); margin-top: 1px; }
-.news-hi b { font-size: 14px; font-weight: 600; line-height: 1.35; display: block; }
-.news-hi span { font-size: 12px; color: var(--ink-2); display: block; margin-top: 2px; }
-
 /* ---------- activity (past posts) */
 .act-week { margin-top: 16px; }
 .act-week + .act-week { margin-top: 20px; }
@@ -792,7 +780,7 @@ ul, ol { padding: 0; list-style: none; }
   .ed-title { font-weight: 600; letter-spacing: 0; }
   .ed-line-title { font-weight: 500; }
   .share.is-asking { box-shadow: 0 0 0 1px rgba(140, 140, 140, .2), inset 0 3px 0 var(--accent); }
-  #share, #news, #activity, #milestones, #profile, #learn { scroll-margin-top: 68px; }
+  #share, #activity, #milestones, #profile, #learn { scroll-margin-top: 68px; }
 }
 @media (min-width: 760px) and (max-width: 1099px) {
   .m-search { width: auto; flex: 1; max-width: 280px; }
