@@ -566,7 +566,7 @@ export async function stockPicks(fellow: FellowRow, rawPostId: unknown): Promise
   if (livePost(row) !== "ready") throw new FellowInputError("This post is already posted, so its photos can't change now.", 409);
   if (!row!.open) throw new FellowInputError("That post isn't on your page yet.", 404);
   try {
-    return await stockFor({ photoIdea: (row!.photo_idea as string | null) ?? null, title: String(row!.title ?? ""), kind: String(row!.kind ?? "") });
+    return await stockFor({ id, photoIdea: (row!.photo_idea as string | null) ?? null, title: String(row!.title ?? ""), kind: String(row!.kind ?? "") });
   } catch (e) {
     console.error("[fellow-page] stock search failed:", e instanceof Error ? e.message : "unknown");
     throw new FellowInputError(NO_STOCK, 503);

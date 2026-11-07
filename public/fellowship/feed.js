@@ -267,7 +267,7 @@
      only text, so the page reminds them to add the photo there too. */
   const photoUrl = (id, t) => `${API}/proof?post=${encodeURIComponent(id)}&photo=${encodeURIComponent(t)}`;
   const hasPhoto = (p) => !!(p.photos && p.photos.length);
-  const PHOTO_IDEA = "A photo you took yourself that fits this post: you, your desk, your college, or the place it happened.";
+  const PHOTO_IDEA = "Any photo you took yourself that fits this post: you, your desk, your college, or the place it happened.";
   function photoBlock(p) {
     const busy = S.photoBusy && S.photoBusy.id === p.id;
     const n = p.photos.length;
@@ -284,7 +284,7 @@
       : p.photoHelp ? "Copy and Post on LinkedIn unlock once the post has a photo: this stock image or your own."
       : "Copy and Post on LinkedIn unlock once your own photo is added. Every post goes out with one.";
     return `<div class="ph">
-      <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo for this post:</b> ${esc(p.photoIdea || PHOTO_IDEA)}</span></p>
+      <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo idea:</b> ${esc(p.photoIdea || PHOTO_IDEA)}${p.photoIdea ? " Any photo of yours that fits works too." : ""}</span></p>
       <div class="shots-strip">${thumbs}${add}${help}</div>
       ${!n && p.photoHelp ? stockBlock(p) : ""}
       <p class="ph-note ${n ? "" : "is-locked"}" id="phnote-${p.id}">${note}</p>
