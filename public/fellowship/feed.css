@@ -897,6 +897,16 @@ html:has(.told[open]) { overflow: hidden; }
 .rw-text { width: 100%; min-height: 220px; line-height: 1.5; }
 .stk { margin-top: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--hover); }
 .stk-q { font-size: 14px; line-height: 1.45; }
+.stk-search { display: flex; gap: 8px; margin-top: 10px; }
+.stk-search input { flex: 1; min-width: 0; min-height: 36px; padding: 0 12px; border: 1px solid var(--field); border-radius: 8px; background: var(--surface); font-size: 14px; }
+.stk-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.stk-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 12px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.stk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.stk-tile { display: block; padding: 0; border: 0; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: var(--line); cursor: pointer; outline-offset: 2px; }
+.stk-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.stk-tile.is-sel { box-shadow: 0 0 0 3px var(--accent); }
+.stk-note { margin-top: 8px; font-size: 13px; color: var(--ink-2); }
+.stk-pick { margin-top: 10px; }
 .stk-q b { font-weight: 600; }
 .stk-img { display: block; width: 100%; max-height: 260px; object-fit: cover; margin-top: 10px; border-radius: 8px; background: var(--line); }
 .stk-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -956,3 +966,4 @@ html:has(.told[open]) { overflow: hidden; }
   .coach-q li { flex-direction: column; align-items: stretch; }
   .coach-q .btn { min-height: 44px; justify-content: center; }
 }
+.stk-pick .stk-img { object-fit: contain; background: #111; max-height: 320px; }

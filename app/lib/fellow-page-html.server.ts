@@ -5,7 +5,7 @@
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
 
 /** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
-export const ASSET_VERSION = "20261107c";
+export const ASSET_VERSION = "20261107e";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -15,7 +15,7 @@ export const PAGE_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Content-Security-Policy":
-    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.stocksnap.io; connect-src 'self'; font-src 'self'; " +
+    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://pd.w.org https://api.openverse.org; connect-src 'self'; font-src 'self'; " +
     "frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'",
 };
 

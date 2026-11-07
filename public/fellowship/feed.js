@@ -226,7 +226,7 @@
       box.innerHTML = `
         <h2 class="card-title" id="analytics-title">${ic("image")}Two things only you can add</h2>
         <ol class="shots-steps">
-          <li><b>A photo on every post.</b> Add your own before you copy it. No photo? Use the stock image we pick for it. Copy and Post on LinkedIn unlock once it's there.</li>
+          <li><b>A photo on every post.</b> Add your own before you copy it. No photo? Search for one on the post, or pick one of ours. Copy and Post on LinkedIn unlock once it's there.</li>
           <li><b>Every Sunday, your LinkedIn analytics.</b> Export the last 7 days from LinkedIn and upload the file here. Your posts' numbers fill in from it.${done ? ` <span class="chip chip-good">${ic("check", "ic-xs")}Uploaded ${fmt(ME.analytics.at.slice(0, 10), false)}</span>` : ""}</li>
         </ol>
         ${weekTotals()}
@@ -267,7 +267,7 @@
      only text, so the page reminds them to add the photo there too. */
   const photoUrl = (id, t) => `${API}/proof?post=${encodeURIComponent(id)}&photo=${encodeURIComponent(t)}`;
   const hasPhoto = (p) => !!(p.photos && p.photos.length);
-  const PHOTO_IDEA = "A photo you took yourself that fits this post: you, your desk, your college, or the place it happened.";
+  const PHOTO_IDEA = "Any photo you took yourself that fits this post: you, your desk, your college, or the place it happened.";
   function photoBlock(p) {
     const busy = S.photoBusy && S.photoBusy.id === p.id;
     const n = p.photos.length;
@@ -279,45 +279,66 @@
       ? `<span class="shot-add is-busy">Adding ${S.photoBusy.done + 1} of ${S.photoBusy.total}</span>`
       : n >= P.photosPerPost ? ""
       : `<button class="shot-add ${n ? "" : "is-primary"}" type="button" data-act="photo-add" data-id="${p.id}" aria-label="${n ? "Add another photo" : "Add your photo"}, ${esc(p.title)}">${ic("image")}<span>${n ? "Add another" : "Add your photo"}</span></button>`;
-    const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">No photo? Use a stock image</button>` : "";
+    const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">No photo? Find one</button>` : "";
     const note = n ? "On LinkedIn, add this photo to the post as well: the link only carries the text."
-      : p.photoHelp ? "Copy and Post on LinkedIn unlock once the post has a photo: this stock image or your own."
+      : p.photoHelp ? "Copy and Post on LinkedIn unlock once the post has a photo: one you find here, or your own."
       : "Copy and Post on LinkedIn unlock once your own photo is added. Every post goes out with one.";
     return `<div class="ph">
-      <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo for this post:</b> ${esc(p.photoIdea || PHOTO_IDEA)}</span></p>
+      <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo idea:</b> ${esc(p.photoIdea || PHOTO_IDEA)}${p.photoIdea ? " Any photo of yours that fits works too." : ""}</span></p>
       <div class="shots-strip">${thumbs}${add}${help}</div>
       ${!n && p.photoHelp ? stockBlock(p) : ""}
       <p class="ph-note ${n ? "" : "is-locked"}" id="phnote-${p.id}">${note}</p>
     </div>`;
   }
-  // No photo of their own: a stock image picked for the post (fetched once), and the one question: can they post it?
+  // No photo of their own: they search for what it should show, or pick from the photos we chose for the post,
+  // see the one they tapped bigger, and use it. Our picks are fetched once; their searches replace the grid.
   function stockBlock(p) {
     const st = S.stock[p.id];
     if (!st) loadStock(p.id);
-    if (!st || st.busy === "load") return `<div class="stk"><p class="stk-q" role="status">Finding a stock image for this post...</p></div>`;
-    if (st.error || !st.list.length) {
-      return `<div class="stk"><p class="stk-q" role="status">${esc(st.error || "We couldn't find a stock image for this post. Add your own photo instead.")}</p>
-        <div class="stk-acts"><button class="btn btn-ghost btn-sm" type="button" data-act="stock-retry" data-id="${p.id}">Try again</button></div></div>`;
+    const s = S.stock[p.id];
+    let body;
+    if (s.busy === "load") body = `<p class="stk-note" role="status">${s.mode === "search" ? "Searching..." : "Finding photos for this post..."}</p>`;
+    else if (s.error) body = `<p class="stk-note" role="status">${esc(s.error)}</p><div class="stk-acts"><button class="btn btn-ghost btn-sm" type="button" data-act="stock-retry" data-id="${p.id}">Try again</button></div>`;
+    else if (!s.list.length) body = `<p class="stk-note" role="status">${s.mode === "search" ? `No photos for "${esc(s.q)}". Try other words, like desk, notebook or campus.` : "Search for a photo above."}</p>`;
+    else {
+      const sel = s.sel != null ? s.list[s.sel] : null;
+      body = `<div class="stk-grid">${s.list.map((x, i) => `<button class="stk-tile${s.sel === i ? " is-sel" : ""}" type="button" data-act="stock-sel" data-id="${p.id}" data-i="${i}" aria-pressed="${s.sel === i}" aria-label="Photo ${i + 1}: ${esc(x.title || "a photo for this post")}"><img src="${esc(x.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("")}</div>
+        ${sel ? `<div class="stk-pick"><img class="stk-img" src="${esc(sel.src)}" alt="${esc(sel.title || "The photo you picked")}" referrerpolicy="no-referrer">
+          <div class="stk-acts"><button class="btn btn-primary btn-sm" type="button" data-act="stock-use" data-id="${p.id}"${s.busy ? " disabled" : ""}>${s.busy === "use" ? "Adding it..." : "Use this photo"}</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-act="stock-unsel" data-id="${p.id}">Pick another</button></div></div>`
+          : `<p class="stk-note">Tap a photo to see it bigger.</p>`}`;
     }
-    const pick = st.list[st.at % st.list.length], off = st.busy ? " disabled" : "";
     return `<div class="stk">
-      <p class="stk-q"><b>Can you post it with a stock image?</b> We picked this one for your post. It's free to use, with no credit needed.</p>
-      <img class="stk-img" src="${esc(pick.src)}" alt="Stock image: ${esc(pick.title || "a picture for this post")}" loading="lazy" referrerpolicy="no-referrer">
-      <div class="stk-acts">
-        <button class="btn btn-primary btn-sm" type="button" data-act="stock-use" data-id="${p.id}"${off}>${st.busy === "use" ? "Adding it..." : "Yes, use this image"}</button>
-        ${st.list.length > 1 ? `<button class="btn btn-ghost btn-sm" type="button" data-act="stock-next" data-id="${p.id}"${off}>Show another</button>` : ""}
+      <p class="stk-q"><b>Find a photo for this post.</b> Search for what it should show, or pick one of ours. They're free to post, with no credit needed.</p>
+      <div class="stk-search" role="search">
+        <label class="sr-only" for="stkq-${p.id}">What should the photo show?</label>
+        <input id="stkq-${p.id}" type="search" enterkeyhint="search" autocomplete="off" maxlength="60" placeholder="What should it show? e.g. chai and laptop" value="${esc(s.qDraft != null ? s.qDraft : s.q)}" data-stock-q="${p.id}">
+        <button class="btn btn-secondary btn-sm" type="button" data-act="stock-search" data-id="${p.id}">Search</button>
       </div>
+      <div class="stk-label"><span>${s.mode === "search" ? `Photos for "${esc(s.q)}"` : "Our picks for this post"}</span>${s.mode === "search" ? `<button class="btn-link" type="button" data-act="stock-picks" data-id="${p.id}">Back to our picks</button>` : ""}</div>
+      ${body}
     </div>`;
   }
-  async function loadStock(id) {
-    if (S.stock[id]) return;
-    S.stock[id] = { list: [], at: 0, busy: "load" };
+  async function loadStock(id, q) {
+    const st = S.stock[id] || (S.stock[id] = { picks: null, list: [], mode: "picks", q: "", qDraft: null, busy: null, sel: null, error: "" });
+    if (!q && st.picks) { Object.assign(st, { list: st.picks, mode: "picks", q: "", busy: null, sel: null, error: "" }); return; }
+    const ask = q || "";
+    Object.assign(st, { mode: q ? "search" : "picks", q: ask, busy: "load", sel: null, error: "", list: [] });
     try {
-      const r = await send(`${API}/stock?post=${encodeURIComponent(id)}`, { headers: { Accept: "application/json" } });
-      S.stock[id] = { list: (r && r.stock) || [], at: 0, busy: null };
-    } catch (e) { S.stock[id] = { list: [], at: 0, busy: null, error: e.message }; }
+      const r = await send(`${API}/stock?post=${encodeURIComponent(id)}${q ? `&q=${encodeURIComponent(q)}` : ""}`, { headers: { Accept: "application/json" } });
+      if (S.stock[id] !== st || st.q !== ask) return; // a newer search has started
+      st.list = (r && r.stock) || [];
+      if (!q) st.picks = st.list;
+    } catch (e) {
+      if (S.stock[id] !== st || st.q !== ask) return;
+      st.error = e.message;
+    }
+    st.busy = null;
+    // Keep their place if they were typing a search while this loaded.
+    const typing = document.activeElement && document.activeElement.id === "stkq-" + id;
     refreshPhoto(id);
-    if (S.stockFocus === id) { S.stockFocus = null; focusEl(`[data-act="stock-use"][data-id="${id}"]`) || focusEl(`[data-act="stock-retry"][data-id="${id}"]`); }
+    if (typing) { const el = $("#stkq-" + id); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+    else if (S.stockFocus === id) { S.stockFocus = null; focusEl(q ? `[data-act="stock-sel"][data-id="${id}"]` : `#stkq-${id}`); }
   }
 
   // The post as LinkedIn will show it: the photos under the text.
@@ -330,10 +351,10 @@
   function needPhoto(id) {
     const v = imagePost(id);
     if (v && v.yourVersion) { toast("Your version of this post is with Studojo for approval. You'll post it once it's approved.", "error"); focusEl(`[data-act="rewrite-see"][data-id="${id}"]`); return; }
-    const p = v, add = $(`[data-act="stock-use"][data-id="${id}"]`) || $(`[data-act="photo-add"][data-id="${id}"]`);
+    const p = v, add = $(`[data-act="stock-use"][data-id="${id}"]`) || $(`#stkq-${id}`) || $(`[data-act="photo-add"][data-id="${id}"]`);
     if (add) { add.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); add.focus({ preventScroll: true }); }
     toast(p && p.photoHelp
-      ? "This post needs a photo first: use the stock image we picked for it, or add your own."
+      ? "This post needs a photo first: search for one, pick one of ours, or add your own."
       : "Add your own photo to this post first. Then Post on LinkedIn, Copy and I posted it unlock.", "error");
   }
   function refreshPhoto(id) { if (byId(id)) { rerenderPost(id); renderCover(); } else renderActivity(); }
@@ -463,7 +484,7 @@
     else if (next.yourVersion) dek = `<b>Your version of ${dowLong(next.date)}'s post is with Studojo.</b> You'll post it once it's approved.`;
     else if (!hasPhoto(next)) {
       dek = next.photoHelp
-        ? `<b>No photo for ${dowLong(next.date)}'s post?</b> Use the stock image we picked for it, or add your own, to unlock it.`
+        ? `<b>No photo for ${dowLong(next.date)}'s post?</b> Find one on the post, or add your own, to unlock it.`
         : `<b>Add your own photo to ${dowLong(next.date)}'s post</b> to unlock it. Every post goes out with one.`;
     } else if (next.copied) dek = `${dowLong(next.date)}'s post is copied. Paste it on LinkedIn, then tap <b>I posted it</b>.`;
     else if (away(next.date) < 0) {
@@ -1303,10 +1324,29 @@
       refreshPhoto(id);
       return;
     }
-    if (act === "stock-next") { const st = S.stock[id]; if (st) st.at++; refreshPhoto(id); focusEl(`[data-act="stock-next"][data-id="${id}"]`); return; }
-    if (act === "stock-retry") { delete S.stock[id]; S.stockFocus = id; refreshPhoto(id); return; }
+    if (act === "stock-search") {
+      const st = S.stock[id], v = ($("#stkq-" + id) || {}).value || "";
+      if (!st) return;
+      if (!v.trim()) { focusEl("#stkq-" + id); return; }
+      st.qDraft = null; S.stockFocus = id;
+      loadStock(id, v.trim()); refreshPhoto(id);
+      return;
+    }
+    if (act === "stock-picks") { const st = S.stock[id]; if (!st) return; st.qDraft = ""; loadStock(id); refreshPhoto(id); focusEl("#stkq-" + id); return; }
+    if (act === "stock-sel") {
+      const st = S.stock[id]; if (!st) return;
+      st.sel = Number(b.dataset.i); refreshPhoto(id); focusEl(`[data-act="stock-use"][data-id="${id}"]`);
+      return;
+    }
+    if (act === "stock-unsel") { const st = S.stock[id]; if (!st) return; const was = st.sel; st.sel = null; refreshPhoto(id); focusEl(`[data-act="stock-sel"][data-id="${id}"][data-i="${was}"]`); return; }
+    if (act === "stock-retry") {
+      const st = S.stock[id]; if (!st) return;
+      if (st.mode === "search") loadStock(id, st.q); else { st.picks = null; loadStock(id); }
+      S.stockFocus = id; refreshPhoto(id);
+      return;
+    }
     if (act === "stock-use") {
-      const st = S.stock[id], pick = st && st.list[st.at % st.list.length];
+      const st = S.stock[id], pick = st && st.sel != null && st.list[st.sel];
       if (!pick || st.busy) return;
       st.busy = "use"; refreshPhoto(id);
       try { if (!applyView(await call({ intent: "stock-use", postId: id, stockId: pick.id }))) return; }
@@ -1314,7 +1354,7 @@
       delete S.stock[id];
       refreshPhoto(id);
       focusEl(`[data-act="share"][data-id="${id}"]`) || focusEl(`[data-act="hist-copy"][data-id="${id}"]`);
-      toast("Stock image added, so the post is unlocked. Add the same image when you post it on LinkedIn.");
+      toast("Photo added, so the post is unlocked. Add the same photo when you post it on LinkedIn.");
       return;
     }
     if (act === "ask-no") { closeAsk(); toast("No problem. It stays here until you post it."); return; }
@@ -1564,9 +1604,12 @@
 
   // Enter in a field saves its panel; Escape closes the panel the focus is in, and only that one.
   const SAVE_FOR = { url: "posted-save", imp: "numbers-save", rea: "numbers-save", com: "numbers-save", hurl: "hist-posted-save", himp: "hist-numbers-save", hrea: "hist-numbers-save", hcom: "hist-numbers-save" };
+  // What they've typed in a photo search survives the card redrawing.
+  document.addEventListener("input", (ev) => { const t = ev.target; if (t && t.dataset && t.dataset.stockQ && S.stock[t.dataset.stockQ]) S.stock[t.dataset.stockQ].qDraft = t.value; });
   document.addEventListener("keydown", (ev) => {
     const t = ev.target;
     if (!t || !t.closest) return;
+    if (ev.key === "Enter" && t.tagName === "INPUT" && t.dataset.stockQ) { ev.preventDefault(); const sb = $(`[data-act="stock-search"][data-id="${t.dataset.stockQ}"]`); if (sb) sb.click(); return; }
     if (ev.key === "Enter" && t.tagName === "INPUT") {
       if (t.id === "conn-input") { ev.preventDefault(); $('[data-act="conn-save"]').click(); return; }
       if (t.id === "ask-url") { ev.preventDefault(); $('[data-act="ask-yes"]').click(); return; }

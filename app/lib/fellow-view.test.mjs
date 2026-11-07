@@ -18,10 +18,19 @@ import {
   cleanText,
   tidyCourse,
   tidyWords,
+  toYou,
 } from "./fellow-view.ts";
 
 // ---------------------------------------------------------------- dates
 // Weeks run Wednesday to Tuesday (the founder, 5 Nov 2026).
+// A photo idea is written about the fellow for the reviewer; their page says it to them.
+assert.equal(toYou("A photo of her at Christ University in Bangalore, or one with her dad.", "Vanshika"), "A photo of you at Christ University in Bangalore, or one with your dad.");
+assert.equal(toYou("A candid photo of her working on her laptop.", ""), "A candid photo of you working on your laptop.");
+assert.equal(toYou("Her desk with the notebook she uses.", ""), "Your desk with the notebook you use.");
+assert.equal(toYou("A photo of Harsh presenting, or Harsh's team at their table.", "Harsh"), "A photo of you presenting, or your team at their table.");
+assert.equal(toYou("A photo of him with his team; he is in the middle.", ""), "A photo of you with your team; you are in the middle.");
+assert.equal(toYou("A photo of the stall they set up.", ""), "A photo of the stall they set up.", "they can mean other people");
+
 assert.equal(weekOf("2026-11-06"), "2026-11-04", "Friday belongs to Wednesday's week");
 assert.equal(weekOf("2026-11-10"), "2026-11-04", "Tuesday ends the week");
 assert.equal(weekOf("2026-11-11"), "2026-11-11", "Wednesday starts a new one");

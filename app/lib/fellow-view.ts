@@ -272,6 +272,39 @@ export function wholeNumber(raw: unknown, max: number): number | null {
 }
 
 /** Plain text a student typed: control characters out, length capped. */
+// Words after "her" that mean it's "you", not "your": "a photo of her at the fest", "her working on her laptop".
+const HER_YOU = new Set("at in on with and or by from to near during while after before outside inside beside behind for of as".split(" "));
+
+/**
+ * A photo idea, said to the fellow. Claude writes it for the reviewer, about the fellow ("A photo of her at
+ * her desk, or one with her dad"); their page shows it to them, so it reads "A photo of you at your desk, or
+ * one with your dad". Their first name becomes "you" too. "They" and "their" are left as they are: they can
+ * mean other people.
+ */
+export function toYou(text: string, first = ""): string {
+  const name = first.trim();
+  let s = text;
+  if (name.length > 1) {
+    const n = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    s = s.replace(new RegExp(`\\b${n}'s\\b`, "g"), "your").replace(new RegExp(`\\b${n}\\b`, "g"), "you");
+  }
+  s = s
+    .replace(/\b(herself|himself)\b/gi, "yourself")
+    .replace(/\b(she|he) (is|was|has)\b/gi, (_m, _p, v) => `you ${({ is: "are", was: "were", has: "have" } as Record<string, string>)[v.toLowerCase()]}`)
+    .replace(/\b(she|he) ([a-z]+?)(ies|ches|shes|xes|oes|sses|s)\b/gi, (_m, _p, stem: string, end: string) =>
+      `you ${stem}${({ ies: "y", ches: "ch", shes: "sh", xes: "x", oes: "o", sses: "ss" } as Record<string, string>)[end.toLowerCase()] ?? ""}`)
+    .replace(/\b(she|he)\b/gi, "you")
+    .replace(/\bhis\b/gi, "your")
+    .replace(/\bhim\b/gi, "you")
+    .replace(/\bher\b(\s+([A-Za-z]+))?/gi, (_m, gap: string | undefined, next: string | undefined) => {
+      if (!next) return "you";
+      const w = next.toLowerCase();
+      return (HER_YOU.has(w) || w.endsWith("ing") ? "you" : "your") + gap;
+    });
+  // A sentence that now starts with "you" or "your" gets its capital back.
+  return s.replace(/(^|[.!?]\s+)(you|your|yourself)\b/g, (_m, pre, w) => pre + w[0].toUpperCase() + w.slice(1));
+}
+
 export function cleanText(raw: unknown, max: number, oneLine = false): string {
   // eslint-disable-next-line no-control-regex -- stripping control characters is the point
   let s = String(raw ?? "").replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, "");
@@ -550,7 +583,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       numbersDue: posted ? addDays(istDate(postedMs), 7) : null,
       // When their latest LinkedIn analytics export came in (its numbers are already in metrics).
       analyticsAt: posted && analyticsAt(p.analytics) != null ? istDateTime(analyticsAt(p.analytics)!) : null,
-      photoIdea: p.photo_idea?.trim() || null,
+      photoIdea: p.photo_idea?.trim() ? toYou(p.photo_idea.trim(), firstNameOf(fellow.full_name)) : null,
       photos: photoTokens(p.photo_url, fellow.id, p.id),
       // Asked the team for a photo, and none has arrived yet.
       photoHelp: Number.isFinite(toMs(p.photo_help_at)) && !photoTokens(p.photo_url, fellow.id, p.id).length,
