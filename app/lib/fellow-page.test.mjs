@@ -49,6 +49,7 @@ try {
       own_line TEXT, posted_at TIMESTAMPTZ, post_url TEXT, impressions INTEGER, reactions INTEGER, comments INTEGER,
       screenshot_url TEXT, metrics_at TIMESTAMPTZ, review JSONB, insight TEXT, insight_at TIMESTAMPTZ,
       photo_idea TEXT, photo_url TEXT, photo_help_at TIMESTAMPTZ, analytics_url TEXT, analytics JSONB,
+      rewrite_body TEXT, rewrite_at TIMESTAMPTZ, rewrite_reply TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE TABLE ugc_creator_stories (id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES ugc_creators(id), prompt TEXT, text TEXT NOT NULL, spoken BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -162,6 +163,24 @@ try {
   photos = await photosOn(ids.aTue);
   assert.equal(photos.length, 3, "a photo can be removed any time before the post goes out");
   assert.equal(storedType.get(photos[0].slice("fellow-proof/".length)), "image/jpeg");
+
+  // ---------------------------------------------------------------- their own version waits for the team's approval
+  const MINE = "This is how I would say it myself, in my own words, with nothing that sounds made up.\n\nSecond paragraph.";
+  const tueBody = (await one(`SELECT body FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).body;
+  await assert.rejects(() => page.applyFellowChange(asha, { intent: "rewrite", postId: ids.aTue, text: "too short" }), (e) => e.status === 400, "a version needs the whole post");
+  await assert.rejects(() => page.applyFellowChange(asha, { intent: "rewrite", postId: ids.aTue, text: `  ${tueBody}  ` }), (e) => e.status === 400 && /same as the post/.test(e.message), "an unchanged version isn't sent");
+  await refused(() => page.applyFellowChange(asha, { intent: "rewrite", postId: ids.kTue, text: MINE }), 404, "a version of another fellow's post");
+  await page.applyFellowChange(asha, { intent: "rewrite", postId: ids.aTue, text: MINE });
+  let mineV = (await page.loadFellowView(asha)).me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue);
+  assert.equal(mineV.yourVersion.text, MINE, "the page shows their version as waiting");
+  assert.equal(mineV.body, tueBody, "the post itself stays as approved until the team decides");
+  await assert.rejects(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aTue }), (e) => e.status === 409 && /with Studojo for approval/.test(e.message), "no posting while their version waits");
+  await page.applyFellowChange(asha, { intent: "rewrite-withdraw", postId: ids.aTue });
+  assert.equal((await one(`SELECT rewrite_body FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).rewrite_body, null, "withdrawn, the original can go out");
+  // The team kept the original: their page shows why, until they post it.
+  await setup.query(`UPDATE ugc_creator_posts SET rewrite_reply = 'The first line is what works on LinkedIn.' WHERE id = $1`, [ids.aTue]);
+  mineV = (await page.loadFellowView(asha)).me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue);
+  assert.deepEqual([mineV.yourVersion, mineV.versionReply], [null, "The first line is what works on LinkedIn."]);
 
   // ---------------------------------------------------------------- the fellow's own posts
   await refused(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aNext, url: "https://www.linkedin.com/posts/x-activity-10" }), 409, "next week's post can't be marked yet");

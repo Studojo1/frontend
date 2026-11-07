@@ -81,6 +81,7 @@
       status: p.status, copied: !!p.copiedAt, ownLine: p.ownLine || "", postedAt: p.postedAt,
       url: p.url, metrics: p.metrics, numbersDue: p.numbersDue || null, analyticsAt: p.analyticsAt || null,
       photoIdea: p.photoIdea || "", photos: p.photos || [], photoHelp: !!p.photoHelp,
+      yourVersion: p.yourVersion || null, versionReply: p.versionReply || null, showVersion: false, rewriteDraft: null,
       panel: null, expanded: false, err: "", draft: null, lineDraft: null,
     })),
     conn: { now: ME.connections.now, atJoin: ME.connections.atJoin, history: ME.connections.history.slice(), editing: false, err: "" },
@@ -106,7 +107,7 @@
     for (const sp of M.thisWeek.posts) {
       const p = byId(sp.id);
       if (p) Object.assign(p, { status: sp.status, copied: !!sp.copiedAt, ownLine: sp.ownLine || "", postedAt: sp.postedAt, url: sp.url, metrics: sp.metrics, numbersDue: sp.numbersDue || null, analyticsAt: sp.analyticsAt || null,
-        photoIdea: sp.photoIdea || "", photos: sp.photos || [], photoHelp: !!sp.photoHelp });
+        photoIdea: sp.photoIdea || "", photos: sp.photos || [], photoHelp: !!sp.photoHelp, yourVersion: sp.yourVersion || null, versionReply: sp.versionReply || null });
     }
     ME.thisWeek.due = M.thisWeek.due;
     Object.assign(ME, {
@@ -327,7 +328,9 @@
   }
   // A tap on a locked button says why and takes them to Add your photo, instead of doing nothing.
   function needPhoto(id) {
-    const p = imagePost(id), add = $(`[data-act="stock-use"][data-id="${id}"]`) || $(`[data-act="photo-add"][data-id="${id}"]`);
+    const v = imagePost(id);
+    if (v && v.yourVersion) { toast("Your version of this post is with Studojo for approval. You'll post it once it's approved.", "error"); focusEl(`[data-act="rewrite-see"][data-id="${id}"]`); return; }
+    const p = v, add = $(`[data-act="stock-use"][data-id="${id}"]`) || $(`[data-act="photo-add"][data-id="${id}"]`);
     if (add) { add.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); add.focus({ preventScroll: true }); }
     toast(p && p.photoHelp
       ? "This post needs a photo first: use the stock image we picked for it, or add your own."
@@ -457,6 +460,7 @@
     const when = (d) => (away(d) === 0 ? "today" : away(d) === 1 ? "tomorrow" : dowLong(d));
     let dek;
     if (!next) dek = `${allPosts(total, "up")}. <b>That's this week done.</b>`;
+    else if (next.yourVersion) dek = `<b>Your version of ${dowLong(next.date)}'s post is with Studojo.</b> You'll post it once it's approved.`;
     else if (!hasPhoto(next)) {
       dek = next.photoHelp
         ? `<b>No photo for ${dowLong(next.date)}'s post?</b> Use the stock image we picked for it, or add your own, to unlock it.`
@@ -519,6 +523,18 @@
     </article>`;
   }
 
+  // Their own version, waiting for Studojo: what happens next, what they sent, and the way back to the original.
+  function versionBlock(p) {
+    return `<div class="ver" id="ver-${p.id}">
+      <p class="ver-head">${ic("send", "ic-sm")}<span><b>Your version is with Studojo for approval.</b> You'll post it once it's approved. Until then, this post stays locked.</span></p>
+      <div class="ver-acts">
+        <button class="btn-link" type="button" data-act="rewrite-see" data-id="${p.id}" aria-expanded="${!!p.showVersion}">${p.showVersion ? "Hide your version" : "See your version"}</button>
+        <button class="btn-link" type="button" data-act="rewrite-withdraw" data-id="${p.id}">Withdraw it and post the original</button>
+      </div>
+      ${p.showVersion ? `<p class="ver-text">${esc(p.yourVersion.text)}</p>` : ""}
+    </div>`;
+  }
+
   function postCard(p) {
     if (onHold(p)) return holdCard(p);
     const posted = p.status === "posted";
@@ -539,8 +555,10 @@
 
     let actions = "";
     if (!posted) {
-      // The hard rule: nothing goes out without the fellow's own photo, so these wait for one.
-      const locked = !hasPhoto(p), lock = locked ? ` aria-disabled="true" aria-describedby="phnote-${p.id}"` : "";
+      // The hard rule: nothing goes out without the fellow's own photo, so these wait for one. Their own version of
+      // the post waits for Studojo's approval the same way.
+      const waiting = !!p.yourVersion, locked = !hasPhoto(p) || waiting;
+      const lock = locked ? ` aria-disabled="true" aria-describedby="${waiting ? "ver" : "phnote"}-${p.id}"` : "";
       const sharePrimary = isNext && !p.copied && !locked, postPrimary = isNext && p.copied && !locked;
       actions = `<div class="actions" role="group" aria-label="${esc(dowLong(p.date))} post actions">
         ${locked
@@ -550,7 +568,8 @@
         <button class="act" type="button" data-act="line" data-id="${p.id}" aria-expanded="${p.panel === "line"}" aria-controls="panel-${p.id}">${ic("pen")}<span>${p.ownLine ? "Edit your line" : "Add your line"}</span></button>
         <button class="act ${postPrimary ? "is-primary" : ""}" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}"${lock}>${ic("send")}<span>I posted it</span></button>
       </div>
-      <p class="as-written">${ic("info", "ic-sm")}<span>Post it as written: <b>Post on LinkedIn</b> copies it for you, or use <b>Copy</b>. To make it more yours, <b>Add your line</b> at the top instead of rewriting it.</span></p>`;
+      ${waiting ? versionBlock(p) : `${p.versionReply ? `<p class="ver-reply">${ic("comment", "ic-sm")}<span><b>Studojo kept the original:</b> ${esc(p.versionReply)}</span></p>` : ""}
+      <p class="as-written">${ic("info", "ic-sm")}<span>Post it as written: <b>Post on LinkedIn</b> copies it for you, or use <b>Copy</b>. Want it in your own words? <button class="btn-link" type="button" data-act="rewrite" data-id="${p.id}" aria-expanded="${p.panel === "rewrite"}" aria-controls="panel-${p.id}">Rewrite it your way</button> and Studojo approves it before you post it.</span></p>`}`;
     }
 
     let footer = "";
@@ -573,7 +592,18 @@
     }
 
     let panel = "";
-    if (p.panel === "line") {
+    if (p.panel === "rewrite") {
+      panel = `<div class="panel" id="panel-${p.id}">
+        <label class="panel-label" for="rw-${p.id}">Your version of the post</label>
+        <p class="panel-help" id="rw-help-${p.id}">Write it the way you would. Studojo reads it and approves it, and you post it once it's approved. Keep a strong first line and short paragraphs: that's what LinkedIn shows people first.</p>
+        <textarea id="rw-${p.id}" class="rw-text" rows="12" maxlength="3000" aria-describedby="rw-help-${p.id} rw-err-${p.id}" aria-invalid="${!!p.err}">${esc(p.rewriteDraft != null ? p.rewriteDraft : p.body)}</textarea>
+        <p class="err" id="rw-err-${p.id}">${p.err ? ic("alert") + esc(p.err) : ""}</p>
+        <div class="panel-actions">
+          <button class="btn btn-ghost" type="button" data-act="close" data-id="${p.id}">Cancel</button>
+          <button class="btn btn-primary" type="button" data-act="rewrite-send" data-id="${p.id}">Send to Studojo for approval</button>
+        </div>
+      </div>`;
+    } else if (p.panel === "line") {
       panel = `<div class="panel" id="panel-${p.id}">
         <label class="panel-label" for="line-${p.id}">Your own line <span class="opt">(optional)</span></label>
         <p class="panel-help" id="line-help-${p.id}">One line in your own words. It goes at the top of the post.</p>
@@ -1081,8 +1111,8 @@
             <p class="act-missed">Not marked as posted</p>
           </div>
           <p class="act-nums">
-            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${hasPhoto(m) ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>${ic("copy")}Copy</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${hasPhoto(m) ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>I posted it</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${hasPhoto(m) && !m.yourVersion ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>${ic("copy")}Copy</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${hasPhoto(m) && !m.yourVersion ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>I posted it</button>
           </p>
           <div class="act-photo">${photoBlock(m)}</div>
           ${S.histOpen === m.id ? histPanel(m) : ""}
@@ -1310,12 +1340,33 @@
       toast("Copied. Paste it into a new post on LinkedIn.");
       return;
     }
-    if (act === "line" || act === "posted" || act === "numbers") {
-      p.panel = p.panel === act ? null : act; p.err = ""; p.draft = null; p.lineDraft = null;
-      rerenderPost(id, p.panel ? (act === "line" ? "textarea" : "input") : `[data-act="${act}"]`);
+    if (act === "line" || act === "posted" || act === "numbers" || act === "rewrite") {
+      p.panel = p.panel === act ? null : act; p.err = ""; p.draft = null; p.lineDraft = null; p.rewriteDraft = null;
+      rerenderPost(id, p.panel ? (act === "line" || act === "rewrite" ? "textarea" : "input") : `[data-act="${act}"]`);
       return;
     }
-    if (act === "close") { const was = p.panel; p.panel = null; p.err = ""; p.lineDraft = null; rerenderPost(id, `[data-act="${was}"]`); return; }
+    if (act === "rewrite-send") {
+      const v = $("#rw-" + id).value.trim();
+      if (v.length < 40) { p.err = "Write out your whole version of the post before you send it."; p.rewriteDraft = v; rerenderPost(id, "textarea"); return; }
+      b.disabled = true;
+      try { if (!applyView(await call({ intent: "rewrite", postId: id, text: v }))) return; }
+      catch (e) { p.err = e.message; p.rewriteDraft = v; rerenderPost(id, "textarea"); return; }
+      p.panel = null; p.err = ""; p.rewriteDraft = null; p.showVersion = false;
+      rerenderPost(id, `[data-act="rewrite-see"][data-id="${id}"]`); renderCover();
+      toast("Sent. Studojo will read your version, and you'll post it once it's approved.");
+      return;
+    }
+    if (act === "rewrite-see") { p.showVersion = !p.showVersion; rerenderPost(id, `[data-act="rewrite-see"][data-id="${id}"]`); return; }
+    if (act === "rewrite-withdraw") {
+      b.disabled = true;
+      try { if (!applyView(await call({ intent: "rewrite-withdraw", postId: id }))) return; }
+      catch (e) { b.disabled = false; toast(e.message, "error"); return; }
+      p.showVersion = false;
+      rerenderPost(id, `[data-act="rewrite"][data-id="${id}"]`); renderCover();
+      toast("Withdrawn. You can post the original now.");
+      return;
+    }
+    if (act === "close") { const was = p.panel; p.panel = null; p.err = ""; p.lineDraft = null; p.rewriteDraft = null; rerenderPost(id, `[data-act="${was}"]`); return; }
     if (act === "line-save" || act === "line-remove") {
       const v = act === "line-remove" ? "" : $("#line-" + id).value.trim().replace(/\s+/g, " ");
       b.disabled = true;

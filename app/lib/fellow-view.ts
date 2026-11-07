@@ -52,6 +52,10 @@ export interface FellowPostRow {
   photo_url?: string | null;
   photo_help_at?: string | Date | null;
   analytics?: unknown;
+  /** The fellow's own version of the post, waiting for the team, and the team's note when they kept the original. */
+  rewrite_body?: string | null;
+  rewrite_at?: string | Date | null;
+  rewrite_reply?: string | null;
 }
 
 export interface StoryRow {
@@ -526,7 +530,8 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       // On hold: the page shows only that it's being updated, never the text or the team's reason.
       return { id: String(p.id), day: dowShort(due), date: due, kind: p.kind === "studojo" ? "studojo" : "personal", title: p.title, body: "",
         status: "blocked", copiedAt: null, ownLine: null, postedAt: null, url: null, metrics: null, numbersDue: null, analyticsAt: null as string | null,
-        photoIdea: null as string | null, photos: [] as string[], photoHelp: false };
+        photoIdea: null as string | null, photos: [] as string[], photoHelp: false,
+        yourVersion: null as { text: string; at: string } | null, versionReply: null as string | null };
     }
     return {
       id: String(p.id),
@@ -549,6 +554,9 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
       photos: photoTokens(p.photo_url, fellow.id, p.id),
       // Asked the team for a photo, and none has arrived yet.
       photoHelp: Number.isFinite(toMs(p.photo_help_at)) && !photoTokens(p.photo_url, fellow.id, p.id).length,
+      // Their own version, with the team until they approve it (the post is locked meanwhile), or the team's note when they kept the original.
+      yourVersion: !posted && p.rewrite_body ? { text: p.rewrite_body, at: Number.isFinite(toMs(p.rewrite_at)) ? istDateTime(toMs(p.rewrite_at)) : "" } : null,
+      versionReply: !posted && !p.rewrite_body ? p.rewrite_reply || null : null,
     };
   };
 
@@ -570,7 +578,7 @@ export function buildFellowView(input: FellowInput, nowMs: number = Date.now()) 
           .map((p) => {
             const v = postView(p);
             return { id: v.id, day: v.day, date: v.date, title: v.title, kind: v.kind, body: v.body, ownLine: v.ownLine,
-              photoIdea: v.photoIdea, photos: v.photos, photoHelp: v.photoHelp };
+              photoIdea: v.photoIdea, photos: v.photos, photoHelp: v.photoHelp, yourVersion: v.yourVersion, versionReply: v.versionReply };
           }),
         posts: ps
           .filter((p) => isPosted(p) && Number.isFinite(toMs(p.posted_at)))
