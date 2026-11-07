@@ -8,7 +8,7 @@ const BASE_URL = "https://studojo.com";
 export function meta() {
   return [
     { title: "Direct Outreach Job Search 2026: Write to the Person, Not the Portal | Studojo" },
-    { name: "description", content: "A direct outreach job search means writing to the person who hires you. The channels, what gets a message read, and a 2-week plan built on email." },
+    { name: "description", content: "A direct outreach job search means writing to the person who hires, not the portal queue. The channels, what gets a message read, and a 2-week email plan." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "direct outreach job search, direct outreach jobs, direct outreach strategy for jobs, reach out directly to companies for a job, outreach job search, job search outreach strategy" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/direct-outreach-job-search-2026` },
@@ -284,11 +284,11 @@ const FAQ = [
   },
   {
     q: "Does direct outreach work for getting a job?",
-    a: "In Studojo's view it is a far better use of your time than spraying applications, where the typical success rate is cited at roughly 0.1% to 2% per application (The Interview Guys, April 2026). A short, personal email reaches a person instead of a queue. It does not guarantee a reply or an interview, but it gives each message a real chance of being read.",
+    a: "In Studojo's view it is a far better use of your time than spraying applications, where the typical success rate is cited at roughly 0.1% to 2% per application (The Interview Guys, April 2026). A short, personal email reaches a person instead of a queue. It is not a promise of a reply or an interview, but it gives each message a real chance of being read.",
   },
   {
     q: "How do I reach out directly to companies for a job?",
-    a: "Pick the role, find the hiring manager or team lead for it, verify their email address, and send a short email from your own address with one reason tied to their work and one proof point. Follow up once if you hear nothing. Studojo does the finding, verifying, writing and sending from your own Gmail for you.",
+    a: "Pick the role, find the hiring manager or team lead for it, verify their email address, and send a short email from your own address with one reason tied to their work and one proof point. Follow up once if you hear nothing. Studojo does the finding, verifying, writing and sending from your own inbox for you.",
   },
   {
     q: "What is a good direct outreach strategy for jobs?",
@@ -300,7 +300,15 @@ const FAQ = [
   },
   {
     q: "Can I automate my outreach job search?",
-    a: "Blasting generic messages defeats the point, and on LinkedIn it breaks the rules: LinkedIn's terms ban bots and automation tools (User Agreement, section 8.2). What you can hand off is the slow work behind each message. Studojo finds the person who can hire you, verifies their email, writes a personal email for that one person and sends it from your own Gmail.",
+    a: "Blasting generic messages defeats the point, and on LinkedIn it breaks the rules: LinkedIn's terms ban bots and automation tools (User Agreement, section 8.2). What you can hand off is the slow work behind each message. Studojo finds the person who can hire you, verifies their email, writes a personal email for that one person and sends it from your own inbox.",
+  },
+  {
+    q: "How many outreach emails should I send a day?",
+    a: "About five a day is a sustainable pace that keeps every message personal. The point of direct outreach is quality, not volume: five emails written for five specific people beat fifty copies of one. Over two weeks that is roughly 30 emails, each with one follow-up.",
+  },
+  {
+    q: "Does direct outreach work for freshers with no experience?",
+    a: "Yes, and it often works better for freshers than mass applying, because a specific email can show initiative a resume alone cannot. Lead with one real thing you have done, a project or an internship, tied to the team's work. A short note to the team lead beats waiting in a queue of hundreds.",
   },
 ];
 
@@ -396,7 +404,7 @@ export default function DirectOutreachReport() {
               <div className="kf-item"><span className="kf-check">✓</span><span>A portal application joins a pile of <strong>about 242 for an average opening</strong> (The Interview Guys, April 2026, citing Business Insider data).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>There are three channels: <strong>email, LinkedIn and referral asks</strong>. Email is the one with room for a full message that needs no connection request and no paid credit.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>A message gets read when it is <strong>sent to the right person, specific to their work, and short</strong>. A generic HR inbox is where good messages go to wait.</span></div>
-              <div className="kf-item"><span className="kf-check">✓</span><span>A <strong>2-week plan</strong> of about 30 personal emails and one follow-up each is enough to learn what works. Studojo finds the person, verifies the email, writes it and sends it from your own Gmail.</span></div>
+              <div className="kf-item"><span className="kf-check">✓</span><span>A <strong>2-week plan</strong> of about 30 personal emails and one follow-up each is enough to learn what works. Studojo finds the person, verifies the email, writes it and sends it from your own inbox.</span></div>
             </div>
           </div>
 
@@ -413,9 +421,9 @@ export default function DirectOutreachReport() {
               <div className="sc-source">The Interview Guys, April 2026 (reported)</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">8,700+</div>
-              <div className="sc-label">students have signed up to Studojo</div>
-              <div className="sc-source">Studojo's own records, November 2026</div>
+              <div className="sc-num">6 to 7</div>
+              <div className="sc-label">seconds a recruiter spends on a first resume scan, so short and specific wins</div>
+              <div className="sc-source">Ladders eye-tracking study, 2018</div>
             </div>
           </div>
 
@@ -429,7 +437,7 @@ export default function DirectOutreachReport() {
               </div>
             </div>
             <p>A direct outreach job search is simple to describe. Instead of uploading your resume to a portal and waiting, you write to the person who can actually hire you. That is usually the hiring manager or the team lead for the role, not a generic HR inbox.</p>
-            <p>Portals still have a job. Naukri, Internshala, LinkedIn and Indeed are where most listings live, and they are a good way to see who is hiring. The trouble starts after you click apply. An average opening draws about 242 applications (The Interview Guys, April 2026, citing Business Insider data), and the typical success rate of an online application is cited at roughly 0.1% to 2% (same source).</p>
+            <p>Portals still have a job. Naukri, Internshala, LinkedIn and Indeed are where most listings live, and they are a good way to see who is hiring. The trouble starts after you click apply. An average opening draws about 242 applications (The Interview Guys, April 2026, citing Business Insider data), and the typical success rate of an online application is cited at roughly 0.1% to 2% (same source). Many roles are never posted at all; see <Link to="/reports/hidden-job-market-70-percent-never-posted-2026">the hidden job market</Link>.</p>
             <p>Direct outreach jobs are not a secret list of roles. They are the same roles, reached through a different door. You use the listing to learn the role exists, then you write to the person behind it.</p>
             <div className="highlight">
               <strong>Studojo's position:</strong> spray-and-pray applications and auto-apply bots do not work. A short, personal email to the person who hires, sent from your own address, is the better bet. It is not a guarantee, and no method is.
@@ -600,14 +608,14 @@ export default function DirectOutreachReport() {
                 <div className="sec-sub">And how Studojo runs direct outreach for you</div>
               </div>
             </div>
-            <p>Email gives you room to make your case, needs no connection request or paid credit, and lands where hiring work happens: interview invites, offer letters and calendar invites all arrive there. Sent from your own address, it reads as what it is, one person writing to another.</p>
+            <p>Email gives you room to make your case, needs no connection request or paid credit, and lands where hiring work happens: interview invites, offer letters and calendar invites all arrive there. Sent from your own address, it reads as what it is, one person writing to another. For what makes those emails land, see <Link to="/reports/do-hiring-managers-read-cold-emails-2026">whether hiring managers read cold emails</Link>.</p>
             <p>The hard part is the work behind each email: finding the right person, getting an address that is real, and writing something specific for every one of them. Done by hand, that is the slow part of the whole plan above.</p>
-            <p>We built Studojo to do exactly this. Studojo finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.</p>
+            <p>We built Studojo to do exactly this. Studojo finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own inbox.</p>
             <div className="pull-quote">
               <p>"Write to the person who decides, from your own address, about their work. Everything else is detail."</p>
               <span className="pq-source">The Studojo rule for direct outreach</span>
             </div>
-            <p>So far, 8,700+ students have signed up to Studojo. Replies are not guaranteed. What you get is a specific email in front of the right person.</p>
+            <p>Replies are not guaranteed. What you get is a specific email in front of the right person.</p>
           </div>
 
           {/* FAQ */}
