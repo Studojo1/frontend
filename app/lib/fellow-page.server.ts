@@ -272,10 +272,10 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
       // it (it becomes the post) or keep the original. Sending again replaces the one waiting.
       const id = postId(body.postId);
       const text = cleanText(body.text, POST_TEXT_MAX);
-      if (text.length < 40) throw new FellowInputError("Write out your whole version of the post before you send it.");
       const cur = rows<Row>(await db.execute(sql`SELECT body FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}`))[0];
       const same = (a: string) => a.replace(/\s+/g, " ").trim();
       if (cur && same(String(cur.body)) === same(text)) throw new FellowInputError("That's the same as the post. Change it the way you'd write it, then send it.");
+      if (text.length < 40) throw new FellowInputError("Write out your whole version of the post before you send it.");
       const r = await db.execute(sql`
         UPDATE ugc_creator_posts SET rewrite_body = ${text}, rewrite_at = now(), rewrite_reply = NULL, updated_at = now()
         WHERE id = ${id} AND creator_id = ${fellow.id} AND status = 'ready' AND due_date <= ${weekEnd}::date
