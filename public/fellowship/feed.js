@@ -293,6 +293,14 @@
     const list = p.photos.slice(0, 4);
     return `<div class="li-media n-${list.length}">${list.map((t) => `<img src="${esc(photoUrl(p.id, t))}" alt="" loading="lazy">`).join("")}</div>`;
   }
+  // A tap on a locked button says why and takes them to Add your photo, instead of doing nothing.
+  function needPhoto(id) {
+    const p = imagePost(id), add = $(`[data-act="photo-add"][data-id="${id}"]`);
+    if (add) { add.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); add.focus({ preventScroll: true }); }
+    toast(p && p.photoHelp
+      ? "The Studojo team is adding a photo to this post. To post it now, add your own photo."
+      : "Add your own photo to this post first. Then Post on LinkedIn, Copy and I posted it unlock.", "error");
+  }
   function refreshPhoto(id) { if (byId(id)) { rerenderPost(id); renderCover(); } else renderActivity(); }
 
   // Every photo is redrawn as a JPEG before it's sent: that drops its hidden details (like where it was
@@ -500,11 +508,11 @@
     let actions = "";
     if (!posted) {
       // The hard rule: nothing goes out without the fellow's own photo, so these wait for one.
-      const locked = !hasPhoto(p), lock = locked ? ` disabled aria-describedby="phnote-${p.id}"` : "";
+      const locked = !hasPhoto(p), lock = locked ? ` aria-disabled="true" aria-describedby="phnote-${p.id}"` : "";
       const sharePrimary = isNext && !p.copied && !locked, postPrimary = isNext && p.copied && !locked;
       actions = `<div class="actions" role="group" aria-label="${esc(dowLong(p.date))} post actions">
         ${locked
-          ? `<button class="act act-share" type="button"${lock}>${ic("share")}<span>Post on LinkedIn</span></button>`
+          ? `<button class="act act-share" type="button" data-act="share" data-id="${p.id}"${lock}>${ic("share")}<span>Post on LinkedIn</span></button>`
           : `<a class="act act-share ${sharePrimary ? "is-primary" : ""}" href="${esc(composeUrl(p))}" target="_blank" rel="noopener noreferrer" data-act="share" data-id="${p.id}">${ic("share")}<span>Post on LinkedIn</span><span class="sr-only"> (copies the post and opens LinkedIn in a new tab)</span></a>`}
         <button class="act ${p.copied ? "is-done" : ""}" type="button" data-act="copy" data-id="${p.id}"${lock}>${ic(p.copied ? "check" : "copy")}<span>${p.copied ? "Copied" : "Copy"}</span></button>
         <button class="act" type="button" data-act="line" data-id="${p.id}" aria-expanded="${p.panel === "line"}" aria-controls="panel-${p.id}">${ic("pen")}<span>${p.ownLine ? "Edit your line" : "Add your line"}</span></button>
@@ -1041,8 +1049,8 @@
             <p class="act-missed">Not marked as posted</p>
           </div>
           <p class="act-nums">
-            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${hasPhoto(m) ? "" : ` disabled aria-describedby="phnote-${m.id}"`}>${ic("copy")}Copy</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${hasPhoto(m) ? "" : ` disabled aria-describedby="phnote-${m.id}"`}>I posted it</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${hasPhoto(m) ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>${ic("copy")}Copy</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${hasPhoto(m) ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>I posted it</button>
           </p>
           <div class="act-photo">${photoBlock(m)}</div>
           ${S.histOpen === m.id ? histPanel(m) : ""}
@@ -1188,6 +1196,7 @@
     const b = ev.target.closest("[data-act]");
     if (!b || b.tagName === "INPUT") return;
     const act = b.dataset.act, id = b.dataset.id, p = id ? byId(id) : null;
+    if (b.getAttribute("aria-disabled") === "true") { ev.preventDefault(); needPhoto(id); return; }
 
     if (act === "goto-next") { const n = nextPost(); if (n) goTo(n.id); else toast(ME.thisWeek.due ? allPosts(ME.thisWeek.due, "done") + " this week." : NO_POSTS); return; }
     if (act === "goto") { goTo(id); return; }

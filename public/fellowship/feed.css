@@ -890,8 +890,8 @@ html:has(.told[open]) { overflow: hidden; }
 .ph-note.is-locked { display: flex; gap: 6px; color: var(--ink); font-weight: 500; }
 .shot-add.is-primary { border-style: solid; background: var(--accent); color: #fff; }
 .shot-add.is-primary:hover { background: var(--accent-hover); }
-.act[disabled], .act-nums .btn[disabled] { opacity: .45; cursor: not-allowed; }
-.act[disabled]:hover { background: none; color: var(--ink-2); }
+.act[disabled], .act-nums .btn[disabled], .act[aria-disabled="true"], .act-nums .btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.act[disabled]:hover, .act[aria-disabled="true"]:hover { background: none; color: var(--ink-2); }
 .li-media { display: grid; gap: 2px; margin: 10px -16px 0; grid-template-columns: 1fr 1fr; background: var(--line); }
 .li-media img { display: block; width: 100%; height: 100%; aspect-ratio: 1; object-fit: cover; }
 .li-media.n-1 { grid-template-columns: 1fr; }
