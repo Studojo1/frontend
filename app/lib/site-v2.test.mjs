@@ -133,7 +133,7 @@ const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);
 const PINNED = {
   "routes/blog._index.tsx": "c56374e058eb2f3f",
   "routes/blog.$slug.tsx": "2a9c438fdd84f1ea",
-  "routes/reports.tsx": "95b9d2a4078e3484", // re-pinned 3 Nov for the India entry-level data report (REPORTS entries only)
+  "routes/reports.tsx": "db78d1ade3e9c02a", // re-pinned 9 Nov for the 10 student job-search reports (REPORTS entries only)
   "routes/terms.tsx": "e565ab6f9433ba94",
   "routes/privacy.tsx": "8288874388100760",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
