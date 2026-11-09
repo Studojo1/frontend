@@ -338,10 +338,10 @@ export default function Report_FirstInternshipReportHowToGetOneWithNoExperience2
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Find internships that take first-timers"}</h3>
-              <p>{"Browse internships on Studojo, including roles open to students with no previous internship."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-first-internship-report-how-to-get-one-with-no-experience-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>
