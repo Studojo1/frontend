@@ -388,10 +388,10 @@ export default function Report_JobsForBcomBbaBaFreshersReport2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Find internships open to every stream"}</h3>
-              <p>{"Browse internships on Studojo in finance, marketing, operations, HR and more, open to BCom, BBA and BA students."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-jobs-for-bcom-bba-ba-freshers-report-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>
