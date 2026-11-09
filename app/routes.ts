@@ -171,4 +171,5 @@ export default [
   route("reports/remote-jobs-report-who-hires-remote-freshers-2026", "routes/reports.remote-jobs-report-who-hires-remote-freshers-2026.tsx"),
   route("reports/job-scam-report-fake-internships-task-scams-students-2026", "routes/reports.job-scam-report-fake-internships-task-scams-students-2026.tsx"),
   route("reports/pm-internship-scheme-report-is-it-worth-it-2026", "routes/reports.pm-internship-scheme-report-is-it-worth-it-2026.tsx"),
+  route("reports/graduate-unemployment-report-why-degrees-not-getting-jobs-2026", "routes/reports.graduate-unemployment-report-why-degrees-not-getting-jobs-2026.tsx"),
 ] satisfies RouteConfig;
