@@ -74,6 +74,7 @@ export async function loader() {
     { loc: "/reports/government-vs-private-job-report-why-crores-apply-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/remote-jobs-report-who-hires-remote-freshers-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-scam-report-fake-internships-task-scams-students-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/pm-internship-scheme-report-is-it-worth-it-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other. Only URLs that return 200 and robots.txt allows
     // (no /auth, no /careers, which 301s to /).
     { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
@@ -130,6 +131,15 @@ export async function loader() {
     { loc: "/reports/job-consultancy-for-freshers-india-2026", publishDate: "2026-10-28" },
     { loc: "/reports/how-to-get-a-job-at-a-startup-india-2026", publishDate: "2026-10-28" },
     { loc: "/reports/job-search-tips-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/graduate-unemployment-report-why-degrees-not-getting-jobs-2026", publishDate: "2026-11-10" },
+    { loc: "/reports/gcc-hiring-report-global-capability-centres-freshers-2026", publishDate: "2026-11-11" },
+    { loc: "/reports/jobs-for-bcom-bba-ba-freshers-report-2026", publishDate: "2026-11-12" },
+    { loc: "/reports/first-internship-report-how-to-get-one-with-no-experience-2026", publishDate: "2026-11-13" },
+    { loc: "/reports/hr-interview-report-tell-me-about-yourself-questions-freshers-2026", publishDate: "2026-11-14" },
+    { loc: "/reports/government-internships-report-niti-aayog-rbi-mea-2026", publishDate: "2026-11-15" },
+    { loc: "/reports/job-portals-report-best-job-sites-for-freshers-india-2026", publishDate: "2026-11-16" },
+    { loc: "/reports/ai-interview-report-one-way-video-interviews-how-to-pass-2026", publishDate: "2026-11-17" },
+    { loc: "/reports/group-discussion-report-gd-round-tips-placements-2026", publishDate: "2026-11-18" },
   ];
 
   // Dynamic blog posts
@@ -227,6 +237,16 @@ export async function loader() {
     "/reports/government-vs-private-job-report-why-crores-apply-2026": "2026-10-16",
     "/reports/remote-jobs-report-who-hires-remote-freshers-2026": "2026-10-17",
     "/reports/job-scam-report-fake-internships-task-scams-students-2026": "2026-10-18",
+    "/reports/pm-internship-scheme-report-is-it-worth-it-2026": "2026-11-09",
+    "/reports/graduate-unemployment-report-why-degrees-not-getting-jobs-2026": "2026-11-10",
+    "/reports/gcc-hiring-report-global-capability-centres-freshers-2026": "2026-11-11",
+    "/reports/jobs-for-bcom-bba-ba-freshers-report-2026": "2026-11-12",
+    "/reports/first-internship-report-how-to-get-one-with-no-experience-2026": "2026-11-13",
+    "/reports/hr-interview-report-tell-me-about-yourself-questions-freshers-2026": "2026-11-14",
+    "/reports/government-internships-report-niti-aayog-rbi-mea-2026": "2026-11-15",
+    "/reports/job-portals-report-best-job-sites-for-freshers-india-2026": "2026-11-16",
+    "/reports/ai-interview-report-one-way-video-interviews-how-to-pass-2026": "2026-11-17",
+    "/reports/group-discussion-report-gd-round-tips-placements-2026": "2026-11-18",
   };
 
   // Scheduled reports enter the sitemap on their publishDate (IST), using that same date as
