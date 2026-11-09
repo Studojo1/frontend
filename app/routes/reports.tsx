@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "hr-interview-report-tell-me-about-yourself-questions-freshers-2026",
+    publishDate: "2026-11-14",
+    title: "The HR Interview Report: 'Tell Me About Yourself' and the Questions That Quietly Decide Offers",
+    subtitle: "The HR Interview Report · 2026",
+    excerpt: "The HR round looks like a formality, which is why so many freshers lose offers in it. HR is checking fit, honesty, communication and the risk that you will leave. This report explains what each standard question is really testing, gives a 60-second structure for 'tell me about yourself', and shows how to answer the 10 questions every fresher should prepare.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "first-internship-report-how-to-get-one-with-no-experience-2026",
     publishDate: "2026-11-13",
     title: "The First Internship Report: How Students With No Experience Land Their First One",
@@ -144,18 +156,6 @@ const REPORTS = [
     excerpt: "Government internships at bodies like NITI Aayog, the Reserve Bank of India and the Ministry of External Affairs carry real weight on a resume, especially for policy, economics, law and public affairs careers. But they vary hugely in pay, eligibility and application process. This report explains how the main programmes work, who should apply, and how to avoid fake government internship sites.",
     category: "Internships",
     type: "Internships" as ReportType,
-    date: "November 2026",
-    findings: 5,
-    badge: "New",
-  },
-  {
-    slug: "hr-interview-report-tell-me-about-yourself-questions-freshers-2026",
-    publishDate: "2026-11-14",
-    title: "The HR Interview Report: 'Tell Me About Yourself' and the Questions That Quietly Decide Offers",
-    subtitle: "The HR Interview Report · 2026",
-    excerpt: "The HR round looks like a formality, which is why so many freshers lose offers in it. HR is checking fit, honesty, communication and the risk that you will leave. This report explains what each standard question is really testing, gives a 60-second structure for 'tell me about yourself', and shows how to answer the 10 questions every fresher should prepare.",
-    category: "Career",
-    type: "Sector" as ReportType,
     date: "November 2026",
     findings: 5,
     badge: "New",

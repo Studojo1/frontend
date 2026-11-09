@@ -364,10 +364,10 @@ export default function Report_HrInterviewReportTellMeAboutYourselfQuestionsFres
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Get interview-ready with a stronger profile"}</h3>
-              <p>{"Studojo helps you build a resume and story that make every interview round easier."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first."}</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
-              {"Build Your Profile →"}
+            <Link to="/b2cnew/join?via=report-hr-interview-report-tell-me-about-yourself-questions-freshers-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>
