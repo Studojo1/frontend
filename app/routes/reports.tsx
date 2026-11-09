@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "jobs-for-bcom-bba-ba-freshers-report-2026",
+    publishDate: "2026-11-12",
+    title: "The Non-Engineering Freshers Report: Jobs for BCom, BBA and BA Graduates in 2026",
+    subtitle: "The Non-Engineering Freshers Report · 2026",
+    excerpt: "Engineers dominate the conversation about fresher jobs, but most Indian graduates study commerce, management or arts. The India Skills Report 2026 put commerce employability at about 63%, and employer surveys show strong fresher hiring in retail, e-commerce and financial services. This report maps the roles, skills and routes that work for BCom, BBA and BA freshers.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "gcc-hiring-report-global-capability-centres-freshers-2026",
     publishDate: "2026-11-11",
     title: "The GCC Hiring Report: How Freshers Get Into India's Global Capability Centres",
