@@ -75,13 +75,28 @@
   }
   function close(toStory) {
     if (!layer) return;
-    try { localStorage.setItem(KEY + T.slug, "1"); } catch (e) { /* private mode: it just shows again next time */ }
     removeEventListener("resize", place); removeEventListener("scroll", place, true); clearInterval(tick);
     document.removeEventListener("keydown", onKey, true);
     layer.remove(); layer = hole = card = null;
     document.documentElement.classList.remove("tour-on");
     if (toStory) { T.open("stories"); setTimeout(() => T.focusStory(), 50); }
     else if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  // A tap on the lit part ends the tour and does what it would have done without it: a fellow who taps the
+  // story box, Speak or Type or edit while it's lit gets to use it straight away.
+  function passThrough(ev) {
+    if (card.contains(ev.target)) return;
+    const s = list[at], el = s.sel ? document.querySelector(s.sel) : null;
+    if (!visible(el)) return;
+    const r = el.getBoundingClientRect(), x = ev.clientX, y = ev.clientY;
+    if (x < r.left || x > r.right || y < r.top || y > r.bottom) return;
+    close(false);
+    const hit = document.elementFromPoint(x, y);
+    if (!hit) return;
+    const field = hit.closest("textarea, input, select");
+    if (field) { field.focus(); return; }
+    const target = hit.closest("button, a, label");
+    if (target) target.click();
   }
   function onKey(ev) {
     if (!layer) return;
@@ -99,6 +114,8 @@
   }
   function start() {
     if (layer || !T) return;
+    // Seen once it opens, so leaving halfway doesn't bring it back over the page on every visit.
+    try { localStorage.setItem(KEY + T.slug, "1"); } catch (e) { /* private mode: it just shows again next time */ }
     list = steps(T);
     lastFocus = document.activeElement;
     layer = document.createElement("div");
@@ -107,7 +124,7 @@
     hole = layer.querySelector(".tour-hole"); card = layer.querySelector(".tour-card");
     layer.addEventListener("click", (ev) => {
       const b = ev.target.closest("[data-tour]");
-      if (!b) return;
+      if (!b) { passThrough(ev); return; }
       const a = b.dataset.tour;
       if (a === "next") show(at + 1);
       else if (a === "back") show(at - 1);
