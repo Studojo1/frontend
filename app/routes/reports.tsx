@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "job-portals-report-best-job-sites-for-freshers-india-2026",
+    publishDate: "2026-11-16",
+    title: "The Job Portals Report: Naukri vs LinkedIn vs Internshala vs Unstop vs Wellfound for Freshers",
+    subtitle: "The Job Portals Report · 2026",
+    excerpt: "Most freshers sign up for every job portal, apply to everything, and hear back from almost nothing. Each portal is built for a different kind of employer and role. This report compares Naukri, LinkedIn, Internshala, Unstop, Wellfound and company careers pages, and explains how to use each one so applications turn into interviews.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "government-internships-report-niti-aayog-rbi-mea-2026",
     publishDate: "2026-11-15",
     title: "The Government Internships Report: NITI Aayog, RBI, MEA and More, and Whether They Are Worth It",
