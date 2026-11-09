@@ -317,10 +317,10 @@ export default function Report_AiInterviewReportOneWayVideoInterviewsHowToPass20
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Get more interviews to practise on"}</h3>
-              <p>{"Find internships and fresher roles on Studojo and put your interview preparation to work."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-ai-interview-report-one-way-video-interviews-how-to-pass-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>
