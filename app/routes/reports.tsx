@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "job-portals-report-best-job-sites-for-freshers-india-2026",
+    publishDate: "2026-11-16",
+    title: "The Job Portals Report: Naukri vs LinkedIn vs Internshala vs Unstop vs Wellfound for Freshers",
+    subtitle: "The Job Portals Report · 2026",
+    excerpt: "Most freshers sign up for every job portal, apply to everything, and hear back from almost nothing. Each portal is built for a different kind of employer and role. This report compares Naukri, LinkedIn, Internshala, Unstop, Wellfound and company careers pages, and explains how to use each one so applications turn into interviews.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "government-internships-report-niti-aayog-rbi-mea-2026",
     publishDate: "2026-11-15",
     title: "The Government Internships Report: NITI Aayog, RBI, MEA and More, and Whether They Are Worth It",
@@ -142,18 +154,6 @@ const REPORTS = [
     title: "The AI Interview Report: One-Way Video and AI-Scored Interviews, and How to Pass Them",
     subtitle: "The AI Interview Report · 2026",
     excerpt: "Many employers now use one-way video interviews and AI-assisted assessments as a first round: you record answers to on-screen questions, with no one on the other side. Reported surveys show most HR teams now use AI in hiring, though far fewer fully trust its decisions. This report explains how these interviews work, what they assess, and how to prepare.",
-    category: "Career",
-    type: "Sector" as ReportType,
-    date: "November 2026",
-    findings: 5,
-    badge: "New",
-  },
-  {
-    slug: "job-portals-report-best-job-sites-for-freshers-india-2026",
-    publishDate: "2026-11-16",
-    title: "The Job Portals Report: Naukri vs LinkedIn vs Internshala vs Unstop vs Wellfound for Freshers",
-    subtitle: "The Job Portals Report · 2026",
-    excerpt: "Most freshers sign up for every job portal, apply to everything, and hear back from almost nothing. Each portal is built for a different kind of employer and role. This report compares Naukri, LinkedIn, Internshala, Unstop, Wellfound and company careers pages, and explains how to use each one so applications turn into interviews.",
     category: "Career",
     type: "Sector" as ReportType,
     date: "November 2026",
