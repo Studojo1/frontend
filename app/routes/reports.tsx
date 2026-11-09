@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "ai-interview-report-one-way-video-interviews-how-to-pass-2026",
+    publishDate: "2026-11-17",
+    title: "The AI Interview Report: One-Way Video and AI-Scored Interviews, and How to Pass Them",
+    subtitle: "The AI Interview Report · 2026",
+    excerpt: "Many employers now use one-way video interviews and AI-assisted assessments as a first round: you record answers to on-screen questions, with no one on the other side. Reported surveys show most HR teams now use AI in hiring, though far fewer fully trust its decisions. This report explains how these interviews work, what they assess, and how to prepare.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "job-portals-report-best-job-sites-for-freshers-india-2026",
     publishDate: "2026-11-16",
     title: "The Job Portals Report: Naukri vs LinkedIn vs Internshala vs Unstop vs Wellfound for Freshers",
