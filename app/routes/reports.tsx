@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "pm-internship-scheme-report-is-it-worth-it-2026",
+    publishDate: "2026-11-09",
+    title: "The PM Internship Scheme Report: Is It Worth Applying, and Why Did Most Interns Walk Away?",
+    subtitle: "The PM Internship Scheme Report · 2026",
+    excerpt: "The PM Internship Scheme offers 12-month internships at India's largest companies with a monthly stipend. Its pilot drew lakhs of applications, but reported figures show that most selected candidates declined or never joined. This report explains eligibility, the stipend, what went wrong in the pilot, and who should apply.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "how-to-get-a-job-2026",
     publishDate: "2026-10-28",
     title: "How to Get a Job in 2026: Every Route Compared, and the One That Skips the Queue",
