@@ -134,6 +134,7 @@ export async function loader() {
     { loc: "/reports/graduate-unemployment-report-why-degrees-not-getting-jobs-2026", publishDate: "2026-11-10" },
     { loc: "/reports/gcc-hiring-report-global-capability-centres-freshers-2026", publishDate: "2026-11-11" },
     { loc: "/reports/jobs-for-bcom-bba-ba-freshers-report-2026", publishDate: "2026-11-12" },
+    { loc: "/reports/first-internship-report-how-to-get-one-with-no-experience-2026", publishDate: "2026-11-13" },
   ];
 
   // Dynamic blog posts
@@ -235,6 +236,7 @@ export async function loader() {
     "/reports/graduate-unemployment-report-why-degrees-not-getting-jobs-2026": "2026-11-10",
     "/reports/gcc-hiring-report-global-capability-centres-freshers-2026": "2026-11-11",
     "/reports/jobs-for-bcom-bba-ba-freshers-report-2026": "2026-11-12",
+    "/reports/first-internship-report-how-to-get-one-with-no-experience-2026": "2026-11-13",
   };
 
   // Scheduled reports enter the sitemap on their publishDate (IST), using that same date as
