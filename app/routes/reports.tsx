@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "pm-internship-scheme-report-is-it-worth-it-2026",
+    publishDate: "2026-11-09",
+    title: "The PM Internship Scheme Report: Is It Worth Applying, and Why Did Most Interns Walk Away?",
+    subtitle: "The PM Internship Scheme Report · 2026",
+    excerpt: "The PM Internship Scheme offers 12-month internships at India's largest companies with a monthly stipend. Its pilot drew lakhs of applications, but reported figures show that most selected candidates declined or never joined. This report explains eligibility, the stipend, what went wrong in the pilot, and who should apply.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "group-discussion-report-gd-round-tips-placements-2026",
     publishDate: "2026-11-18",
     title: "The Group Discussion Report: Why Most Students Fail GD Rounds by Talking More",
@@ -144,18 +156,6 @@ const REPORTS = [
     excerpt: "The ILO and IHD's India Employment Report found that young people made up about 83% of India's unemployed in 2022, and that nearly two-thirds of unemployed youth were educated. At the same time, around three in four employers say they plan to hire freshers. This report explains why both are true, and what students can do about it.",
     category: "Career",
     type: "Sector" as ReportType,
-    date: "November 2026",
-    findings: 5,
-    badge: "New",
-  },
-  {
-    slug: "pm-internship-scheme-report-is-it-worth-it-2026",
-    publishDate: "2026-11-09",
-    title: "The PM Internship Scheme Report: Is It Worth Applying, and Why Did Most Interns Walk Away?",
-    subtitle: "The PM Internship Scheme Report · 2026",
-    excerpt: "The PM Internship Scheme offers 12-month internships at India's largest companies with a monthly stipend. Its pilot drew lakhs of applications, but reported figures show that most selected candidates declined or never joined. This report explains eligibility, the stipend, what went wrong in the pilot, and who should apply.",
-    category: "Internships",
-    type: "Internships" as ReportType,
     date: "November 2026",
     findings: 5,
     badge: "New",

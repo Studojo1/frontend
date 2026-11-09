@@ -346,10 +346,10 @@ export default function Report_PmInternshipSchemeReportIsItWorthIt2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Compare it with paid internships"}</h3>
-              <p>{"Browse internships on Studojo before you commit a full year, so the PM Internship Scheme is a choice, not your only option."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first."}</p>
             </div>
-            <Link to="/dojos/internships" className="rpt-cta-btn">
-              {"Browse Internships →"}
+            <Link to="/b2cnew/join?via=report-pm-internship-scheme-report-is-it-worth-it-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>
