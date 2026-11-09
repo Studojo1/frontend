@@ -176,7 +176,7 @@ function withFellowLock<T>(fellow: FellowRow, fn: (tx: Tx) => Promise<T>): Promi
 }
 
 const STORY_MAX = 8000;
-const NEEDS_PHOTO = "Add your own photo to this post first. Every post goes out with one.";
+const NEEDS_LINK = "Paste the link to your post on LinkedIn. With no photo added here, we need the link to see your post.";
 const WAITING_VERSION = "Your version of this post is with Studojo for approval. Post it once it's approved, or withdraw it to post the original.";
 const POST_TEXT_MAX = 3000; // LinkedIn's limit for one post
 
@@ -209,21 +209,22 @@ export async function applyFellowChange(fellow: FellowRow, body: Record<string, 
     }
     case "posted": {
       // A post from an earlier week can still be marked, late; the page lists those in Your activity.
-      // The link is optional ("Did you post it?" can be answered without one), and a post marked without
-      // a link can get its link later, once. The admin panel marks posts the same way.
+      // The link is optional ("Did you post it?" can be answered without one) when the post has a photo here, and
+      // a post marked without a link can get its link later, once. The admin panel marks posts the same way.
       const id = postId(body.postId);
       const raw = typeof body.url === "string" ? body.url.trim() : "";
       const url = raw ? cleanPostUrl(raw) : null;
       if (raw && !url) throw new FellowInputError("That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/");
       await withFellowLock(fellow, async (tx) => {
-        // The hard rule: a post is never marked posted without a photo of the fellow's own (or one the team added).
+        // The hard rule: a post never goes out without a photo. It's added here, or (the founder, 9 Nov 2026) the
+        // fellow copied the post and put it up on LinkedIn themselves with their own photo: then its link is the proof.
         const before = rows<Row>(await tx.execute(sql`
           SELECT status, photo_url, rewrite_body FROM ugc_creator_posts WHERE id = ${id} AND creator_id = ${fellow.id}
         `))[0];
         // Their own version goes out only once the team has approved it.
         if (before?.status === "ready" && before.rewrite_body) throw new FellowInputError(WAITING_VERSION, 409);
-        if (before?.status === "ready" && !photoTokens((before.photo_url as string | null) ?? null, fellow.id, id).length) {
-          throw new FellowInputError(NEEDS_PHOTO, 409);
+        if (before?.status === "ready" && !url && !photoTokens((before.photo_url as string | null) ?? null, fellow.id, id).length) {
+          throw new FellowInputError(NEEDS_LINK, 409);
         }
         // One link, one post: a link already saved for another post can't complete this one as well.
         if (url) {
