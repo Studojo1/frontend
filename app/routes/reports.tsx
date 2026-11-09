@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "gcc-hiring-report-global-capability-centres-freshers-2026",
+    publishDate: "2026-11-11",
+    title: "The GCC Hiring Report: How Freshers Get Into India's Global Capability Centres",
+    subtitle: "The GCC Hiring Report · 2026",
+    excerpt: "Global capability centres, the in-house India offices of global companies, now number about 2,100 and employ around 2.36 million people, according to Nasscom and Zinnov. They hire across engineering, data, finance, operations and design, and often pay more than IT services. This report explains what GCCs are, what they hire freshers for, and how to get in.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "graduate-unemployment-report-why-degrees-not-getting-jobs-2026",
     publishDate: "2026-11-10",
     title: "The Graduate Unemployment Report: Why Degrees Are Not Turning Into Jobs in India",
@@ -142,18 +154,6 @@ const REPORTS = [
     title: "The Non-Engineering Freshers Report: Jobs for BCom, BBA and BA Graduates in 2026",
     subtitle: "The Non-Engineering Freshers Report · 2026",
     excerpt: "Engineers dominate the conversation about fresher jobs, but most Indian graduates study commerce, management or arts. The India Skills Report 2026 put commerce employability at about 63%, and employer surveys show strong fresher hiring in retail, e-commerce and financial services. This report maps the roles, skills and routes that work for BCom, BBA and BA freshers.",
-    category: "Career",
-    type: "Sector" as ReportType,
-    date: "November 2026",
-    findings: 5,
-    badge: "New",
-  },
-  {
-    slug: "gcc-hiring-report-global-capability-centres-freshers-2026",
-    publishDate: "2026-11-11",
-    title: "The GCC Hiring Report: How Freshers Get Into India's Global Capability Centres",
-    subtitle: "The GCC Hiring Report · 2026",
-    excerpt: "Global capability centres, the in-house India offices of global companies, now number about 2,100 and employ around 2.36 million people, according to Nasscom and Zinnov. They hire across engineering, data, finance, operations and design, and often pay more than IT services. This report explains what GCCs are, what they hire freshers for, and how to get in.",
     category: "Career",
     type: "Sector" as ReportType,
     date: "November 2026",

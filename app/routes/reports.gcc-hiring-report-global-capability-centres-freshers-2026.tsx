@@ -315,10 +315,10 @@ export default function Report_GccHiringReportGlobalCapabilityCentresFreshers202
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>{"Reach GCC hiring managers directly"}</h3>
-              <p>{"Studojo Outreach helps you find and message the people hiring at global capability centres."}</p>
+              <p>{"Stu, Studojo's job agent, finds internships and early-career roles that fit you, best fit first."}</p>
             </div>
-            <Link to="/outreach" className="rpt-cta-btn">
-              {"Try Studojo Outreach →"}
+            <Link to="/b2cnew/join?via=report-gcc-hiring-report-global-capability-centres-freshers-2026&how=voice" reloadDocument className="rpt-cta-btn">
+              {"Let Stu find roles →"}
             </Link>
           </div>
         </div>
