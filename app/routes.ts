@@ -178,4 +178,5 @@ export default [
   route("reports/hr-interview-report-tell-me-about-yourself-questions-freshers-2026", "routes/reports.hr-interview-report-tell-me-about-yourself-questions-freshers-2026.tsx"),
   route("reports/government-internships-report-niti-aayog-rbi-mea-2026", "routes/reports.government-internships-report-niti-aayog-rbi-mea-2026.tsx"),
   route("reports/job-portals-report-best-job-sites-for-freshers-india-2026", "routes/reports.job-portals-report-best-job-sites-for-freshers-india-2026.tsx"),
+  route("reports/ai-interview-report-one-way-video-interviews-how-to-pass-2026", "routes/reports.ai-interview-report-one-way-video-interviews-how-to-pass-2026.tsx"),
 ] satisfies RouteConfig;
