@@ -139,6 +139,7 @@ export async function loader() {
     { loc: "/reports/government-internships-report-niti-aayog-rbi-mea-2026", publishDate: "2026-11-15" },
     { loc: "/reports/job-portals-report-best-job-sites-for-freshers-india-2026", publishDate: "2026-11-16" },
     { loc: "/reports/ai-interview-report-one-way-video-interviews-how-to-pass-2026", publishDate: "2026-11-17" },
+    { loc: "/reports/group-discussion-report-gd-round-tips-placements-2026", publishDate: "2026-11-18" },
   ];
 
   // Dynamic blog posts
@@ -245,6 +246,7 @@ export async function loader() {
     "/reports/government-internships-report-niti-aayog-rbi-mea-2026": "2026-11-15",
     "/reports/job-portals-report-best-job-sites-for-freshers-india-2026": "2026-11-16",
     "/reports/ai-interview-report-one-way-video-interviews-how-to-pass-2026": "2026-11-17",
+    "/reports/group-discussion-report-gd-round-tips-placements-2026": "2026-11-18",
   };
 
   // Scheduled reports enter the sitemap on their publishDate (IST), using that same date as
