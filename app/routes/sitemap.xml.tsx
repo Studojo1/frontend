@@ -132,6 +132,7 @@ export async function loader() {
     { loc: "/reports/job-consultancy-for-freshers-india-2026", publishDate: "2026-10-28" },
     { loc: "/reports/how-to-get-a-job-at-a-startup-india-2026", publishDate: "2026-10-28" },
     { loc: "/reports/job-search-tips-2026", publishDate: "2026-10-28" },
+    { loc: "/reports/graduate-unemployment-report-why-degrees-not-getting-jobs-2026", publishDate: "2026-11-10" },
   ];
 
   // Dynamic blog posts
@@ -231,6 +232,7 @@ export async function loader() {
     "/reports/job-scam-report-fake-internships-task-scams-students-2026": "2026-10-18",
     "/reports/background-verification-report-what-bgv-checks-2026": "2026-10-19",
     "/reports/pm-internship-scheme-report-is-it-worth-it-2026": "2026-11-09",
+    "/reports/graduate-unemployment-report-why-degrees-not-getting-jobs-2026": "2026-11-10",
   };
 
   // Scheduled reports enter the sitemap on their publishDate (IST), using that same date as
