@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "group-discussion-report-gd-round-tips-placements-2026",
+    publishDate: "2026-11-18",
+    title: "The Group Discussion Report: Why Most Students Fail GD Rounds by Talking More",
+    subtitle: "The Group Discussion Report · 2026",
+    excerpt: "Group discussion rounds are still used in campus placements, MBA admissions and bank and management trainee hiring. Most students think they reward whoever talks the most. Evaluators are usually looking for something else: structure, listening and the ability to move a group forward. This report explains what is scored, how to enter and steer a GD, and how to prepare.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "ai-interview-report-one-way-video-interviews-how-to-pass-2026",
     publishDate: "2026-11-17",
     title: "The AI Interview Report: One-Way Video and AI-Scored Interviews, and How to Pass Them",
