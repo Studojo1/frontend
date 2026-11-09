@@ -164,7 +164,6 @@ export default [
   route("reports/remote-jobs-report-who-hires-remote-freshers-2026", "routes/reports.remote-jobs-report-who-hires-remote-freshers-2026.tsx"),
   route("reports/job-scam-report-fake-internships-task-scams-students-2026", "routes/reports.job-scam-report-fake-internships-task-scams-students-2026.tsx"),
   route("reports/background-verification-report-what-bgv-checks-2026", "routes/reports.background-verification-report-what-bgv-checks-2026.tsx"),
-  route("reports/government-internships-report-niti-aayog-rbi-mea-2026", "routes/reports.government-internships-report-niti-aayog-rbi-mea-2026.tsx"),
   route("reports/job-portals-report-best-job-sites-for-freshers-india-2026", "routes/reports.job-portals-report-best-job-sites-for-freshers-india-2026.tsx"),
   route("reports/ai-interview-report-one-way-video-interviews-how-to-pass-2026", "routes/reports.ai-interview-report-one-way-video-interviews-how-to-pass-2026.tsx"),
   route("reports/group-discussion-report-gd-round-tips-placements-2026", "routes/reports.group-discussion-report-gd-round-tips-placements-2026.tsx"),
@@ -174,4 +173,5 @@ export default [
   route("reports/jobs-for-bcom-bba-ba-freshers-report-2026", "routes/reports.jobs-for-bcom-bba-ba-freshers-report-2026.tsx"),
   route("reports/first-internship-report-how-to-get-one-with-no-experience-2026", "routes/reports.first-internship-report-how-to-get-one-with-no-experience-2026.tsx"),
   route("reports/hr-interview-report-tell-me-about-yourself-questions-freshers-2026", "routes/reports.hr-interview-report-tell-me-about-yourself-questions-freshers-2026.tsx"),
+  route("reports/government-internships-report-niti-aayog-rbi-mea-2026", "routes/reports.government-internships-report-niti-aayog-rbi-mea-2026.tsx"),
 ] satisfies RouteConfig;
