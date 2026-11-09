@@ -76,6 +76,7 @@ export async function loader() {
     { loc: "/reports/remote-jobs-report-who-hires-remote-freshers-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-scam-report-fake-internships-task-scams-students-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/background-verification-report-what-bgv-checks-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/pm-internship-scheme-report-is-it-worth-it-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other. Only URLs that return 200 and robots.txt allows
     // (no /auth, no /careers, which 301s to /).
     { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
@@ -229,6 +230,7 @@ export async function loader() {
     "/reports/remote-jobs-report-who-hires-remote-freshers-2026": "2026-10-17",
     "/reports/job-scam-report-fake-internships-task-scams-students-2026": "2026-10-18",
     "/reports/background-verification-report-what-bgv-checks-2026": "2026-10-19",
+    "/reports/pm-internship-scheme-report-is-it-worth-it-2026": "2026-11-09",
   };
 
   // Scheduled reports enter the sitemap on their publishDate (IST), using that same date as
