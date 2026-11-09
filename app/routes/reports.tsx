@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "first-internship-report-how-to-get-one-with-no-experience-2026",
+    publishDate: "2026-11-13",
+    title: "The First Internship Report: How Students With No Experience Land Their First One",
+    subtitle: "The First Internship Report · 2026",
+    excerpt: "The first internship is the hardest one to get, because every listing seems to want experience you do not have. This report breaks the loop: what counts as experience when you have none, which employers take first-timers, how to write a resume with nothing on it yet, and a step-by-step order that works.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "jobs-for-bcom-bba-ba-freshers-report-2026",
     publishDate: "2026-11-12",
     title: "The Non-Engineering Freshers Report: Jobs for BCom, BBA and BA Graduates in 2026",
