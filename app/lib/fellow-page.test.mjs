@@ -138,7 +138,7 @@ try {
   const photosOn = async (id) => JSON.parse((await one(`SELECT photo_url FROM ugc_creator_posts WHERE id = $1`, [id])).photo_url ?? "[]");
   await setup.query(`UPDATE ugc_creator_posts SET photo_idea = 'You at the fest stall' WHERE id = $1`, [ids.aTue]);
   assert.equal((await page.loadFellowView(asha)).me.thisWeek.posts.find((p) => Number(p.id) === ids.aTue).photoIdea, "You at the fest stall");
-  await assert.rejects(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aTue }), (e) => e.status === 409 && /own photo/.test(e.message), "no photo, no posting");
+  await assert.rejects(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aTue }), (e) => e.status === 409 && /link/.test(e.message), "no photo and no link, no posting");
   assert.equal((await one(`SELECT status FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).status, "ready");
   await page.applyFellowChange(asha, { intent: "photo-help", postId: ids.aTue });
   assert.ok((await one(`SELECT photo_help_at FROM ugc_creator_posts WHERE id = $1`, [ids.aTue])).photo_help_at, "asking the team for a photo is saved");
@@ -582,6 +582,11 @@ try {
   res = await proofRoute.action({ params: { slug: "asha-k3m9x2qa" }, request: proofReq("asha-k3m9x2qa", `post=${ids.aThu}&photo=${thuPost.photos[0]}`, { method: "DELETE" }) });
   assert.equal(res.status, 200);
   assert.equal((await photosOn(ids.aThu)).length, 0);
+  // Copied and put up on LinkedIn with their own photo (the founder, 9 Nov 2026): with no photo here, the link marks it posted.
+  await assert.rejects(() => page.applyFellowChange(asha, { intent: "posted", postId: ids.aThu }), (e) => e.status === 409 && /link/.test(e.message), "no photo here needs the link");
+  await page.applyFellowChange(asha, { intent: "posted", postId: ids.aThu, url: "https://www.linkedin.com/posts/asha-own-photo-activity-7392000000000000009-AbCd" });
+  const own = await one(`SELECT status, post_url FROM ugc_creator_posts WHERE id = $1`, [ids.aThu]);
+  assert.deepEqual([own.status, /activity-7392000000000000009/.test(own.post_url)], ["posted", true], "posted with its link, no photo here");
 
   // ---------------------------------------------------------------- the page routes
   const PAGE = "https://studojo.com/fellowship-growth/";

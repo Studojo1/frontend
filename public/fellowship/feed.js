@@ -280,8 +280,8 @@
       : `<button class="shot-add ${n ? "" : "is-primary"}" type="button" data-act="photo-add" data-id="${p.id}" aria-label="${n ? "Add another photo" : "Add your photo"}, ${esc(p.title)}">${ic("image")}<span>${n ? "Add another" : "Add your photo"}</span></button>`;
     const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">No photo? Find one</button>` : "";
     const note = n ? "On LinkedIn, add this photo to the post as well: the link only carries the text."
-      : p.photoHelp ? "Copy and Post on LinkedIn unlock once the post has a photo: one you find here, or your own."
-      : "Copy and Post on LinkedIn unlock once your own photo is added. Every post goes out with one.";
+      : p.photoHelp ? "Copy and Post on LinkedIn unlock once the post has a photo: one you find here, or your own. Already put it up on LinkedIn with your own photo? Tap I posted it and paste the link."
+      : "Copy and Post on LinkedIn unlock once your own photo is added. Every post goes out with one. Already put it up on LinkedIn with your own photo? Tap I posted it and paste the link.";
     return `<div class="ph">
       <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo idea:</b> ${esc(p.photoIdea || PHOTO_IDEA)}${p.photoIdea ? " Any photo of yours that fits works too." : ""}</span></p>
       <div class="shots-strip">${thumbs}${add}${help}</div>
@@ -354,7 +354,7 @@
     if (add) { add.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); add.focus({ preventScroll: true }); }
     toast(p && p.photoHelp
       ? "This post needs a photo first: search for one, pick one of ours, or add your own."
-      : "Add your own photo to this post first. Then Post on LinkedIn, Copy and I posted it unlock.", "error");
+      : "Add your own photo to this post first. Then Post on LinkedIn and Copy unlock.", "error");
   }
   function refreshPhoto(id) { if (byId(id)) { rerenderPost(id); renderCover(); } else renderActivity(); }
 
@@ -579,6 +579,9 @@
       // the post waits for Studojo's approval the same way.
       const waiting = !!p.yourVersion, locked = !hasPhoto(p) || waiting;
       const lock = locked ? ` aria-disabled="true" aria-describedby="${waiting ? "ver" : "phnote"}-${p.id}"` : "";
+      // I posted it waits only for their own version. A fellow who put the post up on LinkedIn themselves, with their
+      // own photo there, marks it with its link instead (the founder, 9 Nov 2026).
+      const postedLock = waiting ? ` aria-disabled="true" aria-describedby="ver-${p.id}"` : "";
       const sharePrimary = isNext && !p.copied && !locked, postPrimary = isNext && p.copied && !locked;
       actions = `<div class="actions" role="group" aria-label="${esc(dowLong(p.date))} post actions">
         ${locked
@@ -586,7 +589,7 @@
           : `<a class="act act-share ${sharePrimary ? "is-primary" : ""}" href="${esc(composeUrl(p))}" target="_blank" rel="noopener noreferrer" data-act="share" data-id="${p.id}">${ic("share")}<span>Post on LinkedIn</span><span class="sr-only"> (copies the post and opens LinkedIn in a new tab)</span></a>`}
         <button class="act ${p.copied ? "is-done" : ""}" type="button" data-act="copy" data-id="${p.id}"${lock}>${ic(p.copied ? "check" : "copy")}<span>${p.copied ? "Copied" : "Copy"}</span></button>
         <button class="act" type="button" data-act="line" data-id="${p.id}" aria-expanded="${p.panel === "line"}" aria-controls="panel-${p.id}">${ic("pen")}<span>${p.ownLine ? "Edit your line" : "Add your line"}</span></button>
-        <button class="act ${postPrimary ? "is-primary" : ""}" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}"${lock}>${ic("send")}<span>I posted it</span></button>
+        <button class="act ${postPrimary ? "is-primary" : ""}" type="button" data-act="posted" data-id="${p.id}" aria-expanded="${p.panel === "posted"}" aria-controls="panel-${p.id}"${postedLock}>${ic("send")}<span>I posted it</span></button>
       </div>
       ${waiting ? versionBlock(p) : `${p.versionReply ? `<p class="ver-reply">${ic("comment", "ic-sm")}<span><b>Studojo kept the original:</b> ${esc(p.versionReply)}</span></p>` : ""}
       <p class="as-written">${ic("info", "ic-sm")}<span>Post it as written: <b>Post on LinkedIn</b> copies it for you, or use <b>Copy</b>. Want it in your own words? <button class="btn-link" type="button" data-act="rewrite" data-id="${p.id}" aria-expanded="${p.panel === "rewrite"}" aria-controls="panel-${p.id}">Rewrite it your way</button> and Studojo approves it before you post it.</span></p>`}`;
@@ -637,8 +640,8 @@
       </div>`;
     } else if (p.panel === "posted") {
       panel = `<div class="panel" id="panel-${p.id}">
-        <label class="panel-label" for="url-${p.id}">Paste the link to your LinkedIn post${posted ? "" : ` <span class="opt">(optional)</span>`}</label>
-        <p class="panel-help" id="url-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post.${posted ? "" : " You can add it later too."}</p>
+        <label class="panel-label" for="url-${p.id}">Paste the link to your LinkedIn post${posted || !hasPhoto(p) ? "" : ` <span class="opt">(optional)</span>`}</label>
+        <p class="panel-help" id="url-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post.${posted ? "" : hasPhoto(p) ? " You can add it later too." : " Posted it with your own photo? With no photo added here, we need the link."}</p>
         <div class="${p.err ? "has-err" : ""}"><input id="url-${p.id}" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="linkedin.com/posts/..." value="${esc(p.urlDraft || "")}" aria-describedby="url-help-${p.id} url-err-${p.id}" aria-invalid="${!!p.err}"></div>
         <p class="err" id="url-err-${p.id}">${p.err ? ic("alert") + esc(p.err) : ""}</p>
         <div class="panel-actions">
@@ -1118,7 +1121,7 @@
           </div>
           <p class="act-nums">
             <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${hasPhoto(m) && !m.yourVersion ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>${ic("copy")}Copy</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${hasPhoto(m) && !m.yourVersion ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>I posted it</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${m.yourVersion ? ` aria-disabled="true" aria-describedby="phnote-${m.id}"` : ""}>I posted it</button>
           </p>
           <div class="act-photo">${photoBlock(m)}</div>
           ${S.histOpen === m.id ? histPanel(m) : ""}
@@ -1155,8 +1158,8 @@
   function histPanel(p) {
     if (S.histKind === "posted") {
       return `<div class="panel hist-panel" id="hpanel-${p.id}">
-        <label class="panel-label" for="hurl-${p.id}">Paste the link to your LinkedIn post <span class="opt">(optional)</span></label>
-        <p class="panel-help" id="hurl-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post. You can add it later too.</p>
+        <label class="panel-label" for="hurl-${p.id}">Paste the link to your LinkedIn post${hasPhoto(p) ? ` <span class="opt">(optional)</span>` : ""}</label>
+        <p class="panel-help" id="hurl-help-${p.id}">On LinkedIn, open your post, tap the three dots, then Copy link to post.${hasPhoto(p) ? " You can add it later too." : " Posted it with your own photo? With no photo added here, we need the link."}</p>
         <div class="${S.histErr ? "has-err" : ""}"><input id="hurl-${p.id}" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="linkedin.com/posts/..." value="${esc(S.histUrl || "")}" aria-describedby="hurl-help-${p.id} hurl-err-${p.id}" aria-invalid="${!!S.histErr}"></div>
         <p class="err" id="hurl-err-${p.id}">${S.histErr ? ic("alert") + esc(S.histErr) : ""}</p>
         <div class="panel-actions">
@@ -1405,6 +1408,7 @@
     if (act === "posted-save") {
       const raw = $("#url-" + id).value.trim(), adding = p.status === "posted";
       if (!raw && adding) { p.err = "Paste the link to your post first."; rerenderPost(id, "input"); return; }
+      if (!raw && !hasPhoto(p)) { p.err = "Paste the link to your post. With no photo added here, we need it to see your post."; rerenderPost(id, "input"); return; }
       if (raw && !LINK_OK.test(raw)) { p.err = "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/"; p.urlDraft = raw; rerenderPost(id, "input"); return; }
       b.disabled = true;
       try { if (!applyView(await call({ intent: "posted", postId: id, url: raw }))) return; }
@@ -1477,8 +1481,9 @@
       return;
     }
     if (act === "hist-posted-save") {
-      const raw = $("#hurl-" + id).value.trim();
-      const bad = raw && !LINK_OK.test(raw) ? "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/" : "";
+      const raw = $("#hurl-" + id).value.trim(), hm = missedById(id);
+      const bad = raw && !LINK_OK.test(raw) ? "That isn't a LinkedIn post link. It should start with linkedin.com/posts/ or linkedin.com/feed/update/"
+        : !raw && hm && !hasPhoto(hm) ? "Paste the link to your post. With no photo added here, we need it to see your post." : "";
       if (bad) { S.histErr = bad; S.histUrl = raw; renderActivity(); focusEl("#hurl-" + id); return; }
       b.disabled = true;
       try { if (!applyView(await call({ intent: "posted", postId: id, url: raw }))) return; }
