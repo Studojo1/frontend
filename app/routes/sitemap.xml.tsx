@@ -137,6 +137,7 @@ export async function loader() {
     { loc: "/reports/jobs-for-bcom-bba-ba-freshers-report-2026", publishDate: "2026-11-12" },
     { loc: "/reports/first-internship-report-how-to-get-one-with-no-experience-2026", publishDate: "2026-11-13" },
     { loc: "/reports/hr-interview-report-tell-me-about-yourself-questions-freshers-2026", publishDate: "2026-11-14" },
+    { loc: "/reports/government-internships-report-niti-aayog-rbi-mea-2026", publishDate: "2026-11-15" },
   ];
 
   // Dynamic blog posts
@@ -241,6 +242,7 @@ export async function loader() {
     "/reports/jobs-for-bcom-bba-ba-freshers-report-2026": "2026-11-12",
     "/reports/first-internship-report-how-to-get-one-with-no-experience-2026": "2026-11-13",
     "/reports/hr-interview-report-tell-me-about-yourself-questions-freshers-2026": "2026-11-14",
+    "/reports/government-internships-report-niti-aayog-rbi-mea-2026": "2026-11-15",
   };
 
   // Scheduled reports enter the sitemap on their publishDate (IST), using that same date as

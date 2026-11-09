@@ -41,6 +41,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "government-internships-report-niti-aayog-rbi-mea-2026",
+    publishDate: "2026-11-15",
+    title: "The Government Internships Report: NITI Aayog, RBI, MEA and More, and Whether They Are Worth It",
+    subtitle: "The Government Internships Report · 2026",
+    excerpt: "Government internships at bodies like NITI Aayog, the Reserve Bank of India and the Ministry of External Affairs carry real weight on a resume, especially for policy, economics, law and public affairs careers. But they vary hugely in pay, eligibility and application process. This report explains how the main programmes work, who should apply, and how to avoid fake government internship sites.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "hr-interview-report-tell-me-about-yourself-questions-freshers-2026",
     publishDate: "2026-11-14",
     title: "The HR Interview Report: 'Tell Me About Yourself' and the Questions That Quietly Decide Offers",
