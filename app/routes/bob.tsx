@@ -53,6 +53,10 @@ function dashboardUrl(): string {
   return s ? `${base}${path}?s=${encodeURIComponent(s)}` : path === "/" ? base : base + path;
 }
 
+// bob-svc answers 402 subscription_paused for a workspace the owner has blocked; the app then shows only the
+// out-of-credits screen (PausedScreen) until the owner unblocks it.
+const PAUSED_EVENT = "sensei:subscription-paused";
+
 class BobError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -72,6 +76,9 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
   });
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
+  if (res.status === 402 && data?.detail === "subscription_paused" && typeof window !== "undefined") {
+    window.dispatchEvent(new Event(PAUSED_EVENT));
+  }
   if (!res.ok) throw new BobError(data?.detail || `Request failed (${res.status})`, res.status);
   return data as T;
 }
@@ -972,6 +979,13 @@ export function SenseiApp({ ui }: { ui?: Ui }) {
   const [mounted, setMounted] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
+  // Blocked workspace (/me capabilities.subscription_paused, or any 402 subscription_paused): out-of-credits screen.
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    const on = () => setPaused(true);
+    window.addEventListener(PAUSED_EVENT, on);
+    return () => window.removeEventListener(PAUSED_EVENT, on);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -1004,6 +1018,7 @@ export function SenseiApp({ ui }: { ui?: Ui }) {
   const screen = !mounted ? <div className="min-h-screen bg-[#faf7f2]" />
     : resetToken ? <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />
     : !authed ? <Gate onSuccess={() => setAuthed(true)} />
+    : paused ? <PausedScreen onSignOut={() => { setPaused(false); setAuthed(false); }} />
     : <Workspace onAuthLost={() => setAuthed(false)} />;
   if (look !== "new") return screen;
   // The new look: the same screens inside a scope the stylesheet hangs off.
@@ -1015,6 +1030,36 @@ export function SenseiApp({ ui }: { ui?: Ui }) {
         {screen}
       </div>
     </UiContext.Provider>
+  );
+}
+
+// ── Out of credits (blocked workspace) ───────────────────────────────────────
+// Shown instead of the workspace while the owner has blocked this workspace (bob-svc bob_org_features
+// 'subscription_paused'). Nothing else in the app is reachable; chats and tables are untouched. Unblocking is the
+// owner's switch in bob-svc, after which any reload opens the workspace.
+
+function PausedScreen({ onSignOut }: { onSignOut: () => void }) {
+  const [orgName, setOrgName] = useState("");
+  useEffect(() => {
+    bobFetch<{ org: { name: string } | null }>("/me").then((m) => setOrgName(m?.org?.name || "")).catch(() => {});
+  }, []);
+  const signOut = () => {
+    bobFetch("/auth/logout", { method: "POST" }).catch(() => {});
+    localStorage.removeItem(SESSION_STORAGE);
+    localStorage.removeItem(KEY_STORAGE);
+    onSignOut();
+  };
+  return (
+    <main id="main" className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
+      <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
+        <p className="text-sm font-bold text-neutral-400">Sensei by Studojo{orgName ? ` · ${orgName}` : ""}</p>
+        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900 mt-2">You're out of credits</h1>
+        <p className="text-neutral-700 mt-3">Please contact admin.</p>
+        <button onClick={signOut} className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700">
+          Sign out
+        </button>
+      </div>
+    </main>
   );
 }
 
@@ -1688,7 +1733,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const loadMe = useCallback(async () => {
     try {
-      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean; projects?: boolean; lemlist?: boolean } }>("/me"));
+      const m = await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { subscription_paused?: boolean; candidate_sourcing?: boolean; projects?: boolean; lemlist?: boolean } }>("/me");
+      setMe(m);
+      if (m?.capabilities?.subscription_paused) window.dispatchEvent(new Event(PAUSED_EVENT));
     } catch { /* identity is non-critical for legacy access-code sessions */ }
   }, []);
   useEffect(() => { loadMe(); }, [loadMe]);
