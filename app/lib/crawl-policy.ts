@@ -8,10 +8,13 @@ import { stagingHost } from "./staging-host";
 
 export const CRAWL_NOINDEX = "noindex";
 
-const INDEXABLE_PAGES = new Set(["/", "/terms", "/privacy", "/refund-policy"]);
+// EMAILER (11 Nov 2026): the free job email writer is a search landing page too; its share pages
+// (/tools/emailer/s/<id>) are not (thin, one person's score), though link previews may read them.
+const INDEXABLE_PAGES = new Set(["/", "/terms", "/privacy", "/refund-policy", "/tools/emailer"]);
 const INDEXABLE_SECTIONS = ["/blog", "/reports"];
 
-/** A page search engines may index: the homepage, /blog and /reports and everything under them, the legal pages. */
+/** A page search engines may index: the homepage, /blog and /reports and everything under them, the legal pages, the
+ * free email writer (not its share pages). */
 export function indexablePath(pathname: string): boolean {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   return INDEXABLE_PAGES.has(p) || INDEXABLE_SECTIONS.some((s) => p === s || p.startsWith(`${s}/`));
@@ -41,7 +44,7 @@ const PREVIEW_BOTS = ["facebookexternalhit", "Facebot", "LinkedInBot", "Twitterb
 // Everyone else: the indexable pages (the homepage with or without a query string, an ad's click ids) and what they
 // load (built assets, fonts, images, the blog's pictures and share images, the sitemap).
 const ALLOWED = [
-  "/$", "/?", ...INDEXABLE_SECTIONS, "/terms", "/privacy", "/refund-policy",
+  "/$", "/?", ...INDEXABLE_SECTIONS, "/terms", "/privacy", "/refund-policy", "/tools/emailer$", "/tools/emailer?",
   "/assets/", "/fonts/", "/api/blog-og/", "/api/images/blog-images/", "/sitemap.xml", "/llms.txt",
   "/*.css$", "/*.js$", "/*.png$", "/*.jpg$", "/*.jpeg$", "/*.webp$", "/*.svg$", "/*.ico$", "/*.woff2$",
 ];
@@ -49,7 +52,7 @@ const ALLOWED = [
 /** studojo.com's robots.txt. */
 export function robotsTxt(baseUrl: string): string {
   const agents = (names: string[]) => names.map((n) => `User-agent: ${n}`).join("\n");
-  return `# Search engines may read the homepage, the blog, the reports and the legal pages. Link previews may read any page.
+  return `# Search engines may read the homepage, the blog, the reports, the legal pages and the free email writer. Link previews may read any page.
 
 # AI training crawlers and SEO scrapers
 ${agents(BLOCKED_BOTS)}

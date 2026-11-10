@@ -9,6 +9,8 @@ export async function loader() {
     { loc: "/", priority: "1.0", changefreq: "weekly" },
     { loc: "/blog", priority: "0.8", changefreq: "daily" },
     { loc: "/reports", priority: "0.9", changefreq: "weekly" },
+    // EMAILER (11 Nov 2026): the free job email writer (its share pages, /tools/emailer/s/*, are not for search).
+    { loc: "/tools/emailer", priority: "0.9", changefreq: "weekly" },
     { loc: "/reports/india-entry-level-jobs-internships-october-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/ats-resume-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/amazon-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },

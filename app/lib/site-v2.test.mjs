@@ -34,6 +34,8 @@ for (const [p, kind] of [
   ["/profile/riya-menon", "profile"], ["/profile/x/", "profile"],
   // QA-FIX (2 Nov 2026): the account pages get the stylesheets for the site header (it rendered unstyled at 1440 px).
   ["/settings", "account"], ["/settings/", "account"], ["/account/delete", "account"],
+  // EMAILER (11 Nov 2026): the free email writer and its share pages.
+  ["/tools/emailer", "tool"], ["/tools/emailer/", "tool"], ["/tools/emailer/s/abc123", "tool"],
 ]) assert.equal(sv2PageFor(p), kind, p);
 {
   const { mainHref } = await import("../components/site-b2c/site-links.ts");
@@ -203,11 +205,12 @@ const siteHeader = read("components/site-b2c/SiteHeader.tsx");
 const siteFooter = read("components/site-b2c/SiteFooter.tsx");
 // QA-FIX (2 Nov 2026): the page links are SiteLinks (main-site links, absolute on the product's host).
 const linkTargets = (src) => [...src.matchAll(/<(?:Link to|SiteLink to|a href)=\{([A-Z_a-z]+)\}/g)].map((m) => m[1]);
-assert.deepEqual([...new Set(linkTargets(siteHeader))].sort(), ["BLOG", "HOW_IT_WORKS", "REPORTS", "SETTINGS", "signIn"]);
+// EMAILER (11 Nov 2026): the free email writer joins the reports in the header and the footer.
+assert.deepEqual([...new Set(linkTargets(siteHeader))].sort(), ["BLOG", "EMAILER", "HOW_IT_WORKS", "REPORTS", "SETTINGS", "signIn"]);
 assert.match(siteHeader, /<StartPill size="sm" place="header" \/>/, "every page: start the call in the header");
 // Sign-in returns to a path on this host (same-origin returns only), which then 301s to the product (RELAUNCH).
 assert.match(siteHeader, /const signIn = authUrl\("signin", PRODUCT_LEGACY_BASE\);/);
-assert.deepEqual(linkTargets(siteFooter), ["HOW_IT_WORKS", "BLOG", "REPORTS", "TERMS", "PRIVACY", "CONTACT", "REFUNDS"]);
+assert.deepEqual(linkTargets(siteFooter), ["HOW_IT_WORKS", "BLOG", "REPORTS", "EMAILER", "TERMS", "PRIVACY", "CONTACT", "REFUNDS"]);
 assert.match(siteFooter, /Stu, your career agent at Studojo\./, "the homepage footer's line (home-v2/HomeFooter.tsx)");
 assert.match(siteFooter, /Studojo Labs Private Limited/);
 const ui = read("components/site-b2c/ui.tsx");

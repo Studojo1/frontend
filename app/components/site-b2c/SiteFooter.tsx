@@ -1,4 +1,4 @@
-import { BLOG, CONTACT, HOW_IT_WORKS, PRIVACY, REFUNDS, REPORTS, TERMS } from "./site-links";
+import { BLOG, CONTACT, EMAILER, HOW_IT_WORKS, PRIVACY, REFUNDS, REPORTS, TERMS } from "./site-links";
 import { Brand, SiteLink, StartPill, StuHead, useSignedInSite } from "./ui";
 
 // SITE-V2 footer (h1.html): on every studojo.pro page but the homepage (components/common/footer.tsx picks it on B2C
@@ -25,6 +25,7 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
           <SiteLink to={HOW_IT_WORKS}>how it works</SiteLink>
           <SiteLink to={BLOG}>blog</SiteLink>
           <SiteLink to={REPORTS}>reports</SiteLink>
+          <SiteLink to={EMAILER}>email writer</SiteLink>
           <SiteLink to={TERMS}>terms</SiteLink>
           <SiteLink to={PRIVACY}>privacy</SiteLink>
           <SiteLink to={CONTACT}>contact</SiteLink>

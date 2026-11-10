@@ -244,8 +244,9 @@ html[data-sv2] div.fixed.flex-col.rounded-2xl.overflow-hidden [class*="shadow-["
   html[data-sv2] .sv-btn-sm { padding: 0 12px; font-size: 14px; }
 }
 @media (max-width: 820px) {
-  /* phones: the six footer links in two even rows of three, never one left alone */
-  html[data-sv2] .sv-foot-links { display: grid; grid-template-columns: repeat(3, max-content); gap: 0 26px; }
+  /* phones: the seven footer links in two rows (four, then three), never one left alone. EMAILER (11 Nov 2026): it was
+     six in two rows of three before "email writer" joined them. */
+  html[data-sv2] .sv-foot-links { display: grid; grid-template-columns: repeat(4, max-content); gap: 0 18px; }
 }
 @media (max-width: 640px) {
   html[data-sv2] .sv-in { padding: 0 16px; }

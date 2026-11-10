@@ -10,9 +10,9 @@ const { default: handleRequest } = await import("../entry.server.tsx");
 const { loader: robots } = await import("../routes/robots.txt.tsx");
 
 // ── 1. The pages search engines may index.
-for (const p of ["/", "/blog", "/blog/", "/blog/how-to-email-a-hiring-manager", "/reports", "/reports/ghost-jobs-2026", "/terms", "/privacy", "/refund-policy", "/terms/"])
+for (const p of ["/", "/blog", "/blog/", "/blog/how-to-email-a-hiring-manager", "/reports", "/reports/ghost-jobs-2026", "/terms", "/privacy", "/refund-policy", "/terms/", "/tools/emailer", "/tools/emailer/"])
   assert.equal(indexablePath(p), true, p);
-for (const p of ["/about", "/contact", "/sensei", "/mesa", "/go/li-dm", "/time-machine", "/auth", "/settings", "/asha/my-project", "/blogger", "/reportsx", "/terms-old", "/api/journey"])
+for (const p of ["/about", "/contact", "/sensei", "/mesa", "/go/li-dm", "/time-machine", "/auth", "/settings", "/asha/my-project", "/blogger", "/reportsx", "/terms-old", "/api/journey", "/tools", "/tools/emailer/s/abc123", "/tools/emailerx"])
   assert.equal(indexablePath(p), false, p);
 
 // ── 2. robots.txt, as a crawler reads it.
@@ -63,9 +63,9 @@ const SEARCH_OPEN = [
   "/", "/?fbclid=abc&utm_source=facebook", "/blog", "/blog/how-to-email-a-hiring-manager", "/reports", "/reports/ghost-jobs-2026",
   "/terms", "/privacy", "/refund-policy", "/assets/root-B1x2.js", "/assets/root-B1x2.css", "/og-home.png", "/logos/acme.svg",
   "/fonts/inter.woff2", "/favicon.ico", "/api/blog-og/how-to-email-a-hiring-manager", "/api/images/blog-images/a.png",
-  "/sitemap.xml", "/llms.txt",
+  "/sitemap.xml", "/llms.txt", "/tools/emailer", "/tools/emailer?utm_source=x&tab=grade",
 ];
-const SEARCH_SHUT = ["/about", "/contact", "/sensei", "/mesa", "/go/li-dm", "/time-machine", "/auth", "/settings", "/api/journey", "/api/images/private/x", "/asha/my-project", "/apidocs"];
+const SEARCH_SHUT = ["/about", "/contact", "/sensei", "/mesa", "/go/li-dm", "/time-machine", "/auth", "/settings", "/api/journey", "/api/images/private/x", "/asha/my-project", "/apidocs", "/tools/emailer/s/abc123", "/tools/emailerx"];
 for (const bot of ["Googlebot", "Bingbot", "Applebot", "DuckDuckBot", "OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Claude-SearchBot"]) {
   for (const p of SEARCH_OPEN) assert.equal(allowed(txt, bot, p), true, `${bot} ${p}`);
   for (const p of SEARCH_SHUT) assert.equal(allowed(txt, bot, p), false, `${bot} ${p}`);
@@ -75,7 +75,7 @@ for (const bot of ["GPTBot", "CCBot", "Bytespider", "PetalBot", "AhrefsBot", "Se
   for (const p of ["/", "/blog/how-to-email-a-hiring-manager", "/reports/ghost-jobs-2026", "/about", "/assets/root-B1x2.js"]) assert.equal(allowed(txt, bot, p), false, `${bot} ${p}`);
 // Link previews: any page a person shares, a /go short link too.
 for (const bot of ["facebookexternalhit", "LinkedInBot", "Twitterbot", "WhatsApp", "Slackbot", "TelegramBot"])
-  for (const p of ["/", "/go/li-dm", "/about", "/reports/ghost-jobs-2026", "/og-home.png"]) assert.equal(allowed(txt, bot, p), true, `${bot} ${p}`);
+  for (const p of ["/", "/go/li-dm", "/about", "/reports/ghost-jobs-2026", "/og-home.png", "/tools/emailer/s/abc123"]) assert.equal(allowed(txt, bot, p), true, `${bot} ${p}`);
 
 // ── 3. The header on the real page handler: noindex outside the indexable pages, on studojo.com only.
 const head = (host, path) => handleRequest(new Request(`https://${host}${path}`, { method: "HEAD", headers: { host } }), 200, new Headers(), {}, {});

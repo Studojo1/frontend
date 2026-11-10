@@ -1,9 +1,10 @@
-import { useEffect, useState, type AnchorHTMLAttributes, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type AnchorHTMLAttributes, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { heldTrackingParams } from "~/lib/attribution";
 import { useMainOrigin } from "./host";
 import { LOGO_DOODLE, STU_HEAD, STU_HOME, mainHref, siteStartHref } from "./site-links";
+import { withVia } from "./stu-cta";
 
 // SITE-V2 building blocks (site.css): the wordmark, Stu's head, the one purple pill and the small icons. Used by the
 // B2C header and footer and by every SITE-V2 page body. Links into /b2cnew are plain <a href> (another app).
@@ -14,11 +15,19 @@ export function useSignedInSite(): boolean {
 }
 
 /**
+ * EMAILER (11 Nov 2026): a page that is its own way in (the free email writer, /tools/emailer) names itself here, so the
+ * header's and footer's "start the call" there count to it (via=emailer) instead of via=site. Unset everywhere else.
+ */
+export const StartViaContext = createContext<string | null>(null);
+
+/**
  * The "start the call" link for this page: the URL's ad keys, else (after hydration) the visit's held first touch,
- * then via=site&how=voice. Signed in it is "my jobs" to /b2cnew, never /join again (that would restart onboarding).
+ * then via=site&how=voice (or the page's own via, StartViaContext). Signed in it is "my jobs" to /b2cnew, never /join
+ * again (that would restart onboarding).
  */
 export function useSiteStart(): { label: string; href: string; signedIn: boolean } {
   const signedIn = useSignedInSite();
+  const via = useContext(StartViaContext);
   const { search } = useLocation();
   const [held, setHeld] = useState<URLSearchParams | null>(null);
   useEffect(() => {
@@ -29,7 +38,8 @@ export function useSiteStart(): { label: string; href: string; signedIn: boolean
     }
   }, []);
   if (signedIn) return { label: "my jobs", href: STU_HOME, signedIn };
-  return { label: "start the call", href: siteStartHref(search, held), signedIn };
+  const href = siteStartHref(search, held);
+  return { label: "start the call", href: via ? withVia(href, via) : href, signedIn };
 }
 
 /**

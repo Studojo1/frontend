@@ -22,6 +22,8 @@ export const PRIVACY = "/privacy";
 export const REFUNDS = "/refund-policy";
 export const CONTACT = "/contact";
 export const SETTINGS = "/settings";
+/** EMAILER (11 Nov 2026): the free job email writer, in the header and footer beside the reports. */
+export const EMAILER = "/tools/emailer";
 /** The owner's hand-drawn Stu: the logo's own laughing head, white with the rough outline, cut at the neck. Never on
  * a purple circle. */
 export const STU_HEAD = "/stu/head-laugh.png";
@@ -61,7 +63,7 @@ export function siteStartHref(search: string | null | undefined, held?: URLSearc
   return `${STU_JOIN}?${out}`;
 }
 
-export type Sv2Page = "blog" | "reports" | "report" | "legal" | "contact" | "about" | "auth" | "profile" | "account" | "error";
+export type Sv2Page = "blog" | "reports" | "report" | "legal" | "contact" | "about" | "auth" | "profile" | "account" | "tool" | "error";
 
 /**
  * Which SITE-V2 page a path is, or null for a path that keeps its own look (the homepage, the retired products, the
@@ -75,6 +77,8 @@ export function sv2PageFor(pathname: string): Sv2Page | null {
   if (p === "/terms" || p === "/privacy" || p === "/refund-policy") return "legal";
   if (p === "/contact") return "contact";
   if (p === "/about") return "about";
+  // EMAILER (11 Nov 2026): the free tools (/tools/emailer and its share pages) wear the site's look.
+  if (p === "/tools" || p.startsWith("/tools/")) return "tool";
   if (p === "/auth" || p.startsWith("/auth/") || p === "/forgot-password" || p === "/reset-password") return "auth";
   // The account pages keep their own body but wear the site header (QA-FIX, 2 Nov 2026: without the SITE-V2 stylesheet
   // the header rendered unstyled at 1440 px).
