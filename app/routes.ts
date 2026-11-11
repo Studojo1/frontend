@@ -67,6 +67,7 @@ export default [
   route("reports/drdo-isro-internship-report-2026", "routes/reports.drdo-isro-internship-report-2026.tsx"),
   route("reports/internships-bangalore-2026", "routes/reports.internships-bangalore-2026.tsx"),
   route("reports/internships-hyderabad-2026", "routes/reports.internships-hyderabad-2026.tsx"),
+  route("reports/internships-pune-2026", "routes/reports.internships-pune-2026.tsx"),
   route("reports/india-entry-level-jobs-internships-october-2026", "routes/reports.india-entry-level-jobs-internships-october-2026.tsx"),
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
