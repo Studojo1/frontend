@@ -42,6 +42,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "internships-pune-2026",
+    publishDate: "2026-11-11",
+    title: "How to Get an Internship in Pune in 2026: Where They Are, What They Pay, and the Move That Works",
+    subtitle: "Internships · 2026",
+    excerpt: "Pune runs on three engines, auto and manufacturing, IT and GCCs (about 380 or more, reported), and startups, so the person who hires interns is usually close. Paid stipends cluster at a reported ₹5,000 to ₹25,000 a month and rent eats a chunk. Where the listings are, and why emailing a founder or team lead beats mass applying.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "drdo-isro-internship-report-2026",
     publishDate: "2026-11-07",
     title: "How to Get an Internship at DRDO and ISRO in 2026: Eligibility, Stipend and the Official Route",

@@ -163,15 +163,20 @@ const PINNED = {
   // banner's line no longer says Stu tailors your resume (finds who's hiring and writes the email), nothing else changed
   // SEO day 10 (5 Nov): one REPORTS entry for how-to-get-an-internship-india-2026 (its route and sitemap too), nothing else changed
   // SEO day 13 (7 Nov): 3 REPORTS entries for drdo-isro, internships-bangalore and internships-hyderabad (their routes and sitemap entries too), nothing else changed
-  "routes/reports.tsx": "b83c5fd4610c4539", // re-pinned 7 Nov for the 3 day-13 internship reports (REPORTS entries only)
-  "routes/terms.tsx": "e565ab6f9433ba94",
+  // SEO day 16 (11 Nov): one REPORTS entry for internships-pune-2026 (its route and sitemap entry too), nothing else changed
+  "routes/reports.tsx": "5e46e43c03e0ce25", // re-pinned 11 Nov for the day-16 Pune internships report (REPORTS entry only)
+  // 11 Nov: re-pinned to the actual hash; terms.tsx was changed on relaunch/site by c9c1fc95 ("Terms: section 5 says
+  // how Stu's sending differs") without updating this pin, which left the Tests check red for every PR. Content unchanged.
+  "routes/terms.tsx": "7d0e2c9f1c7f16ae",
   // RELAUNCH 2 Nov: the sign-in cookie row names the stu.* cookies (app/lib/auth-cookies.ts), and a row for the
   // stu_vid, stu_src and stu_lt journey cookies (app/lib/journey.ts); nothing else changed. META-FIX 2 Nov: the
   // sj_tracking_consent row says it is also a cookie on studojo.com and its subdomains (app/lib/consent.ts), 1 year.
   // EMQ 5 Nov: section 12's "Identifiers sent with them" lists the hashed phone, name, country and visitor ID too
   // (app/lib/meta-capi.server.ts, meta-pixel.ts), and the purpose table's Meta row says hashed email, phone number,
   // name and IDs; nothing else changed
-  "routes/privacy.tsx": "66a7b1851108b3b2",
+  // 11 Nov: re-pinned to the actual hash; privacy.tsx was changed on relaunch/site (bc834562 "Privacy: Gmail section and
+  // sending line match how Stu works", and the EMQ Meta-disclosure commits) without updating this pin. Content unchanged.
+  "routes/privacy.tsx": "8e45efd481e640fc",
   "routes/refund-policy.tsx": "dbb5edf23c3dd454",
   // SUPPORT-STU 2 Nov: contact.tsx lost the chat copy and gained the signed-in Ask Stu card (hash re-pinned).
   // QA-FIX 2 Nov: copy only (one sending promise, career agent, reset emails paused, chat bubble bottom left, About's
