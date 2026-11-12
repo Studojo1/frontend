@@ -1,5 +1,6 @@
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
+import { emailerLive } from "~/lib/emailer/live";
 
 export async function loader() {
   const baseUrl = "https://studojo.com";
@@ -10,7 +11,8 @@ export async function loader() {
     { loc: "/blog", priority: "0.8", changefreq: "daily" },
     { loc: "/reports", priority: "0.9", changefreq: "weekly" },
     // EMAILER (11 Nov 2026): the free job email writer (its share pages, /tools/emailer/s/*, are not for search).
-    { loc: "/tools/emailer", priority: "0.9", changefreq: "weekly" },
+    // EMAILER-STAGING-ONLY (12 Nov 2026, the owner): listed only where it shows (lib/emailer/live.ts).
+    ...(emailerLive() ? [{ loc: "/tools/emailer", priority: "0.9", changefreq: "weekly" }] : []),
     { loc: "/reports/india-entry-level-jobs-internships-october-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/ats-resume-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/amazon-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },

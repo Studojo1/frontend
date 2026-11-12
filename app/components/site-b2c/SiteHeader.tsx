@@ -7,6 +7,7 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
 import { authUrl } from "~/lib/return-to";
 import { BLOG, EMAILER, HOW_IT_WORKS, REPORTS, SETTINGS } from "./site-links";
+import { emailerLive } from "~/lib/emailer/live";
 import { Brand, MenuIcon, SiteLink, StartPill, useSignedInSite } from "./ui";
 
 // SITE-V2 header (h1.html): on every studojo.pro page but the homepage (components/common/header.tsx picks it on B2C
@@ -109,9 +110,11 @@ export function SiteHeader() {
           <SiteLink to={REPORTS} className="sv-navlink">
             reports
           </SiteLink>
-          <SiteLink to={EMAILER} className="sv-navlink">
-            email writer
-          </SiteLink>
+          {emailerLive() ? (
+            <SiteLink to={EMAILER} className="sv-navlink">
+              email writer
+            </SiteLink>
+          ) : null}
         </nav>
         <div className="sv-hdr-right">
           {signedIn ? (
@@ -161,7 +164,7 @@ export function SiteHeader() {
           <SiteLink to={HOW_IT_WORKS}>how it works</SiteLink>
           <SiteLink to={BLOG}>blog</SiteLink>
           <SiteLink to={REPORTS}>reports</SiteLink>
-          <SiteLink to={EMAILER}>email writer</SiteLink>
+          {emailerLive() ? <SiteLink to={EMAILER}>email writer</SiteLink> : null}
           {signedIn ? (
             <>
               <Link to={SETTINGS}>settings</Link>

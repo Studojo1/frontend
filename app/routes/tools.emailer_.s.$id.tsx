@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { emailerLive } from "~/lib/emailer/live";
 import { useLocation } from "react-router";
 import emailerCss from "~/components/emailer/emailer.css?url";
 import { SHARE, STU } from "~/components/emailer/copy";
@@ -34,6 +35,8 @@ async function fetchShare(origin: string, id: string): Promise<ShareResponse | n
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
+  // EMAILER-STAGING-ONLY (12 Nov 2026, the owner): staging only (lib/emailer/live.ts).
+  if (!emailerLive()) throw new Response("Not found", { status: 404 });
   const id = params.id ?? "";
   if (!SHARE_ID_RE.test(id)) throw new Response("Not found", { status: 404 });
   const origin = originForHost(request.headers.get("host"));

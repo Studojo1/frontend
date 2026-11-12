@@ -220,4 +220,19 @@ assert.match(tool, /<StartViaContext\.Provider value="emailer">/, "the header an
 assert.match(read("app/components/emailer/EmailerTool.tsx"), /const SIGN_IN = authUrl\("signin", TOOL_PATH\);/, "sign-in comes back to the tool");
 assert.equal((await import("../return-to.ts")).authUrl("signin", c.TOOL_PATH), "/auth?mode=signin&redirect=%2Ftools%2Femailer");
 
+// EMAILER-STAGING-ONLY (12 Nov 2026, the owner: "only keep it on staging"): hidden on production only.
+const { emailerLiveFor } = await import("./live.ts");
+assert.equal(emailerLiveFor("https://platform.studojo.com"), false, "production: hidden");
+assert.equal(emailerLiveFor("https://platform.studojo.pro"), true, "staging: shown");
+assert.equal(emailerLiveFor(""), true, "local runs: shown");
+assert.equal(emailerLiveFor(undefined), true);
+for (const f of ["app/components/site-b2c/SiteHeader.tsx", "app/components/site-b2c/SiteFooter.tsx"]) {
+  const src = read(f);
+  const links = src.match(/<SiteLink to=\{EMAILER\}/g) ?? [];
+  const gated = src.match(/emailerLive\(\) \? \(?\s*<SiteLink to=\{EMAILER\}/g) ?? [];
+  assert.equal(gated.length, links.length, `${f}: every email writer link only where it shows`);
+}
+for (const f of ["app/routes/tools.emailer.tsx", "app/routes/tools.emailer_.s.$id.tsx"]) assert.match(read(f), /if \(!emailerLive\(\)\) throw new Response\("Not found", \{ status: 404 \}\);/, `${f}: 404 on production`);
+assert.match(read("app/routes/sitemap.xml.tsx"), /\.\.\.\(emailerLive\(\) \? \[\{ loc: "\/tools\/emailer"/, "the sitemap lists it only where it shows");
+
 console.log(`emailer: ${strings.length} strings and ${files.length} files clean, contract helpers ok`);

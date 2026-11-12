@@ -1,4 +1,5 @@
 import emailerCss from "~/components/emailer/emailer.css?url";
+import { emailerLive } from "~/lib/emailer/live";
 import { EmailerTool } from "~/components/emailer/EmailerTool";
 import { COPY, FAQ } from "~/components/emailer/copy";
 import { AnnouncementBar, Faq, HowItWorks, JobsCard, MoreFree, StuLink } from "~/components/emailer/parts";
@@ -20,6 +21,8 @@ const CANONICAL = `https://studojo.com${TOOL_PATH}`;
 export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: emailerCss }];
 
 export function loader({ request }: Route.LoaderArgs) {
+  // EMAILER-STAGING-ONLY (12 Nov 2026, the owner): staging only (lib/emailer/live.ts).
+  if (!emailerLive()) throw new Response("Not found", { status: 404 });
   const url = new URL(request.url);
   const tab: Tab = url.searchParams.get("tab") === "grade" ? "grade" : "write";
   return { origin: originForHost(request.headers.get("host")), tab };
