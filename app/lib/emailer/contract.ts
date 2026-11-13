@@ -84,6 +84,8 @@ export interface GradeResponse {
   score: Score;
   /** null when locked (anonymous). */
   rewrite: { subject: string; body: string; score: number } | null;
+  /** Signed in with no rewrite: why, in plain words ("already scores 9", "add one result"). EMAILER-FIX, 13 Nov 2026. */
+  rewriteNote?: string | null;
   locked: { rewrite: boolean };
   usage: Usage;
   shareUrl: string;

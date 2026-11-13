@@ -394,3 +394,6 @@ html[data-sv2] .sv-in.em-share-stu { max-width: 812px; padding-top: 40px; }
   html[data-sv2] .em-sticky, html[data-sv2] .em-q, html[data-sv2] .em-btn-ghost, html[data-sv2] .em-chip-btn { transition: none; }
   html[data-sv2] .em-q:hover, html[data-sv2] :is(.em-btn-ghost, .em-chip-btn):is(:hover, :active) { transform: none; }
 }
+
+/* EMAILER-FIX (13 Nov 2026): "Already wrote one?" at the top of the write form, to Improve my email. */
+html[data-sv2] .em-from-write { margin: 0 0 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }

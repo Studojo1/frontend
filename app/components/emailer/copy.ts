@@ -25,7 +25,7 @@ export const COPY = {
   heroCtaGo: "Meet Stu",
 
   tabWrite: "Write my email",
-  tabGrade: "Grade my email",
+  tabGrade: "Improve my email",
 
   freeNote: "Your first email is free. No sign-up.",
   leftToday: (left: number, limit: number) => `${left} of ${limit} left today`,
@@ -100,15 +100,17 @@ export const GRADE = {
   rolePh: "Product analyst",
   company: "Company",
   companyPh: "Northwind",
-  submit: "Grade my email",
-  submitBusy: "Grading your email...",
+  submit: "Score and improve it",
+  submitBusy: "Improving your email...",
   emptyTitle: "Your score shows up here",
-  emptyLine: "A reply score out of 10, what holds it back, and a rewrite that fixes it.",
-  rewrite: "The rewrite",
-  rewriteLocked: `Sign in free to see the rewrite and its score, and ${MORE_TODAY} more today.`,
-  beforeAfter: "Your draft, then the rewrite",
+  emptyLine: "A reply score out of 10, what holds it back, and your own email improved: your facts and your voice, better structured.",
+  rewrite: "Your email, improved",
+  rewriteLocked: `Sign in free to see your email improved and its new score, and ${MORE_TODAY} more today.`,
+  beforeAfter: "Your draft, then your email improved",
   before: "your draft",
-  after: "the rewrite",
+  after: "improved",
+  fromWrite: "Already wrote one?",
+  fromWriteGo: "Paste it in and we'll improve it",
 } as const;
 
 export const LOADING_STEPS = (company: string) => [
@@ -202,7 +204,7 @@ export const SEO = {
   h2: "a free cold email writer for jobs and internships",
   paras: [
     "A cold email to a hiring manager works when it is short, specific and about the job. Studojo's free cold email writer turns the job post and your best results into a subject line and an email under 120 words. It leads with what you have done, says why you want this company, and ends with one easy ask: 15 minutes, or the right person to talk to.",
-    "Every email comes with a reply score out of 10 and plain fixes, so you know what to change before you hit send. Already wrote one? Paste it into Grade my email for a score, fixes and a rewrite.",
+    "Every email comes with a reply score out of 10 and plain fixes, so you know what to change before you hit send. Already wrote one? Paste it into Improve my email for a score, fixes and your own email improved, in your words.",
   ],
 } as const;
 
@@ -225,11 +227,11 @@ export const FAQ = [
   },
   {
     q: "What does the reply score mean?",
-    a: "It's how likely a busy hiring manager is to reply, from 0 to 10, judged by the same checks Studojo runs on Stu's own emails. Each score comes with up to 3 plain fixes.",
+    a: "It's how likely a busy hiring manager is to reply, from 0 to 10, judged against fixed examples of weak and strong cold emails: a result of yours with a number, a real reason for this company, short, one easy ask. Each score comes with up to 3 plain fixes.",
   },
   {
     q: "Can it check an email I already wrote?",
-    a: "Yes. Open Grade my email and paste it in for a score and fixes. Sign in free to see the rewrite and how much it lifts the score.",
+    a: "Yes. Open Improve my email and paste it in for a score and fixes. Sign in free to get your email improved, with your facts and your voice kept, and its new score. We only show it when it scores higher than yours.",
   },
 ] as const;
 
@@ -255,7 +257,7 @@ export const EXAMPLE = {
     "",
     "At my internship I cut the checkout page's load time from 4.1s to 1.3s, and orders went up 9%. I'm Sam, finishing computer science this year, and I'd love to join Northwind as a product analyst.",
     "",
-    "I really love what you're building with Northwind's delivery app, and I want to help find what keeps people ordering.",
+    "I really love what you're building with Northwind's 20 minute grocery delivery, and I'd like to start on why people drop off between their first and second order.",
     "",
     "Could we grab 15 minutes to discuss the role, or could you point me to the right person?",
     "",
@@ -263,9 +265,10 @@ export const EXAMPLE = {
   ].join("\n"),
   highlights: {
     result: "At my internship I cut the checkout page's load time from 4.1s to 1.3s, and orders went up 9%.",
-    company: "I really love what you're building with Northwind's delivery app, and I want to help find what keeps people ordering.",
+    company: "I really love what you're building with Northwind's 20 minute grocery delivery, and I'd like to start on why people drop off between their first and second order.",
     ask: "Could we grab 15 minutes to discuss the role, or could you point me to the right person?",
   },
+  /** EMAILER-FIX (13 Nov 2026): the grader scores this example 8 (8, 8, 8 on three runs); the one before scored 7. */
   score: 8,
 } as const;
 

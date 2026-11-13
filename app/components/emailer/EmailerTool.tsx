@@ -545,6 +545,20 @@ export function EmailerTool({ initialTab }: { initialTab: Tab }) {
             <div className={`em-grid ${hasWriteOut ? "em-has-out" : ""}`}>
               {/* ── the write form ── */}
               <form className="em-card em-form" onSubmit={onWriteSubmit} noValidate aria-label="your email's details">
+                <p className="em-hint em-from-write">
+                  {GRADE.fromWrite}{" "}
+                  <button
+                    type="button"
+                    className="em-textlink"
+                    onClick={() => {
+                      track("emailer_to_improve", { from: "write" });
+                      switchTab("grade");
+                    }}
+                  >
+                    {GRADE.fromWriteGo}
+                    <ArrowIcon size={14} />
+                  </button>
+                </p>
                 <div className="em-resume">
                   <input
                     ref={fileRef}
@@ -941,7 +955,7 @@ export function EmailerTool({ initialTab }: { initialTab: Tab }) {
 
               <div className="em-out" id="em-out" aria-live="polite">
                 {gradeBusy ? (
-                  <Loading company="" grade />
+                  <Loading company="" grade improve={signedIn} />
                 ) : gradeResult ? (
                   <div className="em-result-wrap">
                     <ScoreCard
@@ -997,7 +1011,7 @@ export function EmailerTool({ initialTab }: { initialTab: Tab }) {
                           <h3>{GRADE.rewrite}</h3>
                         </div>
                         {signedIn ? (
-                          <p className="em-hint">{GRADE.emptyLine}</p>
+                          <p className="em-hint">{gradeResult.rewriteNote || GRADE.emptyLine}</p>
                         ) : (
                           <LockedOver line={GRADE.rewriteLocked} signInHref={SIGN_IN} onSignIn={onSignIn("rewrite")}>
                             <EmailHead to={RESULT.toDefault} subject={EXAMPLE.subject} />
@@ -1078,13 +1092,18 @@ function NoticeBox({ notice }: { notice: NonNullable<Notice> }) {
   );
 }
 
-function Loading({ company, grade = false }: { company: string; grade?: boolean }) {
-  const steps = grade ? ["Reading your email", "Checking it like a hiring manager would", "Writing the fixes"] : LOADING_STEPS(company);
+function Loading({ company, grade = false, improve = false }: { company: string; grade?: boolean; improve?: boolean }) {
+  const steps = grade
+    ? improve
+      ? ["Reading your email", "Checking it like a hiring manager would", "Improving it, in your words", "Scoring the new version"]
+      : ["Reading your email", "Checking it like a hiring manager would", "Writing the fixes"]
+    : LOADING_STEPS(company);
   const [at, setAt] = useState(0);
   useEffect(() => {
-    const t = window.setInterval(() => setAt((a) => Math.min(a + 1, steps.length - 1)), 1600);
+    // Improving takes about 30 seconds, so its steps move slower.
+    const t = window.setInterval(() => setAt((a) => Math.min(a + 1, steps.length - 1)), improve ? 7000 : 1600);
     return () => window.clearInterval(t);
-  }, [steps.length]);
+  }, [steps.length, improve]);
   return (
     <div className="em-card em-loading" role="status">
       <StuHead size={64} face="grin" className="em-loading-stu" />

@@ -15,7 +15,9 @@ export type EmailerEvent =
   | "emailer_share"
   | "emailer_signin_prompt"
   | "emailer_grade"
-  | "emailer_resume";
+  | "emailer_resume"
+  // EMAILER-FIX (13 Nov 2026): "Already wrote one?" on the write form, to Improve my email.
+  | "emailer_to_improve";
 
 declare global {
   interface Window {
