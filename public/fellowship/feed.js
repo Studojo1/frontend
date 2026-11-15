@@ -225,7 +225,7 @@
       box.innerHTML = `
         <h2 class="card-title" id="analytics-title">${ic("image")}Two things only you can add</h2>
         <ol class="shots-steps">
-          <li><b>A photo on every post.</b> Add your own before you copy it. No photo? Search for one on the post, or pick one of ours. Copy and Post on LinkedIn unlock once it's there.</li>
+          <li><b>A photo on every post.</b> Add your own here, or search for one on the post, or pick one of ours. Posting it yourself with your own photo on LinkedIn? Then paste the post's link when you tap I posted it.</li>
           <li><b>Every Sunday, your LinkedIn analytics.</b> Export the last 7 days from LinkedIn and upload the file here. Your posts' numbers fill in from it.${done ? ` <span class="chip chip-good">${ic("check", "ic-xs")}Uploaded ${fmt(ME.analytics.at.slice(0, 10), false)}</span>` : ""}</li>
         </ol>
         ${weekTotals()}
@@ -280,8 +280,8 @@
       : `<button class="shot-add ${n ? "" : "is-primary"}" type="button" data-act="photo-add" data-id="${p.id}" aria-label="${n ? "Add another photo" : "Add your photo"}, ${esc(p.title)}">${ic("image")}<span>${n ? "Add another" : "Add your photo"}</span></button>`;
     const help = !n && !p.photoHelp && !busy ? `<button class="btn-link ph-help" type="button" data-act="photo-help" data-id="${p.id}">No photo? Find one</button>` : "";
     const note = n ? "On LinkedIn, add this photo to the post as well: the link only carries the text."
-      : p.photoHelp ? "Copy and Post on LinkedIn unlock once the post has a photo: one you find here, or your own. Already put it up on LinkedIn with your own photo? Tap I posted it and paste the link."
-      : "Copy and Post on LinkedIn unlock once your own photo is added. Every post goes out with one. Already put it up on LinkedIn with your own photo? Tap I posted it and paste the link.";
+      : p.photoHelp ? "Every post goes out with a photo: find one here, pick one of ours, or add your own on LinkedIn. Posting with your own photo there? Tap I posted it and paste the link."
+      : "Every post goes out with a photo. Add your own here, or add it on LinkedIn when you post. Posting with your own photo there? Tap I posted it and paste the link.";
     return `<div class="ph">
       <p class="ph-idea">${ic("image", "ic-sm")}<span><b>Photo idea:</b> ${esc(p.photoIdea || PHOTO_IDEA)}${p.photoIdea ? " Any photo of yours that fits works too." : ""}</span></p>
       <div class="shots-strip">${thumbs}${add}${help}</div>
@@ -352,9 +352,7 @@
     if (v && v.yourVersion) { toast("Your version of this post is with Studojo for approval. You'll post it once it's approved.", "error"); focusEl(`[data-act="rewrite-see"][data-id="${id}"]`); return; }
     const p = v, add = $(`[data-act="stock-use"][data-id="${id}"]`) || $(`#stkq-${id}`) || $(`[data-act="photo-add"][data-id="${id}"]`);
     if (add) { add.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); add.focus({ preventScroll: true }); }
-    toast(p && p.photoHelp
-      ? "This post needs a photo first: search for one, pick one of ours, or add your own."
-      : "Add your own photo to this post first. Then Post on LinkedIn and Copy unlock.", "error");
+    toast("Add a photo to this post: search for one, pick one of ours, or add your own.", "error");
   }
   function refreshPhoto(id) { if (byId(id)) { rerenderPost(id); renderCover(); } else renderActivity(); }
 
@@ -575,9 +573,10 @@
 
     let actions = "";
     if (!posted) {
-      // The hard rule: nothing goes out without the fellow's own photo, so these wait for one. Their own version of
-      // the post waits for Studojo's approval the same way.
-      const waiting = !!p.yourVersion, locked = !hasPhoto(p) || waiting;
+      // Every post goes out with a photo, added here or on LinkedIn (the founder, 15 Nov 2026: Copy and Post on
+      // LinkedIn no longer wait for one here; a post with no photo here is marked with its link). Their own version
+      // of the post waits for Studojo's approval.
+      const waiting = !!p.yourVersion, locked = waiting;
       const lock = locked ? ` aria-disabled="true" aria-describedby="${waiting ? "ver" : "phnote"}-${p.id}"` : "";
       // I posted it waits only for their own version. A fellow who put the post up on LinkedIn themselves, with their
       // own photo there, marks it with its link instead (the founder, 9 Nov 2026).
@@ -1120,7 +1119,7 @@
             <p class="act-missed">Not marked as posted</p>
           </div>
           <p class="act-nums">
-            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${hasPhoto(m) && !m.yourVersion ? "" : ` aria-disabled="true" aria-describedby="phnote-${m.id}"`}>${ic("copy")}Copy</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-act="hist-copy" data-id="${m.id}" aria-label="Copy ${esc(m.title)}"${m.yourVersion ? ` aria-disabled="true" aria-describedby="phnote-${m.id}"` : ""}>${ic("copy")}Copy</button>
             <button class="btn btn-secondary btn-sm" type="button" data-act="hist-posted" data-id="${m.id}" aria-expanded="${open(m.id, "posted")}" aria-controls="hpanel-${m.id}" aria-label="I posted it: ${esc(m.title)}"${m.yourVersion ? ` aria-disabled="true" aria-describedby="phnote-${m.id}"` : ""}>I posted it</button>
           </p>
           <div class="act-photo">${photoBlock(m)}</div>
@@ -1282,7 +1281,7 @@
     }
     if (act === "more") { p.expanded = true; rerenderPost(id); const body = $("#body-" + id); if (body) { body.setAttribute("tabindex", "-1"); body.focus(); } return; }
     if (act === "share") {
-      if (!hasPhoto(p)) { ev.preventDefault(); return; }
+      if (p.yourVersion) { ev.preventDefault(); return; }
       // The link itself opens LinkedIn in a new tab; the copy runs first and synchronously, before that tab takes focus.
       const text = postText(p);
       b.href = composeUrl(p);
@@ -1360,7 +1359,7 @@
       return;
     }
     if (act === "copy") {
-      if (!hasPhoto(p)) return;
+      if (p.yourVersion) return;
       const ok = await copyText(postText(p));
       if (!ok) { toast("Couldn't copy. Tap see more, then select the text.", "error"); return; }
       p.copied = true; rerenderPost(id, '[data-act="posted"]'); renderCover();
@@ -1474,7 +1473,7 @@
     }
     if (act === "hist-copy") {
       const m = missedById(id);
-      if (!m || !hasPhoto(m)) return;
+      if (!m || m.yourVersion) return;
       if (!(await copyText(postText(m)))) { toast("Couldn't copy. Please try again.", "error"); return; }
       call({ intent: "copied", postId: id }).catch(() => {});
       toast("Copied. Post it on LinkedIn, then tap I posted it.");
