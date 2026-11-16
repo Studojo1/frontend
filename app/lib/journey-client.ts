@@ -1,6 +1,7 @@
 import { capturePostHog } from "./posthog";
 import { trackMeta } from "./meta-pixel";
 import { readConsent } from "./consent";
+import { ARRIVE_CARD, ARRIVE_KEY, withoutCarriedVisitor } from "./inapp";
 import { isJoinHref, widthBucket } from "./journey";
 import { noteJoinClick, sendJourney } from "./journey-pages";
 import { productOrigin } from "./product-origin";
@@ -74,12 +75,33 @@ export function reportJoin(cta: string): void {
   }
 }
 
+/**
+ * ESC-TRACK (16 Nov 2026): a visit that came out of an app's browser (?stu=card, inapp.ts cardArrivalUrl) sent its Lead
+ * there, on the tap that left, so this browser sends none (Meta counted two Leads a person). And ?sv=, the carried
+ * visitor id the server has taken by now (journey.ts planCookies), leaves the address bar so a copied link carries
+ * nobody. The router's state stays as it is.
+ */
+function settleEscapeArrival(): void {
+  try {
+    if (new URLSearchParams(window.location.search).get(ARRIVE_KEY) === ARRIVE_CARD) sessionStorage.setItem(LEAD_SENT, "1");
+  } catch {
+    // storage blocked: at worst the second Lead, as before
+  }
+  try {
+    const clean = withoutCarriedVisitor(window.location.href);
+    if (clean !== window.location.href) window.history.replaceState(window.history.state, "", clean);
+  } catch {
+    // the address stays; the id it carries is only ever taken by a browser with none
+  }
+}
+
 let installed = false;
 
 /** One capture listener on the document (clicks and the sign-up card's email form). Returns the uninstall. */
 export function installJoinTracking(): () => void {
   if (typeof document === "undefined" || installed) return () => {};
   installed = true;
+  settleEscapeArrival();
   // A click and the submit it causes are one join.
   let last = 0;
   const fire = (cta: string | null) => {

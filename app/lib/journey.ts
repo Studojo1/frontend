@@ -1,5 +1,5 @@
 import { isExternalReferrer } from "./attribution";
-import { INAPP_APPS } from "./inapp";
+import { ARRIVE_CARD, ARRIVE_KEY, CARRY_VISITOR_KEY, INAPP_APPS } from "./inapp";
 
 // FIRST-PARTY JOURNEY (RELAUNCH, 2 Nov 2026). The contract shared with the product (Studojo1/career-agent on
 // platform.studojo.com, staging platform.studojo.pro) and the admin dashboards:
@@ -174,7 +174,9 @@ export type CookiePlan = {
 
 /**
  * What a page load does with the three cookies. stu_vid and stu_src only when missing; stu_lt when missing or when
- * this visit is a touch. Pure (the id comes in as `newId`).
+ * this visit is a touch. Pure (the id comes in as `newId`). ESC-TRACK: a missing stu_vid on an escape's arrival
+ * (?stu=card&sv=<id>, inapp.ts cardArrivalUrl) takes the app browser's id instead of a new one; a held one is never
+ * replaced.
  */
 export function planCookies(args: {
   cookies: Map<string, string>;
@@ -191,7 +193,8 @@ export function planCookies(args: {
   const held = cookies.get(VISITOR_COOKIE);
   let visitorId = held ?? "";
   if (!validVisitorId(held)) {
-    visitorId = newId;
+    const carried = url.searchParams.get(ARRIVE_KEY) === ARRIVE_CARD ? url.searchParams.get(CARRY_VISITOR_KEY) : null;
+    visitorId = validVisitorId(carried) ? carried : newId;
     setCookies.push(serializeCookie(VISITOR_COOKIE, visitorId, { maxAge: VISITOR_MAX_AGE_S, domain, secure, httpOnly: false }));
   }
   const { source, touch } = visitSource(url, referer, host, now);

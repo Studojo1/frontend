@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import escCss from "./inapp-escape.css?url";
 import { bannerCopy, bannerFor, cardArrivalUrl, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, homepageStart, typedSignIn, withoutEscapeMark, type EscapeHow, type EscapePlan } from "~/lib/inapp";
-import { isJoinHref } from "~/lib/journey";
+import { isJoinHref, parseCookies, validVisitorId, VISITOR_COOKIE } from "~/lib/journey";
 import { sendJourney } from "~/lib/journey-pages";
 import { productOrigin } from "~/lib/product-origin";
 import { heldTrackingParams } from "~/lib/attribution";
@@ -87,6 +87,16 @@ export function withHeld(href: string): string {
     return u.toString();
   } catch {
     return href;
+  }
+}
+
+/** ESC-TRACK: this browser's stu_vid (journey.ts, readable by scripts), or null when it has none we would accept. */
+function heldVisitorId(): string | null {
+  try {
+    const vid = parseCookies(document.cookie).get(VISITOR_COOKIE);
+    return validVisitorId(vid) ? vid : null;
+  } catch {
+    return null;
   }
 }
 
@@ -298,7 +308,8 @@ export function InAppEscape({ gated = false }: { gated?: boolean }) {
     setInApp(true);
     let timer: ReturnType<typeof setTimeout> | null = null;
     // IG-CARD: a homepage start lands on the homepage's sign-up card in the phone's browser; any other link where it points.
-    const dest = (t: Target) => withHeld(homepageStart(t.cta) ? cardArrivalUrl(window.location.href) : t.href);
+    // ESC-TRACK: with this browser's visitor id, so the other browser counts as the same visitor.
+    const dest = (t: Target) => withHeld(homepageStart(t.cta) ? cardArrivalUrl(window.location.href, heldVisitorId()) : t.href);
     const sheet = (t: Target, why: "manual" | "timeout") => {
       try {
         sessionStorage.setItem(SHEET_SHOWN_KEY, "1");

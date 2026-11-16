@@ -189,13 +189,38 @@ export function instagramGateOs(ua: string | null | undefined): "ios" | "android
 export const ARRIVE_KEY = "stu";
 export const ARRIVE_CARD = "card";
 
-/** The homepage with this visit's query (its ad keys) and ?stu=card: where a homepage start's escape lands. Pure. */
-export function cardArrivalUrl(current: string): string {
+/**
+ * ESC-TRACK (16 Nov 2026, the owner: "if there is anything to do on our side pls do it"; production 15:02 to 17:28: 49
+ * people came out of Instagram, each counted as two visitors and sending Meta two Leads): the app browser's stu_vid
+ * rides along as ?sv=, so the phone's browser takes the same visitor id when it has none of its own (journey.ts
+ * planCookies). One person stays one visitor in our funnel, and one external_id for Meta's pixel and server copies.
+ */
+export const CARRY_VISITOR_KEY = "sv";
+
+/**
+ * The homepage with this visit's query (its ad keys) and ?stu=card: where a homepage start's escape lands. With a
+ * visitor id (the caller checks it, journey.ts validVisitorId), ?sv= too. Pure.
+ */
+export function cardArrivalUrl(current: string, visitorId?: string | null): string {
   const u = new URL(withoutEscapeMark(current));
   u.pathname = "/";
   u.hash = "";
   u.searchParams.set(ARRIVE_KEY, ARRIVE_CARD);
+  if (visitorId) u.searchParams.set(CARRY_VISITOR_KEY, visitorId);
+  else u.searchParams.delete(CARRY_VISITOR_KEY);
   return u.toString();
+}
+
+/** The address without ?sv=, for the address bar once the visit has taken the id: a copied link carries nobody. Pure. */
+export function withoutCarriedVisitor(href: string): string {
+  try {
+    const u = new URL(href);
+    if (!u.searchParams.has(CARRY_VISITOR_KEY)) return href;
+    u.searchParams.delete(CARRY_VISITOR_KEY);
+    return u.toString();
+  } catch {
+    return href;
+  }
 }
 
 /** Whether a tap's call start is the homepage's own (its start buttons, the takeover's sign-up card). Pure. */

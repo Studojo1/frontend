@@ -82,6 +82,19 @@ assert.equal(validVisitorId("<script>"), false);
 assert.equal(validVisitorId(ID), true);
 const junk = planCookies({ cookies: new Map([["stu_vid", "a;b"]]), url: new URL("http://studojo.pro/"), referer: null, host: "studojo.pro", domain: ".studojo.pro", secure: true, now: NOW, newId: ID });
 assert.equal(junk.visitorId, ID);
+// ESC-TRACK (16 Nov 2026): an escape's arrival (?stu=card&sv=<id>) in a browser with no stu_vid takes the app browser's
+// id; a held id is never replaced, and sv counts only on a card arrival and only when it is an id we would accept.
+const APP_ID = "4f1c2b9e-6a7d-4e1f-9a3b-2c5d8e7f0a11";
+const arrive = (q, cookies = new Map()) =>
+  planCookies({ cookies, url: new URL(`http://studojo.com/?utm_content=120254173597630472&fbclid=abc&${q}`), referer: null, host: "studojo.com", domain: ".studojo.com", secure: true, now: NOW, newId: ID });
+const carried = arrive(`stu=card&sv=${APP_ID}`);
+assert.equal(carried.visitorId, APP_ID);
+assert.equal(carried.setCookies[0], `stu_vid=${APP_ID}; Path=/; Max-Age=31536000; SameSite=Lax; Domain=.studojo.com; Secure`);
+assert.equal(carried.source.utm_content, "120254173597630472", "the ad keys still make the touch");
+assert.equal(arrive(`stu=card&sv=${APP_ID}`, new Map([["stu_vid", ID]])).visitorId, ID, "a held id stays");
+assert.equal(arrive(`sv=${APP_ID}`).visitorId, ID, "sv without the card arrival is ignored");
+assert.equal(arrive("stu=card&sv=a;b").visitorId, ID, "a junk sv is ignored");
+assert.equal(arrive("stu=card").visitorId, ID, "no sv: a new id, as before");
 assert.equal(readSource("not json"), null);
 assert.equal(readSource(JSON.stringify({ utm_source: "x" })), null, "a source has landing_path and first_seen_at");
 assert.equal(serializeCookie("a", "b", { maxAge: 1, domain: null, secure: false, httpOnly: false }), "a=b; Path=/; Max-Age=1; SameSite=Lax");
