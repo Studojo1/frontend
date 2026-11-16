@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  bannerCopy, bannerFor, browserIntentUrl, chromeIntentUrl, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
+  bannerCopy, bannerFor, browserIntentUrl, chromeIntentUrl, igExtBrowserUrl, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
   withoutEscapeMark,
 } from "./inapp.ts";
 import { BEACON_STEPS, cleanBeacon } from "./journey.ts";
@@ -167,6 +167,9 @@ assert.equal(escapePlan(WA).sure, false);
   assert.deepEqual(bannerCopy(escapePlan(IG_ANDROID, true)), { title: "You're in Instagram's browser", lead: "Google sign-in and the call with Stu work best in Chrome.", button: "Open in Chrome" });
   assert.deepEqual(bannerCopy(escapePlan(IG_IOS, true)), { title: "You're in Instagram's browser", lead: "Google sign-in and the call with Stu work best in Safari.", button: "Open in Safari" });
   for (const w of Object.values(bannerCopy(escapePlan(IG_IOS, true)))) assert.doesNotMatch(w, /[\u2013\u2014]/, "no dashes");
+  // INAPP-IGEXT: Instagram's own way out, the page's whole address (the escape's mark left off).
+  assert.equal(igExtBrowserUrl("https://studojo.pro/?utm_source=ig&esc=1"), "instagram://extbrowser/?url=https%3A%2F%2Fstudojo.pro%2F%3Futm_source%3Dig");
+  assert.equal(escapeUrl("igext", "https://studojo.pro/"), "instagram://extbrowser/?url=https%3A%2F%2Fstudojo.pro%2F");
 }
 
 // ── 7. The wiring: root.tsx on the site's own hosts; the call starts it stops; the sheet's copy.
@@ -184,7 +187,7 @@ assert.equal(escapePlan(WA).sure, false);
   assert.match(esc, /const ANDROID_TAP_ESCAPE = true;/);
   assert.match(esc, /const tapEscape = ESCAPE_ON \|\| \(ANDROID_TAP_ESCAPE && plan\.os === "android" && plan\.auto === "intent"\);/);
   assert.match(esc, /step: "inapp_seen"[\s\S]{0,1200}if \(!ESCAPE_ON && !tapEscape && !showBanner && !noChrome\) return;/);
-  assert.match(esc, /if \(banner\.os === "android" && banner\.auto\) a\.escape\(t, banner\.auto\);\s*else a\.sheet\(t, "manual"\);/, "Android: Chrome; iOS: the steps");
+  assert.match(esc, /if \(banner\.os === "android" && banner\.auto\) a\.escape\(t, banner\.auto\);\s*else if \(IOS_IG_EXTBROWSER && banner\.os === "ios" && banner\.app === "instagram"\) a\.escape\(t, "igext"\);\s*else a\.sheet\(t, "manual"\);/, "Android: Chrome; iPhone in Instagram: extbrowser, then the steps");
   assert.match(esc, /else escape\(here, "browser"\);/, "no Chrome: the default browser once");
   assert.match(esc, /\{banner && <Banner plan=\{banner\} onOpen=\{fromBanner\} onHide=\{hideBanner\} \/>\}/);
   // The card's buttons, then any link to the product's /join or /start (not /auth); the takeover's handler is stopped,

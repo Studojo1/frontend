@@ -48,6 +48,12 @@ const ESCAPE_ON = false;
 const BANNER_ON = true;
 /** INAPP-BANNER: on Android a tap on a call start opens Chrome too (an intent); on iOS the tap goes on as INAPP-OFF left it. */
 const ANDROID_TAP_ESCAPE = true;
+/**
+ * INAPP-IGEXT (16 Nov 2026, the owner: "try this"): on an iPhone in Instagram the bar's button first tries Instagram's
+ * own instagram://extbrowser (lib/inapp.ts igExtBrowserUrl); if the page is still here after ESCAPE_WAIT_MS, the steps,
+ * as before. A test on studojo.pro: false puts the button back to the steps at once.
+ */
+const IOS_IG_EXTBROWSER = true;
 const BANNER_HIDDEN_KEY = "stu_inapp_banner_hidden";
 const DEFAULT_TRIED_KEY = "stu_inapp_default_tried";
 /** How long a tap's own escape gets before the sheet shows (the app may ask "Open in Chrome?" first). */
@@ -367,6 +373,7 @@ export function InAppEscape() {
     if (!a || !banner) return;
     const t: Target = { href: withoutEscapeMark(window.location.href), cta: "banner", retry: () => undefined };
     if (banner.os === "android" && banner.auto) a.escape(t, banner.auto);
+    else if (IOS_IG_EXTBROWSER && banner.os === "ios" && banner.app === "instagram") a.escape(t, "igext");
     else a.sheet(t, "manual");
   }, [banner]);
   const hideBanner = useCallback(() => {

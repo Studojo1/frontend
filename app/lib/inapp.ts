@@ -76,8 +76,11 @@ const INTENT_OK = new Set<InApp>(["instagram", "facebook", "messenger"]);
  * run the same browser. There the sheet shows at once: the app's own steps and Copy link, no Open in Safari. */
 const SAFARI_BLOCKED = new Set<InApp>(["instagram", "facebook", "messenger"]);
 
-/** intent: Chrome on Android; safari: Safari on iOS 17 and later; browser: the phone's default browser on Android (INAPP-BANNER). */
-export type EscapeHow = "intent" | "safari" | "browser";
+/**
+ * intent: Chrome on Android; safari: Safari on iOS 17 and later; browser: the phone's default browser on Android
+ * (INAPP-BANNER); igext: Instagram's own instagram://extbrowser on an iPhone (INAPP-IGEXT, a test).
+ */
+export type EscapeHow = "intent" | "safari" | "browser" | "igext";
 
 export interface EscapePlan {
   app: InAppApp;
@@ -151,6 +154,16 @@ export function browserIntentUrl(href: string): string {
   return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${scheme};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
 }
 
+/**
+ * INAPP-IGEXT (16 Nov 2026, the owner: "try this"): Instagram's own address for opening a page outside its browser,
+ * instagram://extbrowser/?url=..., reported on Apple's developer forums (thread 840249) as working where every Safari
+ * address is refused; not documented by Meta, so it is tried on an iPhone in Instagram and the steps follow if the page
+ * is still here. Pure.
+ */
+export function igExtBrowserUrl(href: string): string {
+  return `instagram://extbrowser/?url=${encodeURIComponent(withoutEscapeMark(href))}`;
+}
+
 /** The address that opens `href` in Safari from an app's browser (iOS 17 and later): x-safari-https://... Pure. */
 export function safariUrl(href: string): string {
   const u = new URL(withoutEscapeMark(href));
@@ -159,7 +172,10 @@ export function safariUrl(href: string): string {
 
 /** The address an escape opens. Pure. */
 export function escapeUrl(how: EscapeHow, href: string): string {
-  return how === "intent" ? chromeIntentUrl(href) : how === "browser" ? browserIntentUrl(href) : safariUrl(href);
+  if (how === "intent") return chromeIntentUrl(href);
+  if (how === "browser") return browserIntentUrl(href);
+  if (how === "igext") return igExtBrowserUrl(href);
+  return safariUrl(href);
 }
 
 /**
