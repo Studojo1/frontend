@@ -107,7 +107,10 @@ export function escapePlan(ua: string | null | undefined, touch = false): Escape
   if (os === "ios") {
     const v = iosMajor(ua);
     const safari = v !== null && v >= 17 && !SAFARI_BLOCKED.has(app) ? "safari" : null;
-    return { app, os, auto: safari, button: safari, sure, browser: "Safari" };
+    // IG-TAP (16 Nov 2026): Instagram's own instagram://extbrowser opens the phone's browser where Safari's address is
+    // refused (INAPP-IGEXT: it worked on the owner's iPhone).
+    const ig: EscapeHow | null = app === "instagram" ? "igext" : null;
+    return { app, os, auto: ig ?? safari, button: ig ?? safari, sure, browser: "Safari" };
   }
   return { app, os, auto: null, button: null, sure, browser: "your browser" };
 }

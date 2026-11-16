@@ -24,7 +24,7 @@ import { trackSignedUpOnce } from "./lib/analytics";
 import { installJoinTracking } from "./lib/journey-client";
 import { installPageTracking, notePageView } from "./lib/journey-pages";
 import { InAppEscape } from "./components/inapp/InAppEscape";
-import { GATE_SKIP_KEY, IgGate } from "./components/inapp/IgGate";
+import { GATE_SKIP_KEY, IG_GATE_ON, IgGate } from "./components/inapp/IgGate";
 import { instagramGateOs } from "./lib/inapp";
 // RECORDINGS (5 Nov 2026): session replay for the admin's /recordings, when RECORDINGS is on (lib/recordings/boot.ts).
 import { bootRecorder, recEndpoint, recordingsOn } from "./lib/recordings/boot";
@@ -501,7 +501,7 @@ export default function App() {
     }
     setGateSkipped(true);
   }, []);
-  const gate = journeyPages && !onSensei && !projectPage && !gateSkipped ? igGate : null;
+  const gate = IG_GATE_ON && journeyPages && !onSensei && !projectPage && !gateSkipped ? igGate : null;
   // RECORDINGS: after the first paint and once the browser is idle, never in the way of the page (lib/recordings/boot.ts).
   const recordHere = Boolean(rec) && !onSensei && !projectPage;
   useEffect(() => bootRecorder(recordHere, recEndpoint(productOrigin())), [recordHere]);

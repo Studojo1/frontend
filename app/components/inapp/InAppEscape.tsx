@@ -55,6 +55,14 @@ const ANDROID_TAP_ESCAPE = true;
  * as before. A test on studojo.pro: false puts the button back to the steps at once.
  */
 const IOS_IG_EXTBROWSER = true;
+/**
+ * IG-TAP (16 Nov 2026, the owner: "instead of adding an extra page ... if a user is on instagram browser and clicks try
+ * for free on our homepage it automatically takes them to the default browser"): in Instagram's browser, on an iPhone or
+ * Android, a tap on a call start (Try for free, the sign-up card's buttons, any link to the product's /join or /start)
+ * opens it in the phone's browser: Instagram's own instagram://extbrowser on an iPhone, Chrome by intent on Android
+ * (then the default browser if Chrome is missing). The page itself stays as it is; the gate (IgGate.tsx) is off.
+ */
+const IG_TAP_ESCAPE = true;
 const BANNER_HIDDEN_KEY = "stu_inapp_banner_hidden";
 const DEFAULT_TRIED_KEY = "stu_inapp_default_tried";
 /** How long a tap's own escape gets before the sheet shows (the app may ask "Open in Chrome?" first). */
@@ -201,7 +209,9 @@ function Sheet({ open, onClose, onStay }: { open: Open; onClose: () => void; onS
         )}
         <div className="sj-esc-quiet">
           <a href={typed}>Can&apos;t talk right now? Set up by typing instead</a>
-          {!plan.sure && (
+          {/* IG-TAP: sign-up and the call do work in Instagram's browser for some (15 Nov: 55.5% of those who signed up
+              there finished the call), so after a tap's escape did not open the phone's browser they may go on there. */}
+          {(!plan.sure || plan.app === "instagram") && (
             <button type="button" onClick={onStay}>
               Try here anyway
             </button>
@@ -274,7 +284,8 @@ export function InAppEscape({ gated = false }: { gated?: boolean }) {
     // IG-GATE: under the gate (Instagram's browser) its own button does the leaving; here only inapp_seen.
     if (gated) return;
     // INAPP-BANNER: the bar, Android's tap escape and the no-Chrome fallback; with none of them, nothing more (INAPP-OFF).
-    const tapEscape = ESCAPE_ON || (ANDROID_TAP_ESCAPE && plan.os === "android" && plan.auto === "intent");
+    const tapEscape =
+      ESCAPE_ON || (ANDROID_TAP_ESCAPE && plan.os === "android" && plan.auto === "intent") || (IG_TAP_ESCAPE && plan.app === "instagram" && plan.auto !== null);
     let hidden = false;
     try {
       hidden = sessionStorage.getItem(BANNER_HIDDEN_KEY) === "1";

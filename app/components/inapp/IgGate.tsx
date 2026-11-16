@@ -20,6 +20,12 @@ import { sendJourney } from "~/lib/journey-pages";
 import { STU_HEAD } from "~/components/home-b2c/links";
 import { copyText, withHeld } from "./InAppEscape";
 
+/**
+ * IG-TAP (16 Nov 2026, the owner: "instead of adding an extra page ... clicks try for free on our homepage it automatically
+ * takes them to the default browser"): the gate is off; a tap on a call start leaves Instagram's browser instead
+ * (InAppEscape.tsx IG_TAP_ESCAPE). True puts the one page back.
+ */
+export const IG_GATE_ON = false;
 /** How long a tap's own escape gets before the help shows (the other app may ask "Open in ...?" first). */
 export const GATE_WAIT_MS = 1_500;
 /** Set by "Continue here anyway": the site in Instagram's browser for the rest of this visit. */

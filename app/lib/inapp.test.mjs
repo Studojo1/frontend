@@ -79,10 +79,10 @@ assert.deepEqual(escapePlan(FB_ANDROID), { app: "facebook", os: "android", auto:
 assert.equal(escapePlan(MSG_ANDROID).auto, "intent");
 assert.deepEqual(escapePlan(LI_ANDROID), { app: "linkedin", os: "android", auto: null, button: "intent", sure: true, browser: "Chrome" });
 assert.deepEqual(escapePlan(WEBVIEW), { app: "other-webview", os: "android", auto: null, button: null, sure: false, browser: "Chrome" });
-assert.deepEqual(escapePlan(IG_IOS), { app: "instagram", os: "ios", auto: null, button: null, sure: true, browser: "Safari" }, "Meta's browser drops x-safari-https: the steps and Copy link");
+assert.deepEqual(escapePlan(IG_IOS), { app: "instagram", os: "ios", auto: "igext", button: "igext", sure: true, browser: "Safari" }, "IG-TAP: Instagram's own instagram://extbrowser (Meta's browser drops x-safari-https)");
 for (const ua of [FB_IOS, MSG_IOS]) assert.deepEqual([escapePlan(ua).auto, escapePlan(ua).button], [null, null], ua);
 assert.deepEqual(escapePlan(LI_IOS), { app: "linkedin", os: "ios", auto: "safari", button: "safari", sure: true, browser: "Safari" }, "other apps still try Safari");
-assert.deepEqual(escapePlan(IG_IOS16), { app: "instagram", os: "ios", auto: null, button: null, sure: true, browser: "Safari" }, "iOS 16: the steps only");
+assert.deepEqual(escapePlan(IG_IOS16), { app: "instagram", os: "ios", auto: "igext", button: "igext", sure: true, browser: "Safari" }, "iOS 16 in Instagram: extbrowser too");
 assert.equal(escapePlan(WA).sure, false);
 
 // ── 3. The addresses keep the whole query; the fallback is marked so the product's /join shows the steps, never loops.
@@ -190,7 +190,8 @@ assert.equal(escapePlan(WA).sure, false);
   assert.match(root, /\{journeyPages && !onSensei && !projectPage && <InAppEscape gated=\{Boolean\(gate\)\} \/>\}/);
   // IG-GATE (16 Nov 2026): Instagram's browser gets the one page, decided by the server from the user agent; no notices on it.
   assert.match(root, /igGate: isB2cRequest\(request\) && !isPlatformHost\(host\) \? instagramGateOs\(request\.headers\.get\("user-agent"\)\) : null/);
-  assert.match(root, /const gate = journeyPages && !onSensei && !projectPage && !gateSkipped \? igGate : null;/);
+  assert.match(root, /const gate = IG_GATE_ON && journeyPages && !onSensei && !projectPage && !gateSkipped \? igGate : null;/);
+  assert.match(read("components/inapp/IgGate.tsx"), /export const IG_GATE_ON = false;/, "IG-TAP: no extra page");
   assert.match(root, /\{gate \? <IgGate os=\{gate\} onSkip=\{skipGate\} \/> : <Outlet \/>\}/);
   assert.match(root, /\{!gate && !onSensei && !projectPage && <CookieNotice \/>\}/);
   const gateSrc = read("components/inapp/IgGate.tsx");
@@ -206,7 +207,9 @@ assert.equal(escapePlan(WA).sure, false);
   assert.match(esc, /const BANNER_ON = false;/, "IG-GATE: no banner");
   assert.match(esc, /if \(gated\) return;/, "under the gate only inapp_seen");
   assert.match(esc, /const ANDROID_TAP_ESCAPE = true;/);
-  assert.match(esc, /const tapEscape = ESCAPE_ON \|\| \(ANDROID_TAP_ESCAPE && plan\.os === "android" && plan\.auto === "intent"\);/);
+  assert.match(esc, /const tapEscape =\s*ESCAPE_ON \|\| \(ANDROID_TAP_ESCAPE && plan\.os === "android" && plan\.auto === "intent"\) \|\| \(IG_TAP_ESCAPE && plan\.app === "instagram" && plan\.auto !== null\);/);
+  // IG-TAP (16 Nov 2026): in Instagram's browser a call start leaves for the phone's browser, on both phones.
+  assert.match(esc, /const IG_TAP_ESCAPE = true;/);
   assert.match(esc, /step: "inapp_seen"[\s\S]{0,1200}if \(!ESCAPE_ON && !tapEscape && !showBanner && !noChrome\) return;/);
   assert.match(esc, /if \(banner\.os === "android" && banner\.auto\) a\.escape\(t, banner\.auto\);\s*else if \(IOS_IG_EXTBROWSER && banner\.os === "ios" && banner\.app === "instagram"\) a\.escape\(t, "igext"\);\s*else a\.sheet\(t, "manual"\);/, "Android: Chrome; iPhone in Instagram: extbrowser, then the steps");
   assert.match(esc, /else escape\(here, "browser"\);/, "no Chrome: the default browser once");
@@ -223,7 +226,7 @@ assert.equal(escapePlan(WA).sure, false);
   assert.match(esc, /const ESCAPE_WAIT_MS = 1_500;/);
   assert.match(esc, /Can&apos;t talk right now\? Set up by typing instead/);
   assert.match(esc, /Try here anyway/);
-  assert.match(esc, /!plan\.sure &&/, "Try here anyway only where the app is a guess");
+  assert.match(esc, /\(!plan\.sure \|\| plan\.app === "instagram"\) &&/, "Try here anyway where the app is a guess, and in Instagram after a failed escape");
   // The homepage's start link is a link to /join, so the listener sees it (start.tsx StartLink).
   assert.match(read("components/home-v3/start.tsx"), /href=\{a\.href\}[\s\S]{0,200}data-start=\{place\}/);
 }
