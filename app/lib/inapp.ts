@@ -164,6 +164,24 @@ export function igExtBrowserUrl(href: string): string {
   return `instagram://extbrowser/?url=${encodeURIComponent(withoutEscapeMark(href))}`;
 }
 
+/**
+ * IG-GATE (16 Nov 2026, the owner: "Anybody on an Instagram browser ... lands on a singular landing page which has only
+ * one thing in the middle that says use your own device browser to access Studojo"): the phone a request's user agent
+ * says, when it is Instagram's own browser on an iPhone or an Android phone; null anywhere else (Facebook, a real
+ * browser, a computer). Read by the root loader, so the page is decided before it is drawn. Pure.
+ */
+export function instagramGateOs(ua: string | null | undefined): "ios" | "android" | null {
+  if (inAppOf(ua) !== "instagram") return null;
+  const os = osOf(ua);
+  return os === "ios" || os === "android" ? os : null;
+}
+
+/** IG-GATE: how its button leaves: Instagram's own way out on an iPhone; Chrome on Android, the default browser once Chrome failed. Pure. */
+export function gateHow(os: "ios" | "android", search: string): EscapeHow {
+  if (os === "ios") return "igext";
+  return hasEscapeMark(search) ? "browser" : "intent";
+}
+
 /** The address that opens `href` in Safari from an app's browser (iOS 17 and later): x-safari-https://... Pure. */
 export function safariUrl(href: string): string {
   const u = new URL(withoutEscapeMark(href));

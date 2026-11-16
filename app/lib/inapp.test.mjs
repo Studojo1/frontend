@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  bannerCopy, bannerFor, browserIntentUrl, chromeIntentUrl, igExtBrowserUrl, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
+  bannerCopy, bannerFor, browserIntentUrl, chromeIntentUrl, gateHow, igExtBrowserUrl, instagramGateOs, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
   withoutEscapeMark,
 } from "./inapp.ts";
 import { BEACON_STEPS, cleanBeacon } from "./journey.ts";
@@ -167,6 +167,17 @@ assert.equal(escapePlan(WA).sure, false);
   assert.deepEqual(bannerCopy(escapePlan(IG_ANDROID, true)), { title: "You're in Instagram's browser", lead: "Google sign-in and the call with Stu work best in Chrome.", button: "Open in Chrome" });
   assert.deepEqual(bannerCopy(escapePlan(IG_IOS, true)), { title: "You're in Instagram's browser", lead: "Google sign-in and the call with Stu work best in Safari.", button: "Open in Safari" });
   for (const w of Object.values(bannerCopy(escapePlan(IG_IOS, true)))) assert.doesNotMatch(w, /[\u2013\u2014]/, "no dashes");
+  // IG-GATE: Instagram's browser on a phone only; Facebook's, a real browser and a computer never.
+  assert.equal(instagramGateOs(IG_IOS), "ios");
+  assert.equal(instagramGateOs(IG_IOS16), "ios");
+  assert.equal(instagramGateOs(IG_ANDROID), "android");
+  assert.equal(instagramGateOs(FB_IOS), null);
+  assert.equal(instagramGateOs(FB_ANDROID), null);
+  assert.equal(instagramGateOs("Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1"), null);
+  assert.equal(instagramGateOs(null), null);
+  assert.equal(gateHow("ios", ""), "igext");
+  assert.equal(gateHow("android", "?utm_source=ig"), "intent");
+  assert.equal(gateHow("android", "?utm_source=ig&esc=1"), "browser", "Chrome missing: the default browser");
   // INAPP-IGEXT: Instagram's own way out, the page's whole address (the escape's mark left off).
   assert.equal(igExtBrowserUrl("https://studojo.pro/?utm_source=ig&esc=1"), "instagram://extbrowser/?url=https%3A%2F%2Fstudojo.pro%2F%3Futm_source%3Dig");
   assert.equal(escapeUrl("igext", "https://studojo.pro/"), "instagram://extbrowser/?url=https%3A%2F%2Fstudojo.pro%2F");
@@ -176,14 +187,24 @@ assert.equal(escapePlan(WA).sure, false);
 {
   const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
   const root = read("root.tsx");
-  assert.match(root, /\{journeyPages && !onSensei && !projectPage && <InAppEscape \/>\}/);
+  assert.match(root, /\{journeyPages && !onSensei && !projectPage && <InAppEscape gated=\{Boolean\(gate\)\} \/>\}/);
+  // IG-GATE (16 Nov 2026): Instagram's browser gets the one page, decided by the server from the user agent; no notices on it.
+  assert.match(root, /igGate: isB2cRequest\(request\) && !isPlatformHost\(host\) \? instagramGateOs\(request\.headers\.get\("user-agent"\)\) : null/);
+  assert.match(root, /const gate = journeyPages && !onSensei && !projectPage && !gateSkipped \? igGate : null;/);
+  assert.match(root, /\{gate \? <IgGate os=\{gate\} onSkip=\{skipGate\} \/> : <Outlet \/>\}/);
+  assert.match(root, /\{!gate && !onSensei && !projectPage && <CookieNotice \/>\}/);
+  const gateSrc = read("components/inapp/IgGate.tsx");
+  assert.match(gateSrc, /Use your phone&apos;s browser to access Studojo/);
+  assert.match(gateSrc, /Continue here anyway/, "nobody is ever stuck");
+  assert.match(gateSrc, /cta: "gate"/);
   const esc = read("components/inapp/InAppEscape.tsx");
   // INAPP-STAY: /auth's older "open in your browser" prompt is off too (calls stay in the app's browser).
   assert.match(read("routes/auth._index.tsx"), /const IN_APP_PROMPT_ON = false;[\s\S]*\{IN_APP_PROMPT_ON && inApp && /);
   // INAPP-OFF: the owner switched the escape off to try the call in Instagram's browser; inapp_seen is still sent first.
   assert.match(esc, /const ESCAPE_ON = false;/);
   // INAPP-BANNER (16 Nov 2026): the bar on, Android's tap escape on, and nothing more where neither applies.
-  assert.match(esc, /const BANNER_ON = true;/);
+  assert.match(esc, /const BANNER_ON = false;/, "IG-GATE: no banner");
+  assert.match(esc, /if \(gated\) return;/, "under the gate only inapp_seen");
   assert.match(esc, /const ANDROID_TAP_ESCAPE = true;/);
   assert.match(esc, /const tapEscape = ESCAPE_ON \|\| \(ANDROID_TAP_ESCAPE && plan\.os === "android" && plan\.auto === "intent"\);/);
   assert.match(esc, /step: "inapp_seen"[\s\S]{0,1200}if \(!ESCAPE_ON && !tapEscape && !showBanner && !noChrome\) return;/);
@@ -208,3 +229,4 @@ assert.equal(escapePlan(WA).sure, false);
 }
 
 console.log("inapp: detection, the escape plan and addresses, the words, the typed link, the beacons and the wiring hold");
+

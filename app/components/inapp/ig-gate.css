@@ -1,0 +1,25 @@
+/* IG-GATE (16 Nov 2026): the one page Instagram's browser gets (IgGate.tsx). The site's look (ink edge, hard shadow, the
+   purple pill, Satoshi), its own tokens, nothing else on the page. */
+.sj-gate {
+  --gate-ink: #171717; --gate-muted: #525252; --gate-edge: #191a23; --gate-bg: #faf5fe;
+  --gate-cta: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%);
+  min-height: 100vh; min-height: 100dvh; box-sizing: border-box; display: grid; place-items: center; padding: 24px;
+  background: var(--gate-bg); font-family: Satoshi, system-ui, sans-serif; color: var(--gate-ink); -webkit-font-smoothing: antialiased;
+}
+.sj-gate-in { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; }
+.sj-gate-head { width: 72px; height: 72px; display: block; }
+.sj-gate-go {
+  width: 100%; min-height: 68px; padding: 14px 22px; border-radius: 22px; border: 1.5px solid var(--gate-edge); background: var(--gate-cta); color: #fff;
+  font-family: inherit; font-size: 19px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 3px 3px 0 var(--gate-edge); transition: transform .12s ease, box-shadow .12s ease;
+}
+.sj-gate-go:active { transform: translate(2px, 2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 1px 1px 0 var(--gate-edge); }
+.sj-gate-go:focus-visible, .sj-gate-help button:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 3px; }
+.sj-gate-help { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.sj-gate-help p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--gate-muted); }
+.sj-gate-copy {
+  width: 100%; height: 48px; border-radius: 999px; border: 1.5px solid var(--gate-edge); background: #fff; color: var(--gate-ink);
+  font-family: inherit; font-size: 16px; font-weight: 500; cursor: pointer; box-shadow: 3px 3px 0 var(--gate-edge);
+}
+.sj-gate-stay { min-height: 44px; border: 0; background: none; font-family: inherit; font-size: 14.5px; color: var(--gate-muted); text-decoration: underline; cursor: pointer; }
+.sj-gate .sj-gate-err { font-size: 13.5px; color: #dc2626; }

@@ -12,7 +12,7 @@ import {
   useRouteError,
 } from "react-router";
 import { Toaster } from "sonner";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
@@ -24,6 +24,8 @@ import { trackSignedUpOnce } from "./lib/analytics";
 import { installJoinTracking } from "./lib/journey-client";
 import { installPageTracking, notePageView } from "./lib/journey-pages";
 import { InAppEscape } from "./components/inapp/InAppEscape";
+import { GATE_SKIP_KEY, IgGate } from "./components/inapp/IgGate";
+import { instagramGateOs } from "./lib/inapp";
 // RECORDINGS (5 Nov 2026): session replay for the admin's /recordings, when RECORDINGS is on (lib/recordings/boot.ts).
 import { bootRecorder, recEndpoint, recordingsOn } from "./lib/recordings/boot";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
@@ -428,6 +430,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     journeyPages: isB2cRequest(request) && !isPlatformHost(host),
     // RECORDINGS: the site's own hosts and the platform's sign-in pages record, when the server's RECORDINGS is on.
     rec: recordingsOn(process.env.RECORDINGS) && isB2cRequest(request),
+    // IG-GATE (16 Nov 2026): Instagram's own browser on the site's hosts gets the one page (components/inapp/IgGate.tsx),
+    // decided here from the request's user agent so the site never flashes first. "ios" or "android", else null.
+    igGate: isB2cRequest(request) && !isPlatformHost(host) ? instagramGateOs(request.headers.get("user-agent")) : null,
   };
 }
 
@@ -471,13 +476,32 @@ export default function App() {
     if (attributionUserId) flushAttribution(attributionUserId);
   }, [attributionUserId]);
 
-  const { isSenseiHost, journeyPages, rec } = useLoaderData<typeof loader>();
+  const { isSenseiHost, journeyPages, rec, igGate } = useLoaderData<typeof loader>();
   const location = useLocation();
   const onSensei = isSenseiHost || location.pathname.startsWith("/bob");
   // A student's launched project page (/:handle/:slug) carries no analytics and
   // none of the site's widgets: its CSP allows only its own scripts (contract
   // section 4, app/routes/$handle.$slug.tsx).
   const projectPage = useMatches().some((m) => (m.handle as { projectPage?: boolean } | undefined)?.projectPage === true);
+  // IG-GATE (16 Nov 2026, the owner: "Anybody on an Instagram browser ... lands on a singular landing page"): the one page
+  // instead of any of the site's, until "Continue here anyway" this visit (sessionStorage, read after the first paint).
+  const [gateSkipped, setGateSkipped] = useState(false);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(GATE_SKIP_KEY) === "1") setGateSkipped(true);
+    } catch {
+      // storage blocked: the gate stays
+    }
+  }, []);
+  const skipGate = useCallback(() => {
+    try {
+      sessionStorage.setItem(GATE_SKIP_KEY, "1");
+    } catch {
+      // storage blocked: the site for this page only
+    }
+    setGateSkipped(true);
+  }, []);
+  const gate = journeyPages && !onSensei && !projectPage && !gateSkipped ? igGate : null;
   // RECORDINGS: after the first paint and once the browser is idle, never in the way of the page (lib/recordings/boot.ts).
   const recordHere = Boolean(rec) && !onSensei && !projectPage;
   useEffect(() => bootRecorder(recordHere, recEndpoint(productOrigin())), [recordHere]);
@@ -485,13 +509,13 @@ export default function App() {
   return (
     <>
       {!projectPage && <AnalyticsInit pages={journeyPages && !onSensei} />}
-      <Outlet />
+      {gate ? <IgGate os={gate} onSkip={skipGate} /> : <Outlet />}
       {/* INAPP (4 Nov 2026, the owner: "redirect them to use it directly on Chrome or Safari"): in an app's own browser
           (Instagram, Facebook...), a call start opens in Chrome or Safari instead (components/inapp/InAppEscape.tsx).
           The site's own hosts only, as the page tracking. */}
-      {journeyPages && !onSensei && !projectPage && <InAppEscape />}
-      {!onSensei && !projectPage && <CookieNotice />}
-      {!onSensei && !projectPage && <PolicyUpdateNotice />}
+      {journeyPages && !onSensei && !projectPage && <InAppEscape gated={Boolean(gate)} />}
+      {!gate && !onSensei && !projectPage && <CookieNotice />}
+      {!gate && !onSensei && !projectPage && <PolicyUpdateNotice />}
     </>
   );
 }

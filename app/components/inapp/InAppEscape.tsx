@@ -45,7 +45,8 @@ const ESCAPE_ON = false;
  * In the page's flow under the phone's cookie notice (COOKIE-TOP). Hidden for the visit with its ×. Its taps are the same
  * journey rows as the escape's, with cta "banner".
  */
-const BANNER_ON = true;
+/** IG-GATE (16 Nov 2026, the owner: "I don't want it as a banner"): off; Instagram's browser gets the gate instead (IgGate.tsx). */
+const BANNER_ON = false;
 /** INAPP-BANNER: on Android a tap on a call start opens Chrome too (an intent); on iOS the tap goes on as INAPP-OFF left it. */
 const ANDROID_TAP_ESCAPE = true;
 /**
@@ -69,7 +70,7 @@ type Actions = { escape: (t: Target, how?: EscapeHow | null) => void; sheet: (t:
 const touch = () => (navigator.maxTouchPoints ?? 0) > 1;
 
 /** The address with the held ad click on it when the page lost it on the way (another browser has none of our storage). */
-function withHeld(href: string): string {
+export function withHeld(href: string): string {
   try {
     const u = new URL(href, window.location.origin);
     heldTrackingParams().forEach((v, k) => {
@@ -117,7 +118,7 @@ function targetOf(t: EventTarget | null): Target | null {
 }
 
 /** Copy a link: the clipboard, else a selected text box (some app browsers withhold the clipboard). */
-async function copyText(text: string): Promise<boolean> {
+export async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
     return true;
@@ -250,7 +251,7 @@ function Banner({ plan, onOpen, onHide }: { plan: EscapePlan; onOpen: () => void
 }
 
 /** The site's escape from an app's own browser (root.tsx, the site's own hosts). Renders nothing in a real browser. */
-export function InAppEscape() {
+export function InAppEscape({ gated = false }: { gated?: boolean }) {
   const [open, setOpen] = useState<Open | null>(null);
   // In an app's browser: the sheet's stylesheet loads now, so the first sheet never waits for it.
   const [inApp, setInApp] = useState(false);
@@ -270,6 +271,8 @@ export function InAppEscape() {
     } catch {
       // storage blocked: no inapp_seen row, the escape still works
     }
+    // IG-GATE: under the gate (Instagram's browser) its own button does the leaving; here only inapp_seen.
+    if (gated) return;
     // INAPP-BANNER: the bar, Android's tap escape and the no-Chrome fallback; with none of them, nothing more (INAPP-OFF).
     const tapEscape = ESCAPE_ON || (ANDROID_TAP_ESCAPE && plan.os === "android" && plan.auto === "intent");
     let hidden = false;
