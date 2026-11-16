@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import escCss from "./inapp-escape.css?url";
-import { bannerCopy, bannerFor, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, typedSignIn, withoutEscapeMark, type EscapeHow, type EscapePlan } from "~/lib/inapp";
+import { bannerCopy, bannerFor, cardArrivalUrl, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, homepageStart, typedSignIn, withoutEscapeMark, type EscapeHow, type EscapePlan } from "~/lib/inapp";
 import { isJoinHref } from "~/lib/journey";
 import { sendJourney } from "~/lib/journey-pages";
 import { productOrigin } from "~/lib/product-origin";
@@ -297,13 +297,15 @@ export function InAppEscape({ gated = false }: { gated?: boolean }) {
     if (!ESCAPE_ON && !tapEscape && !showBanner && !noChrome) return;
     setInApp(true);
     let timer: ReturnType<typeof setTimeout> | null = null;
+    // IG-CARD: a homepage start lands on the homepage's sign-up card in the phone's browser; any other link where it points.
+    const dest = (t: Target) => withHeld(homepageStart(t.cta) ? cardArrivalUrl(window.location.href) : t.href);
     const sheet = (t: Target, why: "manual" | "timeout") => {
       try {
         sessionStorage.setItem(SHEET_SHOWN_KEY, "1");
       } catch {
         // storage blocked: /auth may show its prompt
       }
-      setOpen({ plan, href: withHeld(t.href), typed: typedSignIn(homeSignIn(visitSearch())), cta: t.cta, retry: t.retry });
+      setOpen({ plan, href: dest(t), typed: typedSignIn(homeSignIn(visitSearch())), cta: t.cta, retry: t.retry });
       sendJourney({ step: "inapp_escape_sheet", ...base(), cta: t.cta, why });
     };
     const escape = (t: Target, how: EscapeHow | null = plan.auto) => {
@@ -320,7 +322,7 @@ export function InAppEscape({ gated = false }: { gated?: boolean }) {
       window.addEventListener("pagehide", onPageHide);
       sendJourney({ step: "inapp_escape_tried", ...base(), cta: t.cta, how });
       try {
-        window.location.href = escapeUrl(how, withHeld(t.href));
+        window.location.href = escapeUrl(how, dest(t));
       } catch {
         // the app refused the address: the sheet below
       }

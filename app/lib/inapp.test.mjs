@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  bannerCopy, bannerFor, browserIntentUrl, chromeIntentUrl, gateHow, igExtBrowserUrl, instagramGateOs, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
+  ARRIVE_CARD, ARRIVE_KEY, bannerCopy, bannerFor, browserIntentUrl, cardArrivalUrl, chromeIntentUrl, homepageStart, gateHow, igExtBrowserUrl, instagramGateOs, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
   withoutEscapeMark,
 } from "./inapp.ts";
 import { BEACON_STEPS, cleanBeacon } from "./journey.ts";
@@ -175,6 +175,11 @@ assert.equal(escapePlan(WA).sure, false);
   assert.equal(instagramGateOs(FB_ANDROID), null);
   assert.equal(instagramGateOs("Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1"), null);
   assert.equal(instagramGateOs(null), null);
+  // IG-CARD: a homepage start lands on the homepage's sign-up card in the phone's browser, the visit's keys kept.
+  assert.equal(cardArrivalUrl("https://studojo.pro/blog/x?utm_source=ig&fbclid=a1&esc=1#stu"), "https://studojo.pro/?utm_source=ig&fbclid=a1&stu=card");
+  assert.equal(`${ARRIVE_KEY}=${ARRIVE_CARD}`, "stu=card");
+  for (const c of ["start_hero", "start_bar", "start_footer", "signup_google", "signup_email"]) assert.equal(homepageStart(c), true, c);
+  for (const c of ["join", "join_report-x"]) assert.equal(homepageStart(c), false, c);
   assert.equal(gateHow("ios", ""), "igext");
   assert.equal(gateHow("android", "?utm_source=ig"), "intent");
   assert.equal(gateHow("android", "?utm_source=ig&esc=1"), "browser", "Chrome missing: the default browser");
@@ -210,6 +215,11 @@ assert.equal(escapePlan(WA).sure, false);
   assert.match(esc, /const tapEscape =\s*ESCAPE_ON \|\| \(ANDROID_TAP_ESCAPE && plan\.os === "android" && plan\.auto === "intent"\) \|\| \(IG_TAP_ESCAPE && plan\.app === "instagram" && plan\.auto !== null\);/);
   // IG-TAP (16 Nov 2026): in Instagram's browser a call start leaves for the phone's browser, on both phones.
   assert.match(esc, /const IG_TAP_ESCAPE = true;/);
+  assert.match(esc, /const dest = \(t: Target\) => withHeld\(homepageStart\(t\.cta\) \? cardArrivalUrl\(window\.location\.href\) : t\.href\);/);
+  assert.match(esc, /window\.location\.href = escapeUrl\(how, dest\(t\)\);/);
+  const startSrc = read("components/home-v3/start.tsx");
+  assert.match(startSrc, /new URLSearchParams\(search\)\.get\(ARRIVE_KEY\) === ARRIVE_CARD/);
+  assert.match(startSrc, /if \(signedIn\) return;\s*go\("signup"\);\s*openCall\(null\);/, "the card at once, signed out only");
   assert.match(esc, /step: "inapp_seen"[\s\S]{0,1200}if \(!ESCAPE_ON && !tapEscape && !showBanner && !noChrome\) return;/);
   assert.match(esc, /if \(banner\.os === "android" && banner\.auto\) a\.escape\(t, banner\.auto\);\s*else if \(IOS_IG_EXTBROWSER && banner\.os === "ios" && banner\.app === "instagram"\) a\.escape\(t, "igext"\);\s*else a\.sheet\(t, "manual"\);/, "Android: Chrome; iPhone in Instagram: extbrowser, then the steps");
   assert.match(esc, /else escape\(here, "browser"\);/, "no Chrome: the default browser once");

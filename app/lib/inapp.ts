@@ -179,6 +179,30 @@ export function instagramGateOs(ua: string | null | undefined): "ios" | "android
   return os === "ios" || os === "android" ? os : null;
 }
 
+/**
+ * IG-CARD (16 Nov 2026, the owner: "why is there an additional click after opening a new browser ... instead of just
+ * being a direct Stu start speaking"): a homepage start tapped in an app's browser opens the homepage in the phone's
+ * browser with ?stu=card, where the call takeover opens on the sign-up card at once (home-v3/start.tsx). A browser
+ * plays sound only after a tap on the page, so Stu cannot speak on arrival; the one tap left is the sign-up itself,
+ * not "Speak to my career agent" on the product's /join.
+ */
+export const ARRIVE_KEY = "stu";
+export const ARRIVE_CARD = "card";
+
+/** The homepage with this visit's query (its ad keys) and ?stu=card: where a homepage start's escape lands. Pure. */
+export function cardArrivalUrl(current: string): string {
+  const u = new URL(withoutEscapeMark(current));
+  u.pathname = "/";
+  u.hash = "";
+  u.searchParams.set(ARRIVE_KEY, ARRIVE_CARD);
+  return u.toString();
+}
+
+/** Whether a tap's call start is the homepage's own (its start buttons, the takeover's sign-up card). Pure. */
+export function homepageStart(cta: string): boolean {
+  return cta.startsWith("start_") || cta.startsWith("signup_");
+}
+
 /** IG-GATE: how its button leaves: Instagram's own way out on an iPhone; Chrome on Android, the default browser once Chrome failed. Pure. */
 export function gateHow(os: "ios" | "android", search: string): EscapeHow {
   if (os === "ios") return "igext";

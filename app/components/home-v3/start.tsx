@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useLocation, useNavigate } from "react-router";
 import { useSignedIn } from "../home-b2c/cta";
 import { DESK, homeSignIn, JOIN_LINE, joinHref, type Stage } from "./agent";
+import { ARRIVE_CARD, ARRIVE_KEY } from "~/lib/inapp";
 import { Arrow, Mic } from "./icons";
 import { CALL_HASH, lockScroll, unlockScroll, type ScrollLock } from "./call-lock";
 import { fetchLine, unlockAudio, useSpoken } from "./useSpoken";
@@ -143,6 +144,19 @@ export function AgentProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (callOpen && location.hash !== CALL_HASH && !pushed.current) shut();
   }, [callOpen, location.hash, shut]);
+
+  // IG-CARD (16 Nov 2026, the owner: "why is there an additional click after opening a new browser ... instead of just
+  // being a direct Stu start speaking"): a visit that came out of an app's browser (InAppEscape.tsx, ?stu=card) opens
+  // the takeover on the sign-up card at once. A browser plays sound only after a tap on the page, so Stu cannot speak on
+  // arrival: the card shows his line written out, and the one tap left is the sign-up itself. Signed out only.
+  const cardArrival = useRef(new URLSearchParams(search).get(ARRIVE_KEY) === ARRIVE_CARD);
+  useEffect(() => {
+    if (!cardArrival.current) return;
+    cardArrival.current = false;
+    if (signedIn) return;
+    go("signup");
+    openCall(null);
+  }, [go, openCall, signedIn]);
 
   // A visit that lands on #stu (a reload, a shared link) starts on the page itself: the entry is dropped.
   const landed = useRef(location.hash === CALL_HASH);
