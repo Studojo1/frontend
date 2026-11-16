@@ -76,7 +76,8 @@ const INTENT_OK = new Set<InApp>(["instagram", "facebook", "messenger"]);
  * run the same browser. There the sheet shows at once: the app's own steps and Copy link, no Open in Safari. */
 const SAFARI_BLOCKED = new Set<InApp>(["instagram", "facebook", "messenger"]);
 
-export type EscapeHow = "intent" | "safari";
+/** intent: Chrome on Android; safari: Safari on iOS 17 and later; browser: the phone's default browser on Android (INAPP-BANNER). */
+export type EscapeHow = "intent" | "safari" | "browser";
 
 export interface EscapePlan {
   app: InAppApp;
@@ -139,6 +140,17 @@ export function chromeIntentUrl(href: string): string {
   return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${scheme};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(fallback.toString())};end`;
 }
 
+/**
+ * INAPP-BANNER (16 Nov 2026, the owner: "if not Chrome, it can take them to whatever the default browser in their
+ * device is"): an Android intent address with no app named, so Android opens `href` in the phone's default browser (or
+ * asks which one). Tried after the Chrome intent fell back here (?esc=1: no Chrome). Pure.
+ */
+export function browserIntentUrl(href: string): string {
+  const u = new URL(withoutEscapeMark(href));
+  const scheme = u.protocol.replace(":", "");
+  return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${scheme};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+}
+
 /** The address that opens `href` in Safari from an app's browser (iOS 17 and later): x-safari-https://... Pure. */
 export function safariUrl(href: string): string {
   const u = new URL(withoutEscapeMark(href));
@@ -147,7 +159,26 @@ export function safariUrl(href: string): string {
 
 /** The address an escape opens. Pure. */
 export function escapeUrl(how: EscapeHow, href: string): string {
-  return how === "intent" ? chromeIntentUrl(href) : safariUrl(href);
+  return how === "intent" ? chromeIntentUrl(href) : how === "browser" ? browserIntentUrl(href) : safariUrl(href);
+}
+
+/**
+ * INAPP-BANNER (16 Nov 2026, the owner: "if somebody opens studojo.com on an Instagram browser, it shows a button that
+ * says you are on Instagram's browser, click this to go to your device's Chrome"): the banner shows on a phone in an
+ * app's browser that surely gets in the way (Instagram, Facebook, Messenger, LinkedIn, TikTok, Snapchat), never in a
+ * bare web view or WhatsApp, where the app is only a guess. Pure.
+ */
+export function bannerFor(plan: EscapePlan | null): plan is EscapePlan {
+  return plan !== null && plan.sure && (plan.os === "android" || plan.os === "ios");
+}
+
+/** The banner's words: where they are, why their browser is better, and the button. Plain and short, no dashes. Pure. */
+export function bannerCopy(plan: Pick<EscapePlan, "app" | "browser">): { title: string; lead: string; button: string } {
+  return {
+    title: `You're in ${appName(plan.app)}'s browser`,
+    lead: `Google sign-in and the call with Stu work best in ${plan.browser}.`,
+    button: `Open in ${plan.browser}`,
+  };
 }
 
 /**

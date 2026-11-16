@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  chromeIntentUrl, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
+  bannerCopy, bannerFor, browserIntentUrl, chromeIntentUrl, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
   withoutEscapeMark,
 } from "./inapp.ts";
 import { BEACON_STEPS, cleanBeacon } from "./journey.ts";
@@ -153,6 +153,22 @@ assert.equal(escapePlan(WA).sure, false);
   for (const a of INAPP_APPS) assert.ok(cleanBeacon({ step: "inapp_seen", path: "/", app: a }), a);
 }
 
+// ── 6b. INAPP-BANNER (16 Nov 2026): the default browser's intent, where the bar shows, and its words.
+{
+  const href = "https://studojo.com/?utm_source=ig&fbclid=abc&esc=1";
+  const u = browserIntentUrl(href);
+  assert.equal(u, "intent://studojo.com/?utm_source=ig&fbclid=abc#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end");
+  assert.doesNotMatch(u, /package=/, "no app named: Android picks the default browser");
+  assert.equal(escapeUrl("browser", href), u);
+  assert.equal(bannerFor(escapePlan(IG_ANDROID, true)), true);
+  assert.equal(bannerFor(escapePlan(IG_IOS, true)), true);
+  assert.equal(bannerFor(escapePlan(FB_IOS, true)), true);
+  assert.equal(bannerFor(escapePlan("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15")), false, "a real browser");
+  assert.deepEqual(bannerCopy(escapePlan(IG_ANDROID, true)), { title: "You're in Instagram's browser", lead: "Google sign-in and the call with Stu work best in Chrome.", button: "Open in Chrome" });
+  assert.deepEqual(bannerCopy(escapePlan(IG_IOS, true)), { title: "You're in Instagram's browser", lead: "Google sign-in and the call with Stu work best in Safari.", button: "Open in Safari" });
+  for (const w of Object.values(bannerCopy(escapePlan(IG_IOS, true)))) assert.doesNotMatch(w, /[\u2013\u2014]/, "no dashes");
+}
+
 // ── 7. The wiring: root.tsx on the site's own hosts; the call starts it stops; the sheet's copy.
 {
   const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -163,7 +179,14 @@ assert.equal(escapePlan(WA).sure, false);
   assert.match(read("routes/auth._index.tsx"), /const IN_APP_PROMPT_ON = false;[\s\S]*\{IN_APP_PROMPT_ON && inApp && /);
   // INAPP-OFF: the owner switched the escape off to try the call in Instagram's browser; inapp_seen is still sent first.
   assert.match(esc, /const ESCAPE_ON = false;/);
-  assert.match(esc, /step: "inapp_seen"[\s\S]{0,200}if \(!ESCAPE_ON\) return;/);
+  // INAPP-BANNER (16 Nov 2026): the bar on, Android's tap escape on, and nothing more where neither applies.
+  assert.match(esc, /const BANNER_ON = true;/);
+  assert.match(esc, /const ANDROID_TAP_ESCAPE = true;/);
+  assert.match(esc, /const tapEscape = ESCAPE_ON \|\| \(ANDROID_TAP_ESCAPE && plan\.os === "android" && plan\.auto === "intent"\);/);
+  assert.match(esc, /step: "inapp_seen"[\s\S]{0,1200}if \(!ESCAPE_ON && !tapEscape && !showBanner && !noChrome\) return;/);
+  assert.match(esc, /if \(banner\.os === "android" && banner\.auto\) a\.escape\(t, banner\.auto\);\s*else a\.sheet\(t, "manual"\);/, "Android: Chrome; iOS: the steps");
+  assert.match(esc, /else escape\(here, "browser"\);/, "no Chrome: the default browser once");
+  assert.match(esc, /\{banner && <Banner plan=\{banner\} onOpen=\{fromBanner\} onHide=\{hideBanner\} \/>\}/);
   // The card's buttons, then any link to the product's /join or /start (not /auth); the takeover's handler is stopped,
   // clicked_join (same node, capture) is not.
   assert.match(esc, /closest<HTMLElement>\("\[data-signin\]"\)/);

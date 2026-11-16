@@ -268,7 +268,7 @@ export function isJoinHref(href: string, pageOrigin: string, productOrigin: stri
  * INAPP (4 Nov 2026, the owner: "for the users tapping inside Instagram or Facebook, inside of the built-in browser,
  * instead redirect them to use it directly on Chrome or Safari"): the escape's three (components/inapp/InAppEscape.tsx),
  * the product's names (its journey.ts): inapp_seen (a page of the site open in an app's browser, once a browser
- * session), inapp_escape_tried (a call tap tried to open Chrome or Safari: how intent or safari) and inapp_escape_sheet
+ * session), inapp_escape_tried (a call tap or the banner tried to open Chrome, Safari or the default browser: how intent, safari or browser) and inapp_escape_sheet
  * (the steps shown: why manual or timeout). Their props: path, app (inapp.ts INAPP_APPS), os, cta, how, why; the
  * server adds device and inapp as on every row.
  */
@@ -344,7 +344,7 @@ const PV_RE = /^[A-Za-z0-9_-]{8,40}$/;
 export const SECTION_RE = /^[a-z][a-z0-9_]{0,23}$/;
 const NAVS = new Set(["load", "route", "back"]);
 const INAPP_OS = new Set(["android", "ios", "other"]);
-const INAPP_HOWS = new Set(["intent", "safari"]);
+const INAPP_HOWS = new Set(["intent", "safari", "browser"]);
 const INAPP_WHYS = new Set(["manual", "timeout"]);
 const WHYS = new Set(["check", "hidden", "leave", "route"]);
 const MAX_ENGAGED_S = 3_600;

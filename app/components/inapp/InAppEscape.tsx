@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import escCss from "./inapp-escape.css?url";
-import { escapeCopy, escapePlan, escapeUrl, typedSignIn, withoutEscapeMark, type EscapePlan } from "~/lib/inapp";
+import { bannerCopy, bannerFor, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, typedSignIn, withoutEscapeMark, type EscapeHow, type EscapePlan } from "~/lib/inapp";
 import { isJoinHref } from "~/lib/journey";
 import { sendJourney } from "~/lib/journey-pages";
 import { productOrigin } from "~/lib/product-origin";
@@ -32,6 +32,23 @@ import { STU_HEAD } from "~/components/home-b2c/links";
  * first"): off, so a tap in an app's browser goes on to the call as in a real browser. inapp_seen is still sent. True
  * turns the escape and its sheet back on. */
 const ESCAPE_ON = false;
+/**
+ * INAPP-BANNER (16 Nov 2026, the owner: "if somebody opens studojo.com on an Instagram browser, it shows a button that
+ * says you are on Instagram's browser, click this to go to your device's Chrome ... for both iPhone and Android ... if
+ * not Chrome, whatever the default browser"; 15 Nov numbers: 72% of visitors came in Instagram's browser and 8.9% of
+ * them signed up, against 28.5% in a real browser). A bar at the top of every page in an app's browser (lib/inapp.ts
+ * bannerFor) with one button:
+ *   - Android: Chrome by intent (its Google sign-in is already there); with no Chrome, the intent falls back here with
+ *     ?esc=1 and the phone's default browser is tried once; if the page is still here, the steps.
+ *   - iOS: Meta's browser refuses every address that would open Safari (INAPP-IOS), so the button shows the steps
+ *     (••• at the top right, Open in external browser) and Copy link.
+ * Hidden for the visit with its ×. Its taps are the same journey rows as the escape's, with cta "banner".
+ */
+const BANNER_ON = true;
+/** INAPP-BANNER: on Android a tap on a call start opens Chrome too (an intent); on iOS the tap goes on as INAPP-OFF left it. */
+const ANDROID_TAP_ESCAPE = true;
+const BANNER_HIDDEN_KEY = "stu_inapp_banner_hidden";
+const DEFAULT_TRIED_KEY = "stu_inapp_default_tried";
 /** How long a tap's own escape gets before the sheet shows (the app may ask "Open in Chrome?" first). */
 const ESCAPE_WAIT_MS = 1_500;
 const SEEN_KEY = "stu_inapp_seen";
@@ -40,6 +57,7 @@ export const SHEET_SHOWN_KEY = "stu_inapp_sheet_shown";
 
 type Target = { href: string; cta: string; retry: () => void };
 type Open = { plan: EscapePlan; href: string; typed: string; cta: string; retry: () => void };
+type Actions = { escape: (t: Target, how?: EscapeHow | null) => void; sheet: (t: Target, why: "manual" | "timeout") => void };
 
 const touch = () => (navigator.maxTouchPoints ?? 0) > 1;
 
@@ -186,12 +204,52 @@ function Sheet({ open, onClose, onStay }: { open: Open; onClose: () => void; onS
   );
 }
 
+/** INAPP-BANNER: the bar at the top: where they are, why their browser is better, the button and its ×. */
+function Banner({ plan, onOpen, onHide }: { plan: EscapePlan; onOpen: () => void; onHide: () => void }) {
+  const bar = useRef<HTMLDivElement>(null);
+  const words = bannerCopy(plan);
+  // The page moves down by the bar's height (html.sj-inbar-on, --sj-inbar-h), the site's sticky header with it.
+  useEffect(() => {
+    const el = bar.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const set = () => root.style.setProperty("--sj-inbar-h", `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    set();
+    root.classList.add("sj-inbar-on");
+    const ro = typeof ResizeObserver === "function" ? new ResizeObserver(set) : null;
+    ro?.observe(el);
+    return () => {
+      ro?.disconnect();
+      root.classList.remove("sj-inbar-on");
+      root.style.removeProperty("--sj-inbar-h");
+    };
+  }, []);
+  return (
+    <div ref={bar} className="sj-inbar" role="region" aria-label={words.title}>
+      <div className="sj-inbar-text">
+        <b>{words.title}</b>
+        <span>{words.lead}</span>
+      </div>
+      <button type="button" className="sj-inbar-go" onClick={onOpen}>
+        {words.button}
+      </button>
+      <button type="button" className="sj-inbar-x" onClick={onHide} aria-label="Hide this">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 /** The site's escape from an app's own browser (root.tsx, the site's own hosts). Renders nothing in a real browser. */
 export function InAppEscape() {
   const [open, setOpen] = useState<Open | null>(null);
   // In an app's browser: the sheet's stylesheet loads now, so the first sheet never waits for it.
   const [inApp, setInApp] = useState(false);
+  const [banner, setBanner] = useState<EscapePlan | null>(null);
   const stayed = useRef(false);
+  const actions = useRef<Actions | null>(null);
 
   useEffect(() => {
     const plan = escapePlan(navigator.userAgent, touch());
@@ -205,7 +263,17 @@ export function InAppEscape() {
     } catch {
       // storage blocked: no inapp_seen row, the escape still works
     }
-    if (!ESCAPE_ON) return;
+    // INAPP-BANNER: the bar, Android's tap escape and the no-Chrome fallback; with none of them, nothing more (INAPP-OFF).
+    const tapEscape = ESCAPE_ON || (ANDROID_TAP_ESCAPE && plan.os === "android" && plan.auto === "intent");
+    let hidden = false;
+    try {
+      hidden = sessionStorage.getItem(BANNER_HIDDEN_KEY) === "1";
+    } catch {
+      // storage blocked: the bar shows
+    }
+    const showBanner = BANNER_ON && bannerFor(plan) && !hidden;
+    const noChrome = plan.os === "android" && hasEscapeMark(window.location.search);
+    if (!ESCAPE_ON && !tapEscape && !showBanner && !noChrome) return;
     setInApp(true);
     let timer: ReturnType<typeof setTimeout> | null = null;
     const sheet = (t: Target, why: "manual" | "timeout") => {
@@ -217,8 +285,8 @@ export function InAppEscape() {
       setOpen({ plan, href: withHeld(t.href), typed: typedSignIn(homeSignIn(visitSearch())), cta: t.cta, retry: t.retry });
       sendJourney({ step: "inapp_escape_sheet", ...base(), cta: t.cta, why });
     };
-    const escape = (t: Target) => {
-      if (!plan.auto) return sheet(t, "manual");
+    const escape = (t: Target, how: EscapeHow | null = plan.auto) => {
+      if (!how) return sheet(t, "manual");
       // The page going to the background is the other browser opening: then no sheet.
       let left = false;
       const onHide = () => {
@@ -229,9 +297,9 @@ export function InAppEscape() {
       };
       document.addEventListener("visibilitychange", onHide);
       window.addEventListener("pagehide", onPageHide);
-      sendJourney({ step: "inapp_escape_tried", ...base(), cta: t.cta, how: plan.auto });
+      sendJourney({ step: "inapp_escape_tried", ...base(), cta: t.cta, how });
       try {
-        window.location.href = escapeUrl(plan.auto, withHeld(t.href));
+        window.location.href = escapeUrl(how, withHeld(t.href));
       } catch {
         // the app refused the address: the sheet below
       }
@@ -242,6 +310,26 @@ export function InAppEscape() {
         if (!left) sheet(t, "timeout");
       }, ESCAPE_WAIT_MS);
     };
+    actions.current = { escape, sheet };
+    if (showBanner) setBanner(plan);
+    // The Chrome intent fell back here (?esc=1: no Chrome on this phone): the default browser once, then the steps.
+    if (noChrome) {
+      const here: Target = { href: withoutEscapeMark(window.location.href), cta: "banner", retry: () => undefined };
+      let tried = false;
+      try {
+        tried = sessionStorage.getItem(DEFAULT_TRIED_KEY) === "1";
+        sessionStorage.setItem(DEFAULT_TRIED_KEY, "1");
+      } catch {
+        // storage blocked: try it
+      }
+      if (tried) sheet(here, "manual");
+      else escape(here, "browser");
+    }
+    if (!tapEscape) {
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }
     const onClick = (e: MouseEvent) => {
       if (stayed.current || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const t = targetOf(e.target);
@@ -272,6 +360,22 @@ export function InAppEscape() {
   }, []);
 
   const close = useCallback(() => setOpen(null), []);
+  // INAPP-BANNER: Android goes to Chrome (the escape, with its sheet if the page stays); iOS gets the steps at once.
+  const fromBanner = useCallback(() => {
+    const a = actions.current;
+    if (!a || !banner) return;
+    const t: Target = { href: withoutEscapeMark(window.location.href), cta: "banner", retry: () => undefined };
+    if (banner.os === "android" && banner.auto) a.escape(t, banner.auto);
+    else a.sheet(t, "manual");
+  }, [banner]);
+  const hideBanner = useCallback(() => {
+    try {
+      sessionStorage.setItem(BANNER_HIDDEN_KEY, "1");
+    } catch {
+      // storage blocked: hidden until the next page
+    }
+    setBanner(null);
+  }, []);
   const stay = useCallback(() => {
     stayed.current = true;
     const retry = open?.retry;
@@ -283,6 +387,7 @@ export function InAppEscape() {
   return (
     <>
       <link rel="stylesheet" href={escCss} precedence="default" />
+      {banner && <Banner plan={banner} onOpen={fromBanner} onHide={hideBanner} />}
       {open && <Sheet open={open} onClose={close} onStay={stay} />}
     </>
   );

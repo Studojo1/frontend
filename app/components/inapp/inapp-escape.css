@@ -61,3 +61,28 @@
   text-decoration: underline; text-decoration-color: rgba(82, 82, 82, .35); text-underline-offset: 4px;
 }
 .sj-esc-quiet a:hover, .sj-esc-quiet button:hover { color: var(--esc-ink); text-decoration-color: currentColor; }
+
+/* INAPP-BANNER (16 Nov 2026, the owner: "it shows a button that says you are on Instagram's browser, click this to go to
+   your device's Chrome"): the bar at the top of every page in an app's browser (InAppEscape.tsx Banner). Its own tokens,
+   the site's look (ink edge, hard shadow, the purple pill). The page and the site's sticky header move down by its
+   height (--sj-inbar-h, set from the bar itself); under the sheet (1000), over the header (40). */
+.sj-inbar {
+  --ib-ink: #171717; --ib-muted: #525252; --ib-edge: #191a23; --ib-lilac: #f3eefc;
+  --ib-cta-bg: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 58%, #7f4ff2 100%);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 45; box-sizing: border-box; display: flex; align-items: center; gap: 10px;
+  padding: calc(8px + env(safe-area-inset-top)) 8px 8px 14px; background: var(--ib-lilac); border-bottom: 1.5px solid var(--ib-edge);
+  font-family: Satoshi, system-ui, sans-serif; color: var(--ib-ink); -webkit-font-smoothing: antialiased;
+}
+.sj-inbar-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.sj-inbar-text b { font-size: 14.5px; font-weight: 700; line-height: 1.25; }
+.sj-inbar-text span { font-size: 12.5px; line-height: 1.3; color: var(--ib-muted); }
+.sj-inbar-go {
+  flex: none; height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--ib-edge); background: var(--ib-cta-bg); color: #fff;
+  font-family: inherit; font-size: 14.5px; font-weight: 600; white-space: nowrap; cursor: pointer; box-shadow: 2px 2px 0 var(--ib-edge);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.sj-inbar-go:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ib-edge); }
+.sj-inbar-x { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 999px; background: transparent; color: var(--ib-muted); cursor: pointer; }
+.sj-inbar-go:focus-visible, .sj-inbar-x:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 2px; }
+html.sj-inbar-on body { padding-top: var(--sj-inbar-h, 0px); }
+html.sj-inbar-on .sjb.sjb-hdr { top: var(--sj-inbar-h, 0px); }
