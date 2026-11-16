@@ -5,8 +5,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  ARRIVE_CARD, ARRIVE_KEY, bannerCopy, bannerFor, browserIntentUrl, CARRY_VISITOR_KEY, cardArrivalUrl, chromeIntentUrl, homepageStart, gateHow, igExtBrowserUrl, instagramGateOs, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
-  withoutCarriedVisitor, withoutEscapeMark,
+  ARRIVE_CARD, ARRIVE_KEY, bannerCopy, bannerFor, browserIntentUrl, CARRY_MAX_AGE_MS, CARRY_VISITOR_KEY, cardArrivalUrl, chromeIntentUrl, homepageStart, gateHow, igExtBrowserUrl, instagramGateOs, ESCAPE_KEY, escapeCopy, escapePlan, escapeUrl, hasEscapeMark, inAppOf, INAPP_APPS, iosMajor, osOf, safariUrl, typedSignIn,
+  withoutEscapeMark,
 } from "./inapp.ts";
 import { BEACON_STEPS, cleanBeacon } from "./journey.ts";
 import { homeSignIn, joinHref } from "../components/home-v3/agent.ts";
@@ -178,14 +178,17 @@ assert.equal(escapePlan(WA).sure, false);
   // IG-CARD: a homepage start lands on the homepage's sign-up card in the phone's browser, the visit's keys kept.
   assert.equal(cardArrivalUrl("https://studojo.pro/blog/x?utm_source=ig&fbclid=a1&esc=1#stu"), "https://studojo.pro/?utm_source=ig&fbclid=a1&stu=card");
   assert.equal(`${ARRIVE_KEY}=${ARRIVE_CARD}`, "stu=card");
-  // ESC-TRACK: the app browser's visitor id rides along as ?sv=; none, none (and an old one in the address is dropped).
+  // ESC-TRACK: the app browser's visitor id rides along as ?sv=<id>.<the tap's ms in base 36>; none, none (and an old
+  // one in the address is dropped).
   assert.equal(CARRY_VISITOR_KEY, "sv");
-  assert.equal(cardArrivalUrl("https://studojo.com/?utm_content=120254173597630472&fbclid=a1", "4f1c2b9e-6a7d-4e1f-9a3b-2c5d8e7f0a11"), "https://studojo.com/?utm_content=120254173597630472&fbclid=a1&stu=card&sv=4f1c2b9e-6a7d-4e1f-9a3b-2c5d8e7f0a11");
+  const TAP_MS = 1_794_841_357_296;
+  assert.equal(
+    cardArrivalUrl("https://studojo.com/?utm_content=120254173597630472&fbclid=a1", "4f1c2b9e-6a7d-4e1f-9a3b-2c5d8e7f0a11", TAP_MS),
+    `https://studojo.com/?utm_content=120254173597630472&fbclid=a1&stu=card&sv=4f1c2b9e-6a7d-4e1f-9a3b-2c5d8e7f0a11.${TAP_MS.toString(36)}`,
+  );
   assert.equal(cardArrivalUrl("https://studojo.com/?fbclid=a1&sv=someone-elses-id"), "https://studojo.com/?fbclid=a1&stu=card");
   assert.equal(cardArrivalUrl("https://studojo.com/?fbclid=a1", null), "https://studojo.com/?fbclid=a1&stu=card");
-  assert.equal(withoutCarriedVisitor("https://studojo.com/?fbclid=a1&stu=card&sv=4f1c2b9e-6a7d"), "https://studojo.com/?fbclid=a1&stu=card");
-  assert.equal(withoutCarriedVisitor("https://studojo.com/?fbclid=a1&stu=card"), "https://studojo.com/?fbclid=a1&stu=card", "untouched");
-  assert.equal(withoutCarriedVisitor("not a url"), "not a url");
+  assert.equal(CARRY_MAX_AGE_MS, 30 * 60 * 1000, "good for half an hour: a link copied later carries nobody");
   for (const c of ["start_hero", "start_bar", "start_footer", "signup_google", "signup_email"]) assert.equal(homepageStart(c), true, c);
   for (const c of ["join", "join_report-x"]) assert.equal(homepageStart(c), false, c);
   assert.equal(gateHow("ios", ""), "igext");
@@ -226,11 +229,10 @@ assert.equal(escapePlan(WA).sure, false);
   assert.match(esc, /const dest = \(t: Target\) => withHeld\(homepageStart\(t\.cta\) \? cardArrivalUrl\(window\.location\.href, heldVisitorId\(\)\) : t\.href\);/);
   // ESC-TRACK (16 Nov 2026): the visitor id read from stu_vid, only one journey.ts would accept.
   assert.match(esc, /const vid = parseCookies\(document\.cookie\)\.get\(VISITOR_COOKIE\);\s*return validVisitorId\(vid\) \? vid : null;/);
-  // The arrival sends no second Lead and drops ?sv= from the address bar, as soon as the join tracking is installed.
+  // The arrival sends no second Lead, from the moment the join tracking is installed.
   const jc = read("lib/journey-client.ts");
   assert.match(jc, /installed = true;\s*settleEscapeArrival\(\);/);
   assert.match(jc, /get\(ARRIVE_KEY\) === ARRIVE_CARD\) sessionStorage\.setItem\(LEAD_SENT, "1"\);/);
-  assert.match(jc, /window\.history\.replaceState\(window\.history\.state, "", clean\);/);
   assert.match(esc, /window\.location\.href = escapeUrl\(how, dest\(t\)\);/);
   const startSrc = read("components/home-v3/start.tsx");
   assert.match(startSrc, /new URLSearchParams\(search\)\.get\(ARRIVE_KEY\) === ARRIVE_CARD/);
