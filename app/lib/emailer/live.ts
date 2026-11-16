@@ -6,8 +6,15 @@ import { productOrigin, productOriginFrom } from "../product-origin";
 // deploy-web.yml per namespace), which the server and the browser read alike (product-origin.ts), so the header and
 // footer draw the same links on both. On production its pages answer 404 and nothing links to them.
 
-/** Whether the email writer shows for this product origin: everywhere but production's. Pure. */
+/**
+ * EMAILER-PROD (16 Nov 2026, the owner: "the email writer that we have can we make that available on .com now for users
+ * to access so we can promote it"): on production too. False hides it on production again (404, no links), as before.
+ */
+export const EMAILER_ON_PRODUCTION = true;
+
+/** Whether the email writer shows for this product origin: everywhere (EMAILER_ON_PRODUCTION), else all but production's. Pure. */
 export function emailerLiveFor(value: string | null | undefined): boolean {
+  if (EMAILER_ON_PRODUCTION) return true;
   const origin = productOriginFrom(value);
   if (!origin) return true;
   return new URL(origin).hostname !== "platform.studojo.com";

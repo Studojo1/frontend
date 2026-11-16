@@ -222,7 +222,7 @@ assert.equal((await import("../return-to.ts")).authUrl("signin", c.TOOL_PATH), "
 
 // EMAILER-STAGING-ONLY (12 Nov 2026, the owner: "only keep it on staging"): hidden on production only.
 const { emailerLiveFor } = await import("./live.ts");
-assert.equal(emailerLiveFor("https://platform.studojo.com"), false, "production: hidden");
+assert.equal(emailerLiveFor("https://platform.studojo.com"), true, "EMAILER-PROD (16 Nov 2026): production shows it too");
 assert.equal(emailerLiveFor("https://platform.studojo.pro"), true, "staging: shown");
 assert.equal(emailerLiveFor(""), true, "local runs: shown");
 assert.equal(emailerLiveFor(undefined), true);
