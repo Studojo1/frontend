@@ -42,7 +42,8 @@ const ESCAPE_ON = false;
  *     ?esc=1 and the phone's default browser is tried once; if the page is still here, the steps.
  *   - iOS: Meta's browser refuses every address that would open Safari (INAPP-IOS), so the button shows the steps
  *     (••• at the top right, Open in external browser) and Copy link.
- * Hidden for the visit with its ×. Its taps are the same journey rows as the escape's, with cta "banner".
+ * In the page's flow under the phone's cookie notice (COOKIE-TOP). Hidden for the visit with its ×. Its taps are the same
+ * journey rows as the escape's, with cta "banner".
  */
 const BANNER_ON = true;
 /** INAPP-BANNER: on Android a tap on a call start opens Chrome too (an intent); on iOS the tap goes on as INAPP-OFF left it. */
@@ -208,7 +209,7 @@ function Sheet({ open, onClose, onStay }: { open: Open; onClose: () => void; onS
 function Banner({ plan, onOpen, onHide }: { plan: EscapePlan; onOpen: () => void; onHide: () => void }) {
   const bar = useRef<HTMLDivElement>(null);
   const words = bannerCopy(plan);
-  // The page moves down by the bar's height (html.sj-inbar-on, --sj-inbar-h), the site's sticky header with it.
+  // The page starts below the bar (html.sj-inbar-on, --sj-inbar-h), and below the phone's cookie notice when it is open.
   useEffect(() => {
     const el = bar.current;
     if (!el) return;
