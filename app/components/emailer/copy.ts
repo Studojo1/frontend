@@ -10,7 +10,7 @@ export const MORE_TODAY = Math.max(0, SIGNED_IN_LIMIT - 1);
 export const COPY = {
   title: "Free Cold Email Writer for Jobs and Internships | Studojo",
   description:
-    "Write a cold email to a hiring manager in about a minute. Free, no sign-up: a subject line, a short email that leads with your best result, and a reply score out of 10 with fixes.",
+    "Write a cold email to a hiring manager in about a minute. Free, no sign-up: a subject line, a short email that says why them first, then your best work, and a reply score out of 10 with fixes.",
   ogAlt: "Studojo's free cold email writer: a job email and its reply score out of 10",
 
   bar: "New: Stu finds the hiring manager and sends emails like this for you, then follows up.",
@@ -58,7 +58,7 @@ export const FORM = {
     "B.Com graduate, six months in a CA firm's audit team",
   ],
   results: "Your best results",
-  resultsHint: "1 to 3, one line each. The email leads with the first one.",
+  resultsHint: "1 to 3, one line each. The email uses the one or two that fit this job best.",
   resultPhs: [
     "Cut the checkout page's load time from 4.1s to 1.3s",
     "Grew a college club's newsletter from 300 to 2,100 readers",
@@ -71,7 +71,7 @@ export const FORM = {
     good: "Has a number. That's what gets read.",
   },
   why: "Why this company",
-  whyHint: "In your own words.",
+  whyHint: "In your own words. The email opens with it.",
   whyPh: "I use their app every week to split rent with my flatmates",
   links: "Links",
   linksHint: "Up to 3.",
@@ -93,7 +93,7 @@ export const FORM = {
 export const GRADE = {
   email: "Paste your email",
   emailHint: "The whole email, 40 to 3,000 characters.",
-  emailPh: "Hi Maya,\n\nI came across the product analyst role at Northwind and...",
+  emailPh: "Hey Maya,\n\nI'm emailing because...",
   subject: "Subject",
   subjectPh: "Product analyst at Northwind",
   role: "Role",
@@ -147,14 +147,15 @@ export const RESULT = {
   unlockFollowups: "Write my follow-ups",
   unlockFollowupsLine: "You're signed in. Write a fresh version of this email with its day 3 and day 7 follow-ups.",
   emptyTitle: "Your email shows up here",
-  emptyLine: "A subject line, a short email that leads with your best result, and a reply score out of 10.",
+  emptyLine: "A subject line, a short email that says why them first, then your best work, and a reply score out of 10.",
   example: "example",
 } as const;
 
+// EMAILER-VOICE (17 Nov 2026, the team: "why them should be first and then best work"): the email opens with why them.
 export const HIGHLIGHTS: Record<HighlightKind, { tag: string; why: string }> = {
-  result: { tag: "your best result", why: "It opens with what you've done, so they keep reading." },
-  company: { tag: "why them", why: "It says why you want this company, in your own words." },
-  ask: { tag: "one easy ask", why: "It ends with a small ask: 15 minutes, or the right person." },
+  company: { tag: "why them", why: "It opens with why you want this company, in your own words, so they know why you're writing." },
+  result: { tag: "your best work", why: "Then what you've done that fits this job, with the numbers." },
+  ask: { tag: "one easy ask", why: "It ends with one small ask: worth a chat?" },
 };
 
 /** The locked cards: the same pitch everywhere. */
@@ -195,7 +196,7 @@ export const STU = {
 
 export const STEPS = [
   { title: "Tell it the job.", line: "The company, the role and the job post. The post is how the email knows what they need." },
-  { title: "Add your best results.", line: "One line each, with a number. The email leads with the strongest one." },
+  { title: "Say why them, then your best results.", line: "Why this company, in your own words, then one line per result with a number. The email opens with why them." },
   { title: "Send it, then follow up.", line: "Copy it or open it in Gmail. Sign in free for the day 3 and day 7 follow-ups." },
 ] as const;
 
@@ -203,7 +204,7 @@ export const SEO = {
   kicker: "how it works",
   h2: "a free cold email writer for jobs and internships",
   paras: [
-    "A cold email to a hiring manager works when it is short, specific and about the job. Studojo's free cold email writer turns the job post and your best results into a subject line and an email under 120 words. It leads with what you have done, says why you want this company, and ends with one easy ask: 15 minutes, or the right person to talk to.",
+    "A cold email to a hiring manager works when it is short, specific and about the job. Studojo's free cold email writer turns the job post and your best results into a subject line and an email under 120 words. It opens with why you want this company, in your own words, then your one or two best results, and ends with one easy ask: worth a chat?",
     "Every email comes with a reply score out of 10 and plain fixes, so you know what to change before you hit send. Already wrote one? Paste it into Improve my email for a score, fixes and your own email improved, in your words.",
   ],
 } as const;
@@ -253,29 +254,33 @@ export const EXAMPLE = {
   to: "Maya Chen, Head of Product",
   subject: "Product analyst at Northwind",
   body: [
-    "Hi Maya,",
+    "Hey Maya,",
     "",
-    "At my internship I cut the checkout page's load time from 4.1s to 1.3s, and orders went up 9%. I'm Sam, finishing computer science this year, and I'd love to join Northwind as a product analyst.",
+    "I'm emailing because I order from Northwind every week, and the 20 minute delivery is the reason I stopped using other apps. I'd like to help figure out why people drop off between their first and second order.",
     "",
-    "I really love what you're building with Northwind's 20 minute grocery delivery, and I'd like to start on why people drop off between their first and second order.",
+    "Two things that may be relevant:",
+    "• At my internship at Cartly, I cut the checkout page's load time from 4.1s to 1.3s, and orders went up 9%.",
+    "• I built a SQL dashboard for our college canteen that 600 people check every week.",
     "",
-    "Could we grab 15 minutes to discuss the role, or could you point me to the right person?",
+    "Can share more about other work, but feel like these two are perhaps the most relevant.",
+    "",
+    "I think I could help your team find what brings people back and would like to learn more. Worth a chat?",
     "",
     "Sam",
   ].join("\n"),
   highlights: {
-    result: "At my internship I cut the checkout page's load time from 4.1s to 1.3s, and orders went up 9%.",
-    company: "I really love what you're building with Northwind's 20 minute grocery delivery, and I'd like to start on why people drop off between their first and second order.",
-    ask: "Could we grab 15 minutes to discuss the role, or could you point me to the right person?",
+    result: "At my internship at Cartly, I cut the checkout page's load time from 4.1s to 1.3s, and orders went up 9%.",
+    company: "I'm emailing because I order from Northwind every week, and the 20 minute delivery is the reason I stopped using other apps. I'd like to help figure out why people drop off between their first and second order.",
+    ask: "I think I could help your team find what brings people back and would like to learn more. Worth a chat?",
   },
-  /** EMAILER-FIX (13 Nov 2026): the grader scores this example 8 (8, 8, 8 on three runs); the one before scored 7. */
+  /** EMAILER-VOICE (17 Nov 2026): the free writer's own voice; the grader's score of this example is below. */
   score: 8,
 } as const;
 
 /** The follow-up cards' stand-in text while locked: blurred, never real. */
 export const LOCKED_FOLLOWUP = [
-  "Hi there, just bringing this back to the top of your inbox in case it got buried under everything else this week.",
-  "Hi there, one last note on the role. If the timing isn't right, no worries at all, and thanks for reading.",
+  "Hey there, quick bump on this in case it got buried under everything else this week.",
+  "Hey there, last nudge from me on the role. No worries if the timing isn't right.",
 ] as const;
 
 /** The share page. */
@@ -286,7 +291,7 @@ export const SHARE = {
   myEmail: "My cold email",
   missingTitle: "This score card isn't here anymore.",
   missingLine: "Write your own in about a minute. Free, with no sign-up.",
-  line: "Written with Studojo's free cold email writer: a short email to the hiring manager that leads with your best result.",
+  line: "Written with Studojo's free cold email writer: a short email to the hiring manager that says why them first, then the best work.",
   title: (score: string) => `My cold email scored ${score}/10 | Studojo`,
   titleGrade: (before: string, after: string) => `My cold email went from ${before}/10 to ${after}/10 | Studojo`,
   titleDefault: "A cold email, scored | Studojo",

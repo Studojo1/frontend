@@ -252,7 +252,7 @@ export function validateWrite(f: WriteForm): FieldErrors {
   if (!f.role.trim()) e.role = "Add the role you want.";
   if (!f.name.trim()) e.name = "Add your name, for the sign-off.";
   if (!f.now.trim()) e.now = "Add one line about where you are now.";
-  if (filledResults(f.results).length === 0) e["results.0"] = "Add at least one result. It's what the email leads with.";
+  if (filledResults(f.results).length === 0) e["results.0"] = "Add at least one result. It's the best work the email shows.";
   f.results.forEach((r, i) => {
     if (r.trim().length > LIMITS.result) e[`results.${i}`] = `Keep it under ${LIMITS.result} characters.`;
   });
