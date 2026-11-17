@@ -798,6 +798,11 @@ const R: DataReportContent = {
   },
   "related": [
     {
+      "slug": "studojo-jobs-index-november-2026",
+      "kicker": "Index",
+      "title": "Studojo Jobs Index, November 2026"
+    },
+    {
       "slug": "fresher-salary-india-2026",
       "kicker": "Data",
       "title": "Fresher Salary in India 2026"
@@ -806,11 +811,6 @@ const R: DataReportContent = {
       "slug": "skills-in-demand-fresher-jobs-india-2026",
       "kicker": "Data",
       "title": "Skills in Demand for Freshers 2026"
-    },
-    {
-      "slug": "fresher-jobs-list-india-2026",
-      "kicker": "Data",
-      "title": "Fresher Jobs List India 2026"
     }
   ],
   "dataset": {
