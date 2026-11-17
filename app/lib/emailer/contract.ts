@@ -84,7 +84,10 @@ export interface GradeResponse {
   score: Score;
   /** null when locked (anonymous). */
   rewrite: { subject: string; body: string; score: number } | null;
-  /** Signed in with no rewrite: why, in plain words ("already scores 9", "add one result"). EMAILER-FIX, 13 Nov 2026. */
+  /**
+   * Signed in with no rewrite: why, in plain words ("already scores 9", "add one result"). EMAILER-FIX, 13 Nov 2026.
+   * FILL-IN (17 Nov 2026): with a rewrite, the note to fill in the line left for their result.
+   */
   rewriteNote?: string | null;
   locked: { rewrite: boolean };
   usage: Usage;

@@ -961,8 +961,8 @@ export function EmailerTool({ initialTab }: { initialTab: Tab }) {
                     <ScoreCard
                       score={gradeResult.score}
                       shareUrl={gradeResult.shareUrl}
-                      shareScore={gradeResult.rewrite ? gradeResult.rewrite.score : gradeResult.score.value}
-                      shareBefore={gradeResult.rewrite ? gradeResult.score.value : null}
+                      shareScore={gradeResult.rewrite && !gradeResult.rewriteNote ? gradeResult.rewrite.score : gradeResult.score.value}
+                      shareBefore={gradeResult.rewrite && !gradeResult.rewriteNote ? gradeResult.score.value : null}
                       where="grade"
                     />
                     {gradeResult.rewrite ? (
@@ -970,6 +970,11 @@ export function EmailerTool({ initialTab }: { initialTab: Tab }) {
                         <div className="em-rw-head">
                           <h3>{GRADE.rewrite}</h3>
                         </div>
+                        {/* FILL-IN (17 Nov 2026): a rewrite with a line left for their result comes with a note, shown in
+                            place of the before and after scores (a blank result line seldom scores higher). */}
+                        {gradeResult.rewriteNote ? (
+                          <p className="em-hint">{gradeResult.rewriteNote}</p>
+                        ) : (
                         <div className="em-ba" aria-label={`${GRADE.beforeAfter}: ${gradeResult.score.value} then ${gradeResult.rewrite.score} out of 10`}>
                           <div className="em-ba-col">
                             <ScoreBadge value={gradeResult.score.value} size="md" />
@@ -983,6 +988,7 @@ export function EmailerTool({ initialTab }: { initialTab: Tab }) {
                             <span className="em-ba-cap">{GRADE.after}</span>
                           </div>
                         </div>
+                        )}
                         <EmailHead to={RESULT.toDefault} subject={gradeResult.rewrite.subject} />
                         <div className="em-body">{gradeResult.rewrite.body}</div>
                         <div className="em-actions">
