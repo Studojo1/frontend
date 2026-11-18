@@ -228,6 +228,13 @@ const R: DataReportContent = {
             "3.2 lakh"
           ],
           [
+            "web-dev",
+            "917",
+            "56.3%",
+            "5.2%",
+            "too few"
+          ],
+          [
             "supply chain and logistics",
             "908",
             "5.7%",
@@ -829,7 +836,7 @@ const R: DataReportContent = {
   },
   "directory": {
     "title": "Reports built on this index",
-    "sub": "26 new reports on November data, and the October edition",
+    "sub": "51 new reports on November data, and the October edition",
     "groups": [
       {
         "heading": "New this edition: a role in a city",
@@ -937,6 +944,111 @@ const R: DataReportContent = {
           {
             "href": "/reports/accountant-jobs-in-bangalore-for-freshers-2026",
             "label": "Accountant Jobs in Bangalore for Freshers 2026"
+          },
+          {
+            "href": "/reports/customer-service-jobs-in-delhi-for-freshers-2026",
+            "label": "Customer Service Jobs in Delhi 2026"
+          },
+          {
+            "href": "/reports/customer-service-jobs-in-noida-for-freshers-2026",
+            "label": "Customer Service Jobs in Noida 2026"
+          },
+          {
+            "href": "/reports/business-development-jobs-in-noida-for-freshers-2026",
+            "label": "Business Development Jobs in Noida 2026"
+          },
+          {
+            "href": "/reports/business-development-jobs-in-chennai-for-freshers-2026",
+            "label": "Business Development Jobs in Chennai 2026"
+          },
+          {
+            "href": "/reports/business-development-jobs-in-pune-for-freshers-2026",
+            "label": "Business Development Jobs in Pune 2026"
+          },
+          {
+            "href": "/reports/hr-jobs-in-gurgaon-for-freshers-2026",
+            "label": "HR Jobs in Gurgaon for Freshers 2026"
+          },
+          {
+            "href": "/reports/hr-jobs-in-pune-for-freshers-2026",
+            "label": "HR Jobs in Pune for Freshers 2026"
+          },
+          {
+            "href": "/reports/field-sales-jobs-in-noida-for-freshers-2026",
+            "label": "Field Sales Jobs in Noida for Freshers 2026"
+          },
+          {
+            "href": "/reports/field-sales-jobs-in-gurgaon-for-freshers-2026",
+            "label": "Field Sales Jobs in Gurgaon for Freshers 2026"
+          },
+          {
+            "href": "/reports/telecaller-jobs-in-noida-for-freshers-2026",
+            "label": "Telecaller Jobs in Noida for Freshers 2026"
+          },
+          {
+            "href": "/reports/marketing-executive-jobs-in-delhi-for-freshers-2026",
+            "label": "Marketing Jobs in Delhi for Freshers 2026"
+          },
+          {
+            "href": "/reports/relationship-manager-jobs-in-mumbai-for-freshers-2026",
+            "label": "Relationship Manager Jobs in Mumbai 2026"
+          },
+          {
+            "href": "/reports/process-associate-jobs-in-gurgaon-for-freshers-2026",
+            "label": "Process Associate Jobs in Gurgaon 2026"
+          },
+          {
+            "href": "/reports/process-associate-jobs-in-mumbai-for-freshers-2026",
+            "label": "Process Associate Jobs in Mumbai 2026"
+          },
+          {
+            "href": "/reports/accountant-jobs-in-delhi-for-freshers-2026",
+            "label": "Accountant Jobs in Delhi for Freshers 2026"
+          }
+        ]
+      },
+      {
+        "heading": "New this edition: internships by role",
+        "links": [
+          {
+            "href": "/reports/marketing-internship-india-2026",
+            "label": "Marketing Internship in India 2026"
+          },
+          {
+            "href": "/reports/hr-internship-india-2026",
+            "label": "HR Internship in India 2026"
+          },
+          {
+            "href": "/reports/business-development-internship-india-2026",
+            "label": "Business Development Internship 2026"
+          },
+          {
+            "href": "/reports/social-media-marketing-internship-india-2026",
+            "label": "Social Media Marketing Internship 2026"
+          },
+          {
+            "href": "/reports/digital-marketing-internship-india-2026",
+            "label": "Digital Marketing Internship 2026"
+          },
+          {
+            "href": "/reports/web-development-internship-india-2026",
+            "label": "Web Development Internship India 2026"
+          },
+          {
+            "href": "/reports/video-editing-internship-india-2026",
+            "label": "Video Editing Internship India 2026"
+          },
+          {
+            "href": "/reports/content-writing-internship-india-2026",
+            "label": "Content Writing Internship India 2026"
+          },
+          {
+            "href": "/reports/graphic-design-internship-india-2026",
+            "label": "Graphic Design Internship India 2026"
+          },
+          {
+            "href": "/reports/operations-internship-india-2026",
+            "label": "Operations Internship India 2026"
           }
         ]
       },

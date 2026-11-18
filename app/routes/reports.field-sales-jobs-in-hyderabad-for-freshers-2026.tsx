@@ -18,7 +18,7 @@ const R: DataReportContent = {
     "**Field sales jobs in Hyderabad for freshers** number 259 listings posted in the first half of November, from 174 employers, with 255 jobs and 4 internships.",
     "**Field Sales Executive is the top title** with 59 listings (22.8%), ahead of plain Sales Executive at 40, so the word field is common in titles.",
     "**A vehicle matters here**: 16.7% of described listings name a two-wheeler or driving licence, against 9.9% in Bengaluru.",
-    "**The median top of range is ₹4 lakh a year** across the 121 listings that state pay (47.5%), and 70 of them (57.9%) fall in the ₹3 to 5 lakh band.",
+    "**The median top of range is ₹4 lakh a year** across the 121 listings that state pay (47.5%), and 70 of them (57.9%) fall in the ₹3 to ₹5 lakh band.",
     "**The move that works** is to email the area sales manager or the territory manager with a short route for one part of the city. Stu finds that person and writes the note."
   ],
   "stats": [
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "121 of the 259 listings state pay in rupees (47.5%), against 36.2% across the whole index. The median top of range is ₹4 lakh a year. The lower quarter is ₹3 lakh and the upper quarter ₹5 lakh. The whole-index median is ₹3.8 lakh, so Hyderabad sits slightly above it.",
-        "The ₹3 to 5 lakh band holds 70 listings (57.9%). ₹5 to 8 lakh has 27 (22.3%), ₹2 to 3 lakh has 14 (11.6%) and ₹8 to 12 lakh has 5 (4.1%). Four sit under ₹2 lakh and one reaches the ₹12 to 20 lakh band.",
+        "The ₹3 to ₹5 lakh band holds 70 listings (57.9%). ₹5 to ₹8 lakh has 27 (22.3%), ₹2 to ₹3 lakh has 14 (11.6%) and ₹8 to ₹12 lakh has 5 (4.1%). Four sit under ₹2 lakh and one reaches the ₹12 to ₹20 lakh band.",
         "These are tops of ranges, and 23.3% of described listings mention incentives. Ask for the fixed monthly amount and when incentives are paid. No internship here states a stipend in rupees."
       ],
       "chart": {
@@ -239,7 +239,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the field sales salary in Hyderabad for freshers?",
-      "a": "Across the 121 listings that state pay, the median top of range is ₹4 lakh a year, and the middle half runs from ₹3 to 5 lakh. Ask how much is fixed, since 23.3% of descriptions mention incentives."
+      "a": "Across the 121 listings that state pay, the median top of range is ₹4 lakh a year, and the middle half runs from ₹3 to ₹5 lakh. Ask how much is fixed, since 23.3% of descriptions mention incentives."
     },
     {
       "q": "Is there a field sales internship in Hyderabad?",

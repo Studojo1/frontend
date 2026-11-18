@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay only, top of range.",
       "paras": [
         "Only 31 of the 101 jobs state pay in rupees (30.7%). The median top of range is ₹3.7 lakh a year, with the middle half between ₹2.9 lakh and ₹4.8 lakh. The whole index median is ₹3.8 lakh, so Mumbai marketing sits right beside it.",
-        "Sixteen listings are in the ₹3 to 5 lakh band (51.6%), 8 in ₹2 to 3 lakh and 7 in ₹5 to 8 lakh. None state under ₹2 lakh and none reach ₹8 lakh. The band is tight, and there is no big-ticket outlier in the stated pay.",
+        "Sixteen listings are in the ₹3 to ₹5 lakh band (51.6%), 8 in ₹2 to ₹3 lakh and 7 in ₹5 to ₹8 lakh. None state under ₹2 lakh and none reach ₹8 lakh. The band is tight, and there is no big-ticket outlier in the stated pay.",
         "Internship pay is nearly invisible. Just 3 of 135 state a stipend (2.2%): 2 in the 5,000 to 10,000 band and 1 in the 10,000 to 20,000 band, with a median of ₹8,000 a month. The whole index median is ₹12,500."
       ],
       "chart": {

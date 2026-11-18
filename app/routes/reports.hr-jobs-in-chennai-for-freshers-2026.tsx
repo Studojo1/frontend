@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**HR jobs in Chennai for freshers** total 204 listings: 170 jobs and 34 internships (16.7%).",
     "**The titles are varied**: Us It Recruiter and Hr Assistant lead with 8 each, then Talent Acquisition Executive, Human Resource Intern and Hr Executive with 7 each.",
-    "**Pay is stated on 71 jobs** (41.8%), with a median top of range of ₹3 lakh a year. 52.1% of those sit in the ₹3 to 5 lakh band, and 8.5% are under ₹2 lakh.",
+    "**Pay is stated on 71 jobs** (41.8%), with a median top of range of ₹3 lakh a year. 52.1% of those sit in the ₹3 to ₹5 lakh band, and 8.5% are under ₹2 lakh.",
     "**Terms are mild**: targets appear in 12.8% of described listings, incentives in 5.6% and night, rotational, US or UK shifts in 3.1%. PF, ESI or health insurance is named in 10.7%.",
     "**The move that works** is to email the HR manager or recruitment lead with a short onboarding checklist. Stu finds that person and sends from your own inbox once you start a campaign."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, on 71 jobs.",
       "paras": [
         "The median top of range for a Chennai HR job is ₹3 lakh a year across 71 jobs that state pay. The lower quarter is ₹2.2 lakh and the upper quarter ₹3.5 lakh. The spread is tight, so the numbers cluster.",
-        "The ₹3 to 5 lakh band has 37 listings (52.1%). 23 (32.4%) sit at ₹2 to 3 lakh and 6 (8.5%) are under ₹2 lakh. Only 5 reach ₹5 to 8 lakh (7.0%), and none state more than that. If you want the upper tail, Chennai gives you fewer examples.",
+        "The ₹3 to ₹5 lakh band has 37 listings (52.1%). 23 (32.4%) sit at ₹2 to ₹3 lakh and 6 (8.5%) are under ₹2 lakh. Only 5 reach ₹5 to ₹8 lakh (7.0%), and none state more than that. If you want the upper tail, Chennai gives you fewer examples.",
         "Internship pay is stated on 3 of 34 listings (8.8%), and all three fall in the 10,000 to 20,000 a month band, with a median top of range of ₹12,500. That is useful as a floor to ask for, but it is only three listings. Treat it as a hint, not a rate."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** the middle half of stated HR pay in Chennai runs from ₹2.2 to 3.5 lakh a year."
+      "callout": "**Lead:** the middle half of stated HR pay in Chennai runs from ₹2.2 to ₹3.5 lakh a year."
     },
     {
       "title": "Which skills do HR listings in Chennai ask for?",
@@ -241,7 +241,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the HR salary in Chennai for freshers?",
-      "a": "Of the 71 jobs that state pay, the median top of range is ₹3 lakh a year, and the middle half runs from ₹2.2 to 3.5 lakh. 58.2% of jobs do not state pay."
+      "a": "Of the 71 jobs that state pay, the median top of range is ₹3 lakh a year, and the middle half runs from ₹2.2 to ₹3.5 lakh. 58.2% of jobs do not state pay."
     },
     {
       "q": "Is there an HR internship in Chennai?",

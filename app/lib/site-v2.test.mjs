@@ -167,7 +167,8 @@ const PINNED = {
   // SEO-BULK (11 Nov): 101 REPORTS entries for the Studojo Jobs Index data reports (their routes and sitemap entries too), nothing else changed
   // SEO-NOV (17 Nov): 27 REPORTS entries for the November 2026 Jobs Index and its role-in-city reports (their routes and sitemap entries too), nothing else changed
   // SEO day 23 (18 Nov): one REPORTS entry for internships-indore-2026 (its route and sitemap entry too), nothing else changed
-  "routes/reports.tsx": "a5516d95841d89a8", // re-pinned 18 Nov for internships-indore-2026 (REPORTS entry only)
+  // SEO-NOV2 (18 Nov): 25 more REPORTS entries (10 internships by role, 15 role-in-city) for the November 2026 Jobs Index (their routes and sitemap entries too), nothing else changed
+  "routes/reports.tsx": "82994725fa71c0b9", // re-pinned 18 Nov for the 25 SEO-NOV2 data reports (REPORTS entries only)
   // 11 Nov: re-pinned to the actual hash; terms.tsx was changed on relaunch/site by c9c1fc95 ("Terms: section 5 says
   // how Stu's sending differs") without updating this pin, which left the Tests check red for every PR. Content unchanged.
   "routes/terms.tsx": "7d0e2c9f1c7f16ae",

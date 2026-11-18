@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Very few listings state it, so be careful.",
       "paras": [
         "Honest answer: the data is thin. Only 9 of the 105 jobs state pay in rupees (8.6%), and none of the 22 internships state a stipend. Nine listings cannot stand in for a whole city, so do not anchor your expectations on this number.",
-        "For what it is worth, the median top of range among those 9 is ₹8 lakh a year, with a lower quarter of ₹5 lakh. Four of the 9 are in the ₹8 to 12 lakh band, 2 in ₹5 to 8 lakh, and 1 each in ₹2 to 3 lakh, ₹3 to 5 lakh and ₹12 to 20 lakh.",
+        "For what it is worth, the median top of range among those 9 is ₹8 lakh a year, with a lower quarter of ₹5 lakh. Four of the 9 are in the ₹8 to ₹12 lakh band, 2 in ₹5 to ₹8 lakh, and 1 each in ₹2 to ₹3 lakh, ₹3 to ₹5 lakh and ₹12 to ₹20 lakh.",
         "Listings that state pay tend to be the ones that expect to pay well, so these figures probably lean high. The better move is to ask in the first call what the fresher band is, and compare offers on in-hand pay, not the top of a range. There is no pay chart for this report because a chart of 9 bars would mislead."
       ],
       "callout": "**Lead:** only 9 of 105 software developer jobs in Bangalore state pay, so there is no reliable salary number here."

@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Of the 180 jobs, 90 state pay in rupees, which is exactly half. The median top of range is ₹4.6 lakh a year, with the middle half between ₹4 lakh and ₹5.5 lakh. That sits above the whole index median of ₹3.8 lakh.",
-        "The pay is split between two bands. The ₹5 to 8 lakh band has 43 listings (47.8%) and the ₹3 to 5 lakh band 38 (42.2%). Eight sit in ₹2 to 3 lakh and one reaches ₹8 to 12 lakh. None are under ₹2 lakh.",
+        "The pay is split between two bands. The ₹5 to ₹8 lakh band has 43 listings (47.8%) and the ₹3 to ₹5 lakh band 38 (42.2%). Eight sit in ₹2 to ₹3 lakh and one reaches ₹8 to ₹12 lakh. None are under ₹2 lakh.",
         "Internships are too few to read. Of 11, only 1 states a stipend: ₹8,000 a month. Remember these are the tops of ranges, and shift allowances or incentives may or may not be inside the figure. Ask what the in-hand number is."
       ],
       "chart": {

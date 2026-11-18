@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Of the 376 listings, 187 state a salary in rupees (50.7%). That is well above the whole index, where 36.2% do. The median top of range is ₹3.6 lakh a year, with the lower quarter at ₹3 lakh and the upper quarter at ₹5 lakh. For comparison, the whole-index median is ₹3.8 lakh.",
-        "The ₹3 to 5 lakh band holds 110 listings (58.8%). Then ₹5 to 8 lakh has 39 (20.9%), ₹2 to 3 lakh has 23 (12.3%) and ₹8 to 12 lakh has 9 (4.8%). Only 4 sit under ₹2 lakh, and 2 reach ₹20 lakh or more, which are almost certainly senior roles with a loose title.",
+        "The ₹3 to ₹5 lakh band holds 110 listings (58.8%). Then ₹5 to ₹8 lakh has 39 (20.9%), ₹2 to ₹3 lakh has 23 (12.3%) and ₹8 to ₹12 lakh has 9 (4.8%). Only 4 sit under ₹2 lakh, and 2 reach ₹20 lakh or more, which are almost certainly senior roles with a loose title.",
         "Read these as the ceiling of each range, not what lands in your account. Field sales pay is often a base plus incentive. No internship here states a stipend in rupees, so ask about it before you accept a trial week."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** 58.8% of stated salaries sit in the ₹3 to 5 lakh band, and 187 listings state pay at all."
+      "callout": "**Lead:** 58.8% of stated salaries sit in the ₹3 to ₹5 lakh band, and 187 listings state pay at all."
     },
     {
       "title": "Which skills do Bangalore field sales listings ask for?",
@@ -245,7 +245,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the field sales salary in Bangalore for freshers?",
-      "a": "Among the 187 listings that state pay, the median top of range is ₹3.6 lakh a year, and the middle half runs from ₹3 to 5 lakh. Many roles add incentives on top, so ask what part is fixed."
+      "a": "Among the 187 listings that state pay, the median top of range is ₹3.6 lakh a year, and the middle half runs from ₹3 to ₹5 lakh. Many roles add incentives on top, so ask what part is fixed."
     },
     {
       "q": "Is there a field sales internship in Bangalore?",
@@ -272,7 +272,7 @@ const R: DataReportContent = {
         "Sales Executive has 79 listings, more than double Field Sales Executive at 36."
       ],
       [
-        "Expect ₹3 to 5 lakh at the top of range",
+        "Expect ₹3 to ₹5 lakh at the top of range",
         "58.8% of stated salaries fall in that band, and half the listings state pay."
       ],
       [

@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**Telecaller jobs in Delhi for freshers** come to 204 listings posted in the first half of November, from 181 employers, and 200 are jobs.",
     "**Telesales Executive leads with 47 listings** (23.0%), ahead of Telecaller at 31 and Telecalling Executive at 15, so the sales version of the job is the biggest group.",
-    "**Pay is stated on 131 listings** (65.5%), with a median top of range of ₹3.1 lakh a year, and 41 of them (31.3%) sit in the ₹2 to 3 lakh band.",
+    "**Pay is stated on 131 listings** (65.5%), with a median top of range of ₹3.1 lakh a year, and 41 of them (31.3%) sit in the ₹2 to ₹3 lakh band.",
     "**Language carries weight**: English is named in 48.0% of described listings and Hindi in 38.6%, while 54.0% mention targets and 29.7% incentives.",
     "**The move that works** is to email the team leader or the process manager with a recorded one-minute pitch. Stu finds that person and writes the email."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Top of the stated range, per year.",
       "paras": [
         "131 of the 204 listings state pay in rupees (65.5%), against 36.2% across the index. The median top of range is ₹3.1 lakh a year, with a lower quarter of ₹2.6 lakh and an upper quarter of ₹4 lakh. That is below the whole-index median of ₹3.8 lakh.",
-        "The ₹3 to 5 lakh band still holds the most, with 68 listings (51.9%). But ₹2 to 3 lakh has 41 (31.3%), and under ₹2 lakh has 9 (6.9%). ₹5 to 8 lakh has 7 and ₹8 to 12 lakh has 5. A calling seat here usually sits near the bottom of the range.",
+        "The ₹3 to ₹5 lakh band still holds the most, with 68 listings (51.9%). But ₹2 to ₹3 lakh has 41 (31.3%), and under ₹2 lakh has 9 (6.9%). ₹5 to ₹8 lakh has 7 and ₹8 to ₹12 lakh has 5. A calling seat here usually sits near the bottom of the range.",
         "Incentives are named in 29.7% of described listings, so ask what is fixed and what depends on closes. No internship in this slice states a stipend in rupees."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** the median top of range is ₹3.1 lakh a year, and 31.3% of stated pay is ₹2 to 3 lakh."
+      "callout": "**Lead:** the median top of range is ₹3.1 lakh a year, and 31.3% of stated pay is ₹2 to ₹3 lakh."
     },
     {
       "title": "Do you need English and Hindi to be a telecaller in Delhi?",
@@ -235,7 +235,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the telecaller salary in Delhi for freshers?",
-      "a": "Of the 131 listings that state pay, the median top of range is ₹3.1 lakh a year, and the middle half is ₹2.6 to 4 lakh. Ask for the fixed amount, since 29.7% mention incentives."
+      "a": "Of the 131 listings that state pay, the median top of range is ₹3.1 lakh a year, and the middle half is ₹2.6 to ₹4 lakh. Ask for the fixed amount, since 29.7% mention incentives."
     },
     {
       "q": "Are there telecaller internships in Delhi?",

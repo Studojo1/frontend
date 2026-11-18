@@ -102,7 +102,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Among the 100 Bangalore jobs that state pay in rupees, the median top of range is ₹4.7 lakh a year. The middle half runs from ₹3.8 lakh to ₹5.5 lakh. That is a sturdier sample than most role reports, since 42.9% of these jobs state pay.",
-        "The bands split in two: 43 listings (43.0%) at ₹3 to 5 lakh and 42 (42.0%) at ₹5 to 8 lakh. Another 5 sit at ₹8 to 12 lakh, 2 at ₹12 to 20 lakh and 7 at ₹2 to 3 lakh. One is under ₹2 lakh.",
+        "The bands split in two: 43 listings (43.0%) at ₹3 to ₹5 lakh and 42 (42.0%) at ₹5 to ₹8 lakh. Another 5 sit at ₹8 to ₹12 lakh, 2 at ₹12 to ₹20 lakh and 7 at ₹2 to ₹3 lakh. One is under ₹2 lakh.",
         "Remember it is the top of the stated range, not take-home. In lending and sales roles part of the pay is often incentive, and 15.3% of described listings mention incentives. Ask for fixed pay, the target and how the incentive is calculated."
       ],
       "chart": {
@@ -223,7 +223,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the relationship manager salary in Bangalore for freshers?",
-      "a": "Among the 100 jobs that state pay, the median top of range is ₹4.7 lakh a year, with the middle half from ₹3.8 to 5.5 lakh. Incentives are common, so ask what is fixed."
+      "a": "Among the 100 jobs that state pay, the median top of range is ₹4.7 lakh a year, with the middle half from ₹3.8 to ₹5.5 lakh. Incentives are common, so ask what is fixed."
     },
     {
       "q": "Is there a relationship manager internship in Bangalore?",

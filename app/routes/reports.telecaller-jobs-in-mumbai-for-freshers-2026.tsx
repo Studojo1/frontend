@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Top of the stated range, per year.",
       "paras": [
         "137 of the 217 listings state pay in rupees (67.8%), a much higher share than the 36.2% across the index. The median top of range is ₹3.5 lakh a year, with the lower quarter at ₹2.8 lakh and the upper quarter at ₹3.8 lakh. The whole-index median is ₹3.8 lakh.",
-        "The ₹3 to 5 lakh band holds 88 listings (64.2%). ₹2 to 3 lakh has 24 (17.5%), under ₹2 lakh has 13 (9.5%) and ₹5 to 8 lakh has 10 (7.3%). Only 2 listings go above ₹8 lakh. A telecaller seat sits in a narrow band, with little at the top.",
+        "The ₹3 to ₹5 lakh band holds 88 listings (64.2%). ₹2 to ₹3 lakh has 24 (17.5%), under ₹2 lakh has 13 (9.5%) and ₹5 to ₹8 lakh has 10 (7.3%). Only 2 listings go above ₹8 lakh. A telecaller seat sits in a narrow band, with little at the top.",
         "Incentives are named in 31.2% of described listings, so part of what you earn may depend on closes. No internship in this slice states a stipend in rupees, and 1 listing says unpaid. Ask about the stipend first."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** 67.8% of listings state pay, and 64.2% of those sit in the ₹3 to 5 lakh band."
+      "callout": "**Lead:** 67.8% of listings state pay, and 64.2% of those sit in the ₹3 to ₹5 lakh band."
     },
     {
       "title": "Which languages and skills do Mumbai telecaller listings want?",
@@ -241,7 +241,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the telecaller salary in Mumbai for freshers?",
-      "a": "Of the 137 listings that state pay, the median top of range is ₹3.5 lakh a year, and the middle half runs from ₹2.8 to 3.8 lakh. Incentives are named in 31.2% of descriptions, so ask for the fixed part."
+      "a": "Of the 137 listings that state pay, the median top of range is ₹3.5 lakh a year, and the middle half runs from ₹2.8 to ₹3.8 lakh. Incentives are named in 31.2% of descriptions, so ask for the fixed part."
     },
     {
       "q": "Is there a telecaller internship in Mumbai?",
@@ -268,7 +268,7 @@ const R: DataReportContent = {
         "Telesales Executive has 31 listings, Telecaller 30 and Telecalling Executive 12."
       ],
       [
-        "Expect ₹3 to 5 lakh at the top",
+        "Expect ₹3 to ₹5 lakh at the top",
         "64.2% of stated salaries sit there, and 67.8% of listings state pay."
       ],
       [

@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**Business development jobs in Delhi for freshers** come to 272 listings in the Studojo Jobs Index: 203 jobs and 69 internships, a 25.4% internship share against 13.7% across the index.",
     "**Negotiation matters more here**: 41.0% of described listings mention it, against 8.2% across the whole index, and 85.8% mention communication skills.",
-    "**Only 41 jobs state pay** (20.2%), with a median top of range of ₹4.8 lakh a year, and 5 listings reach ₹8 to 12 lakh.",
+    "**Only 41 jobs state pay** (20.2%), with a median top of range of ₹4.8 lakh a year, and 5 listings reach ₹8 to ₹12 lakh.",
     "**Not one Delhi internship states a stipend** in these listings, so the amount is something you must ask for.",
     "**The move that works** is to email the sales head, or the founder at a small firm, with a prospect list. Stu finds who hires and sends from your own inbox."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "The median top of range among the 41 Delhi jobs that state pay is ₹4.8 lakh a year. The lower quarter is ₹3.6 lakh and the upper quarter ₹6 lakh. That is above the whole-index median of ₹3.8 lakh, though only for the fifth of listings that show pay at all.",
-        "The bands: 18 listings (43.9%) at ₹3 to 5 lakh, 14 (34.1%) at ₹5 to 8 lakh, 5 (12.2%) at ₹8 to 12 lakh and 4 (9.8%) at ₹2 to 3 lakh. None is under ₹2 lakh or above ₹12 lakh. Top of range is not base pay, so expect a variable part.",
+        "The bands: 18 listings (43.9%) at ₹3 to ₹5 lakh, 14 (34.1%) at ₹5 to ₹8 lakh, 5 (12.2%) at ₹8 to ₹12 lakh and 4 (9.8%) at ₹2 to ₹3 lakh. None is under ₹2 lakh or above ₹12 lakh. Top of range is not base pay, so expect a variable part.",
         "Internships are the blind spot. Of 69 internship listings, none states a stipend in rupees. If you are weighing an internship against a job, ask about the stipend and any pre-placement route on the first call, and ask early."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** 5 Delhi listings reach ₹8 to 12 lakh, but 80% of jobs state no pay."
+      "callout": "**Lead:** 5 Delhi listings reach ₹8 to ₹12 lakh, but 80% of jobs state no pay."
     },
     {
       "title": "Which skills do Delhi business development listings ask for?",
@@ -247,7 +247,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the business development salary in Delhi for freshers?",
-      "a": "Among the 41 jobs that state pay, the median top of range is ₹4.8 lakh a year, with the middle half from ₹3.6 to 6 lakh. Incentives are common, so ask what part is fixed."
+      "a": "Among the 41 jobs that state pay, the median top of range is ₹4.8 lakh a year, with the middle half from ₹3.6 to ₹6 lakh. Incentives are common, so ask what part is fixed."
     },
     {
       "q": "Is there a business development internship in Delhi?",

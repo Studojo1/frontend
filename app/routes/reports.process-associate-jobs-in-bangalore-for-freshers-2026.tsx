@@ -102,7 +102,7 @@ const R: DataReportContent = {
       "sub": "Top of the stated range, per year.",
       "paras": [
         "Only 59 of the 315 jobs state pay in rupees (18.7%), so treat the figures as a partial view. The median top of range is ₹4.2 lakh a year, with the middle half running from ₹3.2 lakh to ₹6 lakh. The whole index median is ₹3.8 lakh.",
-        "Two bands share the pile. The ₹3 to 5 lakh band has 26 listings (44.1%) and the ₹5 to 8 lakh band has 26 more. Six are in ₹2 to 3 lakh and one reaches ₹8 to 12 lakh. None sit under ₹2 lakh.",
+        "Two bands share the pile. The ₹3 to ₹5 lakh band has 26 listings (44.1%) and the ₹5 to ₹8 lakh band has 26 more. Six are in ₹2 to ₹3 lakh and one reaches ₹8 to ₹12 lakh. None sit under ₹2 lakh.",
         "The one internship does not state a stipend, and the index has no stipend figure for this role. That is not a sign the work is unpaid. It means the listing is silent, so ask the team lead what a fresher gets, in hand, after deductions."
       ],
       "chart": {
@@ -129,7 +129,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** only 59 of 315 process associate jobs state pay, and 26 of those top out at ₹5 to 8 lakh."
+      "callout": "**Lead:** only 59 of 315 process associate jobs state pay, and 26 of those top out at ₹5 to ₹8 lakh."
     },
     {
       "title": "Which skills do process associate listings ask for?",

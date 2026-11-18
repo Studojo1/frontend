@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, on 106 jobs.",
       "paras": [
         "The median top of range for a Delhi HR job is ₹3.2 lakh a year, across the 106 jobs that state pay in rupees. The lower quarter is ₹2.5 lakh and the upper quarter ₹5 lakh. 48.6% of jobs state pay, so about half still leave you guessing.",
-        "The biggest band is ₹3 to 5 lakh with 48 listings (45.3%). Then ₹2 to 3 lakh has 25 (23.6%) and ₹5 to 8 lakh has 23 (21.7%). Under ₹2 lakh there are 4, ₹8 to 12 lakh has 4, and 2 listings reach ₹20 lakh or more.",
+        "The biggest band is ₹3 to ₹5 lakh with 48 listings (45.3%). Then ₹2 to ₹3 lakh has 25 (23.6%) and ₹5 to ₹8 lakh has 23 (21.7%). Under ₹2 lakh there are 4, ₹8 to ₹12 lakh has 4, and 2 listings reach ₹20 lakh or more.",
         "Internship pay is thin. 8 of 86 internships state a stipend (9.3%), with a median top of range of ₹11,000 a month. Another signal: 2.4% of described listings say unpaid. Ask the stipend question early, before you spend a week on a task."
       ],
       "chart": {

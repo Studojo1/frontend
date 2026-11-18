@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**HR jobs in Noida for freshers** come to 294 listings: 213 jobs and 81 internships (27.6%), with Human Resources (Hr) Internship the top single title at 17.",
     "**Tech recruiting sits beside classic HR**: Us It Recruiter has 10 listings, Technical Recruiter 8 and It Recruiter 6, next to Hr Executive at 10.",
-    "**Pay is stated on 94 jobs** (44.1%). The median top of range is ₹3.9 lakh a year, and 53 of them (56.4%) fall in the ₹3 to 5 lakh band.",
+    "**Pay is stated on 94 jobs** (44.1%). The median top of range is ₹3.9 lakh a year, and 53 of them (56.4%) fall in the ₹3 to ₹5 lakh band.",
     "**Terms are lighter than you might expect**: targets appear in 16.8% of described listings, shifts in 13.6% and incentives in 11.9%.",
     "**The move that works** is to email the HR head or a talent acquisition lead with a short hiring tracker. Stu finds the person and sends from your own inbox after you start a campaign."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Top of the stated range, per year, on 94 jobs.",
       "paras": [
         "For the 94 Noida HR jobs that state pay in rupees, the median top of range is ₹3.9 lakh a year. The lower quarter is ₹3 lakh and the upper quarter ₹5 lakh. Stated pay appears on 44.1% of jobs, so 55.9% leave you to ask.",
-        "The ₹3 to 5 lakh band dominates with 53 listings (56.4%). 24 listings (25.5%) reach ₹5 to 8 lakh and 11 (11.7%) sit at ₹2 to 3 lakh. 3 are under ₹2 lakh, 2 reach ₹8 to 12 lakh and 1 reaches ₹12 to 20 lakh.",
+        "The ₹3 to ₹5 lakh band dominates with 53 listings (56.4%). 24 listings (25.5%) reach ₹5 to ₹8 lakh and 11 (11.7%) sit at ₹2 to ₹3 lakh. 3 are under ₹2 lakh, 2 reach ₹8 to ₹12 lakh and 1 reaches ₹12 to ₹20 lakh.",
         "Only 5 of the 81 internships state a stipend (6.2%), with a median top of range of ₹10,000 a month. Stipends in the sample run from the 5,000 to 10,000 band up to 20,000 to 40,000, which is a wide spread on five listings. Ask what the number is before you accept."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** 56.4% of Noida HR jobs that state pay sit in the ₹3 to 5 lakh a year band."
+      "callout": "**Lead:** 56.4% of Noida HR jobs that state pay sit in the ₹3 to ₹5 lakh a year band."
     },
     {
       "title": "Which skills do Noida HR listings mention?",
@@ -247,7 +247,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the fresher HR salary in Noida?",
-      "a": "Among 94 jobs that state pay, the median top of range is ₹3.9 lakh a year, and the middle half runs from ₹3 to 5 lakh. 55.9% of jobs do not state pay."
+      "a": "Among 94 jobs that state pay, the median top of range is ₹3.9 lakh a year, and the middle half runs from ₹3 to ₹5 lakh. 55.9% of jobs do not state pay."
     },
     {
       "q": "Is there an HR internship in Noida?",

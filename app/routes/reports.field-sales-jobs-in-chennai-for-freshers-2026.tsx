@@ -16,7 +16,7 @@ const R: DataReportContent = {
   "scope": "field sales in Chennai · freshers",
   "findings": [
     "**Field sales jobs in Chennai for freshers** come to 273 listings posted in the first half of November, from 172 employers, and 270 are jobs.",
-    "**Pay is stated on 136 listings** (50.4%), with a median top of range of ₹3.8 lakh a year and 88 of them (64.7%) in the ₹3 to 5 lakh band.",
+    "**Pay is stated on 136 listings** (50.4%), with a median top of range of ₹3.8 lakh a year and 88 of them (64.7%) in the ₹3 to ₹5 lakh band.",
     "**Insurance and loan titles stand out**: one bulk-hiring insurance officer title has 13 listings, Sales Officer has 11 and Home Loan Sales Executive has 9.",
     "**Targets appear in 71.2%** of described listings and incentives in 20.4%, while only 8.8% ask for a two-wheeler or driving licence.",
     "**The move that works** is to email the branch manager or area sales manager with a one-page route for one part of the city. Stu finds that person and writes the email."
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Top of the stated range, per year.",
       "paras": [
         "136 of the 273 listings state pay in rupees (50.4%), well above the 36.2% for the whole index. The median top of range is ₹3.8 lakh a year (the whole-index median is also ₹3.8 lakh, so Chennai sits level with it). The lower quarter is ₹3.4 lakh and the upper quarter ₹4.5 lakh.",
-        "The ₹3 to 5 lakh band holds 88 listings (64.7%). Then ₹2 to 3 lakh has 20 (14.7%), ₹5 to 8 lakh has 20 (14.7%) and ₹8 to 12 lakh has 4 (2.9%). Two sit in the ₹12 to 20 lakh band and another 2 under ₹2 lakh. This is a tight cluster, with few outliers.",
+        "The ₹3 to ₹5 lakh band holds 88 listings (64.7%). Then ₹2 to ₹3 lakh has 20 (14.7%), ₹5 to ₹8 lakh has 20 (14.7%) and ₹8 to ₹12 lakh has 4 (2.9%). Two sit in the ₹12 to ₹20 lakh band and another 2 under ₹2 lakh. This is a tight cluster, with few outliers.",
         "As always, the top of range is a ceiling. Field roles often split pay into fixed and variable, and 20.4% of described listings mention incentives. None of the 3 internships states a stipend in rupees."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** 64.7% of stated salaries sit in the ₹3 to 5 lakh band, a tight cluster."
+      "callout": "**Lead:** 64.7% of stated salaries sit in the ₹3 to ₹5 lakh band, a tight cluster."
     },
     {
       "title": "What skills do Chennai sales listings want, and is Hindi needed?",
@@ -235,7 +235,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What does a fresher earn in field sales in Chennai?",
-      "a": "Among the 136 listings that state pay, the median top of range is ₹3.8 lakh a year, and the middle half is ₹3.4 to 4.5 lakh. Ask how much is fixed, because incentives are named in 20.4% of descriptions."
+      "a": "Among the 136 listings that state pay, the median top of range is ₹3.8 lakh a year, and the middle half is ₹3.4 to ₹4.5 lakh. Ask how much is fixed, because incentives are named in 20.4% of descriptions."
     },
     {
       "q": "Is there a field sales internship in Chennai?",
@@ -262,7 +262,7 @@ const R: DataReportContent = {
         "Insurance Sales Officer has 13 listings and Sales Officer has 11."
       ],
       [
-        "Expect ₹3 to 5 lakh",
+        "Expect ₹3 to ₹5 lakh",
         "64.7% of stated salaries sit in that band, and half the listings state pay."
       ],
       [

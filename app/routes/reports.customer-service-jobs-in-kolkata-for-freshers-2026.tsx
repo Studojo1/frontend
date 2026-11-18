@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Of the 294 listings, 202 jobs (69.4%) state pay in rupees. The median top of range is ₹3.6 lakh a year, but the lower quarter is only ₹2 lakh and the upper quarter ₹4.5 lakh, so the spread is wide.",
-        "The ₹3 to 5 lakh band has 83 listings (41.1%), ₹5 to 8 lakh has 40 (19.8%), ₹2 to 3 lakh has 37 (18.3%) and under ₹2 lakh has 39 (19.3%). ₹8 to 12 lakh has 3 (1.5%). Roughly one listing in five tops out under ₹2 lakh, so compare offers rather than trusting a headline number.",
+        "The ₹3 to ₹5 lakh band has 83 listings (41.1%), ₹5 to ₹8 lakh has 40 (19.8%), ₹2 to ₹3 lakh has 37 (18.3%) and under ₹2 lakh has 39 (19.3%). ₹8 to ₹12 lakh has 3 (1.5%). Roughly one listing in five tops out under ₹2 lakh, so compare offers rather than trusting a headline number.",
         "None of the 3 internships state a stipend. Since the figures are tops of ranges, ask the recruiter about the fixed amount, the incentive split and any training period. That one question separates a real offer from a vague one."
       ],
       "chart": {
@@ -241,7 +241,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What does a fresher in customer service earn in Kolkata?",
-      "a": "Among the 202 jobs that state pay, the median top of range is ₹3.6 lakh a year, with a middle quarter of ₹2 to 4.5 lakh. Because 39 top out under ₹2 lakh, compare offers closely."
+      "a": "Among the 202 jobs that state pay, the median top of range is ₹3.6 lakh a year, with a middle quarter of ₹2 to ₹4.5 lakh. Because 39 top out under ₹2 lakh, compare offers closely."
     },
     {
       "q": "Is there a customer service internship in Kolkata?",
