@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "The top of the stated range, per year, on 117 jobs.",
       "paras": [
         "Among the 117 jobs that state pay in rupees, the median top of range is ₹3.6 lakh a year. The lower quarter sits at ₹3 lakh and the upper quarter at ₹5 lakh. That is 43.5% of the 269 jobs, so more than half say nothing about money.",
-        "The ₹3 to 5 lakh band holds 56 listings (47.9%). 29 listings (24.8%) reach ₹5 to 8 lakh and 27 (23.1%) sit at ₹2 to 3 lakh. Only 2 are under ₹2 lakh, 2 reach ₹8 to 12 lakh and 1 reaches ₹12 to 20 lakh.",
+        "The ₹3 to ₹5 lakh band holds 56 listings (47.9%). 29 listings (24.8%) reach ₹5 to ₹8 lakh and 27 (23.1%) sit at ₹2 to ₹3 lakh. Only 2 are under ₹2 lakh, 2 reach ₹8 to ₹12 lakh and 1 reaches ₹12 to ₹20 lakh.",
         "For internships, only 3 of the 55 state a stipend (5.5%). Their median top of range is ₹20,000 a month, but three listings is too few to plan around. Pay is the top of each range, so ask what the fixed part is and what depends on hitting a number."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** the middle half of stated HR pay in Hyderabad runs from ₹3 to 5 lakh a year."
+      "callout": "**Lead:** the middle half of stated HR pay in Hyderabad runs from ₹3 to ₹5 lakh a year."
     },
     {
       "title": "Which skills do Hyderabad HR listings ask for?",
@@ -247,7 +247,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the fresher HR salary in Hyderabad?",
-      "a": "Among 117 jobs that state pay, the median top of range is ₹3.6 lakh a year, and the middle half runs from ₹3 to 5 lakh. The other 56.5% of jobs do not state pay."
+      "a": "Among 117 jobs that state pay, the median top of range is ₹3.6 lakh a year, and the middle half runs from ₹3 to ₹5 lakh. The other 56.5% of jobs do not state pay."
     },
     {
       "q": "Is there an HR internship in Hyderabad?",

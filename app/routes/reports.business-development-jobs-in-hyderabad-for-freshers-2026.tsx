@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**Business development jobs in Hyderabad for freshers** are 210 listings in the Studojo Jobs Index for 1 to 15 November: 167 jobs and 43 internships (20.5%).",
     "**Hyderabad has a Business Development Officer title** with 12 listings, a label you will not see on a search for executive or associate alone.",
-    "**Pay is stated on 44 jobs** (26.3%), with a median top of range of ₹4 lakh a year, and 27 of them sit in the ₹3 to 5 lakh band.",
+    "**Pay is stated on 44 jobs** (26.3%), with a median top of range of ₹4 lakh a year, and 27 of them sit in the ₹3 to ₹5 lakh band.",
     "**Freshers are welcome in 30.0%** of described listings and any graduate in 14.0%, so the entry bar is low and Excel (28.0%) is a cheap way to stand out.",
     "**The move that works** is to email the sales head or founder with a ten-name prospect list. Stu finds who hires and sends from your own inbox."
   ],
@@ -115,8 +115,8 @@ const R: DataReportContent = {
       "title": "How much do business development freshers earn in Hyderabad?",
       "sub": "Stated pay, top of range, per year.",
       "paras": [
-        "The median top of range for the 44 Hyderabad jobs that state pay is ₹4 lakh a year, with a middle half from ₹3.2 to 5.4 lakh. That is a touch above the ₹3.8 lakh median for the whole index.",
-        "Most of the stated pay is clustered. 27 listings (61.4%) sit at ₹3 to 5 lakh, 11 (25.0%) at ₹5 to 8 lakh, 4 (9.1%) at ₹2 to 3 lakh, and one each at 8 to 12 and ₹12 to 20 lakh. None is under ₹2 lakh.",
+        "The median top of range for the 44 Hyderabad jobs that state pay is ₹4 lakh a year, with a middle half from ₹3.2 to ₹5.4 lakh. That is a touch above the ₹3.8 lakh median for the whole index.",
+        "Most of the stated pay is clustered. 27 listings (61.4%) sit at ₹3 to ₹5 lakh, 11 (25.0%) at ₹5 to ₹8 lakh, 4 (9.1%) at ₹2 to ₹3 lakh, and one each at 8 to 12 and ₹12 to ₹20 lakh. None is under ₹2 lakh.",
         "Only 26.3% of jobs show pay at all, so three in four leave it open. One internship states a stipend, at ₹30,000 a month, which is a single listing, not a pattern. Use these numbers as a guide, and ask for the fixed pay before you accept any offer."
       ],
       "chart": {
@@ -245,7 +245,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the business development salary in Hyderabad for freshers?",
-      "a": "Of the 44 jobs that state pay, the median top of range is ₹4 lakh a year, and the middle half runs from ₹3.2 to 5.4 lakh. Most listings state no pay."
+      "a": "Of the 44 jobs that state pay, the median top of range is ₹4 lakh a year, and the middle half runs from ₹3.2 to ₹5.4 lakh. Most listings state no pay."
     },
     {
       "q": "Is there a business development internship in Hyderabad?",

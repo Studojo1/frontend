@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**Business development jobs in Gurgaon for freshers** are 201 listings in the Studojo Jobs Index: 155 jobs and 46 internships (22.9%).",
     "**A few employers post a lot**: 122 employers sit behind the 201 listings, and the top ten hold 33.8%, against 13.0% across the whole index.",
-    "**Stated pay is high but rare**: median top of range is ₹5 lakh a year, yet only 31 jobs (20.0%) state pay. 4 listings reach ₹8 to 12 lakh.",
+    "**Stated pay is high but rare**: median top of range is ₹5 lakh a year, yet only 31 jobs (20.0%) state pay. 4 listings reach ₹8 to ₹12 lakh.",
     "**Calling is a bigger part of the job here**: 34.5% mention calling or telecalling, against 11.7% across the whole index.",
     "**The move that works** is to email the sales head or founder with ten prospects. Stu finds who hires and sends from your own inbox."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Among the 31 Gurgaon jobs that state pay, the median top of range is ₹5 lakh a year. The lower quarter is ₹3.6 lakh and the upper quarter ₹6 lakh. The whole index median is ₹3.8 lakh, so the listings that state pay here run higher.",
-        "The shape is different from other cities. 13 listings (41.9%) sit at ₹5 to 8 lakh and 10 (32.3%) at ₹3 to 5 lakh. Another 4 reach ₹8 to 12 lakh, one goes to ₹12 to 20 lakh, 2 sit at ₹2 to 3 lakh and one is under ₹2 lakh.",
+        "The shape is different from other cities. 13 listings (41.9%) sit at ₹5 to ₹8 lakh and 10 (32.3%) at ₹3 to ₹5 lakh. Another 4 reach ₹8 to ₹12 lakh, one goes to ₹12 to ₹20 lakh, 2 sit at ₹2 to ₹3 lakh and one is under ₹2 lakh.",
         "Read it with care. Just 20.0% of jobs state pay, and one internship states a stipend, at ₹30,000 a month. Top of range is not base pay, and with incentives mentioned in 25.0% of descriptions, ask for the fixed amount in writing."
       ],
       "chart": {
@@ -243,7 +243,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the business development salary in Gurgaon for freshers?",
-      "a": "Of the 31 jobs that state pay, the median top of range is ₹5 lakh a year, with the middle half from ₹3.6 to 6 lakh. Most listings state no pay, and incentives vary."
+      "a": "Of the 31 jobs that state pay, the median top of range is ₹5 lakh a year, with the middle half from ₹3.6 to ₹6 lakh. Most listings state no pay, and incentives vary."
     },
     {
       "q": "Is there a business development internship in Gurgaon?",

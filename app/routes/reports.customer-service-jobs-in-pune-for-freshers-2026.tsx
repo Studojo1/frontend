@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**Customer service jobs in Pune for freshers** make up 413 listings in the Studojo Jobs Index: 405 jobs and 8 internships (1.9%).",
     "**Half the listings come from ten employers**: 132 employers posted, and the top ten hold 50.1%, so a few large service desks set the tone.",
-    "**Pay is narrow**: 214 jobs state pay, the median top of range is ₹3.8 lakh a year, and 140 of them (65.4%) sit in the ₹3 to 5 lakh band.",
+    "**Pay is narrow**: 214 jobs state pay, the median top of range is ₹3.8 lakh a year, and 140 of them (65.4%) sit in the ₹3 to ₹5 lakh band.",
     "**Pune descriptions are heavy on talking and incentives**: calling or telecalling is named in 40.0% and communication skills in 84.4%, and incentives appear in 36.1%.",
     "**The move that works** is to email the operations manager or hiring lead of the service desk, with a one-page first-reply template. Stu finds that person and sends from your own inbox once you start a campaign."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Of the 413 listings, 214 jobs (52.8%) state pay in rupees. The median top of range is ₹3.8 lakh a year, with a lower quarter of ₹3.5 lakh and an upper quarter of ₹4.8 lakh. The middle half is narrow, which usually means standard bands set by big employers.",
-        "The ₹3 to 5 lakh band has 140 listings (65.4%), ₹5 to 8 lakh has 51 (23.8%) and ₹2 to 3 lakh has 21 (9.8%). ₹8 to 12 lakh has 2 (0.9%). No listing states under ₹2 lakh. For a fresher, that suggests Pune ranges rarely start at the very bottom.",
+        "The ₹3 to ₹5 lakh band has 140 listings (65.4%), ₹5 to ₹8 lakh has 51 (23.8%) and ₹2 to ₹3 lakh has 21 (9.8%). ₹8 to ₹12 lakh has 2 (0.9%). No listing states under ₹2 lakh. For a fresher, that suggests Pune ranges rarely start at the very bottom.",
         "Pay shown is the top of the stated range, and a share is incentive. None of the 8 internships state a stipend. Since incentives are named in 36.1% of described listings, ask for the fixed monthly figure and the conditions to earn the rest."
       ],
       "chart": {
@@ -243,7 +243,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the salary for freshers in customer service in Pune?",
-      "a": "Of the 214 jobs that state pay, the median top of range is ₹3.8 lakh a year, with a middle quarter of ₹3.5 to 4.8 lakh. It is the top of each range, so confirm the fixed amount."
+      "a": "Of the 214 jobs that state pay, the median top of range is ₹3.8 lakh a year, with a middle quarter of ₹3.5 to ₹4.8 lakh. It is the top of each range, so confirm the fixed amount."
     },
     {
       "q": "Is there a customer service internship in Pune?",
@@ -271,7 +271,7 @@ const R: DataReportContent = {
       ],
       [
         "Know the band",
-        "65.4% of stated pay sits in the ₹3 to 5 lakh band."
+        "65.4% of stated pay sits in the ₹3 to ₹5 lakh band."
       ],
       [
         "Talk well",

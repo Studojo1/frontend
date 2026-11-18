@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, on 64 jobs.",
       "paras": [
         "Among the 64 jobs that state pay in rupees, the median top of range is ₹3 lakh a year. The lower quarter is ₹2.6 lakh and the upper quarter ₹4 lakh. Only 35.4% of jobs state pay, so nearly two in three do not.",
-        "The ₹3 to 5 lakh band holds 31 listings (48.4%) and ₹2 to 3 lakh holds 19 (29.7%). At the high end, 5 listings reach ₹5 to 8 lakh, 4 reach ₹8 to 12 lakh and 2 reach ₹12 to 20 lakh. Those are probably CA, tax or audit roles. 3 listings are under ₹2 lakh.",
+        "The ₹3 to ₹5 lakh band holds 31 listings (48.4%) and ₹2 to ₹3 lakh holds 19 (29.7%). At the high end, 5 listings reach ₹5 to ₹8 lakh, 4 reach ₹8 to ₹12 lakh and 2 reach ₹12 to ₹20 lakh. Those are probably CA, tax or audit roles. 3 listings are under ₹2 lakh.",
         "There is no internship pay to report. 10 internships exist and none state a stipend. If you are weighing an internship, you will have to ask what it pays. Pay is the top of a range, so the offer can land lower."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** the middle half of stated accountant pay in Bangalore runs from ₹2.6 to 4 lakh a year."
+      "callout": "**Lead:** the middle half of stated accountant pay in Bangalore runs from ₹2.6 to ₹4 lakh a year."
     },
     {
       "title": "Do you need Tally and GST for an accountant job in Bangalore?",
@@ -239,7 +239,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the accountant salary in Bangalore for freshers?",
-      "a": "Among 64 jobs that state pay, the median top of range is ₹3 lakh a year, with the middle half from ₹2.6 to 4 lakh. 64.6% of jobs do not state pay."
+      "a": "Among 64 jobs that state pay, the median top of range is ₹3 lakh a year, with the middle half from ₹2.6 to ₹4 lakh. 64.6% of jobs do not state pay."
     },
     {
       "q": "Is Tally needed for accountant jobs in Bangalore?",

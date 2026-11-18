@@ -115,8 +115,8 @@ const R: DataReportContent = {
       "title": "What is the business development salary in Mumbai for freshers?",
       "sub": "Stated pay only, top of range, per year.",
       "paras": [
-        "Among the 53 Mumbai jobs that state pay in rupees, the median top of range is ₹4.2 lakh a year. The middle half runs from ₹3.5 lakh to ₹5 lakh. Nearly all the stated pay sits in two bands: 29 listings at ₹3 to 5 lakh and 17 at ₹5 to 8 lakh.",
-        "The tails are thin. Four listings sit at ₹2 to 3 lakh, two reach ₹8 to 12 lakh and one goes to ₹12 to 20 lakh. None is under ₹2 lakh. Because we use the top of each range, base pay can be lower, especially where incentives are a big part of the offer.",
+        "Among the 53 Mumbai jobs that state pay in rupees, the median top of range is ₹4.2 lakh a year. The middle half runs from ₹3.5 lakh to ₹5 lakh. Nearly all the stated pay sits in two bands: 29 listings at ₹3 to ₹5 lakh and 17 at ₹5 to ₹8 lakh.",
+        "The tails are thin. Four listings sit at ₹2 to ₹3 lakh, two reach ₹8 to ₹12 lakh and one goes to ₹12 to ₹20 lakh. None is under ₹2 lakh. Because we use the top of each range, base pay can be lower, especially where incentives are a big part of the offer.",
         "The catch is silence. Just 21.2% of jobs state pay, and for internships it is 1 listing out of 55, at ₹10,000 a month. Treat any pay figure as a hint, and ask for the fixed and variable split in your first call."
       ],
       "chart": {

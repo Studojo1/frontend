@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**Customer service jobs in Gurgaon for freshers** come to 740 listings in the Studojo Jobs Index: 728 jobs and only 12 internships (1.6%).",
     "**Voice process leads the titles**: Voice Process Executive has 86 listings and Customer Support Executive 74, so this city reads as a call-centre market first.",
-    "**Pay is a little higher than the middle of the road**: 401 jobs state pay, the median top of range is ₹4.2 lakh a year, and 150 of them (37.4%) reach ₹5 to 8 lakh.",
+    "**Pay is a little higher than the middle of the road**: 401 jobs state pay, the median top of range is ₹4.2 lakh a year, and 150 of them (37.4%) reach ₹5 to ₹8 lakh.",
     "**Shifts and quick starts go together**: 40.4% of described listings mention night, rotational, US or UK shifts and 22.5% want immediate joining.",
     "**The move that works** is to email the team lead or operations manager for the account, with a short written call script as proof. Stu finds that person and sends your note from your own inbox once you start a campaign."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Of the 740 listings, 401 jobs (55.1%) state pay in rupees. The median top of range is ₹4.2 lakh a year, with a lower quarter of ₹3.2 lakh and an upper quarter of ₹5.5 lakh. The gap between the lower and upper quarter is wider than a flat ₹4 lakh average suggests.",
-        "The ₹3 to 5 lakh band has 185 listings (46.1%) and ₹5 to 8 lakh has 150 (37.4%). Then ₹2 to 3 lakh has 57 (14.2%), ₹8 to 12 lakh has 6 (1.5%), under ₹2 lakh has 2 (0.5%) and ₹12 to 20 lakh has 1 (0.2%). A large share reaching ₹5 to 8 lakh may reflect incentives or experience requirements, so read each description.",
+        "The ₹3 to ₹5 lakh band has 185 listings (46.1%) and ₹5 to ₹8 lakh has 150 (37.4%). Then ₹2 to ₹3 lakh has 57 (14.2%), ₹8 to ₹12 lakh has 6 (1.5%), under ₹2 lakh has 2 (0.5%) and ₹12 to ₹20 lakh has 1 (0.2%). A large share reaching ₹5 to ₹8 lakh may reflect incentives or experience requirements, so read each description.",
         "Treat each figure as the ceiling, not the offer. None of the 12 internships state a stipend. When a recruiter quotes a number, ask how much is fixed, how much is incentive and what the target is."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** 37.4% of stated pay tops out in the ₹5 to 8 lakh band."
+      "callout": "**Lead:** 37.4% of stated pay tops out in the ₹5 to ₹8 lakh band."
     },
     {
       "title": "What do Gurgaon customer service listings ask you to be good at?",
@@ -247,7 +247,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is a fresher customer service salary in Gurgaon?",
-      "a": "Of the 401 jobs that state pay, the median top of range is ₹4.2 lakh a year, with a middle quarter of ₹3.2 to 5.5 lakh. The figure is the top of each range, so offers may be lower."
+      "a": "Of the 401 jobs that state pay, the median top of range is ₹4.2 lakh a year, with a middle quarter of ₹3.2 to ₹5.5 lakh. The figure is the top of each range, so offers may be lower."
     },
     {
       "q": "Is voice process the same as customer service?",

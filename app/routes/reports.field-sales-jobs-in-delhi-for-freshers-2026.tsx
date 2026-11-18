@@ -17,7 +17,7 @@ const R: DataReportContent = {
   "findings": [
     "**Field sales jobs in Delhi for freshers** number 311 listings posted in the first half of November, from 219 employers, and only 5 are internships.",
     "**Targets lead the descriptions**: 73.3% mention targets and 24.1% mention incentives, compared with 20.9% and 9.3% across the whole index.",
-    "**Pay is stated on 156 listings** (51.0%), with a median top of range of ₹3.5 lakh a year, and 92 of them (59.0%) sit in the ₹3 to 5 lakh band.",
+    "**Pay is stated on 156 listings** (51.0%), with a median top of range of ₹3.5 lakh a year, and 92 of them (59.0%) sit in the ₹3 to ₹5 lakh band.",
     "**Insurance and loan sales fill the lower rows**: Sales Officer has 10 listings, the insurance titles add 14 between them, and Home Loan Sales Executive has 3.",
     "**The move that works** is to email the branch manager or the area sales manager with a short beat plan for one market. Stu finds that person and writes the email."
   ],
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Top of the stated range, per year.",
       "paras": [
         "156 of the 311 listings state pay in rupees (51.0%), against 36.2% across the whole index. The median top of range is ₹3.5 lakh a year. The lower quarter is ₹3 lakh and the upper quarter ₹4.5 lakh, so the spread is narrow.",
-        "The ₹3 to 5 lakh band holds 92 listings (59.0%). Then ₹2 to 3 lakh has 29 (18.6%), ₹5 to 8 lakh has 26 (16.7%) and ₹8 to 12 lakh has 4 (2.6%). Four sit under ₹2 lakh and one reaches the ₹12 to 20 lakh band. The top of range is not the take-home figure.",
+        "The ₹3 to ₹5 lakh band holds 92 listings (59.0%). Then ₹2 to ₹3 lakh has 29 (18.6%), ₹5 to ₹8 lakh has 26 (16.7%) and ₹8 to ₹12 lakh has 4 (2.6%). Four sit under ₹2 lakh and one reaches the ₹12 to ₹20 lakh band. The top of range is not the take-home figure.",
         "Because 24.1% of descriptions mention incentives, part of that pay is usually variable. Ask for the fixed amount in writing before you decide. No internship in this slice states a stipend in rupees."
       ],
       "chart": {
@@ -243,7 +243,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the salary for a fresher in field sales in Delhi?",
-      "a": "Of the 156 listings that state pay, the median top of range is ₹3.5 lakh a year, and the middle half is ₹3 to 4.5 lakh. Incentives are named in 24.1% of descriptions, so check the fixed part."
+      "a": "Of the 156 listings that state pay, the median top of range is ₹3.5 lakh a year, and the middle half is ₹3 to ₹4.5 lakh. Incentives are named in 24.1% of descriptions, so check the fixed part."
     },
     {
       "q": "Are there field sales internships in Delhi?",
@@ -270,7 +270,7 @@ const R: DataReportContent = {
         "Sales Executive has 76 listings and Sales Officer has 10, mostly in insurance and loans."
       ],
       [
-        "Expect ₹3 to 5 lakh",
+        "Expect ₹3 to ₹5 lakh",
         "59.0% of stated salaries sit there, and 156 listings state pay."
       ],
       [

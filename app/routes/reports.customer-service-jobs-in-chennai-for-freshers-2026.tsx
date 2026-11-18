@@ -16,7 +16,7 @@ const R: DataReportContent = {
   "scope": "customer service in Chennai · freshers",
   "findings": [
     "**Customer service jobs in Chennai for freshers** number 579 listings in the Studojo Jobs Index, and 578 of them are jobs, with a single internship.",
-    "**Pay sits lower here**: 337 jobs state pay, the median top of range is ₹3.2 lakh a year, and 106 of them (31.5%) top out at ₹2 to 3 lakh.",
+    "**Pay sits lower here**: 337 jobs state pay, the median top of range is ₹3.2 lakh a year, and 106 of them (31.5%) top out at ₹2 to ₹3 lakh.",
     "**The door is wide open to freshers**: 65.7% of described listings welcome freshers and 31.1% accept any graduate, and 36.9% want immediate joining.",
     "**Night voice work is common**: 43.8% of described listings mention night, rotational, US or UK shifts, and one title is simply Tamil Voice Process, with 6 listings.",
     "**The move that works** is to email the centre head or process manager with a short written reply to a sample complaint. Stu finds that person and sends your note from your own inbox once you start a campaign."
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "What the 337 pay-stating jobs show.",
       "paras": [
         "Out of 579 listings, 337 jobs (58.3%) state pay in rupees. The median top of range is ₹3.2 lakh a year, with a lower quarter at ₹2.5 lakh and an upper quarter at ₹4.2 lakh. That is a modest range, and it gives you a realistic floor for your first negotiation.",
-        "The ₹3 to 5 lakh band has 170 listings (50.4%), ₹2 to 3 lakh has 106 (31.5%) and ₹5 to 8 lakh has 47 (13.9%). Under ₹2 lakh has 12 (3.6%) and ₹8 to 12 lakh has 2 (0.6%). One in three sits in the ₹2 to 3 lakh band.",
+        "The ₹3 to ₹5 lakh band has 170 listings (50.4%), ₹2 to ₹3 lakh has 106 (31.5%) and ₹5 to ₹8 lakh has 47 (13.9%). Under ₹2 lakh has 12 (3.6%) and ₹8 to ₹12 lakh has 2 (0.6%). One in three sits in the ₹2 to ₹3 lakh band.",
         "The one internship states no stipend. Since pay is shown as the top of a range, ask any recruiter for the fixed monthly in-hand amount, and what changes with incentives. Incentives are mentioned in 11.6% of described listings."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** the middle quarter of stated pay runs from ₹2.5 to 4.2 lakh a year."
+      "callout": "**Lead:** the middle quarter of stated pay runs from ₹2.5 to ₹4.2 lakh a year."
     },
     {
       "title": "Do Chennai customer service jobs want Tamil, Hindi or English?",
@@ -243,7 +243,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the starting salary for customer service in Chennai?",
-      "a": "Among 337 jobs that state pay, the median top of range is ₹3.2 lakh a year, and the middle quarter runs from ₹2.5 to 4.2 lakh. Use it as a ceiling per range, not as a promise."
+      "a": "Among 337 jobs that state pay, the median top of range is ₹3.2 lakh a year, and the middle quarter runs from ₹2.5 to ₹4.2 lakh. Use it as a ceiling per range, not as a promise."
     },
     {
       "q": "Is there a customer service internship in Chennai?",

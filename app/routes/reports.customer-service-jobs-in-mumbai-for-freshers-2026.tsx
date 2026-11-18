@@ -16,7 +16,7 @@ const R: DataReportContent = {
   "scope": "customer service in Mumbai · freshers",
   "findings": [
     "**Customer service jobs in Mumbai for freshers** make up 747 listings in the Studojo Jobs Index: 730 jobs and 17 internships (2.3%).",
-    "**Most listings state their pay**: 428 jobs give a rupee figure, with a median top of range of ₹4 lakh a year and 274 of them in the ₹3 to 5 lakh band.",
+    "**Most listings state their pay**: 428 jobs give a rupee figure, with a median top of range of ₹4 lakh a year and 274 of them in the ₹3 to ₹5 lakh band.",
     "**Shifts are a real part of the job**: 35.5% of described listings mention night, rotational, US or UK shifts, against 8.3% across the whole index.",
     "**A degree is not always the gate**: 21.0% accept 12th pass and 58.4% welcome freshers, while communication skills (76.1%) and English (47.3%) lead what they ask for.",
     "**The move that works** is to email the process manager or centre head with a recorded 60-second mock call. Stu finds that person and drafts the note, sent from your own inbox once you start a campaign."
@@ -116,7 +116,7 @@ const R: DataReportContent = {
       "sub": "Stated pay, top of range, per year.",
       "paras": [
         "Among Mumbai customer service listings, 428 jobs (58.6%) state pay in rupees, and the median top of range is ₹4 lakh a year. The lower quarter sits at ₹3.5 lakh and the upper quarter at ₹5 lakh, so the middle of this market is tight and easy to plan around.",
-        "The ₹3 to 5 lakh band holds 274 listings (64.0%). The ₹5 to 8 lakh band has 110 (25.7%), ₹2 to 3 lakh has 35 (8.2%), ₹8 to 12 lakh has 5 (1.2%) and under ₹2 lakh has 4 (0.9%). Almost nothing sits at either extreme, so a figure far outside the ₹3 to 5 lakh band deserves a question.",
+        "The ₹3 to ₹5 lakh band holds 274 listings (64.0%). The ₹5 to ₹8 lakh band has 110 (25.7%), ₹2 to ₹3 lakh has 35 (8.2%), ₹8 to ₹12 lakh has 5 (1.2%) and under ₹2 lakh has 4 (0.9%). Almost nothing sits at either extreme, so a figure far outside the ₹3 to ₹5 lakh band deserves a question.",
         "These are the tops of ranges, and some include incentives, so your fixed salary can be lower. Many jobs state no pay at all, and none of the 17 internships state a stipend. Ask what is fixed and what is incentive before you accept anything."
       ],
       "chart": {
@@ -143,7 +143,7 @@ const R: DataReportContent = {
         ],
         "unit": "listings"
       },
-      "callout": "**Lead:** the middle quarter of stated pay runs from ₹3.5 to 5 lakh a year."
+      "callout": "**Lead:** the middle quarter of stated pay runs from ₹3.5 to ₹5 lakh a year."
     },
     {
       "title": "Which skills do Mumbai customer service listings ask for?",
@@ -245,7 +245,7 @@ const R: DataReportContent = {
     },
     {
       "q": "What is the customer service salary in Mumbai for freshers?",
-      "a": "Among the 428 jobs that state pay, the median top of range is ₹4 lakh a year, and the middle quarter runs from ₹3.5 to 5 lakh. Pay is the top of each range, so real offers can be lower."
+      "a": "Among the 428 jobs that state pay, the median top of range is ₹4 lakh a year, and the middle quarter runs from ₹3.5 to ₹5 lakh. Pay is the top of each range, so real offers can be lower."
     },
     {
       "q": "Is there a customer service internship in Mumbai?",
@@ -273,7 +273,7 @@ const R: DataReportContent = {
       ],
       [
         "Know the range",
-        "The median stated top of range is ₹4 lakh a year, and the middle quarter runs from ₹3.5 to 5 lakh."
+        "The median stated top of range is ₹4 lakh a year, and the middle quarter runs from ₹3.5 to ₹5 lakh."
       ],
       [
         "Expect shifts",
