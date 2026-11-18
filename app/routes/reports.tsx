@@ -1582,6 +1582,18 @@ const REPORTS = [
   },
   // SEO-BULK 11 Nov 2026: end
   {
+    slug: "internships-indore-2026",
+    publishDate: "2026-11-18",
+    title: "Internship in Indore 2026: What 118 Listings Show, What to Ask and Who to Email",
+    subtitle: "Internships · 2026",
+    excerpt: "We counted 118 internship listings naming Indore, posted 1 to 15 November 2026, from 88 employers. Marketing, social media and business development lead, and only 2 state a stipend. Who employs people in Indore, what to ask before you accept, and who to email.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "internships-pune-2026",
     publishDate: "2026-11-11",
     title: "How to Get an Internship in Pune in 2026: Where They Are, What They Pay, and the Move That Works",

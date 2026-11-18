@@ -139,6 +139,7 @@ export async function loader() {
     { loc: "/reports/fresher-resume-no-experience-2026", publishDate: "2026-11-10" },
     { loc: "/reports/certifications-that-get-freshers-hired-2026", publishDate: "2026-11-11" },
     { loc: "/reports/internships-pune-2026", publishDate: "2026-11-11" },
+    { loc: "/reports/internships-indore-2026", publishDate: "2026-11-18" },
     // SEO-BULK 11 Nov 2026: start
     { loc: "/reports/studojo-jobs-index-october-2026", publishDate: "2026-11-11" },
     { loc: "/reports/fresher-salary-india-2026", publishDate: "2026-11-11" },
