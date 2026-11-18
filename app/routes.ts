@@ -68,6 +68,7 @@ export default [
   route("reports/internships-bangalore-2026", "routes/reports.internships-bangalore-2026.tsx"),
   route("reports/internships-hyderabad-2026", "routes/reports.internships-hyderabad-2026.tsx"),
   route("reports/internships-pune-2026", "routes/reports.internships-pune-2026.tsx"),
+  route("reports/internships-indore-2026", "routes/reports.internships-indore-2026.tsx"),
   // SEO-BULK 11 Nov 2026: start
   route("reports/studojo-jobs-index-october-2026", "routes/reports.studojo-jobs-index-october-2026.tsx"),
   route("reports/fresher-salary-india-2026", "routes/reports.fresher-salary-india-2026.tsx"),
