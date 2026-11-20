@@ -92,6 +92,7 @@ try {
   const api = await import("../routes/api.fellowship-growth.$slug.tsx");
   const pageRoute = await import("../routes/fellowship-growth.$slug.tsx");
   const splat = await import("../routes/fellowship-growth.$.tsx");
+  const tabRoute = await import("../routes/fellowship-growth.$slug_.$tab.tsx");
   const proofRoute = await import("../routes/api.fellowship-growth.$slug_.proof.tsx");
   const analyticsRoute = await import("../routes/api.fellowship-growth.$slug_.analytics.tsx");
   // Files go to an in-memory store here; the real one is Azure Blob (fellow-proof.server.ts).
@@ -594,10 +595,28 @@ try {
   assert.equal(res.status, 200);
   assert.match(res.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
   assert.equal(res.headers.get("cache-control"), "no-store");
+  assert.match(await res.text(), /<body data-page="today"/);
   for (const slug of ["gone-z5y4x3w2", "nobody-k3m9x2qa", "not a slug"]) {
     res = await pageRoute.loader({ params: { slug }, request: new Request(PAGE + encodeURIComponent(slug)) });
     assert.equal(res.status, 404, `page for ${slug}`);
   }
+  // Each tab is its own address, with the same privacy headers; anything else after the slug isn't a page.
+  for (const tab of ["post", "talk", "numbers", "you", "learn"]) {
+    res = await tabRoute.loader({ params: { slug: "asha-k3m9x2qa", tab }, request: new Request(`${PAGE}asha-k3m9x2qa/${tab}`) });
+    assert.equal(res.status, 200, `the ${tab} tab`);
+    assert.equal(res.headers.get("cache-control"), "no-store");
+    assert.equal(res.headers.get("referrer-policy"), "no-referrer");
+    assert.match(res.headers.get("x-robots-tag") ?? "", /noindex/);
+    assert.match(await res.text(), new RegExp(`<body data-page="${tab}"`));
+    res = await tabRoute.loader({ params: { slug: "gone-z5y4x3w2", tab }, request: new Request(`${PAGE}gone-z5y4x3w2/${tab}`) });
+    assert.equal(res.status, 404, `a removed fellow's ${tab} tab`);
+  }
+  for (const tab of ["admin", "today", "proof", ""]) {
+    res = await tabRoute.loader({ params: { slug: "asha-k3m9x2qa", tab }, request: new Request(`${PAGE}asha-k3m9x2qa/${tab}`) });
+    assert.equal(res.status, 404, `"${tab}" isn't a tab`);
+    assert.ok(!(await res.text()).includes("asha-k3m9x2qa"), "the not-a-page answer carries nothing of the fellow");
+  }
+  assert.equal(tabRoute.headers({})["Cache-Control"], "no-store", "the .data spelling of a tab gets the same headers");
   const pageData = pageRoute.headers({});
   assert.equal(pageData["Content-Type"], undefined, "the .data spelling keeps its own content type");
   assert.equal(pageData["Cache-Control"], "no-store");

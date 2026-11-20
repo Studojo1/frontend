@@ -69,10 +69,10 @@ assert.equal(wholeNumber("12.5", 1e6), null);
 assert.equal(wholeNumber("40000", 30000), null, "above the cap");
 assert.equal(cleanText("  one\n two\u0000 ", 100, true), "one two");
 // The page checks links with the server's pattern, so it never turns away a link the server takes.
-const feedJs = readFileSync(new URL("../../public/fellowship/feed.js", import.meta.url), "utf8");
-const linkOk = /const LINK_OK = \/(.+)\/i;\n/.exec(feedJs);
-assert.ok(linkOk, "feed.js defines LINK_OK");
-assert.equal(linkOk[1], LINKEDIN_POST.source, "feed.js LINK_OK matches the server's LINKEDIN_POST");
+const pageJs = readFileSync(new URL("../../public/fellowship/fellow.js", import.meta.url), "utf8");
+const linkOk = /const LINK_OK = \/(.+)\/i;\n/.exec(pageJs);
+assert.ok(linkOk, "fellow.js defines LINK_OK");
+assert.equal(linkOk[1], LINKEDIN_POST.source, "fellow.js LINK_OK matches the server's LINKEDIN_POST");
 
 // ---------------------------------------------------------------- the view
 const NOW = Date.parse("2026-10-31T08:00:00Z"); // Thu 29 Oct, 1:30 pm IST
@@ -261,10 +261,11 @@ assert.equal(v.me.storyPrompts[0], "Something that happened this week that taugh
 
 // The page's columns never grow past the screen: one long unbroken line (a saved post link) once
 // widened every post card on phones, and the phone zoomed the whole page out to fit it.
-const css = readFileSync(new URL("../../public/fellowship/feed.css", import.meta.url), "utf8");
-for (const rule of [".feed", ".post-list"]) {
-  const body = new RegExp(`^\\${rule} \\{([^}]*)\\}`, "m").exec(css)?.[1] ?? "";
-  assert.match(body, /grid-template-columns: minmax\(0, 1fr\)/, `${rule} keeps its column within the screen`);
+const css = readFileSync(new URL("../../public/fellowship/fellow.css", import.meta.url), "utf8");
+const ruleOf = (rule) => new RegExp(`^\\${rule} \\{([^}]*)\\}`, "m").exec(css)?.[1] ?? "";
+assert.match(ruleOf(".stack"), /grid-template-columns: minmax\(0, 1fr\)/, ".stack keeps its column within the screen");
+for (const rule of [".card", ".li-text", ".ver-text", ".story-text"]) {
+  assert.match(ruleOf(rule), /overflow-wrap: anywhere/, `${rule} breaks a long unbroken line instead of widening the page`);
 }
 
 console.log("fellow-view: ok");

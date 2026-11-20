@@ -3,9 +3,13 @@
 // it: the address itself is the fellow's key, and analytics would record it.
 // Styles and the script are static files in public/fellowship/; the script
 // fetches the fellow's data from /api/fellowship-growth/<slug>.
+//
+// Five tabs, each its own address: Today at /fellowship-growth/<slug>, then
+// /post, /talk, /numbers and /you, plus /learn (How LinkedIn works, opened from
+// You). Every tab gets the same shell with body[data-page] set; fellow.js draws it.
 
-/** Bump when anything in public/fellowship/ changes (feed and tour files), so browsers fetch the new files. */
-export const ASSET_VERSION = "20261115a";
+/** Bump when anything in public/fellowship/ changes, so browsers fetch the new files. */
+export const ASSET_VERSION = "20261120a";
 
 export const PAGE_HEADERS: Record<string, string> = {
   "Content-Type": "text/html; charset=utf-8",
@@ -24,44 +28,34 @@ export const PAGE_DATA_HEADERS: Record<string, string> = Object.fromEntries(
   Object.entries(PAGE_HEADERS).filter(([name]) => name !== "Content-Type"),
 );
 
-const ICONS = `<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
-  <defs>
-    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2.5"/><path d="M15.5 8.5V6.5a2.5 2.5 0 0 0-2.5-2.5H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></symbol>
-    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4.2L19.3 8.9a2.3 2.3 0 0 0-3.2-3.2L5 16.8V20z"/><path d="M14.5 7.3l3.2 3.2"/></symbol>
-    <symbol id="i-send" viewBox="0 0 24 24"><path d="M20.5 3.5 3.5 10.6l7 2.9 2.9 7 7.1-17z"/><path d="M10.5 13.5l4.4-4.4"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
-    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.8 2.8 5.4-5.6"/></symbol>
-    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.6 3.7 5.6 3.7 9s-1.3 6.4-3.7 9c-2.4-2.6-3.7-5.6-3.7-9S9.6 5.6 12 3z"/></symbol>
-    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
-    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 16.5V12M12 16.5V7M17 16.5V9.5"/></symbol>
-    <symbol id="i-share" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
-    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
-    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
-    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></symbol>
-    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 14h8"/></symbol>
-    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.1v.1h5v-.1c0-.8.4-1.6 1.1-2.1A6 6 0 0 0 12 3z"/></symbol>
-    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
-    <symbol id="i-cert" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="12.5" rx="2"/><path d="M7.5 8h9M7.5 11.5h4.5"/><circle cx="16" cy="15.5" r="2.6"/><path d="M14.7 17.7 14 21l2-1.1 2 1.1-.7-3.3"/></symbol>
-    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/></symbol>
-    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12.5h18"/></symbol>
-    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
-    <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3.5 17l6-6 4 4 7-7"/><path d="M15 8h5.5v5.5"/></symbol>
-    <symbol id="i-thumb" viewBox="0 0 24 24"><path class="ic-solid" d="M2 10h4v11H2zM8 21h9.4a2 2 0 0 0 2-1.6l1.5-7A2 2 0 0 0 19 10h-5.2l.9-4.2A2 2 0 0 0 12.8 3.3L8 10z"/></symbol>
-    <symbol id="i-comment" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8.5L4 20.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/></symbol>
-    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/></symbol>
-    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.5V4.5M7.5 9L12 4.5 16.5 9M4.5 15v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></symbol>
-    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.3v.2"/></symbol>
-    <symbol id="i-edit-sm" viewBox="0 0 24 24"><path d="M4 20h4.2L19.3 8.9a2.3 2.3 0 0 0-3.2-3.2L5 16.8V20z"/></symbol>
-    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.8l8.5 6.7"/><path d="M5.8 9v11h4.7v-5.8h3V20h4.7V9"/></symbol>
-    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.2 16.8V11a5.8 5.8 0 0 1 11.6 0v5.8l1.7 2.2H4.5z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></symbol>
-    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></symbol>
-    <symbol id="i-compose" viewBox="0 0 24 24"><path d="M12 4H6a2 2 0 0 0-2 2v14l4.5-3.5H18a2 2 0 0 0 2-2V12"/><path d="M14.5 10.2 20.3 4.4a1.5 1.5 0 0 0-2.1-2.1l-5.8 5.8-.6 2.7z"/></symbol>
-    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8.5 7.5h7M8.5 11h5"/></symbol>
-    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.2 14.6c1.9.9 3.3 2.8 3.3 5.4"/></symbol>
-  </defs>
-</svg>`;
+/** The tabs, in order, with their address under the fellow's page ("" is Today). */
+export const FELLOW_TABS = [
+  { id: "today", label: "Today", path: "" },
+  { id: "post", label: "Post", path: "post" },
+  { id: "talk", label: "Talk", path: "talk" },
+  { id: "numbers", label: "Numbers", path: "numbers" },
+  { id: "you", label: "You", path: "you" },
+] as const;
+export type FellowPage = (typeof FELLOW_TABS)[number]["id"] | "learn";
+/** Pages with an address of their own after the slug: /fellowship-growth/<slug>/<page>. */
+export const FELLOW_SUBPAGES: readonly FellowPage[] = ["post", "talk", "numbers", "you", "learn"];
+export const isFellowSubpage = (v: string | undefined): v is FellowPage => !!v && (FELLOW_SUBPAGES as readonly string[]).includes(v);
 
-const head = (top: string) => `<!doctype html>
+const TITLES: Record<FellowPage, string> = { today: "Today", post: "Post", talk: "Talk", numbers: "Numbers", you: "You", learn: "How LinkedIn works" };
+
+// The tab icons (fellow.js draws the rest of the page's icons the same way).
+const ICON: Record<string, string> = {
+  today: '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+  post: '<rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/>',
+  talk: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+  numbers: '<path d="M5 20V12M10 20V6M15 20v-9M20 20V9"/>',
+  you: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>',
+};
+const icon = (id: string) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICON[id] ?? ""}</svg>`;
+
+const LOGO = `<img class="mark" src="/logo.png" alt="Studojo" width="28" height="28">`;
+
+const head = (title: string, page: FellowPage | "message") => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -69,209 +63,49 @@ const head = (top: string) => `<!doctype html>
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F5F5F7">
 <link rel="icon" href="data:,">
-<title>Your Growth Fellowship | Studojo</title>
-<link rel="stylesheet" href="/fellowship/feed.css?v=${ASSET_VERSION}">
-<link rel="stylesheet" href="/fellowship/tour.css?v=${ASSET_VERSION}">
+<title>${title} · Growth Fellowship</title>
+<link rel="stylesheet" href="/fellowship/fellow.css?v=${ASSET_VERSION}">
 </head>
-<body>
-${ICONS}
-<header class="topbar">
-  <div class="topbar-in">
-    ${top}
-  </div>
-</header>`;
+<body data-page="${page}" class="${page === "message" ? "no-tabs" : "has-tabs"}">`;
 
-const LOGO = `<span class="mark" aria-hidden="true">S</span>
-      <span class="brand-text"><span class="brand-name">Studojo</span><span class="brand-sub">Growth Fellowship</span></span>`;
-
-// The fellow's page, with LinkedIn's top bar: the mark jumps to this week's posts; the script fills in the week pill.
-const PAGE_TOP = `<a class="brand" href="#posts" aria-label="Studojo Growth Fellowship, this week's posts">
-      <span class="mark" aria-hidden="true">S</span>
-    </a>
-    <button class="week-pill" id="week-pill" type="button" data-act="goto-next" hidden></button>
-    <button class="m-me" type="button" data-act="tab" data-tab="me" aria-label="Your profile"><span class="avatar" id="m-avatar" aria-hidden="true"></span></button>
-    <label class="m-search"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span class="sr-only">Search your posts</span><input id="m-search" type="search" placeholder="Search your posts" autocomplete="off" enterkeyhint="search"></label>
-    <button class="m-compose" type="button" data-act="tab" data-tab="stories" aria-label="Share a story"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compose"/></svg></button>
-    <nav class="d-nav" aria-label="Sections">
-      <button type="button" data-act="tab" data-tab="home" aria-current="page"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>Home</span></button>
-      <button type="button" data-act="tab" data-tab="stories"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-mic"/></svg><span>Stories</span></button>
-      <button type="button" data-act="tab" data-tab="updates"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"/></svg><span>Activity</span></button>
-      <button type="button" data-act="tab" data-tab="milestones"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-briefcase"/></svg><span>Milestones</span></button>
-      <button type="button" class="d-me" data-act="tab" data-tab="me"><span class="avatar" id="d-avatar" aria-hidden="true"></span><span>Me</span></button>
-    </nav>`;
-
-// A message page has nothing to jump to, so its logo is not a link.
-const MESSAGE_TOP = `<span class="brand">
-      ${LOGO}
-    </span>`;
-
-// "Understand LinkedIn's algorithm": a short read so fellows learn to post well on their own. Every "LinkedIn
-// says" line is something LinkedIn has published; the tips are labelled as creators' rules of thumb. The page
-// script adds what we're seeing on the fellow's own posts at the top, and lifts one item out as this week's tip. No numbers
-// that LinkedIn hasn't published. Same for everyone, so it lives in the page itself. The page links nowhere
-// else, so the sources are named, not linked. For the team, they are:
-//   engineering.linkedin.com/publishing-platform/maximizing-our-publishing-platform-reach-network-distribution
-//   linkedin.com/blog/engineering/feed/strategies-for-keeping-the-linkedin-feed-relevant
-//   linkedin.com/blog/engineering/member-customer-experience/linkedin-feed-with-creator-side-optimization
-//   linkedin.com/blog/engineering/feed/understanding-feed-dwell-time
-//   linkedin.com/blog/member/product/keeping-your-feed-relevant-and-productive
-//   linkedin.com/blog/member/product/mythbusting-the-feed-how-the-algorithm-works
-//   entrepreneur.com/science-technology/linkedin-changed-its-algorithms-heres-how-your-posts/454728
-//   linkedin.com/help/linkedin/answer/a1338787 and linkedin.com/legal/professional-community-policies
-const LEARN = `
-    <section class="card card-pad learn" id="learn" aria-labelledby="learn-title">
-      <div class="card-head"><span class="learn-ic" aria-hidden="true"><svg class="ic"><use href="#i-book"/></svg></span><h2 class="card-title" id="learn-title">Understand LinkedIn's algorithm</h2><span class="chip">3 min read</span></div>
-      <div class="learn-you" id="learn-you"></div>
-      <div class="learn-tip" id="learn-tip" hidden></div>
-      <div class="learn-list">
-        <details>
-          <summary>Your post starts with your own network</summary>
-          <div class="learn-body">
-            <p><span class="says">LinkedIn says</span> A new post goes to the people you're connected to and the people who follow you. When they react, comment or share, it travels on to their networks too.</p>
-            <p>So every connection is a door to another network. Growing your connections grows the first circle that sees you.</p>
-          </div>
-        </details>
-        <details>
-          <summary>Every post gets a quick check</summary>
-          <div class="learn-body">
-            <p><span class="says">LinkedIn says</span> Within moments, its systems sort each post as spam, low quality or fine. Spam and low-quality posts can be shown to fewer people, kept to your own network, or hidden.</p>
-            <p><span class="says">LinkedIn says</span> The posts that travel furthest are the ones that add ideas, insight and inspiration.</p>
-          </div>
-        </details>
-        <details>
-          <summary>Real conversations beat empty reactions</summary>
-          <div class="learn-body">
-            <p><span class="says">LinkedIn says</span> It promotes posts that spark conversations and discussion, and it gives more weight to meaningful comments than to empty ones.</p>
-            <p>A comment that responds to what you actually said is worth far more than a quick like or a "Great post!".</p>
-          </div>
-        </details>
-        <details>
-          <summary>Share what you know, as yourself</summary>
-          <div class="learn-body">
-            <p><span class="says">LinkedIn says</span> People value posts grounded in knowledge and advice, and posts from people they know. It also looks at whether you're writing about something you have real experience in.</p>
-            <p>Your internship, your setback, the lesson you learned the hard way: that's your expertise. It's why your posts here are written from the stories you share.</p>
-          </div>
-        </details>
-        <details>
-          <summary>The first two lines decide if people stop</summary>
-          <div class="learn-body">
-            <p><span class="says">LinkedIn says</span> It measures how long people spend on a post, and shows posts that people scroll straight past to fewer people.</p>
-            <p>So the lines people see before "…more" matter most. That's what <b>Add your line</b> is for: one line in your own words at the top gives people a reason to stop.</p>
-          </div>
-        </details>
-        <details>
-          <summary>You don't need a big following</summary>
-          <div class="learn-body">
-            <p><span class="says">LinkedIn says</span> The first few reactions and comments on a post matter most, and it deliberately moves some attention from the biggest accounts to everyone else.</p>
-            <p>A student with a few hundred connections can be seen. Showing up every week is what counts.</p>
-          </div>
-        </details>
-        <details>
-          <summary>What LinkedIn holds back</summary>
-          <div class="learn-body">
-            <p><span class="says">LinkedIn says</span> It won't promote posts that ask for likes or reactions just to boost reach ("Like if you agree", "Comment YES"), chain posts asking for shares, or repetitive and irrelevant comments. It can limit or remove them.</p>
-            <p><span class="says">LinkedIn says</span> Agreeing with friends to like or share each other's posts breaks its rules: it calls that artificial engagement.</p>
-          </div>
-        </details>
-        <details>
-          <summary>What tends to work</summary>
-          <div class="learn-body">
-            <p class="learn-note">Creators' rules of thumb, not LinkedIn's own words.</p>
-            <ul>
-              <li>Reply to comments, especially in the first hour after you post.</li>
-              <li>Post on a steady schedule rather than in bursts. Your weekly posts here do that for you.</li>
-              <li>Keep your profile complete: a clear photo, a headline that says what you do, and your college.</li>
-              <li>Short paragraphs and plain words. Write the way you talk.</li>
-              <li>Tag people only when they're really part of the story.</li>
-              <li>Post Studojo posts as they're written. If you want your own touch, add your own line at the top instead of rewriting the post.</li>
-            </ul>
-          </div>
-        </details>
-      </div>
-      <p class="learn-src">Sources: LinkedIn Engineering on how posts spread (2014), keeping the feed relevant (2017), giving smaller creators a fair share (2018) and time spent on posts (2020); the LinkedIn blog on what it won't promote (May 2022) and how the feed works (Aug 2022); LinkedIn's Alice Xiong and Dan Roth in Entrepreneur (June 2023); LinkedIn Help on spam, and LinkedIn's Professional Community Policies.</p>
-    </section>`;
-
-const LEARN_TEASER = `
-    <button class="card learn-teaser" type="button" data-act="tab" data-tab="learn">
-      <span class="lt-ic" aria-hidden="true"><svg class="ic"><use href="#i-book"/></svg></span>
-      <span class="lt-text"><b>Understand LinkedIn's algorithm</b><span>How LinkedIn decides who sees your post · 3 min read</span></span>
-      <svg class="ic ic-sm" aria-hidden="true"><use href="#i-arrow"/></svg>
-    </button>`;
-
-const PAGE = `
-<div class="page" id="page">
-  <aside class="rail-left" aria-label="Your profile">
-    <section class="card profile" id="profile"></section>
-  </aside>
-
-  <main class="feed" id="main" aria-busy="true">
-    <div class="notice" id="notice" hidden></div>
-    <section class="card card-pad shots" id="analytics" aria-labelledby="analytics-title"></section>
-    <section class="card ed-cover" id="ed-cover" aria-labelledby="ed-title"></section>${LEARN_TEASER}
-    <div class="feed-head">
-      <div class="fh-row"><h2>Your posts in full</h2></div>
-      <p id="feed-help">Loading your posts.</p>
-    </div>
-    <div class="post-list" id="posts"></div>
-  </main>
-
-  <aside class="rail-right" aria-label="Milestones and stories">
-    <section class="card card-pad" id="milestones" aria-labelledby="ms-title"></section>
-    <section class="card card-pad share" id="share" aria-labelledby="share-title"></section>
-  </aside>
-
-  <section class="activity card card-pad" id="activity" aria-labelledby="act-title"></section>${LEARN}
-</div>
-
-<nav class="m-tabs" id="m-tabs" aria-label="Sections">
-  <button type="button" data-act="tab" data-tab="home" aria-current="page"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>Home</span></button>
-  <button type="button" data-act="tab" data-tab="stories"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-mic"/></svg><span>Stories</span></button>
-  <button type="button" data-act="tab" data-tab="updates"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"/></svg><span>Activity</span></button>
-  <button type="button" data-act="tab" data-tab="milestones"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-briefcase"/></svg><span>Milestones</span></button>
-</nav>
-
+/**
+ * The page for one fellow's tab. The slug has passed normaliseSlug (lower-case letters, digits and one hyphen),
+ * so it goes into the links as it is.
+ */
+function pageShell(page: FellowPage, slug: string): string {
+  const base = `/fellowship-growth/${slug}`;
+  // How LinkedIn works is opened from You, so You stays the current tab there.
+  const current = page === "learn" ? "you" : page;
+  const links = FELLOW_TABS.map((t) => `<a class="tab" href="${t.path ? `${base}/${t.path}` : base}"${t.id === current ? ' aria-current="page"' : ""}>${icon(t.id)}<span>${t.label}</span></a>`).join("");
+  return `${head(TITLES[page], page)}
+<header class="top"><div class="top-in">
+  <a class="brand" href="${base}">${LOGO}<span>Growth Fellowship</span></a>
+  <nav class="tabs" aria-label="Sections">${links}</nav>
+  <a class="me-dot" id="me-dot" href="${base}/you" aria-label="You"></a>
+</div></header>
+<main class="page" id="main" aria-busy="true"><p class="loading">Loading your page</p></main>
+<nav class="tabbar" aria-label="Sections">${links}</nav>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
-<input class="sr-only" id="photo-file" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true">
-<input class="sr-only" id="analytics-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" tabindex="-1" aria-hidden="true">
-<dialog class="told" id="told" aria-labelledby="told-title">
-  <div class="told-head">
-    <h2 id="told-title">What you've told us</h2>
-    <button class="told-x" type="button" data-act="told-close" aria-label="Close"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
-  </div>
-  <div class="told-body" id="told-body"></div>
-</dialog>
-<dialog class="ask" id="ask" aria-labelledby="ask-title" aria-describedby="ask-sub">
-  <h2 class="ask-title" id="ask-title">Did you post it on LinkedIn?</h2>
-  <p class="ask-sub" id="ask-sub"></p>
-  <label class="panel-label" for="ask-url">Link to your post <span class="opt">(optional)</span></label>
-  <p class="panel-help" id="ask-help">On LinkedIn, open your post, tap the three dots, then Copy link to post. You can add it later too.</p>
-  <input class="field" id="ask-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="linkedin.com/posts/..." aria-describedby="ask-help ask-err">
-  <p class="err" id="ask-err"></p>
-  <div class="panel-actions">
-    <button class="btn btn-ghost" type="button" data-act="ask-no">Not yet</button>
-    <button class="btn btn-primary" type="button" data-act="ask-yes" autofocus>Yes, I posted it</button>
-  </div>
-</dialog>
-<script src="/fellowship/feed.js?v=${ASSET_VERSION}" defer></script>
-<script src="/fellowship/tour.js?v=${ASSET_VERSION}" defer></script>
+<script src="/fellowship/fellow.js?v=${ASSET_VERSION}" defer></script>
 </body>
 </html>`;
+}
 
-const message = (title: string, text: string) => `
-<main class="page page-message">
-  <section class="card card-pad message-card">
-    <h1 class="card-title">${title}</h1>
-    <p class="card-sub">${text}</p>
-  </section>
+// A message page has nothing to switch to: no tabs, and the logo is not a link.
+const message = (title: string, text: string) => `${head(title, "message")}
+<header class="top"><div class="top-in">
+  <span class="brand">${LOGO}<span>Growth Fellowship</span></span>
+</div></header>
+<main class="page" id="main">
+  <div class="card message"><h1>${title}</h1><p>${text}</p></div>
 </main>
 </body>
 </html>`;
 
-export function fellowPageHtml(state: "ok" | "missing" | "error"): string {
-  if (state === "ok") return head(PAGE_TOP) + PAGE;
-  if (state === "missing") {
-    return head(MESSAGE_TOP) + message("This link isn't working", "Check you opened the whole link from your message. If it still doesn't open, ask the Studojo team on WhatsApp for your link.");
-  }
-  return head(MESSAGE_TOP) + message("We couldn't load your page", "Something went wrong on our side. Please try again in a minute.");
+export function fellowPageHtml(state: "ok" | "missing" | "error", page: FellowPage = "today", slug = ""): string {
+  if (state === "ok" && slug) return pageShell(page, slug);
+  if (state === "error") return message("We couldn't load your page", "Something went wrong on our side. Please try again in a minute.");
+  return message("This link isn't working", "Check you opened the whole link from your message. If it still doesn't open, ask the Studojo team on WhatsApp for your link.");
 }
