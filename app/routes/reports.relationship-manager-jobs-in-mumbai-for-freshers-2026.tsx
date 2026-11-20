@@ -70,10 +70,6 @@ const R: DataReportContent = {
             "5"
           ],
           [
-            "Virtual Relationship Manager (Vrm) - Kotak Mahindra Bank...Apply Here!",
-            "3"
-          ],
-          [
             "Relationship Officer",
             "3"
           ],

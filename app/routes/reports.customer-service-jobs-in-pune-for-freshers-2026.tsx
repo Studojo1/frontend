@@ -98,14 +98,6 @@ const R: DataReportContent = {
           [
             "Customer Support Representative",
             "6"
-          ],
-          [
-            "Jr Customer Service Executive Global Customer Service Operations Tata Communications Limited",
-            "6"
-          ],
-          [
-            "Wns // Customer Service // Chat & Voice // Sal Upto 5Lpa",
-            "4"
           ]
         ],
         "note": "Titles exactly as employers wrote them. 132 different employers posted these listings, and 2.9% of listings do not name the employer."

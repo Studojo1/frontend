@@ -72,10 +72,6 @@ const R: DataReportContent = {
             "85"
           ],
           [
-            "Voice Process Executive Atain",
-            "46"
-          ],
-          [
             "Customer Support Executive",
             "36"
           ],
@@ -233,7 +229,7 @@ const R: DataReportContent = {
     }
   ],
   "method": [
-    "This report counts **520 listings** from the Studojo Jobs Index: active listings for India posted between 1 and 15 November 2026, tagged entry-level or internship, as of our pull on 17 November 2026. A listing counts as customer service when its job title matches that role (the most common titles here: \"Voice Process Executive\", \"Voice Process Executive Atain\", \"Customer Support Executive\"). It counts for the city when it names Delhi as a location.",
+    "This report counts **520 listings** from the Studojo Jobs Index: active listings for India posted between 1 and 15 November 2026, tagged entry-level or internship, as of our pull on 17 November 2026. A listing counts as customer service when its job title matches that role (the most common titles here: \"Voice Process Executive\", \"Customer Support Executive\", \"Customer Service Executive\"). It counts for the city when it names Delhi as a location.",
     "Pay: 274 of 513 entry-level listings (53.4%) state a salary in rupees and 0 of 7 internships (0.0%) state a stipend. We use the top of each stated range, per year for jobs and per month for internships, and leave out listings that state no pay or pay in another currency.",
     "Skills and terms are counted on the 393 listings (75.6%) whose description has at least 200 characters, by keyword match, so one listing can count for several skills (cloud and AI mentions that come from one large employer's standard company description are not counted). The listings come from job boards (Naukri, Shine, LinkedIn, Internshala) and company career pages; the same opening posted in two places can appear twice, and listings that closed before 17 November are not counted.",
     "The sources the index reads change from month to month, so compare shares between editions, not counts. Studojo builds this index for Stu, its AI career agent, to match people to jobs and find who is hiring. The report describes listings, not hires, and two weeks of data is not a trend."

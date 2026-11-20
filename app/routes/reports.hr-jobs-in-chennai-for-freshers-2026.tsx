@@ -96,10 +96,6 @@ const R: DataReportContent = {
             "5"
           ],
           [
-            "Us It Recruiter Apptad Inc",
-            "5"
-          ],
-          [
             "Human Resource Executive",
             "4"
           ],
