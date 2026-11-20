@@ -836,7 +836,7 @@ const R: DataReportContent = {
   },
   "directory": {
     "title": "Reports built on this index",
-    "sub": "51 new reports on November data, and the October edition",
+    "sub": "76 new reports on November data, and the October edition",
     "groups": [
       {
         "heading": "New this edition: a role in a city",
@@ -1004,6 +1004,74 @@ const R: DataReportContent = {
           {
             "href": "/reports/accountant-jobs-in-delhi-for-freshers-2026",
             "label": "Accountant Jobs in Delhi for Freshers 2026"
+          },
+          {
+            "href": "/reports/telecaller-jobs-in-bangalore-for-freshers-2026",
+            "label": "Telecaller Jobs in Bangalore for Freshers 2026"
+          },
+          {
+            "href": "/reports/telecaller-jobs-in-chennai-for-freshers-2026",
+            "label": "Telecaller Jobs in Chennai for Freshers 2026"
+          },
+          {
+            "href": "/reports/telecaller-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Telecaller Jobs in Hyderabad for Freshers 2026"
+          },
+          {
+            "href": "/reports/relationship-manager-jobs-in-chennai-for-freshers-2026",
+            "label": "Relationship Manager Jobs in Chennai 2026"
+          },
+          {
+            "href": "/reports/relationship-manager-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Relationship Manager Jobs in Hyderabad 2026"
+          },
+          {
+            "href": "/reports/field-sales-jobs-in-pune-for-freshers-2026",
+            "label": "Field Sales Jobs in Pune for Freshers 2026"
+          },
+          {
+            "href": "/reports/field-sales-jobs-in-kolkata-for-freshers-2026",
+            "label": "Field Sales Jobs in Kolkata for Freshers 2026"
+          },
+          {
+            "href": "/reports/process-associate-jobs-in-chennai-for-freshers-2026",
+            "label": "Process Associate Jobs in Chennai 2026"
+          },
+          {
+            "href": "/reports/process-associate-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Process Associate Jobs in Hyderabad 2026"
+          },
+          {
+            "href": "/reports/accountant-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Accountant Jobs in Hyderabad 2026"
+          },
+          {
+            "href": "/reports/accountant-jobs-in-chennai-for-freshers-2026",
+            "label": "Accountant Jobs in Chennai 2026"
+          },
+          {
+            "href": "/reports/customer-service-jobs-in-ahmedabad-for-freshers-2026",
+            "label": "Customer Service Jobs in Ahmedabad 2026"
+          },
+          {
+            "href": "/reports/customer-service-jobs-in-jaipur-for-freshers-2026",
+            "label": "Customer Service Jobs in Jaipur 2026"
+          },
+          {
+            "href": "/reports/hr-jobs-in-ahmedabad-for-freshers-2026",
+            "label": "HR Jobs in Ahmedabad for Freshers 2026"
+          },
+          {
+            "href": "/reports/business-development-jobs-in-kolkata-for-freshers-2026",
+            "label": "Business Development Jobs in Kolkata 2026"
+          },
+          {
+            "href": "/reports/operations-executive-jobs-in-mumbai-for-freshers-2026",
+            "label": "Operations Executive Jobs Mumbai 2026"
+          },
+          {
+            "href": "/reports/supply-chain-jobs-in-bangalore-for-freshers-2026",
+            "label": "Supply Chain Jobs Bangalore 2026"
           }
         ]
       },
@@ -1049,6 +1117,38 @@ const R: DataReportContent = {
           {
             "href": "/reports/operations-internship-india-2026",
             "label": "Operations Internship India 2026"
+          },
+          {
+            "href": "/reports/data-analyst-internship-india-2026",
+            "label": "Data Analyst Internship 2026"
+          },
+          {
+            "href": "/reports/data-science-internship-india-2026",
+            "label": "Data Science Internship 2026"
+          },
+          {
+            "href": "/reports/seo-internship-india-2026",
+            "label": "SEO Internship in India 2026"
+          },
+          {
+            "href": "/reports/accounting-internship-india-2026",
+            "label": "Accounting Internship in India 2026"
+          },
+          {
+            "href": "/reports/financial-analyst-internship-india-2026",
+            "label": "Financial Analyst Internship India 2026"
+          },
+          {
+            "href": "/reports/ui-ux-design-internship-india-2026",
+            "label": "UI/UX Design Internship India 2026"
+          },
+          {
+            "href": "/reports/law-internship-india-2026",
+            "label": "Law Internship in India 2026"
+          },
+          {
+            "href": "/reports/electrical-engineering-internship-india-2026",
+            "label": "Electrical Engineering Internship 2026"
           }
         ]
       },

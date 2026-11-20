@@ -98,14 +98,6 @@ const R: DataReportContent = {
           [
             "Customer Service Representative",
             "5"
-          ],
-          [
-            "Swiggy Process Hiring Customer Service Executive(Voice/Chat Process)",
-            "4"
-          ],
-          [
-            "Amazon Us Process Hiring Customer Service Executive.",
-            "4"
           ]
         ],
         "note": "Titles exactly as employers wrote them. 118 different employers posted these listings, and 0.7% of listings do not name the employer."
