@@ -7,8 +7,8 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Do Hiring Managers Read Cold Emails? The 2026 Report | Studojo" },
-    { name: "description", content: "Do hiring managers read cold emails? Yes, the short, relevant ones. What gets read, what gets deleted, and a checklist for an email they will open." },
+    { title: "Do Hiring Managers Read Cold Emails? Yes, the Short Ones | Studojo" },
+    { name: "description", content: "Do hiring managers read cold emails? Yes, the short, specific ones about their team. What gets read, what gets deleted, and how to send one that is opened." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "do hiring managers read cold emails, do recruiters read cold emails, is it okay to email a hiring manager directly, does cold emailing for jobs work, cold email hiring manager, is it unprofessional to email hiring manager" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/do-hiring-managers-read-cold-emails-2026` },
@@ -312,7 +312,7 @@ export default function DoHiringManagersReadColdEmailsReport() {
         "description": "Do hiring managers read cold emails? The short, relevant ones, yes. What gets read, what gets deleted, and an editorial checklist for writing one.",
         "url": `${BASE_URL}/reports/do-hiring-managers-read-cold-emails-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-21T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/do-hiring-managers-read-cold-emails-2026` },
@@ -366,7 +366,7 @@ export default function DoHiringManagersReadColdEmailsReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -381,7 +381,7 @@ export default function DoHiringManagersReadColdEmailsReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
-              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Hiring managers own the hiring problem.</strong> The empty seat is on their team, so a short, relevant note about that work is worth their time. In our view, that is why the good ones get read.</span></div>
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Our verdict (November 2026): yes, the short, relevant ones get read.</strong> Hiring managers own the hiring problem. The empty seat is on their team, so a short note about that work is worth their time.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>What gets read: <strong>a subject naming the role or their work, a first line about them, one proof point, one ask</strong>.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>What gets deleted: <strong>generic blasts and attachment-only emails</strong>, along with "Dear Sir/Madam" and requests for "any opening".</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>You get seconds. Recruiters spend about <strong>6 to 7 seconds</strong> on a first resume scan (Ladders, 2018). Write as if your first line gets the same glance.</span></div>
@@ -599,15 +599,15 @@ export default function DoHiringManagersReadColdEmailsReport() {
               <div className="sec-num">6</div>
               <div>
                 <div className="sec-title">Studojo Writes This Email for You</div>
-                <div className="sec-sub">One person at a time, sent from your Gmail</div>
+                <div className="sec-sub">One person at a time, sent from your own inbox</div>
               </div>
             </div>
             <p>Everything above takes time per email: finding the right person, getting an address that will not bounce, reading their work, writing a first line that is actually about them. That is the work that makes an email worth reading, and it is the work most people skip.</p>
-            <p>We built Studojo to do exactly this. It finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail. One person at a time, never a blast.</p>
+            <p>We built Studojo to do exactly this. It finds the person who can actually hire you (the hiring manager or team lead, not a generic HR inbox), verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own inbox once you start a campaign. One person at a time, never a blast.</p>
             <div className="highlight">
-              So far, <strong>8,700+ students have signed up to Studojo.</strong>
+              <strong>How do I send a cold email to a hiring manager?</strong> Find the person who runs the team you want to join and get their work email. Write 60 to 120 words: one line about their work, one proof point from yours, one small ask. Send it from your own address, then follow up once, about a week later.
             </div>
-            <p>Replies are not guaranteed. A specific email to the person who decides is still, in our view, the best shot you can take.</p>
+            <p>Replies are not guaranteed. A specific email to the person who decides is still, in our view, the best shot you can take. If a role is posted, read <Link to="/blog/email-hiring-manager-before-applying">whether to email the hiring manager before you apply</Link>; if nothing is posted, start with <Link to="/blog/how-to-contact-a-company-for-a-job">how to contact a company for a job</Link>.</p>
           </div>
 
           {/* FAQ */}
