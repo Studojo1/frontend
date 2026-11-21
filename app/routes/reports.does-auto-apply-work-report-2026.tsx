@@ -7,8 +7,8 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Does Auto-Apply Work? The Numbers Say No (2026 Report) | Studojo" },
-    { name: "description", content: "Does auto apply work? At 0.1% to 2% per application, bots add volume, not odds. How recruiters catch them, what LinkedIn's terms say, and what works instead." },
+    { title: "Does Auto Apply Work? The 2026 Numbers Say No | Studojo" },
+    { name: "description", content: "Does auto apply work? No. An online application succeeds 0.1% to 2% of the time and bots add volume, not odds. How recruiters catch them, and what works." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "does auto apply work, auto apply jobs, AI job application bot, auto apply bot, mass apply jobs, is auto apply worth it, auto apply job reddit" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/does-auto-apply-work-report-2026` },
@@ -278,7 +278,15 @@ const FAQ = [
   },
   {
     q: "What works better than mass applying to jobs?",
-    a: "Emailing the person who actually hires: the hiring manager or team lead, not a generic HR inbox. Keep it short, personal and specific, send it from your own email address, and follow up once. Studojo does this for you, from finding and verifying the person to sending the email from your own Gmail.",
+    a: "Emailing the person who actually hires: the hiring manager or team lead, not a generic HR inbox. Keep it short, personal and specific, send it from your own email address, and follow up once. Studojo does this for you, from finding and verifying the person to sending the email from your own inbox once you start a campaign.",
+  },
+  {
+    q: "Is there an app that auto applies to jobs?",
+    a: "Yes. LazyApply, JobCopilot, Jobright and AIApply all sell some form of automatic applying, each with its own plans and limits on its own site. We do not recommend any of them as a strategy: they add your application to a pile of about 242 per opening (The Interview Guys, April 2026) without changing the odds of each one. Stu, Studojo's career agent, does not mass apply. It writes to the person who is hiring instead.",
+  },
+  {
+    q: "Can I use AI to auto apply for jobs?",
+    a: "You can, but we think you should not. Recruiters watch for bot patterns, such as one person applying to dozens of roles at the same company (NBC News, November 2024), and LinkedIn's terms ban bots and automation tools. Use AI to research a company and draft one email, then send it to the hiring manager from your own address, or let Studojo find that person and write it for you.",
   },
 ];
 
@@ -301,7 +309,7 @@ export default function DoesAutoApplyWorkReport() {
         "description": "A 2026 look at auto-apply bots and mass applying: the success rate per application, how recruiters catch bots, what LinkedIn's terms say, and what works instead.",
         "url": `${BASE_URL}/reports/does-auto-apply-work-report-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-21T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/does-auto-apply-work-report-2026` },
@@ -356,7 +364,7 @@ export default function DoesAutoApplyWorkReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -375,7 +383,7 @@ export default function DoesAutoApplyWorkReport() {
               <div className="kf-item"><span className="kf-check">✓</span><span>One reported auto-apply account got <strong>about 5 interviews from thousands of applications</strong>, about 0.1%.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>One bulk-apply service <strong>shut its bulk-send feature in August 2025</strong>, at roughly one interview per fifty sends.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Recruiters catch bots with <strong>hidden instructions in job posts</strong> and by spotting one person applying to dozens of roles at one company (NBC News, November 2024). LinkedIn's terms ban bots and automation tools.</span></div>
-              <div className="kf-item"><span className="kf-check">✓</span><span>Our verdict: auto-apply does not work. <strong>One personal email to the hiring manager beats a hundred bot applications</strong>, and Studojo is built to send it for you.</span></div>
+              <div className="kf-item"><span className="kf-check">✓</span><span>Our verdict (rechecked November 2026): auto-apply does not work. <strong>One personal email to the hiring manager beats a hundred bot applications</strong>, and Studojo is built to send it for you.</span></div>
             </div>
           </div>
 
@@ -585,8 +593,8 @@ export default function DoesAutoApplyWorkReport() {
               <p>"One personal email to the hiring manager beats a hundred bot applications."</p>
               <span className="pq-source">Studojo's verdict on auto-apply</span>
             </div>
-            <p>We built Studojo to do exactly this. It finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own Gmail.</p>
-            <p>So far, 8,700+ students have signed up to Studojo. Replies are not guaranteed. But a real email to a real person is a far better bet than a bot in a queue.</p>
+            <p>We built Studojo to do exactly this. It finds the person who can actually hire you, verifies their email address, writes a personal email for that one person based on your background and their work, and sends it from your own inbox once you start a campaign.</p>
+            <p>Replies are not guaranteed. But a real email to a real person is a far better bet than a bot in a queue. If you were about to pay for a tool, read our <Link to="/blog/sonara-ai-review">Sonara AI review</Link> first, and see why the <Link to="/blog/auto-apply-jobs-github">auto-apply bots on GitHub</Link> carry the same risks.</p>
           </div>
 
           {/* FAQ */}
