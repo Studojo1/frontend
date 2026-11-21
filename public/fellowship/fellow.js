@@ -259,7 +259,7 @@
 
   function drawToday() {
     const M = V.me, today = TODAY();
-    const posts = weekPosts(), done = postedCount(), due = dueCount(), next = nextPost(), late = latePosts();
+    const posts = weekPosts(), done = postedCount(), due = dueCount(), next = nextPost();
     const hour = new Date().getHours(), hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
     const cards = [];
     if (M.paused) cards.push(`<div class="notice">${ic("pause")}<p>Your fellowship is paused for now. Message the Studojo team on WhatsApp to pick it back up.</p></div>`);
@@ -313,11 +313,6 @@
         </div>
       </div>`);
     }
-    if (late.length) {
-      cards.push(`<div class="card list pad0"><p class="list-title">From earlier weeks</p>
-        ${late.map((p) => `<a class="item" href="${HREF.post}?id=${encodeURIComponent(p.id)}"><span class="ic-bubble warm">${ic("post")}</span><span class="item-main"><span class="item-title">${esc(p.title)}</span><span class="item-sub">Was due ${esc(dow(p.date))} ${esc(dmed(p.date))}. Not marked as posted</span></span>${ic("chev", "chev")}</a>`).join("")}
-      </div>`);
-    }
     const a = M.analytics;
     cards.push(`<div class="tiles">
       <a class="card tile" href="${HREF.talk}"><span class="ic-bubble">${ic("talk")}</span><span><span class="big">Talk</span><span class="small">${M.stories.length ? plural(M.stories.length, "story", "stories") + " shared" : "Share your first story"}</span></span></a>
@@ -343,7 +338,7 @@
     let p = UP.cur ? all.find((x) => x.id === UP.cur) : null;
     if (!p) {
       const want = new URLSearchParams(location.search).get("id");
-      p = all.find((x) => x.id === want) || nextPost() || latePosts()[0] || counted()[0] || weekPosts()[0] || null;
+      p = all.find((x) => x.id === want) || nextPost() || counted()[0] || weekPosts()[0] || null;
     }
     UP.cur = p ? p.id : null;
     return p;
@@ -357,13 +352,13 @@
 
   function drawPost() {
     const M = V.me, today = TODAY();
-    const p = currentPost(), next = nextPost(), late = latePosts(), week = weekPosts();
+    const p = currentPost(), next = nextPost(), week = weekPosts();
     const head = `<p class="eyebrow">${p && p.late ? "From an earlier week" : `Week ${nf(M.weekNo)} · ${nf(postedCount())} of ${nf(dueCount())} posted`}</p><h1>Post</h1>`;
     if (!p) {
       main.innerHTML = `${head}<div class="stack"><div class="card"><h2>${esc(noPosts())}</h2><p class="body">${M.paused ? "Message the Studojo team on WhatsApp to pick it back up." : "They'll show up here as soon as they're ready."}</p></div></div>`;
       return;
     }
-    const chips = late.map((x) => chip(x, false)).join("") + (late.length && week.length ? `<span class="daybar-sep" aria-hidden="true"></span>` : "") + week.map((x) => chip(x, next && x.id === next.id)).join("");
+    const chips = week.map((x) => chip(x, next && x.id === next.id)).join("");
     const bar = `<div class="daybar" role="group" aria-label="Your posts">${chips}</div>`;
     if (onHold(p)) {
       main.innerHTML = `${head}${bar}<div class="stack"><div class="card hold-card">
@@ -970,7 +965,7 @@
     for (const wk of M.history) {
       if (!wk.posts.length && !(wk.missed || []).length) continue;
       weeks.push({ label: `${dmed(wk.week)} to ${dmed(addDays(wk.week, 6))}`, sub: wk.complete ? (wk.due === 1 ? "Posted" : `All ${wk.due} posted`) : `${wk.posts.length} of ${wk.due} posted`,
-        posts: wk.posts.map((p) => Object.assign({ editable: !p.metrics && !!p.numbersDue && p.numbersDue <= today }, p)) });
+        posts: wk.posts.map((p) => Object.assign({ editable: !p.metrics && !!p.numbersDue && p.numbersDue <= today }, p)), missed: wk.missed || [] });
     }
     const row = (p) => {
       const m = p.metrics, when = p.postedAt ? `${dshort(p.postedAt)} ${dmed(p.postedAt)}` : dmed(p.date);
@@ -979,6 +974,8 @@
       const inner = `<span class="ic-bubble ${p.kind === "studojo" ? "blue" : ""}">${ic("post")}</span><span class="item-main"><span class="item-title">${esc(p.title)}</span><span class="item-sub">${esc(sub)}</span></span><span class="item-end ${!m && p.editable ? "blue" : ""}">${esc(end)}</span>`;
       return p.editable ? `<button class="item" type="button" data-act="numbers" data-id="${esc(p.id)}" aria-label="${esc(p.title)}: ${m ? `${nf(m.impressions)} impressions. Edit numbers` : "add your numbers"}">${inner}</button>` : `<div class="item">${inner}</div>`;
     };
+    // A post from that week that never went up, as on the old page's activity: it opens on Post, where it can still be posted and marked.
+    const missedRow = (p) => `<a class="item" href="${HREF.post}?id=${encodeURIComponent(p.id)}"><span class="ic-bubble warm">${ic("post")}</span><span class="item-main"><span class="item-title">${esc(p.title)}</span><span class="item-sub">${esc(`${dshort(p.date)} ${dmed(p.date)} · Not marked as posted`)}</span></span>${ic("chev", "chev")}</a>`;
     const lines = seenLines();
     main.innerHTML = `
       <p class="eyebrow">${a && a.periodStart && a.periodEnd ? `${esc(dmed(a.periodStart))} to ${esc(dmed(a.periodEnd))}` : "Every Sunday"}</p>
@@ -1001,7 +998,7 @@
           <p class="note">These steps are for LinkedIn on a computer.</p>
         </details>
         ${lines.length ? `<div class="card"><p class="card-label">What we're seeing</p><ul class="seen">${lines.map((l) => `<li>${l}</li>`).join("")}</ul></div>` : ""}
-        ${weeks.map((wk) => `<div class="card list pad0"><p class="list-title">${esc(wk.label)}</p><p class="item-sub list-sub">${esc(wk.sub)}</p>${wk.posts.map(row).join("") || `<div class="item"><span class="item-sub">Nothing posted that week.</span></div>`}</div>`).join("")}
+        ${weeks.map((wk) => `<div class="card list pad0"><p class="list-title">${esc(wk.label)}</p><p class="item-sub list-sub">${esc(wk.sub)}</p>${(wk.missed || []).map(missedRow).join("") + wk.posts.map(row).join("") || `<div class="item"><span class="item-sub">Nothing posted that week.</span></div>`}</div>`).join("")}
       </div>`;
   }
 
