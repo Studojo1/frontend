@@ -2182,6 +2182,18 @@ const REPORTS = [
   },
   // SEO-BULK 11 Nov 2026: end
   {
+    slug: "summer-internships-2027-india",
+    publishDate: "2026-11-26",
+    title: "Summer Internship 2027 in India: What Has Closed, What Is Open Now and What Opens Next",
+    subtitle: "Internships · 2027",
+    excerpt: "The IIM and IIT campus windows for summer 2027 have run. RBI takes applications until 15 December, the Science Academies fellowship closes on 30 November and NITI Aayog opens monthly. The calendar from the official pages, and who to email before the portal rush.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "November 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "internships-indore-2026",
     publishDate: "2026-11-18",
     title: "Internship in Indore 2026: What 118 Listings Show, What to Ask and Who to Email",

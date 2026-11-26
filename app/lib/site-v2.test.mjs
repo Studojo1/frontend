@@ -169,7 +169,8 @@ const PINNED = {
   // SEO day 23 (18 Nov): one REPORTS entry for internships-indore-2026 (its route and sitemap entry too), nothing else changed
   // SEO-NOV2 (18 Nov): 25 more REPORTS entries (10 internships by role, 15 role-in-city) for the November 2026 Jobs Index (their routes and sitemap entries too), nothing else changed
   // SEO-NOV3 (20 Nov): 25 more REPORTS entries (17 role-in-city, 8 internships by role) for the November 2026 Jobs Index (their routes and sitemap entries too), nothing else changed
-  "routes/reports.tsx": "8d062faec763add0", // re-pinned 20 Nov for the 25 SEO-NOV3 data reports (REPORTS entries only)
+  // SEO day 31 (26 Nov): one REPORTS entry for summer-internships-2027-india (its route and sitemap entry too), nothing else changed
+  "routes/reports.tsx": "dae23e39ba06665a", // re-pinned 26 Nov for summer-internships-2027-india (REPORTS entry only)
   // 11 Nov: re-pinned to the actual hash; terms.tsx was changed on relaunch/site by c9c1fc95 ("Terms: section 5 says
   // how Stu's sending differs") without updating this pin, which left the Tests check red for every PR. Content unchanged.
   "routes/terms.tsx": "7d0e2c9f1c7f16ae",
