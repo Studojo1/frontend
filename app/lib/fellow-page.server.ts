@@ -5,6 +5,7 @@ import { checkRateLimit } from "~/lib/ratelimit.server";
 import { proofStore } from "~/lib/fellow-proof.server";
 import { CoachUnavailable, readBack, type CoachAsk, type CoachProfile } from "~/lib/fellow-coach.server";
 import { stockById, stockFor, stockJpeg, stockSearch, StockTooBig, type StockPick } from "~/lib/fellow-stock.server";
+import { fileWeekOf, postsWithFileNumbers } from "~/lib/fellowship-files";
 import {
   activityOf,
   AnalyticsFileError,
@@ -82,7 +83,7 @@ export async function findFellow(slug: string): Promise<FellowRow | null> {
 }
 
 export async function loadFellowView(fellow: FellowRow, now: Date = new Date()): Promise<FellowView> {
-  const [application, posts, stories, connections, rules, analytics] = await Promise.all([
+  const [application, savedPosts, stories, connections, rules, analytics, fileWeeks] = await Promise.all([
     fellow.application_id
       ? db.execute(sql`SELECT course, year_of_study, city FROM ugc_applications WHERE id = ${fellow.application_id}`)
           .then((r) => rows<ApplicationRow>(r)[0] ?? null)
@@ -125,7 +126,17 @@ export async function loadFellowView(fellow: FellowRow, now: Date = new Date()):
       LIMIT 1
     `).then((r) => rows<AnalyticsRow>(r)[0] ?? null)
       .catch(() => null),
+    // Every export they uploaded, for the posts each one lists (as the admin reads them). The page works without them.
+    db.execute(sql`
+      SELECT uploaded_at, period_start::text AS period_start, period_end::text AS period_end, data->'posts' AS posts
+      FROM ugc_creator_analytics
+      WHERE creator_id = ${fellow.id}
+      ORDER BY uploaded_at
+    `).then((r) => rows<Row>(r).map((x) => fileWeekOf({ uploaded_at: x.uploaded_at, period_start: x.period_start, period_end: x.period_end, posts: x.posts })))
+      .catch(() => []),
   ]);
+  // A post their files cover shows its numbers, so they aren't asked to type them in (Harsh, 26 Nov 2026).
+  const posts = postsWithFileNumbers(savedPosts, fileWeeks);
   return buildFellowView({ fellow, application, posts, stories, connections, rules, analytics }, now.getTime());
 }
 
