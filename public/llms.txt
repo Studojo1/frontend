@@ -32,6 +32,8 @@ Studojo's position: mass auto-apply bots and spray-and-pray online applications 
 - Only 8.1% of listings with a description give an email address to apply to; the rest go through a form.
 - Of the 26,200 entry-level jobs that state pay, 8,266 (31.5%) reach ₹5 lakh a year or more at the top of the stated range.
 - Few internships state a stipend in any field: 23 of 1,306 marketing internships, 51 of 877 HR internships, 1 of 288 data analyst internships, and none of the 122 UI/UX design internships.
+- Listings with AR calling or denials in the job title (US healthcare billing work done from India): 2,843 in the first half of November 2026; 75.5% of the jobs among them state pay, with a median of ₹5 lakh a year at the top of the stated range.
+- Technical internships rarely state a stipend either: none of 105 software development internships, 2 of 79 software testing internships, 1 of 75 cybersecurity internships and 6 of 67 mechanical engineering internships.
 - Customer Service Jobs in Mumbai 2026: https://studojo.com/reports/customer-service-jobs-in-mumbai-for-freshers-2026
 - Customer Service Jobs in Gurgaon 2026: https://studojo.com/reports/customer-service-jobs-in-gurgaon-for-freshers-2026
 - Customer Service Jobs in Chennai 2026: https://studojo.com/reports/customer-service-jobs-in-chennai-for-freshers-2026
@@ -108,6 +110,65 @@ Studojo's position: mass auto-apply bots and spray-and-pray online applications 
 - UI/UX Design Internship India 2026: https://studojo.com/reports/ui-ux-design-internship-india-2026
 - Law Internship in India 2026: https://studojo.com/reports/law-internship-india-2026
 - Electrical Engineering Internship 2026: https://studojo.com/reports/electrical-engineering-internship-india-2026
+- Hotel Jobs in Bangalore for Freshers 2026: https://studojo.com/reports/hotel-hospitality-jobs-in-bangalore-for-freshers-2026
+- Social Media Jobs Mumbai for Freshers 2026: https://studojo.com/reports/social-media-jobs-in-mumbai-for-freshers-2026
+- Retail Sales Jobs in Bangalore for Freshers: https://studojo.com/reports/retail-sales-jobs-in-bangalore-for-freshers-2026
+- Hotel Jobs in Delhi for Freshers 2026: https://studojo.com/reports/hotel-hospitality-jobs-in-delhi-for-freshers-2026
+- Marketing Jobs in Noida for Freshers 2026: https://studojo.com/reports/marketing-executive-jobs-in-noida-for-freshers-2026
+- Operations Executive Jobs Bangalore 2026: https://studojo.com/reports/operations-executive-jobs-in-bangalore-for-freshers-2026
+- Supply Chain Jobs Mumbai 2026: https://studojo.com/reports/supply-chain-jobs-in-mumbai-for-freshers-2026
+- Delhi Social Media Jobs for Freshers 2026: https://studojo.com/reports/social-media-jobs-in-delhi-for-freshers-2026
+- Hotel Jobs in Hyderabad for Freshers 2026: https://studojo.com/reports/hotel-hospitality-jobs-in-hyderabad-for-freshers-2026
+- Teaching Jobs Bangalore 2026: https://studojo.com/reports/teacher-jobs-in-bangalore-for-freshers-2026
+- Graphic Designer Jobs Mumbai, Freshers 2026: https://studojo.com/reports/graphic-designer-jobs-in-mumbai-for-freshers-2026
+- Retail Sales Jobs in Mumbai for Freshers: https://studojo.com/reports/retail-sales-jobs-in-mumbai-for-freshers-2026
+- Bangalore Social Media Jobs, Freshers 2026: https://studojo.com/reports/social-media-jobs-in-bangalore-for-freshers-2026
+- Field Sales Jobs in Ahmedabad for Freshers: https://studojo.com/reports/field-sales-jobs-in-ahmedabad-for-freshers-2026
+- Telecaller Jobs in Pune for Freshers: https://studojo.com/reports/telecaller-jobs-in-pune-for-freshers-2026
+- Hotel Jobs in Chennai for Freshers 2026: https://studojo.com/reports/hotel-hospitality-jobs-in-chennai-for-freshers-2026
+- Marketing Jobs in Pune for Freshers 2026: https://studojo.com/reports/marketing-executive-jobs-in-pune-for-freshers-2026
+- Marketing Jobs in Hyderabad for Freshers 2026: https://studojo.com/reports/marketing-executive-jobs-in-hyderabad-for-freshers-2026
+- Pune Relationship Manager Jobs for Freshers: https://studojo.com/reports/relationship-manager-jobs-in-pune-for-freshers-2026
+- Fresher Relationship Manager Jobs in Delhi: https://studojo.com/reports/relationship-manager-jobs-in-delhi-for-freshers-2026
+- Digital Marketing Jobs in Mumbai 2026: https://studojo.com/reports/digital-marketing-jobs-in-mumbai-for-freshers-2026
+- Digital Marketing Jobs Bangalore 2026: https://studojo.com/reports/digital-marketing-jobs-in-bangalore-for-freshers-2026
+- Marketing Jobs in Gurgaon for Freshers 2026: https://studojo.com/reports/marketing-executive-jobs-in-gurgaon-for-freshers-2026
+- Audit Jobs in Mumbai for Freshers 2026: https://studojo.com/reports/audit-jobs-in-mumbai-for-freshers-2026
+- HR Jobs in Kolkata for Freshers 2026: https://studojo.com/reports/hr-jobs-in-kolkata-for-freshers-2026
+- Tech Support Jobs in Hyderabad 2026: https://studojo.com/reports/technical-support-jobs-in-hyderabad-for-freshers-2026
+- Electrical Engineer Jobs in Bangalore 2026: https://studojo.com/reports/electrical-engineer-jobs-in-bangalore-for-freshers-2026
+- Accountant Jobs in Pune for Freshers: https://studojo.com/reports/accountant-jobs-in-pune-for-freshers-2026
+- Business Development Jobs in Ahmedabad 2026: https://studojo.com/reports/business-development-jobs-in-ahmedabad-for-freshers-2026
+- Technical Support Jobs in Chennai 2026: https://studojo.com/reports/technical-support-jobs-in-chennai-for-freshers-2026
+- Telecaller Jobs in Kolkata 2026: https://studojo.com/reports/telecaller-jobs-in-kolkata-for-freshers-2026
+- Retail Sales Jobs in Pune for Freshers: https://studojo.com/reports/retail-sales-jobs-in-pune-for-freshers-2026
+- Telecaller Jobs in Gurgaon 2026: https://studojo.com/reports/telecaller-jobs-in-gurgaon-for-freshers-2026
+- Mechanical Engineer Jobs in Bangalore 2026: https://studojo.com/reports/mechanical-engineer-jobs-in-bangalore-for-freshers-2026
+- Field Sales Jobs in Jaipur for Freshers: https://studojo.com/reports/field-sales-jobs-in-jaipur-for-freshers-2026
+- Marketing Jobs in Chennai for Freshers 2026: https://studojo.com/reports/marketing-executive-jobs-in-chennai-for-freshers-2026
+- Hotel Jobs in Pune for Freshers 2026: https://studojo.com/reports/hotel-hospitality-jobs-in-pune-for-freshers-2026
+- Digital Marketing Jobs in Noida 2026: https://studojo.com/reports/digital-marketing-jobs-in-noida-for-freshers-2026
+- Digital Marketing Jobs in Delhi 2026: https://studojo.com/reports/digital-marketing-jobs-in-delhi-for-freshers-2026
+- Content Writer Jobs in Bangalore 2026: https://studojo.com/reports/content-writer-jobs-in-bangalore-for-freshers-2026
+- Teaching Jobs Mumbai 2026: https://studojo.com/reports/teacher-jobs-in-mumbai-for-freshers-2026
+- Retail Sales Jobs in Chennai for Freshers: https://studojo.com/reports/retail-sales-jobs-in-chennai-for-freshers-2026
+- Software Testing Jobs in Bangalore 2026: https://studojo.com/reports/qa-tester-jobs-in-bangalore-for-freshers-2026
+- Audit Jobs in Bangalore 2026: https://studojo.com/reports/audit-jobs-in-bangalore-for-freshers-2026
+- Video Editor Jobs Mumbai, Freshers 2026: https://studojo.com/reports/video-editor-jobs-in-mumbai-for-freshers-2026
+- Technical Support Jobs in Pune 2026: https://studojo.com/reports/technical-support-jobs-in-pune-for-freshers-2026
+- Retail Sales Jobs in Hyderabad for Freshers: https://studojo.com/reports/retail-sales-jobs-in-hyderabad-for-freshers-2026
+- Retail Sales Jobs Delhi 2026: https://studojo.com/reports/retail-sales-jobs-in-delhi-for-freshers-2026
+- Software Testing Jobs in Mumbai 2026: https://studojo.com/reports/qa-tester-jobs-in-mumbai-for-freshers-2026
+- Marketing Jobs in Kolkata for Freshers 2026: https://studojo.com/reports/marketing-executive-jobs-in-kolkata-for-freshers-2026
+- Software Development Internship 2026: https://studojo.com/reports/software-development-internship-india-2026
+- Software Testing Internship 2026: https://studojo.com/reports/software-testing-internship-india-2026
+- Cybersecurity Internship 2026: https://studojo.com/reports/cybersecurity-internship-india-2026
+- Business Analyst Internship 2026: https://studojo.com/reports/business-analyst-internship-india-2026
+- Mechanical Internships in India 2026: https://studojo.com/reports/mechanical-engineering-internship-india-2026
+- Audit Internships in India 2026: https://studojo.com/reports/audit-internship-india-2026
+- Civil Engineering Internships 2026: https://studojo.com/reports/civil-engineering-internship-india-2026
+- Supply Chain Internships India 2026: https://studojo.com/reports/supply-chain-internship-india-2026
+- App Development Internship 2026: https://studojo.com/reports/app-development-internship-india-2026
 - Cite as: Studojo Jobs Index, November 2026 (1 to 15 November), with a link to the report.
 
 ## Studojo Jobs Index (original data, October 2026)

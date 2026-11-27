@@ -243,10 +243,10 @@ const R: DataReportContent = {
           ],
           [
             "teaching",
-            "877",
+            "791",
             "1.1%",
-            "32.9%",
-            "3.2 lakh"
+            "32.7%",
+            "3 lakh"
           ],
           [
             "technical support",
@@ -836,7 +836,7 @@ const R: DataReportContent = {
   },
   "directory": {
     "title": "Reports built on this index",
-    "sub": "76 new reports on November data, and the October edition",
+    "sub": "135 new reports on November data, and the October edition",
     "groups": [
       {
         "heading": "New this edition: a role in a city",
@@ -1072,6 +1072,206 @@ const R: DataReportContent = {
           {
             "href": "/reports/supply-chain-jobs-in-bangalore-for-freshers-2026",
             "label": "Supply Chain Jobs Bangalore 2026"
+          },
+          {
+            "href": "/reports/hotel-hospitality-jobs-in-bangalore-for-freshers-2026",
+            "label": "Hotel Jobs in Bangalore for Freshers 2026"
+          },
+          {
+            "href": "/reports/social-media-jobs-in-mumbai-for-freshers-2026",
+            "label": "Social Media Jobs Mumbai for Freshers 2026"
+          },
+          {
+            "href": "/reports/retail-sales-jobs-in-bangalore-for-freshers-2026",
+            "label": "Retail Sales Jobs in Bangalore for Freshers"
+          },
+          {
+            "href": "/reports/hotel-hospitality-jobs-in-delhi-for-freshers-2026",
+            "label": "Hotel Jobs in Delhi for Freshers 2026"
+          },
+          {
+            "href": "/reports/marketing-executive-jobs-in-noida-for-freshers-2026",
+            "label": "Marketing Jobs in Noida for Freshers 2026"
+          },
+          {
+            "href": "/reports/operations-executive-jobs-in-bangalore-for-freshers-2026",
+            "label": "Operations Executive Jobs Bangalore 2026"
+          },
+          {
+            "href": "/reports/supply-chain-jobs-in-mumbai-for-freshers-2026",
+            "label": "Supply Chain Jobs Mumbai 2026"
+          },
+          {
+            "href": "/reports/social-media-jobs-in-delhi-for-freshers-2026",
+            "label": "Delhi Social Media Jobs for Freshers 2026"
+          },
+          {
+            "href": "/reports/hotel-hospitality-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Hotel Jobs in Hyderabad for Freshers 2026"
+          },
+          {
+            "href": "/reports/teacher-jobs-in-bangalore-for-freshers-2026",
+            "label": "Teaching Jobs Bangalore 2026"
+          },
+          {
+            "href": "/reports/graphic-designer-jobs-in-mumbai-for-freshers-2026",
+            "label": "Graphic Designer Jobs Mumbai, Freshers 2026"
+          },
+          {
+            "href": "/reports/retail-sales-jobs-in-mumbai-for-freshers-2026",
+            "label": "Retail Sales Jobs in Mumbai for Freshers"
+          },
+          {
+            "href": "/reports/social-media-jobs-in-bangalore-for-freshers-2026",
+            "label": "Bangalore Social Media Jobs, Freshers 2026"
+          },
+          {
+            "href": "/reports/field-sales-jobs-in-ahmedabad-for-freshers-2026",
+            "label": "Field Sales Jobs in Ahmedabad for Freshers"
+          },
+          {
+            "href": "/reports/telecaller-jobs-in-pune-for-freshers-2026",
+            "label": "Telecaller Jobs in Pune for Freshers"
+          },
+          {
+            "href": "/reports/hotel-hospitality-jobs-in-chennai-for-freshers-2026",
+            "label": "Hotel Jobs in Chennai for Freshers 2026"
+          },
+          {
+            "href": "/reports/marketing-executive-jobs-in-pune-for-freshers-2026",
+            "label": "Marketing Jobs in Pune for Freshers 2026"
+          },
+          {
+            "href": "/reports/marketing-executive-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Marketing Jobs in Hyderabad for Freshers 2026"
+          },
+          {
+            "href": "/reports/relationship-manager-jobs-in-pune-for-freshers-2026",
+            "label": "Pune Relationship Manager Jobs for Freshers"
+          },
+          {
+            "href": "/reports/relationship-manager-jobs-in-delhi-for-freshers-2026",
+            "label": "Fresher Relationship Manager Jobs in Delhi"
+          },
+          {
+            "href": "/reports/digital-marketing-jobs-in-mumbai-for-freshers-2026",
+            "label": "Digital Marketing Jobs in Mumbai 2026"
+          },
+          {
+            "href": "/reports/digital-marketing-jobs-in-bangalore-for-freshers-2026",
+            "label": "Digital Marketing Jobs Bangalore 2026"
+          },
+          {
+            "href": "/reports/marketing-executive-jobs-in-gurgaon-for-freshers-2026",
+            "label": "Marketing Jobs in Gurgaon for Freshers 2026"
+          },
+          {
+            "href": "/reports/audit-jobs-in-mumbai-for-freshers-2026",
+            "label": "Audit Jobs in Mumbai for Freshers 2026"
+          },
+          {
+            "href": "/reports/hr-jobs-in-kolkata-for-freshers-2026",
+            "label": "HR Jobs in Kolkata for Freshers 2026"
+          },
+          {
+            "href": "/reports/technical-support-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Tech Support Jobs in Hyderabad 2026"
+          },
+          {
+            "href": "/reports/electrical-engineer-jobs-in-bangalore-for-freshers-2026",
+            "label": "Electrical Engineer Jobs in Bangalore 2026"
+          },
+          {
+            "href": "/reports/accountant-jobs-in-pune-for-freshers-2026",
+            "label": "Accountant Jobs in Pune for Freshers"
+          },
+          {
+            "href": "/reports/business-development-jobs-in-ahmedabad-for-freshers-2026",
+            "label": "Business Development Jobs in Ahmedabad 2026"
+          },
+          {
+            "href": "/reports/technical-support-jobs-in-chennai-for-freshers-2026",
+            "label": "Technical Support Jobs in Chennai 2026"
+          },
+          {
+            "href": "/reports/telecaller-jobs-in-kolkata-for-freshers-2026",
+            "label": "Telecaller Jobs in Kolkata 2026"
+          },
+          {
+            "href": "/reports/retail-sales-jobs-in-pune-for-freshers-2026",
+            "label": "Retail Sales Jobs in Pune for Freshers"
+          },
+          {
+            "href": "/reports/telecaller-jobs-in-gurgaon-for-freshers-2026",
+            "label": "Telecaller Jobs in Gurgaon 2026"
+          },
+          {
+            "href": "/reports/mechanical-engineer-jobs-in-bangalore-for-freshers-2026",
+            "label": "Mechanical Engineer Jobs in Bangalore 2026"
+          },
+          {
+            "href": "/reports/field-sales-jobs-in-jaipur-for-freshers-2026",
+            "label": "Field Sales Jobs in Jaipur for Freshers"
+          },
+          {
+            "href": "/reports/marketing-executive-jobs-in-chennai-for-freshers-2026",
+            "label": "Marketing Jobs in Chennai for Freshers 2026"
+          },
+          {
+            "href": "/reports/hotel-hospitality-jobs-in-pune-for-freshers-2026",
+            "label": "Hotel Jobs in Pune for Freshers 2026"
+          },
+          {
+            "href": "/reports/digital-marketing-jobs-in-noida-for-freshers-2026",
+            "label": "Digital Marketing Jobs in Noida 2026"
+          },
+          {
+            "href": "/reports/digital-marketing-jobs-in-delhi-for-freshers-2026",
+            "label": "Digital Marketing Jobs in Delhi 2026"
+          },
+          {
+            "href": "/reports/content-writer-jobs-in-bangalore-for-freshers-2026",
+            "label": "Content Writer Jobs in Bangalore 2026"
+          },
+          {
+            "href": "/reports/teacher-jobs-in-mumbai-for-freshers-2026",
+            "label": "Teaching Jobs Mumbai 2026"
+          },
+          {
+            "href": "/reports/retail-sales-jobs-in-chennai-for-freshers-2026",
+            "label": "Retail Sales Jobs in Chennai for Freshers"
+          },
+          {
+            "href": "/reports/qa-tester-jobs-in-bangalore-for-freshers-2026",
+            "label": "Software Testing Jobs in Bangalore 2026"
+          },
+          {
+            "href": "/reports/audit-jobs-in-bangalore-for-freshers-2026",
+            "label": "Audit Jobs in Bangalore 2026"
+          },
+          {
+            "href": "/reports/video-editor-jobs-in-mumbai-for-freshers-2026",
+            "label": "Video Editor Jobs Mumbai, Freshers 2026"
+          },
+          {
+            "href": "/reports/technical-support-jobs-in-pune-for-freshers-2026",
+            "label": "Technical Support Jobs in Pune 2026"
+          },
+          {
+            "href": "/reports/retail-sales-jobs-in-hyderabad-for-freshers-2026",
+            "label": "Retail Sales Jobs in Hyderabad for Freshers"
+          },
+          {
+            "href": "/reports/retail-sales-jobs-in-delhi-for-freshers-2026",
+            "label": "Retail Sales Jobs Delhi 2026"
+          },
+          {
+            "href": "/reports/qa-tester-jobs-in-mumbai-for-freshers-2026",
+            "label": "Software Testing Jobs in Mumbai 2026"
+          },
+          {
+            "href": "/reports/marketing-executive-jobs-in-kolkata-for-freshers-2026",
+            "label": "Marketing Jobs in Kolkata for Freshers 2026"
           }
         ]
       },
@@ -1149,6 +1349,42 @@ const R: DataReportContent = {
           {
             "href": "/reports/electrical-engineering-internship-india-2026",
             "label": "Electrical Engineering Internship 2026"
+          },
+          {
+            "href": "/reports/software-development-internship-india-2026",
+            "label": "Software Development Internship 2026"
+          },
+          {
+            "href": "/reports/software-testing-internship-india-2026",
+            "label": "Software Testing Internship 2026"
+          },
+          {
+            "href": "/reports/cybersecurity-internship-india-2026",
+            "label": "Cybersecurity Internship 2026"
+          },
+          {
+            "href": "/reports/business-analyst-internship-india-2026",
+            "label": "Business Analyst Internship 2026"
+          },
+          {
+            "href": "/reports/mechanical-engineering-internship-india-2026",
+            "label": "Mechanical Internships in India 2026"
+          },
+          {
+            "href": "/reports/audit-internship-india-2026",
+            "label": "Audit Internships in India 2026"
+          },
+          {
+            "href": "/reports/civil-engineering-internship-india-2026",
+            "label": "Civil Engineering Internships 2026"
+          },
+          {
+            "href": "/reports/supply-chain-internship-india-2026",
+            "label": "Supply Chain Internships India 2026"
+          },
+          {
+            "href": "/reports/app-development-internship-india-2026",
+            "label": "App Development Internship 2026"
           }
         ]
       },
