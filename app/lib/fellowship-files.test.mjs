@@ -15,7 +15,8 @@ test("an activity link and a share link of the same post are the same post; anot
   assert.equal(linkedInId(`https://www.linkedin.com/posts/asha-k_in-october-i-applied-share-${SHARE}-7CQh`), SHARE);
   assert.equal(linkedInId(`https://www.linkedin.com/posts/asha-k_internship-studojo-ugcPost-${SHARE}-8D_6`), SHARE);
   assert.equal(sameLinkedInPost(ACTIVITY, SHARE), true);
-  assert.equal(sameLinkedInPost(SHARE + (60_000n << 22n), SHARE), false, "a post a minute later is another post");
+  assert.equal(sameLinkedInPost(SHARE + (12_000n << 22n), SHARE), true, "ids 12 seconds apart are the same post (Varad, 11 Nov)");
+  assert.equal(sameLinkedInPost(SHARE + (120_000n << 22n), SHARE), false, "a post two minutes later is another post");
   assert.equal(sameLinkedInPost(null, SHARE), false);
   assert.equal(linkedInId("https://www.linkedin.com/posts/asha-k"), null, "a profile link has no post id");
 });
@@ -110,4 +111,16 @@ test("a fellow's page shows the numbers their files have, unless what's saved is
   assert.equal(c.impressions, 512, "typed 40, file 512: the higher wins, as the admin counts it");
   assert.equal(d, saved[3], "a post not marked posted never takes numbers");
   assert.deepEqual(postsWithFileNumbers(saved, []), saved, "no uploads: nothing changes");
+});
+
+test("ids made seconds apart, and an opening line changed after posting: still the same post", () => {
+  // The saved link's activity id was made 12 s after the file's ugcPost id, and the file's link words are the first
+  // line before it was edited, so only the id window can match them (as with Varad's post of 11 Nov 2026).
+  const UGC = SHARE + (777_000_000n << 22n);
+  const ACT = UGC + (12_000n << 22n) + 4321n;
+  const ours = [post(1, "A map is only useful once you know where you stand.", `https://www.linkedin.com/feed/update/urn:li:activity:${ACT}`, "2026-11-11T13:04:00Z")];
+  const files = [week("2026-11-07", "2026-11-13", [
+    { url: `https://www.linkedin.com/posts/asha-k_how-many-applications-have-you-sent-ugcPost-${UGC}-Zisy`, publishedOn: "2026-11-11", impressions: 175 },
+  ])];
+  assert.equal(numbersFromFiles(ours, files).get(1)?.impressions, 175);
 });
