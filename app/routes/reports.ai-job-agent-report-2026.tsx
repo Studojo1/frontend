@@ -268,7 +268,7 @@ const FAQ = [
   },
   {
     q: "Do AI job agents actually get you hired?",
-    a: "Not on their own. Finders and matchers save time, but they still end at an online application, and the typical success rate of an online application is cited at roughly 0.1% to 2% (The Interview Guys, April 2026). The step that changes things is a short, personal email to the person who hires, which is what Studojo does for you, though no tool can guarantee a reply.",
+    a: "Not on their own. Finders and matchers save time, but they still end at an online application, and the typical success rate of an online application is cited at roughly 0.1% to 2% (The Interview Guys, April 2026). The step that changes things is a short, personal email to the person who hires, which is what Studojo does for you. Replies are still not guaranteed.",
   },
   {
     q: "Is it safe to use an AI job hunter that auto-applies for you?",
@@ -307,7 +307,7 @@ export default function AiJobAgentReport() {
         "description": "What finders, matchers and auto-appliers actually do, why mass-applying fails, and why the AI job agent worth using reaches the hiring manager.",
         "url": `${BASE_URL}/reports/ai-job-agent-report-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/ai-job-agent-report-2026` },
@@ -362,7 +362,7 @@ export default function AiJobAgentReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -377,6 +377,7 @@ export default function AiJobAgentReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> an AI job agent is software that does part of your job search for you. Most are finders that list jobs, matchers that score your fit, or auto-appliers that apply in your name. The useful kind reaches the person who hires: Stu, Studojo's agent, finds that person and writes them a personal email.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>"AI job agent" covers <strong>three different products</strong>: finders that list jobs, matchers that score your fit, and auto-appliers that submit applications in your name.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Finders and matchers <strong>save you time, not a place in the queue</strong>. Their last step is still an online application.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Auto-appliers <strong>burn your name</strong>. An online application is cited at roughly 0.1% to 2% success (The Interview Guys, April 2026), and recruiters now hunt for bot patterns (NBC News, November 2024).</span></div>
@@ -536,7 +537,7 @@ export default function AiJobAgentReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>Does it write for one person?</strong> A template with the company name swapped in is still a template. Hiring managers can tell.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Does it automate LinkedIn?</strong> LinkedIn's terms ban bots and automation tools. A tool that clicks for you there puts your account on the wrong side of those terms.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>How does billing work?</strong> Check whether a cheap trial rolls into a recurring charge. Reviewers of auto-apply tools have complained about exactly this.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Does it promise interviews?</strong> No honest tool can. If an agent guarantees interviews or offers, walk away.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Does it promise interviews?</strong> No honest tool can. If an agent promises you interviews or offers, walk away.</span></div>
             </div>
             <div className="chart-wrap">
               <div className="chart-label">Risk to your name, by how an agent sends, 1 to 5 (Studojo editorial rating)</div>

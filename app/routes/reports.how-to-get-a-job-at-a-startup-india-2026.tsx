@@ -299,7 +299,7 @@ export default function StartupJobReport() {
         "description": "Startups hire through founders and team leads, often before a role is posted. How startups hire freshers, what founders look for, and a five-line founder email.",
         "url": `${BASE_URL}/reports/how-to-get-a-job-at-a-startup-india-2026`,
         "datePublished": "2026-10-28T00:00:00Z",
-        "dateModified": "2026-10-28T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/how-to-get-a-job-at-a-startup-india-2026` },
@@ -354,7 +354,7 @@ export default function StartupJobReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -369,6 +369,7 @@ export default function StartupJobReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> write to the founder or the team lead directly. At a small startup they make the hiring call, often before a role is posted. Send a five-line email from your own address with one proof you can do the work and a sign you have used their product, then follow up once.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>India had <strong>over 2.23 lakh DPIIT-recognised startups</strong> as of 31 March 2026 (PIB, April 2026). At a small company, the founder or a team lead makes the hiring call.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Startups often <strong>hire before a role is posted</strong>. By the time a listing appears, the founder may already be talking to people who wrote in.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Founders look for <strong>proof you can do the work</strong>: something you built, shipped or grew, and signs you actually used their product.</span></div>

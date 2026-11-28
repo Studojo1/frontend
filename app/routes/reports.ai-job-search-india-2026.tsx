@@ -307,7 +307,7 @@ export default function AiJobSearchIndiaReport() {
         "description": "Where AI tools genuinely help Indian freshers in the job search, why bot mass-applying backfires, and why emailing the hiring manager directly works better.",
         "url": `${BASE_URL}/reports/ai-job-search-india-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/ai-job-search-india-2026` },
@@ -362,7 +362,7 @@ export default function AiJobSearchIndiaReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -377,6 +377,7 @@ export default function AiJobSearchIndiaReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> the best AI tool for a fresher in India is one that gets you to the person who hires, not one that applies for you. Use any AI assistant to tighten your resume, then email the hiring manager. We built Stu, Studojo's AI career agent, to find that person and write that email.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>AI is genuinely useful for <strong>writing and research</strong>: tightening resume lines, tailoring to one job post, and finding companies and openings you would have missed.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>AI that <strong>applies for you is a different thing</strong>. A single online application is cited at roughly 0.1% to 2% success, and a bot multiplies volume, not quality.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Recruiters <strong>spot bot patterns</strong>: hidden instructions planted in job posts, and one name applying to dozens of roles at the same company (NBC News, 2024). That is how a bot wastes your name.</span></div>
