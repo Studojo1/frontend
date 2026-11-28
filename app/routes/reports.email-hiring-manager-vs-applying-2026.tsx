@@ -308,7 +308,7 @@ export default function EmailHiringManagerVsApplyingReport() {
         "description": "Should you email the hiring manager or apply online? The portal path and the direct path side by side, when to do both, and the four-part email that gets read.",
         "url": `${BASE_URL}/reports/email-hiring-manager-vs-applying-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/email-hiring-manager-vs-applying-2026` },
@@ -362,7 +362,7 @@ export default function EmailHiringManagerVsApplyingReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -377,6 +377,7 @@ export default function EmailHiringManagerVsApplyingReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> Stu, Studojo's AI career agent, is the tool we built for exactly this. It finds jobs that fit you and the person hiring for each, verifies their work email, and writes a short, personal email. Nothing goes out until you start a campaign; then Stu sends from your own inbox and follows up politely.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>The portal path is a queue: an average opening draws <strong>about 242 applications</strong> (The Interview Guys, April 2026, citing Business Insider data), and a first resume scan lasts about 6 to 7 seconds (Ladders, 2018).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Online applications are cited at <strong>roughly 0.1% to 2% success per application</strong> (The Interview Guys, April 2026). Mass-applying multiplies the misses, not the odds.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>The direct path skips the queue: <strong>one short email to the person who decides</strong>, the hiring manager or team lead, not a generic HR inbox.</span></div>

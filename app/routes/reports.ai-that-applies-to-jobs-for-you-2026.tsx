@@ -309,7 +309,7 @@ export default function AiThatAppliesToJobsReport() {
         "description": "What four AI auto-apply tools claim on their own sites, their listed prices, what public reviewers report, and why they all share auto-apply's ceiling.",
         "url": `${BASE_URL}/reports/ai-that-applies-to-jobs-for-you-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/ai-that-applies-to-jobs-for-you-2026` },
@@ -363,7 +363,7 @@ export default function AiThatAppliesToJobsReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -378,6 +378,7 @@ export default function AiThatAppliesToJobsReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> yes. LazyApply, Jobright, AIApply and JobCopilot all say they will apply for you. We do not recommend any of them: an online application succeeds roughly 0.1% to 2% of the time (The Interview Guys, April 2026), and a bot adds volume, not odds. Stu does not apply for you; it emails the person hiring.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>All four sell the same core product: <strong>software that fills in and submits job applications for you</strong>, as each describes on its own site (October 2026).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Listed prices run from <strong>LazyApply's $99 a year</strong> (15 applications a day) to <strong>$999 a year</strong> (1,500 a day). AIApply's auto-apply starts at $49 a month for 100 applications; JobCopilot lists plans from $0.93 a day. Jobright shows no job-seeker price on its public pages.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Their headline interview claims are <strong>their own marketing</strong>. We found no published method behind any of them.</span></div>

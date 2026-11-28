@@ -306,7 +306,7 @@ export default function OffCampusPlacementReport() {
         "description": "Off-campus is the default path for most Indian freshers. The channels that work, the timeline, and the system to run.",
         "url": `${BASE_URL}/reports/off-campus-placement-report-india-2026`,
         "datePublished": "2026-10-14T00:00:00Z",
-        "dateModified": "2026-10-14T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/off-campus-placement-report-india-2026` },
@@ -360,7 +360,7 @@ export default function OffCampusPlacementReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -375,6 +375,7 @@ export default function OffCampusPlacementReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> through referrals, company hiring drives, job portals and, most underused, a direct email to the hiring manager. Apply to fresh listings, write to the person who leads that team, and run it as a weekly routine. Mass applying only adds volume: a typical opening draws about 242 applications (The Interview Guys, April 2026).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>On-campus placement <strong>reaches only a minority</strong> of students and colleges. Most graduates never get a campus offer.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span><strong>Off-campus is where most fresher hiring happens</strong>, so treat it as the main path, not the fallback.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>It runs on <strong>referrals, direct outreach to hiring managers, mass-hiring drives and portals</strong>.</span></div>

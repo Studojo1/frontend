@@ -294,7 +294,7 @@ export default function MailToHrReport() {
         "description": "Where a mail to HR for a job actually goes in India, the subject line, body and resume format that work, and why mailing the hiring manager works better.",
         "url": `${BASE_URL}/reports/mail-to-hr-for-job-india-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/mail-to-hr-for-job-india-2026` },
@@ -348,7 +348,7 @@ export default function MailToHrReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -363,6 +363,7 @@ export default function MailToHrReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> yes, but do not stop at HR. A mail to hr@ or careers@ joins a shared pile, and an average opening already draws about 242 applications (The Interview Guys, April 2026). Mail HR when the process asks for it, and also email the hiring manager of the team, briefly, from your own address.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>A mail to careers@ or hr@ lands in <strong>a shared inbox that can hold hundreds of resumes</strong>. An average opening already draws about 242 applications (The Interview Guys, April 2026).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span><strong>HR screens, the hiring manager decides.</strong> HR checks your mail against open requisitions. The manager of the team decides who the team needs.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>If you mail HR, use <strong>a subject with the role, a 4-line body and a PDF resume named with your name and the role</strong>.</span></div>

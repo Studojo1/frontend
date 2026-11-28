@@ -283,7 +283,7 @@ export default function HowToGetAnInternshipIndiaReport() {
         "description": "Where internships are actually listed in India, what stipends really look like, and why emailing the person who hires beats mass applying.",
         "url": `${BASE_URL}/reports/how-to-get-an-internship-india-2026`,
         "datePublished": "2026-11-05T00:00:00Z",
-        "dateModified": "2026-11-05T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/how-to-get-an-internship-india-2026` },
@@ -337,7 +337,7 @@ export default function HowToGetAnInternshipIndiaReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Updated</span>
-                <span className="rpt-meta-value">5 November 2026</span>
+                <span className="rpt-meta-value">28 November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -352,6 +352,7 @@ export default function HowToGetAnInternshipIndiaReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> find a listing, apply, then email the manager who runs that team with one proof of your work, and follow up once. About 85 in 100 Indian listings name no one to contact (Studojo listings data, October 2026), so finding that person is the real work, and the step most applicants skip.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>India listed about <strong>18,459 internship openings</strong> in October 2026, part of 171,203 live entry-level and internship listings (Studojo listings data, October 2026).</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span><strong>About 85 in 100 listings give you no person to contact</strong>, and only about 7 in 100 put an email in the posting. You have to find the person who hires.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span><strong>Only about 2.1% of internship listings even state the stipend.</strong> Where interns report pay, it commonly runs 10,000 to 20,000 rupees a month; the PM Internship Scheme pays 9,000 rupees a month.</span></div>

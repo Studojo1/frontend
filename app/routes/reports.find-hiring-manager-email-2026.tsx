@@ -298,7 +298,7 @@ export default function FindHiringManagerEmailReport() {
         "description": "A step by step guide to finding a hiring manager's email: read the job post, find the team lead, work out the company email format and check the address before you send.",
         "url": `${BASE_URL}/reports/find-hiring-manager-email-2026`,
         "datePublished": "2026-10-27T00:00:00Z",
-        "dateModified": "2026-10-27T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/find-hiring-manager-email-2026` },
@@ -353,7 +353,7 @@ export default function FindHiringManagerEmailReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -368,6 +368,7 @@ export default function FindHiringManagerEmailReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> find the person first, then the address. Read the job post for the team, find who leads it, work out the company's email pattern from addresses it has published for named staff, and check the address before you send. Stu, Studojo's AI career agent, does this for you and verifies the work email.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>The hiring manager is <strong>the person whose team you would join</strong>, usually the team lead. Not HR, and usually not the recruiter. At a small startup it is often a founder.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>The manual method has four steps: <strong>read the job post for the team, find who leads it, work out the company's email format, check the address</strong>.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Companies usually give every employee <strong>the same address pattern</strong>. Find it from public addresses of named people at that company, never from what is common elsewhere.</span></div>

@@ -309,7 +309,7 @@ export default function AIJobSearchToolsReport() {
         "description": "Where AI helps a job search, where it backfires, whether recruiters can tell, and the workflow that uses AI as a drafting layer.",
         "url": `${BASE_URL}/reports/ai-job-search-tools-2026`,
         "datePublished": "2026-10-12T00:00:00Z",
-        "dateModified": "2026-10-12T00:00:00Z",
+        "dateModified": "2026-11-28T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/ai-job-search-tools-2026` },
@@ -364,7 +364,7 @@ export default function AIJobSearchToolsReport() {
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">October 2026</span>
+                <span className="rpt-meta-value">October 2026, updated November 2026</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -379,6 +379,7 @@ export default function AIJobSearchToolsReport() {
           <div className="keyfindings">
             <h2>Key findings</h2>
             <div className="kf-list">
+              <div className="kf-item"><span className="kf-check">✓</span><span><strong>Short answer (November 2026):</strong> the best AI job search tools for students help you write and reach a real person; the worst apply in bulk in your name. Use a general AI assistant to draft and research, never to invent facts about you. To find and email the hiring manager, we built Stu, Studojo's AI career agent.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>Treat AI as a <strong>drafting and reasoning layer</strong>, not a source of truth about you. It is good at structure and wording. It knows nothing about your real experience.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>It genuinely helps with <strong>tailoring a resume to a specific job post</strong>, first drafts of cover letters and outreach, mock interviews and feedback, fast company research, and mapping your skill gaps.</span></div>
               <div className="kf-item"><span className="kf-check">✓</span><span>It backfires through <strong>generic AI paste</strong> that reads identical to everyone else, hallucinated experience you cannot defend, mass auto-apply bots that flood employers and damage your name, and cover letters so polished they ring false.</span></div>
